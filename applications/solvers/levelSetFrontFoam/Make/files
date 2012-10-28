@@ -1,0 +1,3 @@
+levelSetFrontFoam.C
+
+EXE = $(FOAM_APPBIN)/levelSetFrontFoam

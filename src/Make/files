@@ -1,0 +1,7 @@
+levelSetFront/levelSetFront.C
+
+levelSetFrontFields/levelSetFrontFields.C
+
+/*levelSetFrontToMeshConnectivity/levelSetFrontToMeshConnectivity.C*/
+
+LIB = $(FOAM_USER_LIBBIN)/liblevelSetFrontTracking
