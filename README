@@ -1,0 +1,9 @@
+This is a library and application toolbox that is used for DNS
+simulations of Two-Phase flow using the LCRM method. The method
+has been extended to be used with arbitrary unstructured meshes.
+
+email: tomislav.maric@gmx.com
+
+Installation instructions:
+
+Work in progress :) 
