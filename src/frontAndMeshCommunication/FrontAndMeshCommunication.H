@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::levelSetFront
+    Foam::FrontAndMeshCommunication
 
 Author
     Tomislav Maric
@@ -36,15 +36,18 @@ Author
 Description
 
 SourceFiles
-    levelSetFront.C
+    FrontAndMeshCommunication.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef levelSetFront_H
-#define levelSetFront_H
+#ifndef FrontAndMeshCommunication_H
+#define FrontAndMeshCommunication_H
 
-#include "isoSurface.H"
-#include "triSurfaceMesh.H"
+#include "tmp.H"
+#include "DimensionedField.H"
+#include "GeometricField.H"
+#include "volMesh.H"
+#include "triSurfaceGeoMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -54,80 +57,52 @@ namespace frontTracking
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class levelSetFront Declaration
+                         Class FrontAndMeshCommunication Declaration
 \*---------------------------------------------------------------------------*/
 
-class levelSetFront
-:
-    public triSurfaceMesh 
+template<class Mesh, class Front, class Connectivity>
+class FrontAndMeshCommunication
 {
-
-    bool moving_; 
-    bool changing_;
-
-    void computeIsoSurface (
-        const volScalarField& cellsToElementsDist, 
-        const scalarField& pointsToElementsDist, 
-        const bool regularise=true, 
-        const scalar mergeTol=1e-06
-    );
+    // Private data
     
-    // Dissalow: 
-    
-        //- Construct as copy
-        levelSetFront(const levelSetFront&);
+    const Mesh& mesh_; 
+    const Front& front_;
+
+    Connectivity connectivity_;
+
+    // Private Member Functions
+
+        //- Disallow default bitwise copy construct
+        FrontAndMeshCommunication(const FrontAndMeshCommunication<Mesh, Front, Connectivity>&);
+
+        //- Disallow default bitwise assignment
+        void operator=(const FrontAndMeshCommunication<Mesh, Front, Connectivity>&);
+
 
 public:
-       
-    TypeName ("levelSetFront");
 
     // Constructors
 
-        //- Construct read 
-        levelSetFront(const IOobject& io);
+        //- Construct from components
+        FrontAndMeshCommunication(const Mesh& mesh, const Front& front);
 
-        //- Construct as isoSurface from a distance field
-        //levelSetFront(const volScalarField& psi, 
-            //const scalarField& psiPoint);
+    // Member Functions 
+        void calcCellsToElementsDist(volScalarField& cellsToElementsDist); 
 
-    //- Destructor
-    //~levelSetFront();
-
-    // Member Functions
-        // Set/get the moving/changing flags. 
-        bool moving() const;
-        void moving(bool b); 
-
-        bool changing() const; 
-        void changing(bool b);
-    
-        // Edit
-        void reconstruct (
-            const volScalarField& cellsToElementsDist, 
-            const scalarField& pointsToElementsDist, 
-            const bool regularise=true, 
-            const scalar mergeTol=1e-06
-        );
-
-        void reconstruct (
-            const volScalarField& cellsToElementsDist, 
-            const bool regularise=true, 
-            const scalar mergeTol=1e-06
-        );
-
-        // Displace points.
-        
-    // Member operators 
-    void operator=(const isoSurface& rhs);
-        
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace frontTracking
-
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+#ifdef NoRepository
+#   include "FrontAndMeshCommunication.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

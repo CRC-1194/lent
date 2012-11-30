@@ -27,10 +27,12 @@ Application
 Author
     Tomislav Maric
     maric@csi.tu-darmstadt.de
+    tomislav.maric@gmx.com
     Mathematical Modelling and Analysis Group 
     Center of Smart Interfaces
     TU Darmstadt
     Germany
+
 
 Description
 
@@ -47,9 +49,27 @@ Description
 
 #include "levelSetFront.H"
 #include "levelSetFrontFields.H"
-#include "frontAndMeshConnectivity.H"
+
+#include "DynamicListDLListMap.H"
+#include "FrontAndMeshConnectivity.H"
+
+#include "FrontAndMeshCommunication.H"
+
+// Define FrontAndMeshCommunication
 
 using namespace frontTracking;
+
+typedef FrontAndMeshConnectivity<fvMesh, 
+    levelSetFront, DynamicListDLListMap> frontAndMeshConnectivity;
+
+//typedef FrontAndMeshConnectivity<fvMesh, 
+    //levelSetFront, std::multimap> frontAndMeshConnectivity;
+    //
+//typedef FrontAndMeshConnectivity<fvMesh, 
+    //levelSetFront, std::unordered_multimap> frontAndMeshConnectivity;
+    
+//typedef FrontAndMeshCommunication<fvMesh, 
+    //levelSetFront, frontAndMeshConnectivity> frontAndMeshCommunication;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -73,19 +93,18 @@ int main(int argc, char *argv[])
 
     Info<< "\nStarting time loop\n" << endl;
 
-    levelSetFront front;
-
-    frontAndMeshConnectivity<fvMesh> frontMeshConnection 
-    ( 
-        frontAndMeshConnectivity<fvMesh>::New(mesh, front)
+    levelSetFront front (
+        IOobject (
+            "levelSetFront", 
+            runTime.timeName(), 
+            runTime, 
+            IOobject::NO_READ, 
+            IOobject::AUTO_WRITE
+        )
     );
-    frontAndMeshConnectivity<fvMesh> frontMeshConnection2 
-    ( 
-        frontAndMeshConnectivity<fvMesh>::New(mesh, front)
-    );
 
-    //frontAndMeshConnectivity<fvMesh> frontMeshOtherConnection = frontAndMeshConnectivity<fvMesh>::New(mesh, front);
-    //frontAndMeshConnectivity<fvMesh> frontMeshOtherConnectionSecond = frontAndMeshConnectivity<fvMesh>::New(front, mesh);
+    frontAndMeshCommunication frontAndMesh(mesh, front);
+
 
     //while (runTime.run())
     //{

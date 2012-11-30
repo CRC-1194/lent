@@ -22,11 +22,12 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::frontAndMeshConnectivity
+    Foam::FrontAndMeshConnectivity
 
 Author
     Tomislav Maric
     maric@csi.tu-darmstadt.de
+    tomislav.maric@gmx.com
     Mathematical Modelling and Analysis Group 
     Center of Smart Interfaces
     TU Darmstadt
@@ -35,12 +36,12 @@ Author
 Description
 
 SourceFiles
-    frontAndMeshConnectivity.C
+    FrontAndMeshConnectivity.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef frontAndMeshConnectivity_H
-#define frontAndMeshConnectivity_H
+#ifndef FrontAndMeshConnectivity_H
+#define FrontAndMeshConnectivity_H
 
 #include "typeInfo.H"
 #include "MeshObject.H"
@@ -54,58 +55,43 @@ namespace frontTracking
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class frontAndMeshConnectivity Declaration
+                         Class FrontAndMeshConnectivity Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class Mesh> 
-class frontAndMeshConnectivity
-:
-    public MeshObject<Mesh, frontAndMeshConnectivity<Mesh> >
+template<class Mesh, class Front, class ConnectivityData> 
+class FrontAndMeshConnectivity
+//:
+    //public MeshObject<Mesh, 
+        //FrontAndMeshConnectivity<Mesh, Front, ConnectivityData> >
 {
-
     // Private data
-        //- Front vertex to cell  
-        //- Front element to cell
-
-        //- Cell to front vertices
-
-        //- Cell to front elements
-
-    // Private Member Functions
-
-
-    // Dissallow
-        //- Empty construction
-        //frontAndMeshConnectivity<Mesh>();
+    
+            //- Connectivity maps 
+         ConnectivityData elementsToCells_;
 
 public:
         
+        //TypeName("frontAndMeshConnectivity");
+
+        typedef typename ConnectivityData::MapType MapType; 
 
     // Constructors
 
-        TypeName("frontAndMeshConnectivity");
-
-
         //- Construct from components
-        frontAndMeshConnectivity(const Mesh& mesh, 
-                                 const levelSetFront& front);
+        FrontAndMeshConnectivity(const Mesh& mesh, const Front& front);
 
         //- Construct as copy
-        //frontAndMeshConnectivity(const frontAndMeshConnectivity&);
+        //FrontAndMeshConnectivity(const FrontAndMeshConnectivity&);
 
-
-    // Selectors
-
-        //- Select null constructed
-        //static autoPtr<frontAndMeshConnectivity> New();
 
     //- Destructor
-    ~frontAndMeshConnectivity();
+    virtual ~FrontAndMeshConnectivity(); 
 
 
     // Member Functions
 
         // Access
+        const typename ConnectivityData::MapType& cellsToElements();
 
         // Check
 
@@ -116,7 +102,7 @@ public:
 
     // Member Operators
 
-        //void operator=(const frontAndMeshConnectivity&);
+        //void operator=(const FrontAndMeshConnectivity&);
 
 };
 
@@ -128,7 +114,9 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "frontAndMeshConnectivityI.H"
+#ifdef NoRepository
+#   include "FrontAndMeshConnectivity.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -24,34 +24,49 @@ License
 Author
     Tomislav Maric
     maric@csi.tu-darmstadt.de
+    tomislav.maric@gmx.com
     Mathematical Modelling and Analysis Group 
     Center of Smart Interfaces
     TU Darmstadt
     Germany
-
 
 \*---------------------------------------------------------------------------*/
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 
-namespace Foam
-{
-        defineNamedTemplateTypeNameAndDebug(frontTracking::frontAndMeshConnectivity<fvMesh>, 0); 
-}
+//namespace Foam
+//{
+    //namespace frontTracking
+    //{
+        //template <class Mesh, class Front>
+        //class ConnectivityListDLList; 
+
+        //typedef FrontAndMeshConnectivity<fvMesh, levelSetFront, ConnectivityListDLList>
+            //frontAndMeshConnectivity;
+
+        //defineNamedTemplateTypeNameAndDebug(frontAndMeshConnectivity, 0); 
+    //}
+//}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class Mesh>
-Foam::frontTracking::frontAndMeshConnectivity<Mesh>::frontAndMeshConnectivity(const Mesh& mesh, const levelSetFront& front)
-    :
-        MeshObject<Mesh, frontAndMeshConnectivity<Mesh> > (mesh)
+template<class Mesh, class Front, 
+    //template <typename Mesh, typename Front> class ConnectivityData>
+    class ConnectivityData> 
+Foam::frontTracking::FrontAndMeshConnectivity<Mesh, Front, ConnectivityData>::FrontAndMeshConnectivity(const Mesh& mesh, const Front& front)
+    //:
+        //MeshObject<Mesh, FrontAndMeshConnectivity<Mesh, Front, ConnectivityData> > (mesh), 
+        //connectivity_()
 {
-    Info << "frontAndMeshConnectivity:: component ctor " << endl;
+    // //if (debug)
+    //{
+        Pout << "FrontAndMeshConenctivity : component ctor " << endl;
+    //}
 }
 
 
-//Foam::frontTracking::frontAndMeshConnectivity::frontAndMeshConnectivity(const frontAndMeshConnectivity&)
+//Foam::frontTracking::FrontAndMeshConnectivity::FrontAndMeshConnectivity(const FrontAndMeshConnectivity&)
 //:
     //baseClassName(),
     //data_()
@@ -60,33 +75,44 @@ Foam::frontTracking::frontAndMeshConnectivity<Mesh>::frontAndMeshConnectivity(co
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
-//Foam::autoPtr<Foam::frontTracking::frontAndMeshConnectivity>
-//Foam::frontTracking::frontAndMeshConnectivity::New()
+//Foam::autoPtr<Foam::frontTracking::FrontAndMeshConnectivity>
+//Foam::frontTracking::FrontAndMeshConnectivity::New()
 //{
-    //return autoPtr<frontAndMeshConnectivity>(new frontAndMeshConnectivity);
+    //return autoPtr<FrontAndMeshConnectivity>(new FrontAndMeshConnectivity);
 //}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-template<class Mesh>
-Foam::frontTracking::frontAndMeshConnectivity<Mesh>::~frontAndMeshConnectivity()
+template<class Mesh, class Front, 
+    template <typename Mesh, typename Front> class ConnectivityData>
+Foam::frontTracking::FrontAndMeshConnectivity<Mesh, Front, ConnectivityData>::~FrontAndMeshConnectivity()
 {
 
+    Pout << "FrontAndMeshConnectivity::dtor" << endl;
 }
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+//
+template<class Mesh, class Front, 
+    template <typename Mesh, typename Front> class ConnectivityData>
+const typename ConnectivityData::MapType&
+Foam::frontTracking::FrontAndMeshConnectivity<Mesh, Front, ConnectivityData>::elementsToCells()
+{
+    return  elementsToCells_;
+}
+
 
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
 
-//void Foam::frontTracking::frontAndMeshConnectivity::operator=(const frontAndMeshConnectivity& rhs)
+//void Foam::frontTracking::FrontAndMeshConnectivity::operator=(const FrontAndMeshConnectivity& rhs)
 //{
     //// Check for assignment to self
     //if (this == &rhs)
     //{
-        //FatalErrorIn("Foam::frontTracking::frontAndMeshConnectivity::operator=(const Foam::frontTracking::frontAndMeshConnectivity&)")
+        //FatalErrorIn("Foam::frontTracking::FrontAndMeshConnectivity::operator=(const Foam::frontTracking::FrontAndMeshConnectivity&)")
             //<< "Attempted assignment to self"
             //<< abort(FatalError);
     //}

@@ -22,12 +22,11 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::levelSetFront
+    Foam::DynamicListDLListMap
 
 Author
     Tomislav Maric
     maric@csi.tu-darmstadt.de
-    tomislav.maric@gmx.com
     Mathematical Modelling and Analysis Group 
     Center of Smart Interfaces
     TU Darmstadt
@@ -36,15 +35,15 @@ Author
 Description
 
 SourceFiles
-    levelSetFront.C
+    DynamicListDLListMap.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef levelSetFront_H
-#define levelSetFront_H
+#ifndef DynamicListDLListMap_H
+#define DynamicListDLListMap_H
 
-#include "isoSurface.H"
-#include "triSurfaceMesh.H"
+#include "DynamicList.H"
+#include "DLList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -54,80 +53,59 @@ namespace frontTracking
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class levelSetFront Declaration
+                         Class DynamicListDLListMap Declaration
 \*---------------------------------------------------------------------------*/
 
-class levelSetFront
-:
-    public triSurfaceMesh 
+class DynamicListDLListMap
 {
+    // Private data
 
-    bool moving_; 
-    bool changing_;
-
-    void computeIsoSurface (
-        const volScalarField& cellsToElementsDist, 
-        const scalarField& pointsToElementsDist, 
-        const bool regularise=true, 
-        const scalar mergeTol=1e-06
-    );
-    
-    // Dissalow: 
-    
-        //- Construct as copy
-        levelSetFront(const levelSetFront&);
+    DynamicList<DLList<label> > map_; 
 
 public:
-       
-    TypeName ("levelSetFront");
+
+    typedef DynamicList<DLList<label> >::const_iterator const_iterator;
+    typedef DynamicList<DLList<label> >::iterator iterator;
 
     // Constructors
+    
+    //- Construct from components
+    DynamicListDLListMap(label size=0);
 
-        //- Construct read 
-        levelSetFront(const IOobject& io);
-
-        //- Construct as isoSurface from a distance field
-        //levelSetFront(const volScalarField& psi, 
-            //const scalarField& psiPoint);
+    //- Copy construction
+    DynamicListDLListMap(const DynamicListDLListMap&);
 
     //- Destructor
-    //~levelSetFront();
+    ~DynamicListDLListMap();
 
-    // Member Functions
-        // Set/get the moving/changing flags. 
-        bool moving() const;
-        void moving(bool b); 
+    // Member Functions 
 
-        bool changing() const; 
-        void changing(bool b);
+    DynamicList<DLList<label > >::const_iterator
+    begin()
+    {
+        return map_.begin(); 
+    }
+
+    DynamicList<DLList<label > >::const_iterator
+    end()
+    {
+        return map_.end(); 
+    }
+
     
-        // Edit
-        void reconstruct (
-            const volScalarField& cellsToElementsDist, 
-            const scalarField& pointsToElementsDist, 
-            const bool regularise=true, 
-            const scalar mergeTol=1e-06
-        );
-
-        void reconstruct (
-            const volScalarField& cellsToElementsDist, 
-            const bool regularise=true, 
-            const scalar mergeTol=1e-06
-        );
-
-        // Displace points.
-        
-    // Member operators 
-    void operator=(const isoSurface& rhs);
-        
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace frontTracking
-
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+#   include "DynamicListDLListMap.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
