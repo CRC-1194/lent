@@ -50,28 +50,9 @@ Description
 #include "levelSetFront.H"
 #include "levelSetFrontFields.H"
 
-#include "DynamicListDLListMap.H"
-#include "FrontAndMeshConnectivity.H"
-
-#include "FrontAndMeshCommunication.H"
-
-// Define FrontAndMeshCommunication
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace frontTracking;
-
-typedef FrontAndMeshConnectivity<fvMesh, 
-    levelSetFront, DynamicListDLListMap> frontAndMeshConnectivity;
-
-//typedef FrontAndMeshConnectivity<fvMesh, 
-    //levelSetFront, std::multimap> frontAndMeshConnectivity;
-    //
-//typedef FrontAndMeshConnectivity<fvMesh, 
-    //levelSetFront, std::unordered_multimap> frontAndMeshConnectivity;
-    
-//typedef FrontAndMeshCommunication<fvMesh, 
-    //levelSetFront, frontAndMeshConnectivity> frontAndMeshCommunication;
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
@@ -102,9 +83,6 @@ int main(int argc, char *argv[])
             IOobject::AUTO_WRITE
         )
     );
-
-    frontAndMeshCommunication frontAndMesh(mesh, front);
-
 
     //while (runTime.run())
     //{
