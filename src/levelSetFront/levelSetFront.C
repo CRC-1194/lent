@@ -64,15 +64,47 @@ void Foam::frontTracking::levelSetFront::computeIsoSurface (
     );
 }
 
+void Foam::frontTracking::levelSetFront::write(label index)
+{
+    // Separate the file name and the extension.
+    fileName baseName = name_.name(true);
+
+    string indexString = Foam::name(index);
+
+    // Pad the base name with zeros
+    std::string paddedZeros = std::string (
+        prependZeros_ - indexString.size(), 
+        '0'
+    );
+        //std::string dest = std::string( 10 - original_string.size() , '0').append( original_string);
+
+    // Append the index string to the padded name.
+    paddedZeros.append(indexString);
+
+    // Write the front in the instance directory under the new name.
+    
+    // FIXME: this will run on POSIX only. Implement system separators.
+    fileName finalName = instance_ + "/" + 
+        baseName + "-" + paddedZeros + "." + name_.ext(); 
+
+    triSurface::write(finalName);
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::frontTracking::levelSetFront::levelSetFront(const IOobject& io)
+Foam::frontTracking::levelSetFront::levelSetFront (
+    const IOobject& io, 
+    label prependZeros
+)
 :
     triSurfaceMesh(io), 
     moving_(false), 
-    changing_(false)
+    changing_(false), 
+    name_(io.name()), 
+    instance_(io.instance()), 
+    prependZeros_(prependZeros)
 {
+    Pout << "levelSetFront::levelSetFront(const IOobject& io)" << endl;
 }
 
 //Foam::frontTracking::levelSetFront::levelSetFront(const volScalarField& psi,
@@ -103,20 +135,21 @@ Foam::frontTracking::levelSetFront::levelSetFront(const IOobject& io)
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-bool Foam::frontTracking::levelSetFront::moving() const
+bool Foam::frontTracking::levelSetFront::isMoving() const
 {
     return moving_;
 }
-void Foam::frontTracking::levelSetFront::moving(bool b)
+
+void Foam::frontTracking::levelSetFront::setMoving(bool b)
 {
     moving_ = b;
 }
 
-bool Foam::frontTracking::levelSetFront::changing() const
+bool Foam::frontTracking::levelSetFront::isChanging() const
 {
     return changing_;
 }
-void Foam::frontTracking::levelSetFront::changing(bool b)
+void Foam::frontTracking::levelSetFront::setChanging(bool b)
 {
     changing_ = b;
 }
@@ -128,13 +161,19 @@ void Foam::frontTracking::levelSetFront::reconstruct (
     const scalar mergeTol
 )
 {
-    computeIsoSurface (
-        cellsToElementsDist, 
-        pointsToElementsDist, 
-        regularise, mergeTol
-    );
+    Pout << "Foam::frontTracking::levelSetFront::reconstruct (\n"
+         << "    const volScalarField& cellsToElementsDist, \n"
+         << "    const scalarField& pointsToElementsDist, \n"
+         << "    const bool regularise, \n"
+         << "    const scalar mergeTol\n)" << endl;
 
-    changing(true);
+    //computeIsoSurface (
+        //cellsToElementsDist, 
+        //pointsToElementsDist, 
+        //regularise, mergeTol
+    //);
+
+    //setChanging(true);
 }
 
 void Foam::frontTracking::levelSetFront::reconstruct (
@@ -143,23 +182,59 @@ void Foam::frontTracking::levelSetFront::reconstruct (
     const scalar mergeTol
 )
 {
-    const fvMesh& mesh = cellsToElementsDist.mesh(); 
-    volPointInterpolation pInter (mesh);
+    Pout << "Foam::frontTracking::levelSetFront::reconstruct (\n"
+         << "    const volScalarField& cellsToElementsDist, \n"
+         << "    const bool regularise, \n"
+         << "    const scalar mergeTol\n)" << endl;
 
-    tmp<pointScalarField> pointsToElementsDistTmp = pInter.interpolate (
-        cellsToElementsDist
-    );
+    //const fvMesh& mesh = cellsToElementsDist.mesh(); 
+    //volPointInterpolation pInter (mesh);
 
-    const pointScalarField& pointsToElementsDist = pointsToElementsDistTmp();
+    //tmp<pointScalarField> pointsToElementsDistTmp = pInter.interpolate (
+        //cellsToElementsDist
+    //);
 
-    computeIsoSurface (
-        cellsToElementsDist, 
-        pointsToElementsDist, 
-        regularise, mergeTol
-    );
+    //const pointScalarField& pointsToElementsDist = pointsToElementsDistTmp();
 
-    changing(true);
+    //computeIsoSurface (
+        //cellsToElementsDist, 
+        //pointsToElementsDist, 
+        //regularise, mergeTol
+    //);
+
+    //setChanging(true);
 }
+
+void Foam::frontTracking::levelSetFront::move(const vectorField& Dv)
+{
+    // For all front points
+        // Add displacement to the point vector
+
+    setMoving(true);
+}
+
+void Foam::frontTracking::levelSetFront::write(const Time& runTime)
+{
+
+    // Get the control dictionary.
+    // Get the write option from the control dictionary.
+    
+    // If write option is set to time step 
+        // If the time index is divisible by the write interval 
+        
+            // Write the front in the instance directory with the index 
+            // coming from the time-step index.
+            write(runTime.timeIndex()); 
+
+    // Else If the write option is set to time value 
+        // If the time value is right (check how Time does this)
+        
+            // Write the fron int he instance directory with the index
+            // coming from the time step index.
+
+}
+
+
 
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
 

@@ -1,3 +1,4 @@
+
     Info<< "Reading field p_rgh\n" << endl;
     volScalarField p_rgh
     (
@@ -21,6 +22,20 @@
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    Info << "Reading the distance field psi\n" << endl;
+    volScalarField psi
+    (
+        IOobject
+        (
+            "psi",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
         ),
         mesh

@@ -62,20 +62,56 @@ class levelSetFront
     public triSurfaceMesh 
 {
 
+    // Front is moving.
     bool moving_; 
+    // Front is topologically changing.
     bool changing_;
 
+    // Both file names are stored because IOobject is an ambiguous base
+    // class of the triSurfaceMesh, preventing calls to IOobject::instance()
+    // and IOobject::name() member functions. TM 04/12/12
+    
+    // Name.
+    fileName name_; 
+
+    // Instance. 
+    fileName instance_; 
+
+    // Prepend zeros. 
+    label prependZeros_; 
+
+    // Compute the iso-surface.
     void computeIsoSurface (
         const volScalarField& cellsToElementsDist, 
         const scalarField& pointsToElementsDist, 
         const bool regularise=true, 
         const scalar mergeTol=1e-06
     );
+
+    // Write the indexed front file.
+    void write(label index);
+
+    // Access to static write control keywords.  
+    
+    // This data is protected in the Foam::Time, so it is redefined
+    // here to allow for output checking during writing. 
+    // The writing is separated for the frontMesh from the ObjectRegistry
+    // by upstream design and is kept so here. TM 04/12/2012 
+    word wcTimeStep()
+    {
+        static word wcTimeStep_ = "timeStep";
+        return wcTimeStep_;
+    }
+    word wcAdjustableRunTime()
+    {
+        static word wcAdjustableRunTime_ = "adjustableRunTime";
+        return wcAdjustableRunTime_;
+    }
     
     // Dissalow: 
     
-        //- Construct as copy
-        levelSetFront(const levelSetFront&);
+    //- Construct as copy
+    levelSetFront(const levelSetFront&);
 
 public:
        
@@ -83,39 +119,44 @@ public:
 
     // Constructors
 
-        //- Construct read 
-        levelSetFront(const IOobject& io);
+    //- Construct read 
+    levelSetFront(const IOobject& io, label prependZeros=8);
 
-        //- Construct as isoSurface from a distance field
-        //levelSetFront(const volScalarField& psi, 
-            //const scalarField& psiPoint);
+    //- Construct as isoSurface from a distance field
+    //levelSetFront(const volScalarField& psi, 
+        //const scalarField& psiPoint);
 
     //- Destructor
     //~levelSetFront();
 
     // Member Functions
-        // Set/get the moving/changing flags. 
-        bool moving() const;
-        void moving(bool b); 
-
-        bool changing() const; 
-        void changing(bool b);
     
-        // Edit
-        void reconstruct (
-            const volScalarField& cellsToElementsDist, 
-            const scalarField& pointsToElementsDist, 
-            const bool regularise=true, 
-            const scalar mergeTol=1e-06
-        );
+    // Set/get the moving/changing flags. 
+    bool isMoving() const;
+    void setMoving(bool b); 
 
-        void reconstruct (
-            const volScalarField& cellsToElementsDist, 
-            const bool regularise=true, 
-            const scalar mergeTol=1e-06
-        );
+    bool isChanging() const; 
+    void setChanging(bool b);
 
-        // Displace points.
+    // Edit
+    void reconstruct (
+        const volScalarField& cellsToElementsDist, 
+        const scalarField& pointsToElementsDist, 
+        const bool regularise=true, 
+        const scalar mergeTol=1e-06
+    );
+
+    void reconstruct (
+        const volScalarField& cellsToElementsDist, 
+        const bool regularise=true, 
+        const scalar mergeTol=1e-06
+    );
+
+    // Displace points.
+    void move(const vectorField& Dv);  
+
+    // Write
+    void write(const Time& runTime);
         
     // Member operators 
     void operator=(const isoSurface& rhs);

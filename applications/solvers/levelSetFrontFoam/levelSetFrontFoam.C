@@ -47,8 +47,10 @@ Description
 #include "interpolationTable.H"
 #include "pimpleControl.H"
 
+
 #include "levelSetFront.H"
 #include "levelSetFrontFields.H"
+#include "meshFrontCommunication.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -74,30 +76,53 @@ int main(int argc, char *argv[])
 
     Info<< "\nStarting time loop\n" << endl;
 
+    // Initialize the levelSetFront from a surface mesh file.
     levelSetFront front (
         IOobject (
-            "levelSetFront", 
-            runTime.timeName(), 
+            "front.stl", 
+            "STLfront", 
             runTime, 
-            IOobject::NO_READ, 
+            IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
-        )
+        ) 
     );
 
-    //while (runTime.run())
-    //{
-        //#include "readTimeControls.H"
-        //#include "CourantNo.H"
-        //#include "alphaCourantNo.H"
-        //#include "setDeltaT.H"
+    // Create the connectivity between the mesh and the front.
+    meshFrontCommunication meshFrontComm (mesh, front);
 
-        //runTime++;
+    // Compute the cell centered cell to elements distance field.
+    meshFrontComm.calcDistanceField(psi);
 
-        //Info<< "Time = " << runTime.timeName() << nl << endl;
+    // Reconstruct the iso-surface front from the distance field.
+    front.reconstruct(psi);
 
-        // Compute the level set field.
+    while (runTime.run())
+    {
+        #include "readTimeControls.H"
+        #include "CourantNo.H"
+        #include "alphaCourantNo.H"
+        #include "setDeltaT.H"
 
-        // Compute the marker field from the level set field.
+        runTime++;
+
+        Info<< "Time = " << runTime.timeName() << nl << endl;
+
+        // Compute the displacement field.
+        
+        // Get the number of front vertices.
+
+        // Get the velocity vector from the dictionary.
+
+        // Initialize the displacement vector field.
+
+        // Move the front points with the displacement field.
+        //front.move(Uv * runTime.deltaT());
+
+        // Compute the new distance field. 
+        meshFrontComm.calcDistanceField(psi); 
+
+        // Reconstruct the front as an iso surface. 
+        front.reconstruct(psi); 
         
         // Update two phase properties.
         //twoPhaseProperties.correct();
@@ -118,14 +143,15 @@ int main(int argc, char *argv[])
                 //turbulence->correct();
             //}
         //}
+        
+        
+        runTime.write();
+        front.write(runTime);
 
-
-        //runTime.write();
-
-        //Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            //<< "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            //<< nl << endl;
-    //}
+        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
+    }
 
     Info<< "End\n" << endl;
 
