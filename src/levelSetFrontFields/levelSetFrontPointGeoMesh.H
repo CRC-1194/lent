@@ -41,7 +41,7 @@ Description
 
 namespace Foam
 {
-namespace frontTracking
+namespace levelSetFrontTracking 
 {
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

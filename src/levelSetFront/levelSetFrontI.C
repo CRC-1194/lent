@@ -21,71 +21,57 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::levelSetFrontGeoMesh
-
-Description
-    The levelSetFront GeoMesh (for holding fields).
-
-    Similar to the volGeoMesh used for the Finite Volume discretization.
+Author
+    Tomislav Maric
+    maric@csi.tu-darmstadt.de
+    tomislav.maric@gmx.com
+    Mathematical Modelling and Analysis Group 
+    Center of Smart Interfaces
+    TU Darmstadt
+    Germany
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef levelSetFrontGeoMesh_H
-#define levelSetFrontGeoMesh_H
-
-#include "GeoMesh.H"
 #include "levelSetFront.H"
+#include "volPointInterpolation.H"
+#include "pointFields.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * Member Function Templates * * * * * * * * * * * //
 
-namespace Foam
+template <class T>
+T Foam::levelSetFrontTracking::levelSetFront::readWriteInterval (
+    const dictionary& controlDict
+)
 {
-namespace levelSetFrontTracking
+    T writeInterval = controlDict.lookupOrDefault<T> (
+        "writeInterval",
+        -1
+    );
+
+    if (writeInterval == -1)
+    {
+        FatalErrorIn (
+            "levelSetFront::write(const Time& runTime)"
+        ) << "Wrong writeInterval value in the controlDict dictionary."
+            << abort(FatalError);
+    }
+
+    return writeInterval;
+}
+
+template<class Displacement>
+void Foam::levelSetFrontTracking::levelSetFront::executeMovePoints (
+    const Displacement& d
+)
 {
+    pointField newPoints(points()); 
 
+    newPoints += d; 
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    movePoints(newPoints);
 
-class levelSetFrontGeoMesh
-:
-    public GeoMesh<levelSetFront>
-{
+    setMoving(true);
 
-public:
-
-    // Constructors
-
-        //- Construct from levelSetFront reference
-        explicit levelSetFrontGeoMesh(const levelSetFront& mesh)
-        :
-            GeoMesh<levelSetFront>(mesh)
-        {}
-
-
-    // Member Functions
-
-        //- Return size
-        static label size(const levelSetFront& mesh)
-        {
-            return mesh.size();
-        }
-
-        //- Return size
-        label size() const
-        {
-            return size(mesh_);
-        }
-
-};
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace frontTracking
-} // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
+}
 
 // ************************************************************************* //

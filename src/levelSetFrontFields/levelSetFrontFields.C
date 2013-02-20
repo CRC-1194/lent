@@ -29,7 +29,7 @@ License
 
 namespace Foam
 {
-namespace frontTracking
+namespace levelSetFrontTracking
 {
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //

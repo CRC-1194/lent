@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::meshFrontCommunication
+    Foam::levelSetFrontCalculator
 
 Description
 
@@ -37,39 +37,44 @@ Author
 
 
 SourceFiles
-    meshFrontCommunication.C
+    levelSetFrontCalculator.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef meshFrontCommunication_H
-#define meshFrontCommunication_H
+#ifndef levelSetFrontCalculator_H
+#define levelSetFrontCalculator_H
 
 #include "levelSetFront.H"
 #include "fvMesh.H"
+#include "levelSetFrontAndMeshConnection.H"
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace frontTracking
+namespace levelSetFrontTracking 
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class meshFrontCommunication Declaration
+                         Class levelSetFrontCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class meshFrontCommunication
+class levelSetFrontCalculator
 {
     // Private data
+    levelSetFrontAndMeshConnection connectivity_; 
 
     // Private Member Functions
 
+    void resetDistanceField(volScalarField& psi); 
+    scalar pointToElementDistance(const point& inputPoint, label elementI); 
+
         //- Disallow default bitwise copy construct
-        //meshFrontCommunication(const meshFrontCommunication&);
+        //levelSetFrontCalculator(const levelSetFrontCalculator&);
 
         //- Disallow default bitwise assignment
-        //void operator=(const meshFrontCommunication&);
+        //void operator=(const levelSetFrontCalculator&);
 
 
 public:
@@ -79,20 +84,20 @@ public:
     // Constructors
 
         //- Construct null
-        //meshFrontCommunication();
+        //levelSetFrontCalculator();
 
         //- Construct from components
-        meshFrontCommunication(const fvMesh& mesh, const levelSetFront& front);
+        levelSetFrontCalculator(const fvMesh& mesh, const levelSetFront& front);
 
         //- Construct from Istream
-        //meshFrontCommunication(Istream&);
+        //levelSetFrontCalculator(Istream&);
 
         //- Construct as copy
-        //meshFrontCommunication(const meshFrontCommunication&);
+        //levelSetFrontCalculator(const levelSetFrontCalculator&);
 
 
     //- Destructor
-    //~meshFrontCommunication();
+    //~levelSetFrontCalculator();
 
 
     // Member Functions
@@ -111,7 +116,7 @@ public:
 
     // Member Operators
 
-        //void operator=(const meshFrontCommunication&);
+        //void operator=(const levelSetFrontCalculator&);
 
 
     // Friend Functions
@@ -125,7 +130,7 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace frontTracking
+} // End namespace levelSetFrontTracking 
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -50,7 +50,7 @@ Description
 
 #include "levelSetFront.H"
 #include "levelSetFrontFields.H"
-#include "meshFrontCommunication.H"
+#include "levelSetFrontCalculator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -71,7 +71,6 @@ int main(int argc, char *argv[])
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
-
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< "\nStarting time loop\n" << endl;
@@ -80,78 +79,86 @@ int main(int argc, char *argv[])
     levelSetFront front (
         IOobject (
             "front.stl", 
-            "STLfront", 
+            "front", 
             runTime, 
             IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
         ) 
     );
 
+    // Write the initial front. 
+    runTime.writeNow();
+    front.writeNow(runTime); 
+
+    ++runTime;
+
     // Create the connectivity between the mesh and the front.
-    meshFrontCommunication meshFrontComm (mesh, front);
+    levelSetFrontCalculator calculator (mesh, front);
 
     // Compute the cell centered cell to elements distance field.
-    meshFrontComm.calcDistanceField(psi);
+    calculator.calcDistanceField(psi);
 
     // Reconstruct the iso-surface front from the distance field.
     front.reconstruct(psi);
 
-    while (runTime.run())
-    {
-        #include "readTimeControls.H"
-        #include "CourantNo.H"
-        #include "alphaCourantNo.H"
-        #include "setDeltaT.H"
+    runTime.writeNow();
+    front.writeNow(runTime); 
+    //while (runTime.run())
+    //{
+        //#include "readTimeControls.H"
+        //#include "CourantNo.H"
+        //#include "alphaCourantNo.H"
+        //#include "setDeltaT.H"
 
-        runTime++;
+        //runTime++;
 
-        Info<< "Time = " << runTime.timeName() << nl << endl;
+        //Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        // Compute the displacement field.
+        //// Compute the displacement field.
         
-        // Get the number of front vertices.
+        //// Get the number of front vertices.
 
-        // Get the velocity vector from the dictionary.
+        //// Get the velocity vector from the dictionary.
 
-        // Initialize the displacement vector field.
+        //// Initialize the displacement vector field.
 
-        // Move the front points with the displacement field.
-        //front.move(Uv * runTime.deltaT());
+        //// Move the front points with the displacement field.
+        //front.move(vector(1,1,1) * runTime.deltaT().value());
 
-        // Compute the new distance field. 
-        meshFrontComm.calcDistanceField(psi); 
+        //// Compute the new distance field. 
+        //calculator.calcDistanceField(psi); 
 
-        // Reconstruct the front as an iso surface. 
-        front.reconstruct(psi); 
+        //// Reconstruct the front as an iso surface. 
+        //front.reconstruct(psi); 
         
-        // Update two phase properties.
-        //twoPhaseProperties.correct();
+        //// Update two phase properties.
+        ////twoPhaseProperties.correct();
 
-        // --- Pressure-velocity PIMPLE corrector loop
-        //while (pimple.loop())
-        //{
-            //#include "UEqn.H"
+        //// --- Pressure-velocity PIMPLE corrector loop
+        ////while (pimple.loop())
+        ////{
+            ////#include "UEqn.H"
 
-            // --- Pressure corrector loop
-            //while (pimple.correct())
-            //{
-                //#include "pEqn.H"
-            //}
+            //// --- Pressure corrector loop
+            ////while (pimple.correct())
+            ////{
+                ////#include "pEqn.H"
+            ////}
 
-            //if (pimple.turbCorr())
-            //{
-                //turbulence->correct();
-            //}
-        //}
+            ////if (pimple.turbCorr())
+            ////{
+                ////turbulence->correct();
+            ////}
+        ////}
         
         
-        runTime.write();
-        front.write(runTime);
+        //runTime.write();
+        //front.write(runTime);
 
-        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            << nl << endl;
-    }
+        //Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            //<< "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            //<< nl << endl;
+    //}
 
     Info<< "End\n" << endl;
 

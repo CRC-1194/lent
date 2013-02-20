@@ -23,12 +23,7 @@ License
 
 Author
     Tomislav Maric
-    maric@csi.tu-darmstadt.de
     tomislav.maric@gmx.com
-    Mathematical Modelling and Analysis Group 
-    Center of Smart Interfaces
-    TU Darmstadt
-    Germany
 
 \*---------------------------------------------------------------------------*/
 
@@ -40,7 +35,7 @@ Author
 
 namespace Foam
 {
-    namespace frontTracking
+    namespace levelSetFrontTracking
     {
         defineTypeNameAndDebug(levelSetFront, 0);
     }
@@ -48,7 +43,10 @@ namespace Foam
 
 // * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * //
 
-void Foam::frontTracking::levelSetFront::computeIsoSurface (
+namespace Foam {
+    namespace levelSetFrontTracking {
+
+void levelSetFront::computeIsoSurface (
     const volScalarField& cellsToElementsDist, 
     const scalarField& pointsToElementsDist, 
     const bool regularise, 
@@ -64,7 +62,7 @@ void Foam::frontTracking::levelSetFront::computeIsoSurface (
     );
 }
 
-void Foam::frontTracking::levelSetFront::write(label index)
+void levelSetFront::write(label index)
 {
     // Separate the file name and the extension.
     fileName baseName = name_.name(true);
@@ -83,16 +81,17 @@ void Foam::frontTracking::levelSetFront::write(label index)
 
     // Write the front in the instance directory under the new name.
     
-    // FIXME: this will run on POSIX only. Implement system separators.
+    // TODO: generalize the IO for file formats 
     fileName finalName = instance_ + "/" + 
-        baseName + "-" + paddedZeros + "." + name_.ext(); 
+        //baseName + "-" + paddedZeros + "." + name_.ext(); 
+        baseName + "-" + paddedZeros + ".vtk"; 
 
     triSurface::write(finalName);
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::frontTracking::levelSetFront::levelSetFront (
+levelSetFront::levelSetFront (
     const IOobject& io, 
     label prependZeros
 )
@@ -107,7 +106,7 @@ Foam::frontTracking::levelSetFront::levelSetFront (
     Pout << "levelSetFront::levelSetFront(const IOobject& io)" << endl;
 }
 
-//Foam::frontTracking::levelSetFront::levelSetFront(const volScalarField& psi,
+//levelSetFront::levelSetFront(const volScalarField& psi,
                                                   //const scalarField& psiPoint)
     //: 
         //triSurfaceMesh(), 
@@ -119,7 +118,7 @@ Foam::frontTracking::levelSetFront::levelSetFront (
 //}
 
 
-//Foam::frontTracking::levelSetFront::levelSetFront(const levelSetFront& rhs)
+//levelSetFront::levelSetFront(const levelSetFront& rhs)
 //:
     //triSurfaceMesh(rhs),
     //moving_(rhs.moving_),
@@ -130,38 +129,38 @@ Foam::frontTracking::levelSetFront::levelSetFront (
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-//Foam::frontTracking::levelSetFront::~levelSetFront()
+//levelSetFront::~levelSetFront()
 //{}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-bool Foam::frontTracking::levelSetFront::isMoving() const
+bool levelSetFront::isMoving() const
 {
     return moving_;
 }
 
-void Foam::frontTracking::levelSetFront::setMoving(bool b)
+void levelSetFront::setMoving(bool b)
 {
     moving_ = b;
 }
 
-bool Foam::frontTracking::levelSetFront::isChanging() const
+bool levelSetFront::isChanging() const
 {
     return changing_;
 }
-void Foam::frontTracking::levelSetFront::setChanging(bool b)
+void levelSetFront::setChanging(bool b)
 {
     changing_ = b;
 }
 
-void Foam::frontTracking::levelSetFront::reconstruct (
+void levelSetFront::reconstruct (
     const volScalarField& cellsToElementsDist, 
     const scalarField& pointsToElementsDist, 
     const bool regularise, 
     const scalar mergeTol
 )
 {
-    Pout << "Foam::frontTracking::levelSetFront::reconstruct (\n"
+    Pout << "levelSetFront::reconstruct (\n"
          << "    const volScalarField& cellsToElementsDist, \n"
          << "    const scalarField& pointsToElementsDist, \n"
          << "    const bool regularise, \n"
@@ -176,71 +175,71 @@ void Foam::frontTracking::levelSetFront::reconstruct (
     //setChanging(true);
 }
 
-void Foam::frontTracking::levelSetFront::reconstruct (
+void levelSetFront::reconstruct (
     const volScalarField& cellsToElementsDist, 
     const bool regularise, 
     const scalar mergeTol
 )
 {
-    Pout << "Foam::frontTracking::levelSetFront::reconstruct (\n"
+    Pout << "levelSetFront::reconstruct (\n"
          << "    const volScalarField& cellsToElementsDist, \n"
          << "    const bool regularise, \n"
          << "    const scalar mergeTol\n)" << endl;
 
-    //const fvMesh& mesh = cellsToElementsDist.mesh(); 
-    //volPointInterpolation pInter (mesh);
+    const fvMesh& mesh = cellsToElementsDist.mesh(); 
+    volPointInterpolation pInter (mesh);
 
-    //tmp<pointScalarField> pointsToElementsDistTmp = pInter.interpolate (
-        //cellsToElementsDist
-    //);
+    tmp<pointScalarField> pointsToElementsDistTmp = pInter.interpolate (
+        cellsToElementsDist
+    );
 
-    //const pointScalarField& pointsToElementsDist = pointsToElementsDistTmp();
+    const pointScalarField& pointsToElementsDist = pointsToElementsDistTmp();
 
-    //computeIsoSurface (
-        //cellsToElementsDist, 
-        //pointsToElementsDist, 
-        //regularise, mergeTol
-    //);
+    computeIsoSurface (
+        cellsToElementsDist, 
+        pointsToElementsDist, 
+        regularise, mergeTol
+    );
 
     //setChanging(true);
 }
 
-void Foam::frontTracking::levelSetFront::move(const vectorField& Dv)
+void levelSetFront::move(vector deltaV)
 {
-    // For all front points
-        // Add displacement to the point vector
-
-    setMoving(true);
+    executeMovePoints(deltaV);
 }
 
-void Foam::frontTracking::levelSetFront::write(const Time& runTime)
+void levelSetFront::move(const vectorField& deltaV)
 {
+    executeMovePoints(deltaV);
+}
 
-    // Get the control dictionary.
-    // Get the write option from the control dictionary.
-    
-    // If write option is set to time step 
-        // If the time index is divisible by the write interval 
-        
-            // Write the front in the instance directory with the index 
-            // coming from the time-step index.
-            write(runTime.timeIndex()); 
+void levelSetFront::write(const Time& runTime)
+{
+    // If the time is the output time.
+    if (runTime.outputTime())
+    {
+        write(runTime.timeIndex()); 
+    }
+}
 
-    // Else If the write option is set to time value 
-        // If the time value is right (check how Time does this)
-        
-            // Write the fron int he instance directory with the index
-            // coming from the time step index.
-
+void levelSetFront::writeNow(const Time& runTime)
+{
+    // If the time is the output time.
+    write(runTime.timeIndex()); 
 }
 
 
 
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
 
-void Foam::frontTracking::levelSetFront::operator=(const isoSurface& rhs)
+void levelSetFront::operator=(const isoSurface& rhs)
 {
     triSurface::operator=(rhs);
 }
 
 // ************************************************************************* //
+
+} // End namespace levelSetFrontTracking
+
+} // End namespace Foam

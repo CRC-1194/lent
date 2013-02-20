@@ -26,12 +26,7 @@ Class
 
 Author
     Tomislav Maric
-    maric@csi.tu-darmstadt.de
     tomislav.maric@gmx.com
-    Mathematical Modelling and Analysis Group 
-    Center of Smart Interfaces
-    TU Darmstadt
-    Germany
 
 Description
 
@@ -45,12 +40,13 @@ SourceFiles
 
 #include "isoSurface.H"
 #include "triSurfaceMesh.H"
+#include "error.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace frontTracking
+namespace levelSetFrontTracking
 {
 
 /*---------------------------------------------------------------------------*\
@@ -84,9 +80,13 @@ class levelSetFront
     void computeIsoSurface (
         const volScalarField& cellsToElementsDist, 
         const scalarField& pointsToElementsDist, 
-        const bool regularise=true, 
+        const bool regularise=false, 
         const scalar mergeTol=1e-06
     );
+
+    // Read and check the write control option from the controlDict. 
+    template<class T>
+    T readWriteInterval (const dictionary& controlDict);
 
     // Write the indexed front file.
     void write(label index);
@@ -107,6 +107,9 @@ class levelSetFront
         static word wcAdjustableRunTime_ = "adjustableRunTime";
         return wcAdjustableRunTime_;
     }
+
+    template<class Displacement>
+    void executeMovePoints (const Displacement& d); 
     
     // Dissalow: 
     
@@ -142,21 +145,25 @@ public:
     void reconstruct (
         const volScalarField& cellsToElementsDist, 
         const scalarField& pointsToElementsDist, 
-        const bool regularise=true, 
+        const bool regularise=false, 
         const scalar mergeTol=1e-06
     );
 
     void reconstruct (
         const volScalarField& cellsToElementsDist, 
-        const bool regularise=true, 
+        const bool regularise=false, 
         const scalar mergeTol=1e-06
     );
 
-    // Displace points.
-    void move(const vectorField& Dv);  
+    // Move points with a spatially constant displacement vector.
+    void move (vector deltaV);
+
+    // Move points with a displacement vector field.
+    void move (const vectorField& deltaV);  
 
     // Write
     void write(const Time& runTime);
+    void writeNow(const Time& runTime); 
         
     // Member operators 
     void operator=(const isoSurface& rhs);
@@ -171,6 +178,9 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+# include "levelSetFrontI.C"
+
 
 #endif
 
