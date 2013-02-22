@@ -1,10 +1,8 @@
 levelSetFront/levelSetFront.C
-
 levelSetFrontFields/levelSetFrontFields.C
 
-levelSetFrontAndMeshConnection/levelSetFrontAndMeshConnection.C
-
-levelSetFrontCalculator/levelSetFrontCalculator.C
+/*meshAndFrontConnection/meshAndFrontConnection.C*/
+/*frontTrackingCalculator/frontTrackingCalculator.C*/
 
 
 LIB = $(FOAM_USER_LIBBIN)/liblevelSetFrontTracking

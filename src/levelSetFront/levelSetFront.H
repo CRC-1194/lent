@@ -46,7 +46,7 @@ SourceFiles
 
 namespace Foam
 {
-namespace levelSetFrontTracking
+namespace frontTracking
 {
 
 /*---------------------------------------------------------------------------*\
@@ -77,7 +77,7 @@ class levelSetFront
     label prependZeros_; 
 
     // Compute the iso-surface.
-    void computeIsoSurface (
+    void computeIsoSurface(
         const volScalarField& cellsToElementsDist, 
         const scalarField& pointsToElementsDist, 
         const bool regularise=false, 
@@ -86,7 +86,7 @@ class levelSetFront
 
     // Read and check the write control option from the controlDict. 
     template<class T>
-    T readWriteInterval (const dictionary& controlDict);
+    T readWriteInterval(const dictionary& controlDict);
 
     // Write the indexed front file.
     void write(label index);
@@ -109,7 +109,7 @@ class levelSetFront
     }
 
     template<class Displacement>
-    void executeMovePoints (const Displacement& d); 
+    void executeMovePoints(const Displacement& d); 
     
     // Dissalow: 
     
@@ -142,24 +142,24 @@ public:
     void setChanging(bool b);
 
     // Edit
-    void reconstruct (
+    void reconstruct(
         const volScalarField& cellsToElementsDist, 
         const scalarField& pointsToElementsDist, 
         const bool regularise=false, 
         const scalar mergeTol=1e-06
     );
 
-    void reconstruct (
+    void reconstruct(
         const volScalarField& cellsToElementsDist, 
         const bool regularise=false, 
         const scalar mergeTol=1e-06
     );
 
     // Move points with a spatially constant displacement vector.
-    void move (vector deltaV);
+    void move(vector deltaV);
 
     // Move points with a displacement vector field.
-    void move (const vectorField& deltaV);  
+    void move(const vectorField& deltaV);  
 
     // Write
     void write(const Time& runTime);

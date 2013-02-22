@@ -28,7 +28,7 @@
     );
 
     Info << "Reading the distance field psi\n" << endl;
-    volScalarField psi
+    volScalarField Psi
     (
         IOobject
         (
@@ -40,6 +40,9 @@
         ),
         mesh
     );
+
+    // Initialize the points-to-elements distance. 
+    scalarField psi (mesh.points().size(), GREAT); 
 
     #include "createPhi.H"
 

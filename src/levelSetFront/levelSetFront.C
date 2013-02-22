@@ -35,7 +35,7 @@ Author
 
 namespace Foam
 {
-    namespace levelSetFrontTracking
+    namespace frontTracking
     {
         defineTypeNameAndDebug(levelSetFront, 0);
     }
@@ -44,9 +44,9 @@ namespace Foam
 // * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * //
 
 namespace Foam {
-    namespace levelSetFrontTracking {
+    namespace frontTracking {
 
-void levelSetFront::computeIsoSurface (
+void levelSetFront::computeIsoSurface(
     const volScalarField& cellsToElementsDist, 
     const scalarField& pointsToElementsDist, 
     const bool regularise, 
@@ -91,7 +91,7 @@ void levelSetFront::write(label index)
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-levelSetFront::levelSetFront (
+levelSetFront::levelSetFront(
     const IOobject& io, 
     label prependZeros
 )
@@ -153,7 +153,7 @@ void levelSetFront::setChanging(bool b)
     changing_ = b;
 }
 
-void levelSetFront::reconstruct (
+void levelSetFront::reconstruct(
     const volScalarField& cellsToElementsDist, 
     const scalarField& pointsToElementsDist, 
     const bool regularise, 
@@ -175,7 +175,7 @@ void levelSetFront::reconstruct (
     //setChanging(true);
 }
 
-void levelSetFront::reconstruct (
+void levelSetFront::reconstruct(
     const volScalarField& cellsToElementsDist, 
     const bool regularise, 
     const scalar mergeTol
@@ -240,6 +240,6 @@ void levelSetFront::operator=(const isoSurface& rhs)
 
 // ************************************************************************* //
 
-} // End namespace levelSetFrontTracking
+} // End namespace frontTracking
 
 } // End namespace Foam

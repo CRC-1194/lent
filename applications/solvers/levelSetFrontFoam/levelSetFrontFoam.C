@@ -50,11 +50,16 @@ Description
 
 #include "levelSetFront.H"
 #include "levelSetFrontFields.H"
-#include "levelSetFrontCalculator.H"
+
+#include "meshAndFrontConnection.H"
+#include "frontTrackingCalculator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace frontTracking;
+
+typedef meshAndFrontConnection<fvMesh, levelSetFront> Connection;
+typedef frontTrackingCalculator<Connection>  Calculator;
 
 int main(int argc, char *argv[])
 {
@@ -92,47 +97,57 @@ int main(int argc, char *argv[])
 
     ++runTime;
 
-    // Create the connectivity between the mesh and the front.
-    levelSetFrontCalculator calculator (mesh, front);
+    // Initialize the connectivity between the mesh and the front.
+    Connection frontMeshConnection(mesh,front);
+    
+    // Initialize the field calculator 
+    Calculator calculator;
 
     // Compute the cell centered cell to elements distance field.
-    calculator.calcDistanceField(psi);
+    calculator.calcCentresToElementsDistance(Psi, frontMeshConnection);
+    calculator.calcPointsToElementsDistance(psi, frontMeshConnection);
 
     // Reconstruct the iso-surface front from the distance field.
-    front.reconstruct(psi);
+    front.reconstruct(Psi,psi);
 
     runTime.writeNow();
+    // TODO: register front to the time, so that it is written automatically.
     front.writeNow(runTime); 
-    //while (runTime.run())
-    //{
-        //#include "readTimeControls.H"
-        //#include "CourantNo.H"
-        //#include "alphaCourantNo.H"
-        //#include "setDeltaT.H"
 
-        //runTime++;
+    while (runTime.run())
+    {
+        #include "readTimeControls.H"
+        #include "CourantNo.H"
+        #include "alphaCourantNo.H"
+        #include "setDeltaT.H"
 
-        //Info<< "Time = " << runTime.timeName() << nl << endl;
+        runTime++;
 
-        //// Compute the displacement field.
+        Info<< "Time = " << runTime.timeName() << nl << endl;
+
+        // Compute the displacement field.
         
-        //// Get the number of front vertices.
+        // Get the number of front vertices.
 
-        //// Get the velocity vector from the dictionary.
+        // Get the velocity vector from the dictionary.
 
-        //// Initialize the displacement vector field.
+        // Initialize the displacement vector field.
 
-        //// Move the front points with the displacement field.
-        //front.move(vector(1,1,1) * runTime.deltaT().value());
+        // Move the front points with the constant vector: test  
+        // Notification of the front/mesh motion/topological is done via the
+        // observer pattern. 
+        front.move(vector(1,1,1) * runTime.deltaT().value());
 
-        //// Compute the new distance field. 
-        //calculator.calcDistanceField(psi); 
+        // Compute the new distance fields. 
+        calculator.calcCentresToElementsDistance(Psi, frontMeshConnection); 
+        calculator.calcPointsToElementsDistance(psi, frontMeshConnection); 
 
         //// Reconstruct the front as an iso surface. 
-        //front.reconstruct(psi); 
+        front.reconstruct(Psi, psi); 
         
-        //// Update two phase properties.
-        ////twoPhaseProperties.correct();
+        // Update two phase properties. TODO: new model for the iso-surface 
+        // properties
+        // twoPhaseProperties.correct();
 
         //// --- Pressure-velocity PIMPLE corrector loop
         ////while (pimple.loop())
@@ -152,13 +167,13 @@ int main(int argc, char *argv[])
         ////}
         
         
-        //runTime.write();
-        //front.write(runTime);
+        runTime.write();
+        front.write(runTime);
 
-        //Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            //<< "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            //<< nl << endl;
-    //}
+        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
+    }
 
     Info<< "End\n" << endl;
 

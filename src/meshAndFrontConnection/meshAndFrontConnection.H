@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::levelSetFrontAndMeshConnection
+    Foam::meshAndFrontConnection
 
 Description
 
@@ -31,88 +31,89 @@ Author
     tomislav.maric@gmx.com
 
 SourceFiles
-    levelSetFrontAndMeshConnectionI.H
-    levelSetFrontAndMeshConnection.C
-    levelSetFrontAndMeshConnectionIO.C
+    meshAndFrontConnectionI.H
+    meshAndFrontConnection.C
+    meshAndFrontConnectionIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef levelSetFrontAndMeshConnection_H
-#define levelSetFrontAndMeshConnection_H
+#ifndef meshAndFrontConnection_H
+#define meshAndFrontConnection_H
 
-#include "DynamicList.H"
-#include "DLList.H"
-#include "levelSetFront.H"
-#include "fvMesh.H"
+//#include "DynamicList.H"
+//#include "DLList.H"
+//#include "levelSetFront.H"
+//#include "fvMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
-namespace levelSetFrontTracking {
+namespace frontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class levelSetFrontAndMeshConnection Declaration
+                         Class meshAndFrontConnection Declaration
 \*---------------------------------------------------------------------------*/
 
-class levelSetFrontAndMeshConnection
+template<class Mesh, class Front>
+class meshAndFrontConnection
 {
 
 private: 
     // Private data
     
     //- Mesh and front references
-    const fvMesh& mesh_; 
-    const levelSetFront& front_;
+    const Mesh& mesh_; 
+    const Front& front_;
     
     //- Cells<->Elements 
     //MapType cellsToElementsMap_; 
     //MapType elementsToCellsMap_; 
 
     //- Distance field for cells.
-    volScalarField cellSearchDistSqr_;
+    //volScalarField cellSearchDistSqr_;
 
     //- List of indices to the nearest elements to cells.
-    DynamicList<pointIndexHit> cellsElementNearest_; 
+    //DynamicList<pointIndexHit> cellsElementNearest_; 
 
     // Private member functions
     
     //- Connectivity calculators: cells<-->elements 
-    void resetCellsDistanceSqr(); 
-    void calcCellsDistanceSqr(); 
-    void calcCellsToElements(); 
-    void updateCellsToElements(); 
-    void calcElementsToCells();
-    void updateElementsToCells(); 
+    //void resetCellsDistanceSqr(); 
+    //void calcCellsDistanceSqr(); 
+    //void calcCellsToElements(); 
+    //void updateCellsToElements(); 
+    //void calcElementsToCells();
+    //void updateElementsToCells(); 
 
-    void calcCellsElements(); 
-    void updateCellsElements(); 
+    //void calcCellsElements(); 
+    //void updateCellsElements(); 
 
-    void initConnectivity(); 
+    //void initConnectivity(); 
 
 public:
 
     // Constructors
 
         //- Construct from components
-        levelSetFrontAndMeshConnection(const fvMesh& mesh, const levelSetFront& front);
+        meshAndFrontConnection(const Mesh& mesh, const Front& front);
 
     // Member Functions
     
         //- Access
-        const fvMesh& mesh()
+        const Mesh& mesh()
         {
             return mesh_; 
         }
 
-        const levelSetFront& front()
+        const Front& front()
         {
             return front_; 
         }
 
-        const DynamicList<pointIndexHit>&  cellsToElementsNearest()
-        {
-            return cellsElementNearest_;  
-        }
+        //const DynamicList<pointIndexHit>&  cellsToElementsNearest()
+        //{
+            //return cellsElementNearest_;  
+        //}
 
         //bool validElement(const pointIndexHit& el)
         //{
@@ -121,20 +122,23 @@ public:
 
         //- Edit
         //- Calculate new connectivity 
-        void calcConnectivity();
+        //void calcConnectivity();
         //- Update connectivity
-        void updateConnectivity(); 
-
+        //void updateConnectivity(); 
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace levelSetFrontTracking 
+} // End namespace frontTracking 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+#ifdef NoRepository
+#   include "meshAndFrontConnection.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
