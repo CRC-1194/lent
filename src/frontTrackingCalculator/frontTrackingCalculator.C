@@ -32,7 +32,6 @@ Author
 \*---------------------------------------------------------------------------*/
 
 #include "frontTrackingCalculator.H"
-#include "plane.H"
 
 namespace Foam { 
     namespace frontTracking {
@@ -130,6 +129,16 @@ void frontTrackingCalculator<MeshAndFrontConnection>::calcCentresToElementsDista
     const MeshAndFrontConnection& connectivity
 )
 {
+    // Delegate distance claculation to the RTS distance claculator.
+    distanceCalculator_.calcCentresToElementsDistance(Psi, connectivity); 
+
+    // Reset the distance before calculation to GREAT
+
+    // For all cells-elements
+        // For all the cell-elements
+            // Compute the distance between the cell and the element
+
+
     //Pout << "frontTrackingCalculator::calcDistanceField(volScalarField& psi)" 
         //<< endl;
 
@@ -202,6 +211,7 @@ void frontTrackingCalculator<MeshAndFrontConnection>::calcPointsToElementsDistan
     const MeshAndFrontConnection& connectivity
 )
 {
+    distanceCalculator_.calcPointsToElementsDistance(psi, connectivity);
 }
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //

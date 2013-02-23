@@ -44,8 +44,8 @@ SourceFiles
 #ifndef frontTrackingCalculator_H
 #define frontTrackingCalculator_H
 
-#include "levelSetFront.H"
 #include "fvMesh.H"
+#include "frontToMeshDistanceCalculator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -64,6 +64,7 @@ class frontTrackingCalculator
     // Private data
     
     // RTS selected calculators
+    autoPtr<meshAndFrontDistanceCalculator<MeshAndFrontConnection> > distanceCalculator_;
 
 public:
 

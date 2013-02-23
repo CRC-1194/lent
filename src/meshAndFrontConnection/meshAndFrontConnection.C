@@ -137,9 +137,9 @@ namespace frontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class Mesh, class Front>
-meshAndFrontConnection<Mesh,Front>::meshAndFrontConnection (
-    const Mesh& mesh, 
+template<class Front>
+meshAndFrontConnection<Front>::meshAndFrontConnection (
+    const fvMesh& mesh, 
     const Front& front
 )
     :

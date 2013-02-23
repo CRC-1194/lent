@@ -54,15 +54,14 @@ namespace frontTracking {
                          Class meshAndFrontConnection Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class Mesh, class Front>
+template<class Front>
 class meshAndFrontConnection
 {
 
 private: 
     // Private data
     
-    //- Mesh and front references
-    const Mesh& mesh_; 
+    const fvMesh& mesh_; 
     const Front& front_;
     
     //- Cells<->Elements 
@@ -95,12 +94,12 @@ public:
     // Constructors
 
         //- Construct from components
-        meshAndFrontConnection(const Mesh& mesh, const Front& front);
+        meshAndFrontConnection(const fvMesh& mesh, const Front& front);
 
     // Member Functions
     
         //- Access
-        const Mesh& mesh()
+        const fvMesh& mesh()
         {
             return mesh_; 
         }
