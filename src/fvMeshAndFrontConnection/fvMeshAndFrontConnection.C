@@ -27,7 +27,7 @@ Author
 
 \*---------------------------------------------------------------------------*/
 
-#include "meshAndFrontConnection.H"
+//#include "fvMeshAndFrontConnection.H"
 
 namespace Foam {
 
@@ -35,72 +35,8 @@ namespace frontTracking {
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-//void meshAndFrontConnection::resetCellsDistanceSqr()
-//{
-    //cellSearchDistSqr_ = 0;
-//}
 
-//void meshAndFrontConnection::calcCellsDistanceSqr() 
-//{
-    //// Get the owner cells.
-    //const labelList& owner = mesh_.owner(); 
-    //// Get the neighbour cells.
-    //const labelList& neighbour = mesh_.neighbour(); 
-    //// Get the cell centres
-    //const volVectorField& C = mesh_.C();
-
-    //// For all faces.
-    //forAll (owner, faceI)
-    //{
-        //// Get the ownerI.
-        //label ownerI = owner[faceI];
-        //// Get the neighbourI. 
-        //label neighbourI = neighbour[faceI];
-
-        //// Compute the double squared distance. 
-        //vector distance (
-            //C[neighbourI] - C[ownerI]
-        //);
-
-        //// Thickness of the impacted cells.
-        //scalar distanceSquared = distance & distance;
-
-        //// Add the distance squared to the owner. 
-        //cellSearchDistSqr_[ownerI] += distanceSquared;
-        //// Add the distance squared to the neighbour.
-        //cellSearchDistSqr_[neighbourI] += distanceSquared;
-    //}
-
-    //// Get the mesh cells. 
-    //const cellList& cells = mesh_.cells();  
-    //forAll (cells, cellI)
-    //{
-        //// Average the square distance. 
-        //cellSearchDistSqr_[cellI] /= cells[cellI].size(); 
-    //}
-//}
-
-//void meshAndFrontConnection::calcCellsToElements()
-//{
-    //front_.findNearest(mesh_.C(), cellSearchDistSqr_, cellsElementNearest_);
-//}
-
-//void meshAndFrontConnection::updateCellsToElements()
-//{
-    //// Using the exisitng cellsToElementsMap_ search for the element in the
-    //// surrounding cells using a dendritic search. 
-//}
-
-//void meshAndFrontConnection::calcElementsToCells()
-//{
-    //// Invert cellsToElements.
-//}
-
-//void meshAndFrontConnection::updateElementsToCells()
-//{
-//}
-
-//void meshAndFrontConnection::calcCellsElements()
+//void fvMeshAndFrontConnection::calcCellsElements()
 //{
     //// If the mesh is moving or is experiencing topological changes.
     //if (mesh_.changing() || mesh_.moving())
@@ -118,13 +54,13 @@ namespace frontTracking {
     //calcElementsToCells(); 
 //}
 
-//void meshAndFrontConnection::updateCellsElements()
+//void fvMeshAndFrontConnection::updateCellsElements()
 //{
     //updateCellsToElements(); 
     //updateElementsToCells(); 
 //}
 
-//void meshAndFrontConnection::initConnectivity()
+//void fvMeshAndFrontConnection::initConnectivity()
 //{
     //// TODO: check if mesh is moving or changing
     //// Calculate the search distances.  
@@ -138,46 +74,35 @@ namespace frontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class Front>
-meshAndFrontConnection<Front>::meshAndFrontConnection (
+fvMeshAndFrontConnection<Front>::fvMeshAndFrontConnection (
     const fvMesh& mesh, 
     const Front& front
 )
     :
         mesh_(mesh), 
         front_(front)
-        //cellsToElementsMap_(mesh.cells().size()),
-        //elementsToCellsMap_(front.size()), 
-        //cellSearchDistSqr_(
-           //IOobject (
-               //"cellSearchDistSqr", 
-               //mesh.time().timeName(), 
-               //mesh, 
-               //IOobject::READ_IF_PRESENT, 
-               //IOobject::NO_WRITE
-           //), 
-           //mesh, 
-           //dimensionedScalar ( 
-               //"zero", 
-               //dimLength, 
-               //0
-           //)
-        //), 
-        //cellsElementNearest_(mesh.cells().size())
-{
-    // Initialize the connectivity. 
-    //initConnectivity(); 
-    // INTRODUCE RTS
-}
+{}
+
+template<class Front>
+fvMeshAndFrontConnection<Front>::fvMeshAndFrontConnection (
+    const Front& front,
+    const fvMesh& mesh 
+)
+    :
+        mesh_(mesh), 
+        front_(front)
+{}
+
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-//void meshAndFrontConnection::calcConnectivity()
+//void fvMeshAndFrontConnection::calcConnectivity()
 //{
     //// Calculate cells<->elements connectivity.
     //calcCellsElements(); 
 //}
 
-//void meshAndFrontConnection::updateConnectivity()
+//void fvMeshAndFrontConnection::updateConnectivity()
 //{
     //// Update cells<->elements connectivity.
     //updateCellsElements();

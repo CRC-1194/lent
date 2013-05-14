@@ -27,12 +27,12 @@
         mesh
     );
 
-    Info << "Reading the distance field psi\n" << endl;
+    Info << "Reading the cell-centred distance field Psi\n" << endl;
     volScalarField Psi
     (
         IOobject
         (
-            "psi",
+            "Psi",
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ, 
@@ -42,13 +42,26 @@
     );
 
     // Initialize the points-to-elements distance. 
-    scalarField psi (mesh.points().size(), GREAT); 
+    pointScalarField psi 
+    (
+        IOobject
+        (
+            "psi", 
+            runTime.timeName(), 
+            mesh, 
+            IOobject::NO_READ, 
+            IOobject::NO_WRITE
+        ),
+        pointMesh(mesh), 
+        0,
+        "zeroGradient"
+    );
 
     #include "createPhi.H"
 
 
     Info<< "Reading transportProperties\n" << endl;
-    twoPhaseMixture twoPhaseProperties(U, phi);
+    incompressibleTwoPhaseMixture twoPhaseProperties(U, phi);
 
     volScalarField& alpha1(twoPhaseProperties.alpha1());
 

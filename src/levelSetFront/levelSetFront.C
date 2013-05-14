@@ -29,7 +29,6 @@ Author
 
 #include "levelSetFront.H"
 #include "volPointInterpolation.H"
-#include "pointFields.H"
 
 // * * * * * * * * * * * * * * * * Static Data * * * * * * * * * * * * * * //
 
@@ -103,7 +102,6 @@ levelSetFront::levelSetFront(
     instance_(io.instance()), 
     prependZeros_(prependZeros)
 {
-    Pout << "levelSetFront::levelSetFront(const IOobject& io)" << endl;
 }
 
 //levelSetFront::levelSetFront(const volScalarField& psi,
@@ -160,17 +158,11 @@ void levelSetFront::reconstruct(
     const scalar mergeTol
 )
 {
-    Pout << "levelSetFront::reconstruct (\n"
-         << "    const volScalarField& cellsToElementsDist, \n"
-         << "    const scalarField& pointsToElementsDist, \n"
-         << "    const bool regularise, \n"
-         << "    const scalar mergeTol\n)" << endl;
-
-    //computeIsoSurface (
-        //cellsToElementsDist, 
-        //pointsToElementsDist, 
-        //regularise, mergeTol
-    //);
+    computeIsoSurface (
+        cellsToElementsDist, 
+        pointsToElementsDist, 
+        regularise, mergeTol
+    );
 
     //setChanging(true);
 }
@@ -193,7 +185,7 @@ void levelSetFront::reconstruct(
         cellsToElementsDist
     );
 
-    const pointScalarField& pointsToElementsDist = pointsToElementsDistTmp();
+    const scalarField& pointsToElementsDist = pointsToElementsDistTmp();
 
     computeIsoSurface (
         cellsToElementsDist, 

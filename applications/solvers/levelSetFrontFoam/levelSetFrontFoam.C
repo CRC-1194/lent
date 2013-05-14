@@ -33,8 +33,9 @@ Author
     TU Darmstadt
     Germany
 
-
 Description
+    A DNS two-phase flow solver employing a hybrid level-set / front-tracking
+    method.
 
 \*---------------------------------------------------------------------------*/
 
@@ -42,27 +43,36 @@ Description
 #include "MULES.H"
 #include "subCycle.H"
 #include "interfaceProperties.H"
-#include "twoPhaseMixture.H"
+#include "incompressibleTwoPhaseMixture.H"
 #include "turbulenceModel.H"
-#include "interpolationTable.H"
 #include "pimpleControl.H"
+#include "fvIOoptionList.H"
 
 
 #include "levelSetFront.H"
-#include "levelSetFrontFields.H"
-
-#include "meshAndFrontConnection.H"
-#include "frontTrackingCalculator.H"
+#include "fvMeshAndFrontConnection.H"
+#include "triSurfaceMeshDistanceCalculator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace frontTracking;
 
-typedef meshAndFrontConnection<fvMesh, levelSetFront> Connection;
-typedef frontTrackingCalculator<Connection>  Calculator;
+typedef fvMeshAndFrontConnection<levelSetFront> Connection;
 
 int main(int argc, char *argv[])
 {
+    argList::addOption
+    (
+        "frontInputFile",
+        "pathname to the surface mesh file used for initializing the front"
+    );
+
+    argList::addOption
+    (
+        "frontOutputDirectory",
+        "name of the directory where the front will be stored"
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -76,104 +86,143 @@ int main(int argc, char *argv[])
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
+
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+    fileName frontInputFile = "";
+    fileName frontOutputDirectory = "";
+
+    if (!args.optionFound("frontInputFile"))
+    {
+        frontInputFile = "frontInputFile.stl";
+        if (args.optionFound("frontOutputDirectory"))
+        {
+            frontOutputDirectory = 
+                args.optionRead<word>("frontOutputDirectory");
+        }
+        else
+        {
+            frontOutputDirectory = "front";
+        }
+    }
+    else
+    {
+        frontInputFile = args.optionRead<word>("frontInputFile");
+        frontOutputDirectory = frontInputFile.path(); 
+    }
 
     Info<< "\nStarting time loop\n" << endl;
 
-    // Initialize the levelSetFront from a surface mesh file.
     levelSetFront front (
         IOobject (
-            "front.stl", 
-            "front", 
+            frontInputFile,
+            frontOutputDirectory,
             runTime, 
             IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
         ) 
     );
 
-    // Write the initial front. 
-    runTime.writeNow();
+    // TODO : overload regIOobject for writing with write() 
     front.writeNow(runTime); 
 
+    Connection meshFrontConnection (mesh, front); 
+
+    // TODO: make the bandwidth a dictionary entry.
+    triSurfaceMeshDistanceCalculator distanceCalculator(4);
+
+    // Write the initial front. 
     ++runTime;
 
-    // Initialize the connectivity between the mesh and the front.
-    Connection frontMeshConnection(mesh,front);
-    
-    // Initialize the field calculator 
-    Calculator calculator;
-
     // Compute the cell centered cell to elements distance field.
-    calculator.calcCentresToElementsDistance(Psi, frontMeshConnection);
-    calculator.calcPointsToElementsDistance(psi, frontMeshConnection);
+    runTime.cpuTimeIncrement(); 
+    distanceCalculator.calcCentresToElementsDistance(Psi, meshFrontConnection);
+    distanceCalculator.calcPointsToElementsDistance(psi, meshFrontConnection);
+    Info << "distance computed: " << runTime.cpuTimeIncrement() << endl;  
 
     // Reconstruct the iso-surface front from the distance field.
+    runTime.cpuTimeIncrement(); 
     front.reconstruct(Psi,psi);
+    Info << "front reconstructed: " << runTime.cpuTimeIncrement() << endl; 
+    front.writeNow(runTime);
+    Info << "front written: " << runTime.cpuTimeIncrement() << endl; 
+    runTime.writeNow(); 
 
-    runTime.writeNow();
+    ++runTime; 
+
+    runTime.cpuTimeIncrement(); 
+    front.move(vector(0.2, 0.2, 0.2)); 
+    Info << "front moved: " << runTime.cpuTimeIncrement() << endl;
+    //distanceCalculator.calcCentresToElementsDistance(Psi, meshFrontConnection);
+    //distanceCalculator.calcPointsToElementsDistance(psi, meshFrontConnection);
+    //Info << "distance computed: " << runTime.cpuTimeIncrement() << endl;
+    //front.reconstruct(Psi,psi);
+    //Info << "front reconstructed: " << runTime.cpuTimeIncrement() << endl;
+    front.writeNow(runTime);
+    runTime.writeNow(); 
+
     // TODO: register front to the time, so that it is written automatically.
-    front.writeNow(runTime); 
+    //runTime.writeNow();
+    //front.writeNow(runTime); 
 
-    while (runTime.run())
-    {
-        #include "readTimeControls.H"
-        #include "CourantNo.H"
-        #include "alphaCourantNo.H"
-        #include "setDeltaT.H"
+    //while (runTime.run())
+    //{
+        //#include "readTimeControls.H"
+        //#include "CourantNo.H"
+        //#include "alphaCourantNo.H"
+        //#include "setDeltaT.H"
 
-        runTime++;
+        //runTime++;
 
-        Info<< "Time = " << runTime.timeName() << nl << endl;
-
-        // Compute the displacement field.
+        //Info<< "Time = " << runTime.timeName() << nl << endl;
         
-        // Get the number of front vertices.
+        //twoPhaseProperties.correct();
 
-        // Get the velocity vector from the dictionary.
-
-        // Initialize the displacement vector field.
-
-        // Move the front points with the constant vector: test  
-        // Notification of the front/mesh motion/topological is done via the
-        // observer pattern. 
-        front.move(vector(1,1,1) * runTime.deltaT().value());
-
-        // Compute the new distance fields. 
-        calculator.calcCentresToElementsDistance(Psi, frontMeshConnection); 
-        calculator.calcPointsToElementsDistance(psi, frontMeshConnection); 
-
-        //// Reconstruct the front as an iso surface. 
-        front.reconstruct(Psi, psi); 
+        //// Compute the displacement field.
         
-        // Update two phase properties. TODO: new model for the iso-surface 
-        // properties
-        // twoPhaseProperties.correct();
+        //// Get the number of front vertices.
 
-        //// --- Pressure-velocity PIMPLE corrector loop
-        ////while (pimple.loop())
-        ////{
-            ////#include "UEqn.H"
+        //// Get the velocity vector from the dictionary.
 
-            //// --- Pressure corrector loop
-            ////while (pimple.correct())
-            ////{
-                ////#include "pEqn.H"
-            ////}
+        //// Initialize the displacement vector field.
 
-            ////if (pimple.turbCorr())
-            ////{
-                ////turbulence->correct();
-            ////}
-        ////}
+        //// Move the front points with the constant vector: test  
+        //// Notification of the front/mesh motion/topological is done via the
+        //// observer pattern. 
+        //front.move(vector(1,1,1) * runTime.deltaT().value());
+
+        //// Compute the new distance fields. 
+        //calculator.calcCentresToElementsDistance(Psi, frontMeshConnection); 
+        //calculator.calcPointsToElementsDistance(psi, frontMeshConnection); 
+
+        ////// Reconstruct the front as an iso surface. 
+        //front.reconstruct(Psi, psi); 
+
+        ////// --- Pressure-velocity PIMPLE corrector loop
+        //////while (pimple.loop())
+        //////{
+            //////#include "UEqn.H"
+
+            ////// --- Pressure corrector loop
+            //////while (pimple.correct())
+            //////{
+                //////#include "pEqn.H"
+            //////}
+
+            //////if (pimple.turbCorr())
+            //////{
+                //////turbulence->correct();
+            //////}
+        //////}
         
         
-        runTime.write();
-        front.write(runTime);
+        //runTime.write();
+        //front.write(runTime);
 
-        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            << nl << endl;
-    }
+        //Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            //<< "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            //<< nl << endl;
+    //}
 
     Info<< "End\n" << endl;
 

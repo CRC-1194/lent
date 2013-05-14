@@ -21,70 +21,45 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::levelSetFrontGeoMesh
-
-Description
-    The levelSetFront  point GeoMesh (for holding vertex fields).
-
-    Similar to the volMesh used for the Finite Volume discretization.
+Author
+    Tomislav Maric
+    maric@csi.tu-darmstadt.de
+    tomislav.maric@gmx.com
+    Mathematical Modelling and Analysis Group 
+    Center of Smart Interfaces
+    TU Darmstadt
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef levelSetFrontPointGeoMesh_H
-#define levelSetFrontPointGeoMesh_H
+namespace Foam { 
+    namespace frontTracking {
 
-#include "GeoMesh.H"
-#include "levelSetFront.H"
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-namespace Foam
+template<class DistanceCalculator>
+template<class Connection>
+void frontTrackingCalculator<DistanceCalculator>::calcCentresToElementsDistance(
+    volScalarField& Psi, 
+    const Connection& connection 
+) const
 {
-namespace frontTracking 
+    distanceCalculator_.calcCentresToElementsDistance(Psi, connection); 
+}
+
+template<class DistanceCalculator>
+template<class Connection>
+void frontTrackingCalculator<DistanceCalculator>::calcPointsToElementsDistance(
+    scalarField& psi, 
+    const Connection& connection 
+) const
 {
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-class levelSetFrontPointGeoMesh
-:
-    public GeoMesh<levelSetFront>
-{
-
-public:
-
-    // Constructors
-
-        //- Construct from levelSetFront reference
-        explicit levelSetFrontPointGeoMesh(const levelSetFront& mesh)
-        :
-            GeoMesh<levelSetFront>(mesh)
-        {}
-
-
-    // Member Functions
-
-        //- Return size
-        //static label size(const levelSetFront& mesh)
-        //{
-            //return mesh.points().size();
-        //}
-
-        //- Return size
-        //label size() const
-        //{
-            //return size(mesh_);
-        //}
-
-};
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    distanceCalculator_.calcPointsToElementsDistance(psi, connection);
+}
 
 } // End namespace frontTracking
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#endif
 
 // ************************************************************************* //

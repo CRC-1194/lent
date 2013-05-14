@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::meshAndFrontConnection
+    Foam::fvMeshAndFrontConnection
 
 Description
 
@@ -31,19 +31,14 @@ Author
     tomislav.maric@gmx.com
 
 SourceFiles
-    meshAndFrontConnectionI.H
-    meshAndFrontConnection.C
-    meshAndFrontConnectionIO.C
+    fvMeshAndFrontConnectionI.H
+    fvMeshAndFrontConnection.C
+    fvMeshAndFrontConnectionIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef meshAndFrontConnection_H
-#define meshAndFrontConnection_H
-
-//#include "DynamicList.H"
-//#include "DLList.H"
-//#include "levelSetFront.H"
-//#include "fvMesh.H"
+#ifndef fvMeshAndFrontConnection_H
+#define fvMeshAndFrontConnection_H
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -51,11 +46,11 @@ namespace Foam {
 namespace frontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class meshAndFrontConnection Declaration
+                         Class fvMeshAndFrontConnection Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Front>
-class meshAndFrontConnection
+class fvMeshAndFrontConnection
 {
 
 private: 
@@ -63,67 +58,29 @@ private:
     
     const fvMesh& mesh_; 
     const Front& front_;
-    
-    //- Cells<->Elements 
-    //MapType cellsToElementsMap_; 
-    //MapType elementsToCellsMap_; 
-
-    //- Distance field for cells.
-    //volScalarField cellSearchDistSqr_;
-
-    //- List of indices to the nearest elements to cells.
-    //DynamicList<pointIndexHit> cellsElementNearest_; 
-
-    // Private member functions
-    
-    //- Connectivity calculators: cells<-->elements 
-    //void resetCellsDistanceSqr(); 
-    //void calcCellsDistanceSqr(); 
-    //void calcCellsToElements(); 
-    //void updateCellsToElements(); 
-    //void calcElementsToCells();
-    //void updateElementsToCells(); 
-
-    //void calcCellsElements(); 
-    //void updateCellsElements(); 
-
-    //void initConnectivity(); 
 
 public:
 
     // Constructors
 
         //- Construct from components
-        meshAndFrontConnection(const fvMesh& mesh, const Front& front);
+        fvMeshAndFrontConnection(const fvMesh& mesh, const Front& front);
+
+        //- Construct from components
+        fvMeshAndFrontConnection(const Front& front, const fvMesh& mesh);
 
     // Member Functions
     
         //- Access
-        const fvMesh& mesh()
+        const fvMesh& mesh() const
         {
             return mesh_; 
         }
 
-        const Front& front()
+        const Front& front() const
         {
             return front_; 
         }
-
-        //const DynamicList<pointIndexHit>&  cellsToElementsNearest()
-        //{
-            //return cellsElementNearest_;  
-        //}
-
-        //bool validElement(const pointIndexHit& el)
-        //{
-            //return el.hit(); 
-        //}
-
-        //- Edit
-        //- Calculate new connectivity 
-        //void calcConnectivity();
-        //- Update connectivity
-        //void updateConnectivity(); 
 };
 
 
@@ -136,7 +93,7 @@ public:
 } // End namespace Foam
 
 #ifdef NoRepository
-#   include "meshAndFrontConnection.C"
+#   include "fvMeshAndFrontConnection.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

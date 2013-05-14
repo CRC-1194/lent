@@ -22,10 +22,11 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::frontTrackingCalculator
+    Foam::FrontTrackingMethod
 
 Description
-
+    Front tracking method policy host. 
+    
 Author
     Tomislav Maric
     maric@csi.tu-darmstadt.de
@@ -35,17 +36,15 @@ Author
     TU Darmstadt
     Germany
 
-
 SourceFiles
-    frontTrackingCalculator.C
+    FrontTrackingMethod.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef frontTrackingCalculator_H
-#define frontTrackingCalculator_H
+#ifndef FrontTrackingMethod_H
+#define FrontTrackingMethod_H
 
 #include "fvMesh.H"
-#include "frontToMeshDistanceCalculator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -55,57 +54,29 @@ namespace frontTracking
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class frontTrackingCalculator Declaration
+                         Class FrontTrackingMethod Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class MeshAndFrontConnection>
-class frontTrackingCalculator
+template<class DistanceMethod>
+class FrontTrackingMethod
 {
     // Private data
     
-    // RTS selected calculators
-    autoPtr<meshAndFrontDistanceCalculator<MeshAndFrontConnection> > distanceCalculator_;
-
+    // Calculates the distance between the front and the mesh
+    //DistanceMethod distanceMethod_; 
+    
 public:
-
-    // Static data members
-
-    // Constructors
-
-        //- Construct from components
-        frontTrackingCalculator (); //const fvMesh& mesh, const levelSetFront& front);
-
-        //- Construct as copy
-        //frontTrackingCalculator(const frontTrackingCalculator&);
-
-
-    //- Destructor
-    //~frontTrackingCalculator();
-
 
     // Member Functions
 
         // Calculate 
-        void calcCentresToElementsDistance (volScalarField& Psi, 
-            const MeshAndFrontConnection& connectivity); 
+        template <class Connection>
+        void calcCentresToElementsDistance(volScalarField& Psi, 
+            const Connection& connection) const; 
 
-        void calcPointsToElementsDistance (scalarField& psi, 
-            const MeshAndFrontConnection& connectivity); 
-
-        // Access
-
-        // Check
-
-        // Edit
-
-        // Write
-
-
-    // Member Operators
-
-        // TODO: define
-        //void operator=(const frontTrackingCalculator&);
-
+        template <class Connection>
+        void calcPointsToElementsDistance(scalarField& psi, 
+            const Connection& connection) const; 
 };
 
 
@@ -114,9 +85,9 @@ public:
 } // End namespace frontTracking 
 } // End namespace Foam
 
-#ifdef NoRepository
-#   include "frontTrackingCalculator.C"
-#endif
+//#ifdef NoRepository
+//#   include "FrontTrackingMethod.C"
+//#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
