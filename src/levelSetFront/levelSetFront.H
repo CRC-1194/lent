@@ -58,12 +58,6 @@ class levelSetFront
         public regIOobject, 
         public triSurface 
 {
-
-    // Front is moving.
-    //bool moving_; 
-    // Front is topologically changing.
-    //bool changing_;
-
     // Write format. 
     word writeFormat_;
 
@@ -71,34 +65,18 @@ class levelSetFront
     label prependZeros_; 
 
     // Compute the iso-surface.
-    //void computeIsoSurface(
-        //const volScalarField& cellsToElementsDist, 
-        //const scalarField& pointsToElementsDist, 
-        //const bool regularise=true, 
-        //const scalar mergeTol=SMALL
-    //);
-
-    // Read and check the write control option from the controlDict. 
-    //template<class T>
-    //T readWriteInterval(const dictionary& controlDict);
+    void computeIsoSurface(
+        const volScalarField& cellsToElementsDist, 
+        const scalarField& pointsToElementsDist, 
+        const bool regularise=true, 
+        const scalar mergeTol=SMALL
+    );
 
     // Write the indexed front file.
     fileName zeroPaddedFileName(word extension) const;
 
-    // Access to static write control keywords.  
-    //word wcTimeStep()
-    //{
-        //static word wcTimeStep_ = "timeStep";
-        //return wcTimeStep_;
-    //}
-    //word wcAdjustableRunTime()
-    //{
-        //static word wcAdjustableRunTime_ = "adjustableRunTime";
-        //return wcAdjustableRunTime_;
-    //}
-
-    //template<class Displacement>
-    //void executeMovePoints(const Displacement& d); 
+    template<class Displacement>
+    void executeMovePoints(const Displacement& d); 
 
 public:
        
@@ -109,64 +87,46 @@ public:
     //- Construct read 
     levelSetFront(const IOobject& io, word writeFormat="vtk", label prependZeros=8);
 
-    //- Construct as isoSurface from a distance field
-    //levelSetFront(const volScalarField& psi, 
-        //const scalarField& psiPoint);
-
     //- Destructor
     virtual ~levelSetFront() {};
 
     // Member Functions
-    
-    // Set/get the moving/changing flags. 
-    //bool isMoving() const;
-    //void setMoving(bool b); 
+    //- Edit
+    void reconstruct(
+        const volScalarField& cellsToElementsDist, 
+        const scalarField& pointsToElementsDist, 
+        const bool regularise=true, 
+        const scalar mergeTol=SMALL
+    );
 
-    //bool isChanging() const; 
-    //void setChanging(bool b);
-
-    //const isoSurface& frontMesh() const
-    //{
-        //return frontPtr_(); 
-    //} 
-
-    // Edit
-    //void reconstruct(
-        //const volScalarField& cellsToElementsDist, 
-        //const scalarField& pointsToElementsDist, 
-        //const bool regularise=true, 
-        //const scalar mergeTol=SMALL
-    //);
-
-    //void reconstruct(
-        //const volScalarField& cellsToElementsDist, 
-        //const bool regularise=true, 
-        //const scalar mergeTol=SMALL
-    //);
+    void reconstruct(
+        const volScalarField& cellsToElementsDist, 
+        const bool regularise=true, 
+        const scalar mergeTol=SMALL
+    );
 
     // Move points with a spatially constant displacement vector.
-    //void move(vector deltaV);
+    void move(vector deltaV);
 
     // Move points with a displacement vector field.
-    //void move(const vectorField& deltaV);  
+    void move(const vectorField& deltaV);  
 
-    // Write
-    //void write(const Time& runTime);
-    //void writeNow(const Time& runTime); 
-    // TODO: regIOobject override
+    //- Write
+    
     bool write() const;  
+
     bool writeObject
     (
         IOstream::streamFormat fmt,
         IOstream::versionNumber ver,
         IOstream::compressionType cmp
     ) const;
+
     bool writeData(Foam::Ostream& os) const; 
         
     // Member operators 
-    //void operator=(const levelSetFront& rhs);
-    //void operator=(const isoSurface& rhs);
-        
+    void operator=(const levelSetFront& rhs);
+    void operator=(const isoSurface& rhs);
 };
 
 
@@ -179,7 +139,6 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 # include "levelSetFrontI.C"
-
 
 #endif
 

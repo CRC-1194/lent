@@ -45,22 +45,22 @@ namespace Foam
 namespace Foam {
     namespace frontTracking {
 
-//void levelSetFront::computeIsoSurface(
-    //const volScalarField& cellsToElementsDist, 
-    //const scalarField& pointsToElementsDist, 
-    //const bool regularise, 
-    //const scalar mergeTol
-//)
-//{
-    //*this = isoSurface 
-    //(
-        //cellsToElementsDist, 
-        //pointsToElementsDist, 
-        //0, 
-        //regularise,
-        //mergeTol
-    //);
-//}
+void levelSetFront::computeIsoSurface(
+    const volScalarField& cellsToElementsDist, 
+    const scalarField& pointsToElementsDist, 
+    const bool regularise, 
+    const scalar mergeTol
+)
+{
+    *this = isoSurface 
+    (
+        cellsToElementsDist, 
+        pointsToElementsDist, 
+        0, 
+        regularise,
+        mergeTol
+    );
+}
 
 fileName levelSetFront::zeroPaddedFileName(word extension) const
 {
@@ -86,20 +86,6 @@ fileName levelSetFront::zeroPaddedFileName(word extension) const
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-//levelSetFront::levelSetFront(
-    //const IOobject& io, 
-    //label prependZeros
-//)
-//:
-    //moving_(false), 
-    //changing_(false), 
-    //name_(io.name()), 
-    //instance_(io.instance()), 
-    //prependZeros_(prependZeros), 
-    //frontPtr_()
-//{
-//}
-
 levelSetFront::levelSetFront(
     const IOobject& io, 
     word writeFormat, 
@@ -110,117 +96,55 @@ levelSetFront::levelSetFront(
     triSurface(io.filePath()), 
     writeFormat_(writeFormat),
     prependZeros_(prependZeros)
-{
-}
-
-
-//levelSetFront::levelSetFront(const volScalarField& psi,
-                                                  //const scalarField& psiPoint)
-    //: 
-        //triSurfaceMesh(), 
-        //moving_(false), 
-        //changing_(false)
-//{
-    //// Reconstruct the interface as a level 0 of the distance field.
-    //computeIsoSurface(psi, psiPoint); 
-//}
-
-
-//levelSetFront::levelSetFront(const levelSetFront& rhs)
-//:
-    //triSurfaceMesh(rhs),
-    //moving_(rhs.moving_),
-    //changing_(rhs.changing_)
-//{
-
-//}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-//levelSetFront::~levelSetFront()
-//{}
+{}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-//bool levelSetFront::isMoving() const
-//{
-    //return moving_;
-//}
+void levelSetFront::reconstruct(
+    const volScalarField& cellsToElementsDist, 
+    const scalarField& pointsToElementsDist, 
+    const bool regularise, 
+    const scalar mergeTol
+)
+{
+    computeIsoSurface (
+        cellsToElementsDist, 
+        pointsToElementsDist, 
+        regularise, mergeTol
+    );
+}
 
-//void levelSetFront::setMoving(bool b)
-//{
-    //moving_ = b;
-//}
+void levelSetFront::reconstruct(
+    const volScalarField& cellsToElementsDist, 
+    const bool regularise, 
+    const scalar mergeTol
+)
+{
+    const fvMesh& mesh = cellsToElementsDist.mesh(); 
+    volPointInterpolation pInter (mesh);
 
-//bool levelSetFront::isChanging() const
-//{
-    //return changing_;
-//}
-//void levelSetFront::setChanging(bool b)
-//{
-    //changing_ = b;
-//}
+    tmp<pointScalarField> pointsToElementsDistTmp = pInter.interpolate (
+        cellsToElementsDist
+    );
 
-//void levelSetFront::reconstruct(
-    //const volScalarField& cellsToElementsDist, 
-    //const scalarField& pointsToElementsDist, 
-    //const bool regularise, 
-    //const scalar mergeTol
-//)
-//{
-    //computeIsoSurface (
-        //cellsToElementsDist, 
-        //pointsToElementsDist, 
-        //regularise, mergeTol
-    //);
-//}
+    const scalarField& pointsToElementsDist = pointsToElementsDistTmp();
 
-//void levelSetFront::reconstruct(
-    //const volScalarField& cellsToElementsDist, 
-    //const bool regularise, 
-    //const scalar mergeTol
-//)
-//{
-    //const fvMesh& mesh = cellsToElementsDist.mesh(); 
-    //volPointInterpolation pInter (mesh);
+    computeIsoSurface (
+        cellsToElementsDist, 
+        pointsToElementsDist, 
+        regularise, mergeTol
+    );
+}
 
-    //tmp<pointScalarField> pointsToElementsDistTmp = pInter.interpolate (
-        //cellsToElementsDist
-    //);
+void levelSetFront::move(vector deltaV)
+{
+    executeMovePoints(deltaV);
+}
 
-    //const scalarField& pointsToElementsDist = pointsToElementsDistTmp();
-
-    //computeIsoSurface (
-        //cellsToElementsDist, 
-        //pointsToElementsDist, 
-        //regularise, mergeTol
-    //);
-//}
-
-//void levelSetFront::move(vector deltaV)
-//{
-    //executeMovePoints(deltaV);
-//}
-
-//void levelSetFront::move(const vectorField& deltaV)
-//{
-    //executeMovePoints(deltaV);
-//}
-
-//void levelSetFront::write(const Time& runTime)
-//{
-    //// If the time is the output time.
-    //if (runTime.outputTime())
-    //{
-        //write(runTime.timeIndex()); 
-    //}
-//}
-
-//void levelSetFront::writeNow(const Time& runTime)
-//{
-    //// If the time is the output time.
-    //write(runTime.timeIndex()); 
-//}
+void levelSetFront::move(const vectorField& deltaV)
+{
+    executeMovePoints(deltaV);
+}
 
 bool levelSetFront::write() const
 {
@@ -256,22 +180,12 @@ bool levelSetFront::writeObject
     return true;
 }
 
-
-
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
 
-//void levelSetFront::operator=(const levelSetFront& rhs)
-//{
-    //if (&rhs != this)
-    //{
-        //// TODO: add code
-    //}
-//}
-
-//void levelSetFront::operator=(const isoSurface& rhs)
-//{
-    //*this = static_cast<const triSurface&> (rhs); 
-//}
+void levelSetFront::operator=(const isoSurface& rhs)
+{
+    static_cast<triSurface*>(this)->operator=(static_cast<triSurface> (rhs)); 
+}
 
 // ************************************************************************* //
 

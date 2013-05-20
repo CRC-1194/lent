@@ -38,40 +38,17 @@ Author
 
 // * * * * * * * * * * * * * Member Function Templates * * * * * * * * * * * //
 
-//template <class T>
-//T Foam::frontTracking::levelSetFront::readWriteInterval(
-    //const dictionary& controlDict
-//)
-//{
-    //T writeInterval = controlDict.lookupOrDefault<T>(
-        //"writeInterval",
-        //-1
-    //);
+template<class Displacement>
+void Foam::frontTracking::levelSetFront::executeMovePoints(
+    const Displacement& d
+)
+{
+    //FIXME: optimize this
+    pointField newPoints(points()); 
 
-    //if (writeInterval == -1)
-    //{
-        //FatalErrorIn(
-            //"levelSetFront::write(const Time& runTime)"
-        //) << "Wrong writeInterval value in the controlDict dictionary."
-            //<< abort(FatalError);
-    //}
+    newPoints += d; 
 
-    //return writeInterval;
-//}
-
-//template<class Displacement>
-//void Foam::frontTracking::levelSetFront::executeMovePoints(
-    //const Displacement& d
-//)
-//{
-    ////FIXME: optimize! 
-    //pointField newPoints(points()); 
-
-    //newPoints += d; 
-
-    //movePoints(newPoints);
-
-    ////setMoving(true);
-//}
+    movePoints(newPoints);
+}
 
 // ************************************************************************* //
