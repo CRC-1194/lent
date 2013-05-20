@@ -159,7 +159,7 @@ void triSurfaceMeshDistanceCalculator::calcPointSearchDistance(const fvMesh& mes
 
 triSurfaceMeshDistanceCalculator::triSurfaceMeshDistanceCalculator(label bandwidth)
 :
-    //cellsElementNearest_(),
+    cellsElementNearest_(),
     pointsElementNearest_(), 
     cellSearchDistPtr_(),
     pointSearchDistPtr_(),
@@ -175,7 +175,12 @@ void triSurfaceMeshDistanceCalculator::calcCentresToElementsDistance(
 ) 
 {
     // Get the reference to the levelSetFront.
-    const triSurfaceMesh& front = connection.front(); 
+    triSurfaceMesh front (
+        IOobject
+        (
+        ),
+        connection.front()
+    );
 
     // Get the reference to the fvMesh
     const fvMesh& mesh = connection.mesh();

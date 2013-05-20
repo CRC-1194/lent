@@ -124,7 +124,6 @@ int main(int argc, char *argv[])
         )
     );
     runTime.writeNow(); 
-    //runTime.write(); 
 
     //Connection meshFrontConnection (mesh, front); 
 
@@ -165,37 +164,26 @@ int main(int argc, char *argv[])
 
     //}
 
-    //while (runTime.run())
-    //{
-        //#include "readTimeControls.H"
-        //#include "CourantNo.H"
-        //#include "alphaCourantNo.H"
-        //#include "setDeltaT.H"
+    while (runTime.run())
+    {
+        #include "readTimeControls.H"
+        #include "CourantNo.H"
+        #include "alphaCourantNo.H"
+        #include "setDeltaT.H"
 
-        //runTime++;
+        runTime++;
 
-        //Info<< "Time = " << runTime.timeName() << nl << endl;
+        Info<< "Time = " << runTime.timeName() << nl << endl;
         
         //twoPhaseProperties.correct();
 
-        //// Compute the displacement field.
-        
-        //// Get the number of front vertices.
+        // Move the front points with the constant vector: test  
+        front.move(vector(0,0,0.01));
 
-        //// Get the velocity vector from the dictionary.
-
-        //// Initialize the displacement vector field.
-
-        //// Move the front points with the constant vector: test  
-        //// Notification of the front/mesh motion/topological is done via the
-        //// observer pattern. 
-        //front.move(vector(1,1,1) * runTime.deltaT().value());
-
-        //// Compute the new distance fields. 
+        // Compute the new signed distance field. 
         //calculator.calcCentresToElementsDistance(Psi, frontMeshConnection); 
-        //calculator.calcPointsToElementsDistance(psi, frontMeshConnection); 
 
-        ////// Reconstruct the front as an iso surface. 
+        //Reconstruct the front. 
         //front.reconstruct(Psi, psi); 
 
         ////// --- Pressure-velocity PIMPLE corrector loop
@@ -215,14 +203,12 @@ int main(int argc, char *argv[])
             //////}
         //////}
         
-        
-        //runTime.write();
-        //front.write(runTime);
+        runTime.write();
 
-        //Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            //<< "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            //<< nl << endl;
-    //}
+        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
+    }
 
     Info<< "End\n" << endl;
 

@@ -42,8 +42,6 @@ Author
 #ifndef triSurfaceMeshDistanceCalculator_H
 #define triSurfaceMeshDistanceCalculator_H
 
-//#include "triSurfaceMesh.H"
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -57,7 +55,7 @@ namespace Foam
 class triSurfaceMeshDistanceCalculator
 {
     //- List of indices to the nearest elements to cells.
-    //DynamicList<pointIndexHit> cellsElementNearest_; 
+    DynamicList<pointIndexHit> cellsElementNearest_; 
 
     //- List of indices to the nearest elements to points.
     DynamicList<pointIndexHit> pointsElementNearest_; 

@@ -43,7 +43,7 @@ void Foam::frontTracking::levelSetFront::executeMovePoints(
     const Displacement& d
 )
 {
-    //FIXME: optimize this
+    //FIXME: remove the freaking copy of points, hardcoded to triSurface. 
     pointField newPoints(points()); 
 
     newPoints += d; 
