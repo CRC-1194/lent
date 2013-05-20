@@ -159,7 +159,7 @@ void triSurfaceMeshDistanceCalculator::calcPointSearchDistance(const fvMesh& mes
 
 triSurfaceMeshDistanceCalculator::triSurfaceMeshDistanceCalculator(label bandwidth)
 :
-    cellsElementNearest_(),
+    //cellsElementNearest_(),
     pointsElementNearest_(), 
     cellSearchDistPtr_(),
     pointSearchDistPtr_(),
@@ -189,12 +189,15 @@ void triSurfaceMeshDistanceCalculator::calcCentresToElementsDistance(
     // Get the distance field reference.
     const volScalarField& cellSearchDist_ = cellSearchDistPtr_(); 
 
+    DynamicList<pointIndexHit> cellsElementNearest_(C.size());
+
+    mesh.time().cpuTimeIncrement();
     front.findNearest(
         C, 
         cellSearchDist_, 
-        //l
         cellsElementNearest_
     );
+    Info << "findNearest : " << mesh.time().cpuTimeIncrement() << endl; 
 
     // Create a list of the volume types: based on the cell centre, the
     // volume can be INSIDE, OUTSIDE or UNKNOWN with respect to the surface.
@@ -220,27 +223,28 @@ void triSurfaceMeshDistanceCalculator::calcCentresToElementsDistance(
             // If the volume is OUTSIDE.
             if (vT == searchableSurface::OUTSIDE)
             {
-                // Set the positive distance.
-                Psi[I] = Foam::mag(C[I] - h.hitPoint());
+                // Set the negative distance.
+                Psi[I] = -Foam::mag(C[I] - h.hitPoint());
             }
             // If the volume is inside.
             else if (vT == searchableSurface::INSIDE)
             {
-                // Set the negative distance.
-                Psi[I] = -Foam::mag(C[I] - h.hitPoint());
+                // Set the positive distance.
+                Psi[I] = Foam::mag(C[I] - h.hitPoint());
             }
+            // FIXME 
             else // The cell is cut by the element.
             {
                 // Compute the distance vector.
-                vector distance = C[I] - h.hitPoint(); 
+                //vector distance = C[I] - h.hitPoint(); 
                 // Get the element.
-                const labelledTri& element = elements[h.index()];
+                //const labelledTri& element = elements[h.index()];
                 // Get the element normal
-                vector elementNormal = element.normal(vertices);
+                //vector elementNormal = element.normal(vertices);
 
                 // Project the distance to the element normal and set 
                 // signed the distance value.
-                Psi[I] = distance & (elementNormal / mag(elementNormal));
+                //Psi[I] = distance & (elementNormal / mag(elementNormal));
             }
 
         }

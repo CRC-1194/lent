@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
     fileName frontInputFile = "";
     fileName frontOutputDirectory = "";
 
+    // TODO: simplify : take away the options and request the fixed data.  
     if (!args.optionFound("frontInputFile"))
     {
         frontInputFile = "frontInputFile.stl";
@@ -120,50 +121,48 @@ int main(int argc, char *argv[])
             runTime, 
             IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
-        ) 
+        )
     );
+    runTime.writeNow(); 
 
-    // TODO : overload regIOobject for writing with write() 
-    front.writeNow(runTime); 
-
-    Connection meshFrontConnection (mesh, front); 
+    //Connection meshFrontConnection (mesh, front); 
 
     // TODO: make the bandwidth a dictionary entry.
-    triSurfaceMeshDistanceCalculator distanceCalculator(4);
-
-    // Write the initial front. 
-    ++runTime;
+    //triSurfaceMeshDistanceCalculator distanceCalculator(4);
 
     // Compute the cell centered cell to elements distance field.
-    runTime.cpuTimeIncrement(); 
-    distanceCalculator.calcCentresToElementsDistance(Psi, meshFrontConnection);
-    distanceCalculator.calcPointsToElementsDistance(psi, meshFrontConnection);
-    Info << "distance computed: " << runTime.cpuTimeIncrement() << endl;  
+    //runTime.cpuTimeIncrement(); 
+    //distanceCalculator.calcCentresToElementsDistance(Psi, meshFrontConnection);
+    //Info << "distance computed: " << runTime.cpuTimeIncrement() << endl;  
 
     // Reconstruct the iso-surface front from the distance field.
-    runTime.cpuTimeIncrement(); 
-    front.reconstruct(Psi,psi);
-    Info << "front reconstructed: " << runTime.cpuTimeIncrement() << endl; 
-    front.writeNow(runTime);
-    Info << "front written: " << runTime.cpuTimeIncrement() << endl; 
-    runTime.writeNow(); 
+    //runTime.cpuTimeIncrement(); 
+    //front.reconstruct(Psi); 
+    //Info << "front reconstructed: " << runTime.cpuTimeIncrement() << endl; 
+    //front.writeNow(runTime);
+    //Info << "front written: " << runTime.cpuTimeIncrement() << endl; 
+    //runTime.writeNow(); 
+    
+    //for (label I = 0; I < 4; ++I)
+    //{
 
-    ++runTime; 
+        //++runTime; 
 
-    runTime.cpuTimeIncrement(); 
-    front.move(vector(0.2, 0.2, 0.2)); 
-    Info << "front moved: " << runTime.cpuTimeIncrement() << endl;
-    //distanceCalculator.calcCentresToElementsDistance(Psi, meshFrontConnection);
-    //distanceCalculator.calcPointsToElementsDistance(psi, meshFrontConnection);
-    //Info << "distance computed: " << runTime.cpuTimeIncrement() << endl;
-    //front.reconstruct(Psi,psi);
-    //Info << "front reconstructed: " << runTime.cpuTimeIncrement() << endl;
-    front.writeNow(runTime);
-    runTime.writeNow(); 
+        //runTime.cpuTimeIncrement(); 
+        //front.move(vector(0,0, 0.05)); 
+        ////Info << "front moved: " << runTime.cpuTimeIncrement() << endl;
+        //runTime.cpuTimeIncrement(); 
+        //distanceCalculator.calcCentresToElementsDistance(Psi, meshFrontConnection);
+        ////distanceCalculator.calcPointsToElementsDistance(psi, meshFrontConnection);
+        //Info << "distance computed: " << runTime.cpuTimeIncrement() << endl;
+        //front.reconstruct(Psi);
+        //Info << "front reconstructed: " << runTime.cpuTimeIncrement() << endl;
+        //runTime.writeNow(); 
+        //runTime.cpuTimeIncrement(); 
+        //front.writeNow(runTime);
+        //Info << "front written: " << runTime.cpuTimeIncrement() << endl;
 
-    // TODO: register front to the time, so that it is written automatically.
-    //runTime.writeNow();
-    //front.writeNow(runTime); 
+    //}
 
     //while (runTime.run())
     //{

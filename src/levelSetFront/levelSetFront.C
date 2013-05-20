@@ -45,64 +45,75 @@ namespace Foam
 namespace Foam {
     namespace frontTracking {
 
-void levelSetFront::computeIsoSurface(
-    const volScalarField& cellsToElementsDist, 
-    const scalarField& pointsToElementsDist, 
-    const bool regularise, 
-    const scalar mergeTol
-)
-{
-    *this = isoSurface (
-        cellsToElementsDist, 
-        pointsToElementsDist, 
-        0, 
-        regularise,
-        mergeTol
-    );
-}
+//void levelSetFront::computeIsoSurface(
+    //const volScalarField& cellsToElementsDist, 
+    //const scalarField& pointsToElementsDist, 
+    //const bool regularise, 
+    //const scalar mergeTol
+//)
+//{
+    //*this = isoSurface 
+    //(
+        //cellsToElementsDist, 
+        //pointsToElementsDist, 
+        //0, 
+        //regularise,
+        //mergeTol
+    //);
+//}
 
-void levelSetFront::write(label index)
-{
-    // Separate the file name and the extension.
-    fileName baseName = name_.name(true);
+//void levelSetFront::write(label index)
+//{
+    //// Separate the file name and the extension.
+    //fileName baseName = file_.name(true);
 
-    string indexString = Foam::name(index);
+    //string indexString = Foam::name(index);
 
-    // Pad the base name with zeros
-    std::string paddedZeros = std::string (
-        prependZeros_ - indexString.size(), 
-        '0'
-    );
-        //std::string dest = std::string( 10 - original_string.size() , '0').append( original_string);
+    //// Pad the base name with zeros
+    //std::string paddedZeros = std::string (
+        //prependZeros_ - indexString.size(), 
+        //'0'
+    //);
 
-    // Append the index string to the padded name.
-    paddedZeros.append(indexString);
+    //// Append the index string to the padded name.
+    //paddedZeros.append(indexString);
 
-    // Write the front in the instance directory under the new name.
+    //// Write the front in the instance directory under the new name.
     
-    // TODO: generalize the IO for file formats 
-    fileName finalName = instance_ + "/" + 
-        //baseName + "-" + paddedZeros + "." + name_.ext(); 
-        baseName + "-" + paddedZeros + ".vtk"; 
+    //// TODO: generalize the IO for file formats 
+    //fileName finalName = directory_ + "/" + 
+        ////baseName + "-" + paddedZeros + "." + name_.ext(); 
+        //baseName + "-" + paddedZeros + ".vtk"; 
 
-    triSurface::write(finalName);
-}
+    //write(finalName);
+//}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+//levelSetFront::levelSetFront(
+    //const IOobject& io, 
+    //label prependZeros
+//)
+//:
+    //moving_(false), 
+    //changing_(false), 
+    //name_(io.name()), 
+    //instance_(io.instance()), 
+    //prependZeros_(prependZeros), 
+    //frontPtr_()
+//{
+//}
 
 levelSetFront::levelSetFront(
     const IOobject& io, 
     label prependZeros
 )
 :
-    triSurfaceMesh(io), 
-    moving_(false), 
-    changing_(false), 
-    name_(io.name()), 
-    instance_(io.instance()), 
-    prependZeros_(prependZeros)
+    regIOobject(io), 
+    triSurface(io.filePath())
 {
 }
+
 
 //levelSetFront::levelSetFront(const volScalarField& psi,
                                                   //const scalarField& psiPoint)
@@ -132,103 +143,115 @@ levelSetFront::levelSetFront(
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-bool levelSetFront::isMoving() const
+//bool levelSetFront::isMoving() const
+//{
+    //return moving_;
+//}
+
+//void levelSetFront::setMoving(bool b)
+//{
+    //moving_ = b;
+//}
+
+//bool levelSetFront::isChanging() const
+//{
+    //return changing_;
+//}
+//void levelSetFront::setChanging(bool b)
+//{
+    //changing_ = b;
+//}
+
+//void levelSetFront::reconstruct(
+    //const volScalarField& cellsToElementsDist, 
+    //const scalarField& pointsToElementsDist, 
+    //const bool regularise, 
+    //const scalar mergeTol
+//)
+//{
+    //computeIsoSurface (
+        //cellsToElementsDist, 
+        //pointsToElementsDist, 
+        //regularise, mergeTol
+    //);
+//}
+
+//void levelSetFront::reconstruct(
+    //const volScalarField& cellsToElementsDist, 
+    //const bool regularise, 
+    //const scalar mergeTol
+//)
+//{
+    //const fvMesh& mesh = cellsToElementsDist.mesh(); 
+    //volPointInterpolation pInter (mesh);
+
+    //tmp<pointScalarField> pointsToElementsDistTmp = pInter.interpolate (
+        //cellsToElementsDist
+    //);
+
+    //const scalarField& pointsToElementsDist = pointsToElementsDistTmp();
+
+    //computeIsoSurface (
+        //cellsToElementsDist, 
+        //pointsToElementsDist, 
+        //regularise, mergeTol
+    //);
+//}
+
+//void levelSetFront::move(vector deltaV)
+//{
+    //executeMovePoints(deltaV);
+//}
+
+//void levelSetFront::move(const vectorField& deltaV)
+//{
+    //executeMovePoints(deltaV);
+//}
+
+//void levelSetFront::write(const Time& runTime)
+//{
+    //// If the time is the output time.
+    //if (runTime.outputTime())
+    //{
+        //write(runTime.timeIndex()); 
+    //}
+//}
+
+//void levelSetFront::writeNow(const Time& runTime)
+//{
+    //// If the time is the output time.
+    //write(runTime.timeIndex()); 
+//}
+
+bool levelSetFront::write() const
 {
-    return moving_;
+    Info << "write() called" << endl;
+
+    return true;
 }
 
-void levelSetFront::setMoving(bool b)
+bool levelSetFront::writeData(Foam::Ostream& os) const
 {
-    moving_ = b;
-}
-
-bool levelSetFront::isChanging() const
-{
-    return changing_;
-}
-void levelSetFront::setChanging(bool b)
-{
-    changing_ = b;
-}
-
-void levelSetFront::reconstruct(
-    const volScalarField& cellsToElementsDist, 
-    const scalarField& pointsToElementsDist, 
-    const bool regularise, 
-    const scalar mergeTol
-)
-{
-    computeIsoSurface (
-        cellsToElementsDist, 
-        pointsToElementsDist, 
-        regularise, mergeTol
-    );
-
-    //setChanging(true);
-}
-
-void levelSetFront::reconstruct(
-    const volScalarField& cellsToElementsDist, 
-    const bool regularise, 
-    const scalar mergeTol
-)
-{
-    Pout << "levelSetFront::reconstruct (\n"
-         << "    const volScalarField& cellsToElementsDist, \n"
-         << "    const bool regularise, \n"
-         << "    const scalar mergeTol\n)" << endl;
-
-    const fvMesh& mesh = cellsToElementsDist.mesh(); 
-    volPointInterpolation pInter (mesh);
-
-    tmp<pointScalarField> pointsToElementsDistTmp = pInter.interpolate (
-        cellsToElementsDist
-    );
-
-    const scalarField& pointsToElementsDist = pointsToElementsDistTmp();
-
-    computeIsoSurface (
-        cellsToElementsDist, 
-        pointsToElementsDist, 
-        regularise, mergeTol
-    );
-
-    //setChanging(true);
-}
-
-void levelSetFront::move(vector deltaV)
-{
-    executeMovePoints(deltaV);
-}
-
-void levelSetFront::move(const vectorField& deltaV)
-{
-    executeMovePoints(deltaV);
-}
-
-void levelSetFront::write(const Time& runTime)
-{
-    // If the time is the output time.
-    if (runTime.outputTime())
-    {
-        write(runTime.timeIndex()); 
-    }
-}
-
-void levelSetFront::writeNow(const Time& runTime)
-{
-    // If the time is the output time.
-    write(runTime.timeIndex()); 
+    Info << "writeData() called" << endl;
+    return true; 
 }
 
 
 
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
 
-void levelSetFront::operator=(const isoSurface& rhs)
-{
-    triSurface::operator=(rhs);
-}
+//void levelSetFront::operator=(const levelSetFront& rhs)
+//{
+    //if (&rhs != this)
+    //{
+        //// TODO: add code
+    //}
+//}
+
+//void levelSetFront::operator=(const isoSurface& rhs)
+//{
+    //*this = static_cast<const triSurface&> (rhs); 
+//}
 
 // ************************************************************************* //
 
