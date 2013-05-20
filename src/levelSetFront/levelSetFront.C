@@ -62,31 +62,27 @@ namespace Foam {
     //);
 //}
 
-//void levelSetFront::write(label index)
-//{
-    //// Separate the file name and the extension.
-    //fileName baseName = file_.name(true);
+fileName levelSetFront::zeroPaddedFileName(word extension) const
+{
+    // Separate the file name and the extension.
+    fileName file = IOobject::name();
+    fileName baseName = file.name(true); 
 
-    //string indexString = Foam::name(index);
+    string indexString = Foam::name(IOobject::time().timeIndex());
+    // Pad the base name with zeros
+    std::string paddedZeros = std::string (
+        prependZeros_ - indexString.size(), 
+        '0'
+    );
 
-    //// Pad the base name with zeros
-    //std::string paddedZeros = std::string (
-        //prependZeros_ - indexString.size(), 
-        //'0'
-    //);
+    // Append the index string to the padded name.
+    paddedZeros.append(indexString);
 
-    //// Append the index string to the padded name.
-    //paddedZeros.append(indexString);
+    fileName finalName = path() + "/" + baseName + "-" +
+        paddedZeros + "." + extension; 
 
-    //// Write the front in the instance directory under the new name.
-    
-    //// TODO: generalize the IO for file formats 
-    //fileName finalName = directory_ + "/" + 
-        ////baseName + "-" + paddedZeros + "." + name_.ext(); 
-        //baseName + "-" + paddedZeros + ".vtk"; 
-
-    //write(finalName);
-//}
+    return finalName; 
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -106,11 +102,14 @@ namespace Foam {
 
 levelSetFront::levelSetFront(
     const IOobject& io, 
+    word writeFormat, 
     label prependZeros
 )
 :
     regIOobject(io), 
-    triSurface(io.filePath())
+    triSurface(io.filePath()), 
+    writeFormat_(writeFormat),
+    prependZeros_(prependZeros)
 {
 }
 
@@ -227,13 +226,34 @@ bool levelSetFront::write() const
 {
     Info << "write() called" << endl;
 
+    fileName paddedName = zeroPaddedFileName(writeFormat_);
+
+    Info << "paddedName = " << paddedName << endl;
+
+    triSurface::write(paddedName); 
+
     return true;
 }
 
 bool levelSetFront::writeData(Foam::Ostream& os) const
 {
-    Info << "writeData() called" << endl;
+    Info << "writeData(Ostream) " << endl;
+
+    triSurface::write(os); 
+
     return true; 
+}
+
+bool levelSetFront::writeObject
+(
+    IOstream::streamFormat fmt,
+    IOstream::versionNumber ver,
+    IOstream::compressionType cmp
+) const
+{
+    triSurface::write(zeroPaddedFileName(writeFormat_)); 
+
+    return true;
 }
 
 

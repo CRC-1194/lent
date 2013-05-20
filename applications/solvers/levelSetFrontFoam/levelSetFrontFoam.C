@@ -124,6 +124,7 @@ int main(int argc, char *argv[])
         )
     );
     runTime.writeNow(); 
+    //runTime.write(); 
 
     //Connection meshFrontConnection (mesh, front); 
 

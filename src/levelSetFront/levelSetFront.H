@@ -64,16 +64,11 @@ class levelSetFront
     // Front is topologically changing.
     //bool changing_;
 
-    // FIXME: replace name_ and instance_ with input data, not IOobject, 
-    // inherit from regIOobject to enable automatic writing by overriding
-    // write()
-    //fileName file_; 
-
-    // Instance. 
-    //fileName directory_; 
+    // Write format. 
+    word writeFormat_;
 
     // Prepend zeros. 
-    //label prependZeros_; 
+    label prependZeros_; 
 
     // Compute the iso-surface.
     //void computeIsoSurface(
@@ -88,7 +83,7 @@ class levelSetFront
     //T readWriteInterval(const dictionary& controlDict);
 
     // Write the indexed front file.
-    //void write(label index);
+    fileName zeroPaddedFileName(word extension) const;
 
     // Access to static write control keywords.  
     //word wcTimeStep()
@@ -112,7 +107,7 @@ public:
     // Constructors
 
     //- Construct read 
-    levelSetFront(const IOobject& io, label prependZeros=8);
+    levelSetFront(const IOobject& io, word writeFormat="vtk", label prependZeros=8);
 
     //- Construct as isoSurface from a distance field
     //levelSetFront(const volScalarField& psi, 
@@ -160,6 +155,12 @@ public:
     //void writeNow(const Time& runTime); 
     // TODO: regIOobject override
     bool write() const;  
+    bool writeObject
+    (
+        IOstream::streamFormat fmt,
+        IOstream::versionNumber ver,
+        IOstream::compressionType cmp
+    ) const;
     bool writeData(Foam::Ostream& os) const; 
         
     // Member operators 
