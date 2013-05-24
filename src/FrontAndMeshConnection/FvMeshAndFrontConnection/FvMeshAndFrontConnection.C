@@ -27,16 +27,16 @@ Author
 
 \*---------------------------------------------------------------------------*/
 
-//#include "fvMeshAndFrontConnection.H"
+//#include "FvMeshAndFrontConnection.H"
 
 namespace Foam {
 
-namespace frontTracking {
+namespace FrontTracking {
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 
-//void fvMeshAndFrontConnection::calcCellsElements()
+//void FvMeshAndFrontConnection::calcCellsElements()
 //{
     //// If the mesh is moving or is experiencing topological changes.
     //if (mesh_.changing() || mesh_.moving())
@@ -54,13 +54,13 @@ namespace frontTracking {
     //calcElementsToCells(); 
 //}
 
-//void fvMeshAndFrontConnection::updateCellsElements()
+//void FvMeshAndFrontConnection::updateCellsElements()
 //{
     //updateCellsToElements(); 
     //updateElementsToCells(); 
 //}
 
-//void fvMeshAndFrontConnection::initConnectivity()
+//void FvMeshAndFrontConnection::initConnectivity()
 //{
     //// TODO: check if mesh is moving or changing
     //// Calculate the search distances.  
@@ -74,7 +74,7 @@ namespace frontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class Front>
-fvMeshAndFrontConnection<Front>::fvMeshAndFrontConnection (
+FvMeshAndFrontConnection<Front>::FvMeshAndFrontConnection (
     const fvMesh& mesh, 
     const Front& front
 )
@@ -84,7 +84,7 @@ fvMeshAndFrontConnection<Front>::fvMeshAndFrontConnection (
 {}
 
 template<class Front>
-fvMeshAndFrontConnection<Front>::fvMeshAndFrontConnection (
+FvMeshAndFrontConnection<Front>::FvMeshAndFrontConnection (
     const Front& front,
     const fvMesh& mesh 
 )
@@ -96,13 +96,13 @@ fvMeshAndFrontConnection<Front>::fvMeshAndFrontConnection (
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-//void fvMeshAndFrontConnection::calcConnectivity()
+//void FvMeshAndFrontConnection::calcConnectivity()
 //{
     //// Calculate cells<->elements connectivity.
     //calcCellsElements(); 
 //}
 
-//void fvMeshAndFrontConnection::updateConnectivity()
+//void FvMeshAndFrontConnection::updateConnectivity()
 //{
     //// Update cells<->elements connectivity.
     //updateCellsElements();
@@ -110,7 +110,7 @@ fvMeshAndFrontConnection<Front>::fvMeshAndFrontConnection (
 
 // ************************************************************************* //
 
-} // End namespace frontTracking 
+} // End namespace FrontTracking 
 
 // ************************************************************************* //
 

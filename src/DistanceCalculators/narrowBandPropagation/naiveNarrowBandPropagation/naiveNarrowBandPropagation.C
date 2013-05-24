@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,83 +21,61 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::fvMeshAndFrontConnection
-
-Description
-
-Author
-    Tomislav Maric
-    tomislav.maric@gmx.com
-
-SourceFiles
-    fvMeshAndFrontConnectionI.H
-    fvMeshAndFrontConnection.C
-    fvMeshAndFrontConnectionIO.C
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef fvMeshAndFrontConnection_H
-#define fvMeshAndFrontConnection_H
+#include "naiveNarrowBandPropagation.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam {
-namespace frontTracking {
-
-/*---------------------------------------------------------------------------*\
-                         Class fvMeshAndFrontConnection Declaration
-\*---------------------------------------------------------------------------*/
-
-template<class Front>
-class fvMeshAndFrontConnection
+namespace Foam
+{
+namespace FrontTracking
 {
 
-private: 
-    // Private data
-    
-    const fvMesh& mesh_; 
-    const Front& front_;
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-public:
+naiveNarrowBandPropagation::naiveNarrowBandPropagation() {}
 
-    // Constructors
+// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
 
-        //- Construct from components
-        fvMeshAndFrontConnection(const fvMesh& mesh, const Front& front);
+void naiveNarrowBandPropagation::operator()(volScalarField& Psi)
+{
+    const fvMesh& mesh = Psi.mesh(); 
+    const labelList& own = mesh.owner(); 
+    const labelList& nei = mesh.neighbour(); 
 
-        //- Construct from components
-        fvMeshAndFrontConnection(const Front& front, const fvMesh& mesh);
+    label jumpFace = -1; 
 
-    // Member Functions
-    
-        //- Access
-        const fvMesh& mesh() const
+    Psi.time().cpuTimeIncrement(); 
+    do 
+    {
+        jumpFace = -1; 
+        forAll (own, faceI)
         {
-            return mesh_; 
+            if ((Psi[own[faceI]] < 0) && (Psi[nei[faceI]] == GREAT))
+            {
+                jumpFace = faceI; 
+                Psi[nei[faceI]] *= -1; 
+            }
+            if ((Psi[nei[faceI]] < 0) && (Psi[own[faceI]] == GREAT))
+            {
+                jumpFace = faceI; 
+                Psi[own[faceI]] *= -1;
+            }
         }
-
-        const Front& front() const
-        {
-            return front_; 
-        }
-};
-
+    } while (jumpFace >= 0);
+    Info << "Enforcing narrow band: " << Psi.time().cpuTimeIncrement() << endl;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace frontTracking 
+} // End namespace FrontTracking 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 
-#ifdef NoRepository
-#   include "fvMeshAndFrontConnection.C"
-#endif
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#endif
 
 // ************************************************************************* //

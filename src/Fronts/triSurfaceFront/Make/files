@@ -1,0 +1,8 @@
+triSurfaceFront/triSurfaceFront.C
+/*triSurfaceFrontFields/triSurfaceFrontFields.C*/
+
+/*meshAndFrontConnection/meshAndFrontConnection.C*/
+/*frontTrackingCalculator/frontTrackingCalculator.C*/
+
+
+LIB = $(FOAM_USER_LIBBIN)/libtriSurfaceFront

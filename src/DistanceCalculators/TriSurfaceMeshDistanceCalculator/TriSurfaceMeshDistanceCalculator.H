@@ -22,12 +22,12 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::triSurfaceMeshDistanceCalculator
+    Foam::TriSurfaceMeshDistanceCalculator
 
 Description
 
 SourceFiles
-    triSurfaceMeshDistanceCalculator.C
+    TriSurfaceMeshDistanceCalculator.C
   
 Author
     Tomislav Maric
@@ -39,20 +39,20 @@ Author
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef triSurfaceMeshDistanceCalculator_H
-#define triSurfaceMeshDistanceCalculator_H
+#ifndef TriSurfaceMeshDistanceCalculator_H
+#define TriSurfaceMeshDistanceCalculator_H
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    namespace frontTracking {
+    namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class triSurfaceMeshDistanceCalculator Declaration
+                         Class TriSurfaceMeshDistanceCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class triSurfaceMeshDistanceCalculator
+class TriSurfaceMeshDistanceCalculator
 {
     //- List of indices to the nearest elements to cells.
     DynamicList<pointIndexHit> cellsElementNearest_; 
@@ -82,18 +82,24 @@ class triSurfaceMeshDistanceCalculator
 
 public:
 
-    triSurfaceMeshDistanceCalculator(label bandwidth);
+    TriSurfaceMeshDistanceCalculator(label bandwidth);
 
     // Member Functions
     
-    template <typename Connection>
-    void calcCentresToElementsDistance(volScalarField& Psi, 
-        const Connection& connection); 
+    template <typename Connection, typename NarrowBandPropagation>
+    void calcCentresToElementsDistance
+    (
+        volScalarField& Psi, 
+        const Connection& connection, 
+        NarrowBandPropagation enforceNarrowBand 
+    ); 
 
     template <typename Connection>
-    void calcPointsToElementsDistance(scalarField& psi, 
-        const Connection& connection); 
-
+    void calcPointsToElementsDistance
+    (
+        scalarField& psi, 
+        const Connection& connection
+    ); 
 
     void setBandwidth(label bandwidth)
     {
@@ -104,11 +110,11 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace frontTracking 
+} // End namespace FrontTracking 
 } // End namespace Foam
 
 #ifdef NoRepository
-#   include "triSurfaceMeshDistanceCalculator.C"
+#   include "TriSurfaceMeshDistanceCalculator.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

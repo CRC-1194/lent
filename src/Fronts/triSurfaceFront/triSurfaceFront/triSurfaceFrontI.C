@@ -32,14 +32,14 @@ Author
 
 \*---------------------------------------------------------------------------*/
 
-#include "levelSetFront.H"
+#include "triSurfaceFront.H"
 #include "volPointInterpolation.H"
 #include "pointFields.H"
 
 // * * * * * * * * * * * * * Member Function Templates * * * * * * * * * * * //
 
 template<class Displacement>
-void Foam::frontTracking::levelSetFront::executeMovePoints(
+void Foam::FrontTracking::triSurfaceFront::executeMovePoints(
     const Displacement& d
 )
 {

@@ -1,0 +1,3 @@
+naiveNarrowBandPropagation/naiveNarrowBandPropagation.C
+
+LIB = $(FOAM_USER_LIBBIN)/libnarrowBandPropagation

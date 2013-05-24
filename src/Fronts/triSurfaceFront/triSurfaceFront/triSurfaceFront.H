@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::levelSetFront
+    Foam::triSurfaceFront
 
 Author
     Tomislav Maric
@@ -31,12 +31,12 @@ Author
 Description
 
 SourceFiles
-    levelSetFront.C
+    triSurfaceFront.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef levelSetFront_H
-#define levelSetFront_H
+#ifndef triSurfaceFront_H
+#define triSurfaceFront_H
 
 #include "isoSurface.H"
 #include "triSurfaceMesh.H"
@@ -46,14 +46,14 @@ SourceFiles
 
 namespace Foam
 {
-namespace frontTracking
+namespace FrontTracking
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class levelSetFront Declaration
+                         Class triSurfaceFront Declaration
 \*---------------------------------------------------------------------------*/
 
-class levelSetFront
+class triSurfaceFront
     :
         public regIOobject, 
         public triSurface 
@@ -69,7 +69,7 @@ class levelSetFront
         const volScalarField& cellsToElementsDist, 
         const scalarField& pointsToElementsDist, 
         const bool regularise=true, 
-        const scalar mergeTol=SMALL
+        const scalar mergeTol=1e-06
     );
 
     // Write the indexed front file.
@@ -80,15 +80,15 @@ class levelSetFront
 
 public:
        
-    TypeName ("levelSetFront");
+    TypeName ("triSurfaceFront");
 
     // Constructors
 
     //- Construct read 
-    levelSetFront(const IOobject& io, word writeFormat="vtk", label prependZeros=8);
+    triSurfaceFront(const IOobject& io, word writeFormat="vtk", label prependZeros=8);
 
     //- Destructor
-    virtual ~levelSetFront() {};
+    virtual ~triSurfaceFront() {};
 
     // Member Functions
     //- Edit
@@ -125,20 +125,20 @@ public:
     bool writeData(Foam::Ostream& os) const; 
         
     // Member operators 
-    void operator=(const levelSetFront& rhs);
+    void operator=(const triSurfaceFront& rhs);
     void operator=(const isoSurface& rhs);
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace frontTracking
+} // End namespace FrontTracking
 
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-# include "levelSetFrontI.C"
+# include "triSurfaceFrontI.C"
 
 #endif
 

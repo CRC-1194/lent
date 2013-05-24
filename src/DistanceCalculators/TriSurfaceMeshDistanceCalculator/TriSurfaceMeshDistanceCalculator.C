@@ -26,12 +26,12 @@ License
 #include "volPointInterpolation.H"
 
 namespace Foam {
-    namespace frontTracking {
+    namespace FrontTracking {
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 void
-triSurfaceMeshDistanceCalculator::initCellSearchDistance(
+TriSurfaceMeshDistanceCalculator::initCellSearchDistance(
     const fvMesh& mesh
 )
 {
@@ -63,12 +63,12 @@ triSurfaceMeshDistanceCalculator::initCellSearchDistance(
         (
             "GREAT", 
             dimLength, 
-            GREAT
+            0 
         );
 }
 
 void
-triSurfaceMeshDistanceCalculator::initPointSearchDistance(
+TriSurfaceMeshDistanceCalculator::initPointSearchDistance(
     const fvMesh& mesh
 )
 {
@@ -98,12 +98,12 @@ triSurfaceMeshDistanceCalculator::initPointSearchDistance(
         pointSearchDistPtr_->resize(mesh.points().size()); 
     }
 
-    pointSearchDistPtr_() = GREAT;
+    pointSearchDistPtr_() = 0;
 }
 
 
 
-void triSurfaceMeshDistanceCalculator::calcCellSearchDistance(const fvMesh& mesh)
+void TriSurfaceMeshDistanceCalculator::calcCellSearchDistance(const fvMesh& mesh)
 {
     initCellSearchDistance(mesh); 
 
@@ -133,7 +133,7 @@ void triSurfaceMeshDistanceCalculator::calcCellSearchDistance(const fvMesh& mesh
 
         forAll(mesh.boundary()[patchI], faceI)
         {
-            cellSearchDist_[faceCells[faceI]] += deltaCoeffsBoundary[faceI];
+            cellSearchDist_[faceCells[faceI]] += (1 / deltaCoeffsBoundary[faceI]);
         }
     }
 
@@ -147,7 +147,7 @@ void triSurfaceMeshDistanceCalculator::calcCellSearchDistance(const fvMesh& mesh
     }
 }
 
-void triSurfaceMeshDistanceCalculator::calcPointSearchDistance(const fvMesh& mesh)
+void TriSurfaceMeshDistanceCalculator::calcPointSearchDistance(const fvMesh& mesh)
 {
     initPointSearchDistance(mesh); 
 
@@ -157,7 +157,7 @@ void triSurfaceMeshDistanceCalculator::calcPointSearchDistance(const fvMesh& mes
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-triSurfaceMeshDistanceCalculator::triSurfaceMeshDistanceCalculator(label bandwidth)
+TriSurfaceMeshDistanceCalculator::TriSurfaceMeshDistanceCalculator(label bandwidth)
 :
     cellsElementNearest_(),
     pointsElementNearest_(), 
@@ -168,26 +168,36 @@ triSurfaceMeshDistanceCalculator::triSurfaceMeshDistanceCalculator(label bandwid
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-template<typename Connection>
-void triSurfaceMeshDistanceCalculator::calcCentresToElementsDistance(
+template<typename Connection, typename NarrowBandPropagation>
+void TriSurfaceMeshDistanceCalculator::calcCentresToElementsDistance
+(
     volScalarField& Psi, 
-    const Connection& connection
+    const Connection& connection, 
+    NarrowBandPropagation enforceNarrowBand
 ) 
 {
-    // Get the reference to the levelSetFront.
-    triSurfaceMesh front (
-        IOobject
-        (
-        ),
-        connection.front()
-    );
 
     // Get the reference to the fvMesh
     const fvMesh& mesh = connection.mesh();
 
+    // Get the reference to the levelSetFront.
+    triSurfaceMesh front (
+        IOobject
+        (
+            "triSurfaceMesh", 
+            "front", 
+            mesh, 
+            IOobject::NO_READ, 
+            IOobject::NO_WRITE
+        ),
+        static_cast<const triSurface&>(connection.front())
+    );
+
     // Compute the search distance field.
     calcCellSearchDistance(mesh); 
-    
+
+    cellSearchDistPtr_->write(); 
+
     // Get the cell centres.  
     const volVectorField& C = mesh.C(); 
 
@@ -241,23 +251,26 @@ void triSurfaceMeshDistanceCalculator::calcCentresToElementsDistance(
             else // The cell is cut by the element.
             {
                 // Compute the distance vector.
-                //vector distance = C[I] - h.hitPoint(); 
+                vector distance = C[I] - h.hitPoint(); 
                 // Get the element.
-                //const labelledTri& element = elements[h.index()];
+                const labelledTri& element = elements[h.index()];
                 // Get the element normal
-                //vector elementNormal = element.normal(vertices);
+                vector elementNormal = element.normal(vertices);
 
                 // Project the distance to the element normal and set 
                 // signed the distance value.
-                //Psi[I] = distance & (elementNormal / mag(elementNormal));
+                Psi[I] = distance & (elementNormal / mag(elementNormal));
             }
 
         }
     }
+
+    // Enforce the narrow band of Psi initialized with GREAT in the whole domain.
+    enforceNarrowBand(Psi); 
 }
 
 template<typename Connection>
-void triSurfaceMeshDistanceCalculator::calcPointsToElementsDistance(
+void TriSurfaceMeshDistanceCalculator::calcPointsToElementsDistance(
     scalarField& psi, 
     const Connection& connection
 ) 
@@ -332,13 +345,11 @@ void triSurfaceMeshDistanceCalculator::calcPointsToElementsDistance(
 
         }
     }
-
-
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace frontTracking
+} // End namespace FrontTracking
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

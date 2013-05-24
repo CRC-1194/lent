@@ -27,25 +27,25 @@ Author
 
 \*---------------------------------------------------------------------------*/
 
-#include "levelSetFront.H"
+#include "triSurfaceFront.H"
 #include "volPointInterpolation.H"
 
 // * * * * * * * * * * * * * * * * Static Data * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    namespace frontTracking
+    namespace FrontTracking
     {
-        defineTypeNameAndDebug(levelSetFront, 0);
+        defineTypeNameAndDebug(triSurfaceFront, 0);
     }
 }
 
 // * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * //
 
 namespace Foam {
-    namespace frontTracking {
+    namespace FrontTracking {
 
-void levelSetFront::computeIsoSurface(
+void triSurfaceFront::computeIsoSurface(
     const volScalarField& cellsToElementsDist, 
     const scalarField& pointsToElementsDist, 
     const bool regularise, 
@@ -62,7 +62,7 @@ void levelSetFront::computeIsoSurface(
     );
 }
 
-fileName levelSetFront::zeroPaddedFileName(word extension) const
+fileName triSurfaceFront::zeroPaddedFileName(word extension) const
 {
     // Separate the file name and the extension.
     fileName file = IOobject::name();
@@ -86,7 +86,7 @@ fileName levelSetFront::zeroPaddedFileName(word extension) const
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-levelSetFront::levelSetFront(
+triSurfaceFront::triSurfaceFront(
     const IOobject& io, 
     word writeFormat, 
     label prependZeros
@@ -100,7 +100,7 @@ levelSetFront::levelSetFront(
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void levelSetFront::reconstruct(
+void triSurfaceFront::reconstruct(
     const volScalarField& cellsToElementsDist, 
     const scalarField& pointsToElementsDist, 
     const bool regularise, 
@@ -114,7 +114,7 @@ void levelSetFront::reconstruct(
     );
 }
 
-void levelSetFront::reconstruct(
+void triSurfaceFront::reconstruct(
     const volScalarField& cellsToElementsDist, 
     const bool regularise, 
     const scalar mergeTol
@@ -136,30 +136,26 @@ void levelSetFront::reconstruct(
     );
 }
 
-void levelSetFront::move(vector deltaV)
+void triSurfaceFront::move(vector deltaV)
 {
     executeMovePoints(deltaV);
 }
 
-void levelSetFront::move(const vectorField& deltaV)
+void triSurfaceFront::move(const vectorField& deltaV)
 {
     executeMovePoints(deltaV);
 }
 
-bool levelSetFront::write() const
+bool triSurfaceFront::write() const
 {
-    Info << "write() called" << endl;
-
     fileName paddedName = zeroPaddedFileName(writeFormat_);
-
-    Info << "paddedName = " << paddedName << endl;
 
     triSurface::write(paddedName); 
 
     return true;
 }
 
-bool levelSetFront::writeData(Foam::Ostream& os) const
+bool triSurfaceFront::writeData(Foam::Ostream& os) const
 {
     Info << "writeData(Ostream) " << endl;
 
@@ -168,7 +164,7 @@ bool levelSetFront::writeData(Foam::Ostream& os) const
     return true; 
 }
 
-bool levelSetFront::writeObject
+bool triSurfaceFront::writeObject
 (
     IOstream::streamFormat fmt,
     IOstream::versionNumber ver,
@@ -182,13 +178,13 @@ bool levelSetFront::writeObject
 
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
 
-void levelSetFront::operator=(const isoSurface& rhs)
+void triSurfaceFront::operator=(const isoSurface& rhs)
 {
     static_cast<triSurface*>(this)->operator=(static_cast<triSurface> (rhs)); 
 }
 
 // ************************************************************************* //
 
-} // End namespace frontTracking
+} // End namespace FrontTracking
 
 } // End namespace Foam

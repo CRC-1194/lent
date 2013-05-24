@@ -48,16 +48,19 @@ Description
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
 
-
-#include "levelSetFront.H"
-#include "fvMeshAndFrontConnection.H"
-#include "triSurfaceMeshDistanceCalculator.H"
+#include "triSurfaceFront.H"
+#include "FvMeshAndFrontConnection.H"
+#include "naiveNarrowBandPropagation.H"
+#include "TriSurfaceMeshDistanceCalculator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-using namespace frontTracking;
+using namespace FrontTracking;
 
-typedef fvMeshAndFrontConnection<levelSetFront> Connection;
+// Configure the Method
+typedef triSurfaceFront Front;
+typedef FvMeshAndFrontConnection<Front> Connection;
+typedef TriSurfaceMeshDistanceCalculator DistanceCalculator; 
 
 int main(int argc, char *argv[])
 {
@@ -114,7 +117,7 @@ int main(int argc, char *argv[])
 
     Info<< "\nStarting time loop\n" << endl;
 
-    levelSetFront front (
+    Front front (
         IOobject (
             frontInputFile,
             frontOutputDirectory,
@@ -123,46 +126,12 @@ int main(int argc, char *argv[])
             IOobject::AUTO_WRITE
         )
     );
-    runTime.writeNow(); 
 
-    //Connection meshFrontConnection (mesh, front); 
+    front.write(); 
 
-    // TODO: make the bandwidth a dictionary entry.
-    //triSurfaceMeshDistanceCalculator distanceCalculator(4);
+    Connection meshFrontConnection (mesh, front); 
 
-    // Compute the cell centered cell to elements distance field.
-    //runTime.cpuTimeIncrement(); 
-    //distanceCalculator.calcCentresToElementsDistance(Psi, meshFrontConnection);
-    //Info << "distance computed: " << runTime.cpuTimeIncrement() << endl;  
-
-    // Reconstruct the iso-surface front from the distance field.
-    //runTime.cpuTimeIncrement(); 
-    //front.reconstruct(Psi); 
-    //Info << "front reconstructed: " << runTime.cpuTimeIncrement() << endl; 
-    //front.writeNow(runTime);
-    //Info << "front written: " << runTime.cpuTimeIncrement() << endl; 
-    //runTime.writeNow(); 
-    
-    //for (label I = 0; I < 4; ++I)
-    //{
-
-        //++runTime; 
-
-        //runTime.cpuTimeIncrement(); 
-        //front.move(vector(0,0, 0.05)); 
-        ////Info << "front moved: " << runTime.cpuTimeIncrement() << endl;
-        //runTime.cpuTimeIncrement(); 
-        //distanceCalculator.calcCentresToElementsDistance(Psi, meshFrontConnection);
-        ////distanceCalculator.calcPointsToElementsDistance(psi, meshFrontConnection);
-        //Info << "distance computed: " << runTime.cpuTimeIncrement() << endl;
-        //front.reconstruct(Psi);
-        //Info << "front reconstructed: " << runTime.cpuTimeIncrement() << endl;
-        //runTime.writeNow(); 
-        //runTime.cpuTimeIncrement(); 
-        //front.writeNow(runTime);
-        //Info << "front written: " << runTime.cpuTimeIncrement() << endl;
-
-    //}
+    DistanceCalculator distCalc(4);
 
     while (runTime.run())
     {
@@ -178,30 +147,35 @@ int main(int argc, char *argv[])
         //twoPhaseProperties.correct();
 
         // Move the front points with the constant vector: test  
-        front.move(vector(0,0,0.01));
+        //front.move(vector(0,0,0.01));
 
         // Compute the new signed distance field. 
-        //calculator.calcCentresToElementsDistance(Psi, frontMeshConnection); 
+        distCalc.calcCentresToElementsDistance
+        (
+            Psi, 
+            meshFrontConnection, 
+            naiveNarrowBandPropagation()
+        ); 
 
         //Reconstruct the front. 
-        //front.reconstruct(Psi, psi); 
+        front.reconstruct(Psi); 
 
-        ////// --- Pressure-velocity PIMPLE corrector loop
-        //////while (pimple.loop())
-        //////{
-            //////#include "UEqn.H"
+        // --- Pressure-velocity PIMPLE corrector loop
+        //while (pimple.loop())
+        //{
+            //#include "UEqn.H"
 
-            ////// --- Pressure corrector loop
-            //////while (pimple.correct())
-            //////{
-                //////#include "pEqn.H"
-            //////}
+            // --- Pressure corrector loop
+            //while (pimple.correct())
+            //{
+                //#include "pEqn.H"
+            //}
 
-            //////if (pimple.turbCorr())
-            //////{
-                //////turbulence->correct();
-            //////}
-        //////}
+            //if (pimple.turbCorr())
+            //{
+                //turbulence->correct();
+            //}
+        //}
         
         runTime.write();
 
