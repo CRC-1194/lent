@@ -35,8 +35,8 @@ TriSurfaceMeshDistanceCalculator::initCellSearchDistance(
     const fvMesh& mesh
 )
 {
-    if (cellSearchDistPtr_.empty())
-    {
+    //if (cellSearchDistPtr_.empty())
+    //{
         cellSearchDistPtr_ = autoPtr<volScalarField> (
             new volScalarField (
                IOobject (
@@ -51,20 +51,23 @@ TriSurfaceMeshDistanceCalculator::initCellSearchDistance(
                   "zero", 
                   dimLength, 
                   0
-               )
+               ), 
+               "zeroGradient"
            )
         );
-    }
-    else
-    {
-        cellSearchDistPtr_->resize(mesh.cells().size()); 
-    }
-    cellSearchDistPtr_() = dimensionedScalar 
-        (
-            "GREAT", 
-            dimLength, 
-            0 
-        );
+    //}
+    //else
+    //{
+        //volScalarField cellSearchDist = cellSearchDistPtr_(); 
+        //cellSearchDist.resize(mesh.cells().size()); 
+        //cellSearchDist = dimensionedScalar 
+        //(
+            //"zero", 
+            //dimLength, 
+            //0 
+        //);
+        //cellSearchDist.boundaryField().evaluate(); 
+    //}
 }
 
 void
@@ -109,6 +112,8 @@ void TriSurfaceMeshDistanceCalculator::calcCellSearchDistance(const fvMesh& mesh
 
     volScalarField& cellSearchDist_ = cellSearchDistPtr_(); 
 
+    //Info << cellSearchDist_ << endl;
+
     // Sum deltaCoeffs inversed.
     const surfaceScalarField& deltaCoeffs = mesh.deltaCoeffs(); 
 
@@ -142,9 +147,10 @@ void TriSurfaceMeshDistanceCalculator::calcCellSearchDistance(const fvMesh& mesh
     {
         // Average the distance with the number of cell-faces. 
         cellSearchDist_[I] /=  mesh.cells()[I].size();
-        // Expand the distance by the bandwidth.
-        cellSearchDist_[I] *=  bandwidth_;  
     }
+
+    // Expand the distance by the bandwidth.
+    cellSearchDist_ *= bandwidth_; 
 }
 
 void TriSurfaceMeshDistanceCalculator::calcPointSearchDistance(const fvMesh& mesh)
@@ -159,7 +165,7 @@ void TriSurfaceMeshDistanceCalculator::calcPointSearchDistance(const fvMesh& mes
 
 TriSurfaceMeshDistanceCalculator::TriSurfaceMeshDistanceCalculator(label bandwidth)
 :
-    cellsElementNearest_(),
+    //cellsElementNearest_(),
     pointsElementNearest_(), 
     cellSearchDistPtr_(),
     pointSearchDistPtr_(),
@@ -176,6 +182,12 @@ void TriSurfaceMeshDistanceCalculator::calcCentresToElementsDistance
     NarrowBandPropagation enforceNarrowBand
 ) 
 {
+    Psi = dimensionedScalar
+    (
+        "distance", 
+        dimLength, 
+        GREAT
+    );
 
     // Get the reference to the fvMesh
     const fvMesh& mesh = connection.mesh();
@@ -194,7 +206,10 @@ void TriSurfaceMeshDistanceCalculator::calcCentresToElementsDistance
     );
 
     // Compute the search distance field.
+    Psi.time().cpuTimeIncrement(); 
     calcCellSearchDistance(mesh); 
+    Info << "Compute the search distance: " 
+        << Psi.time().cpuTimeIncrement() << endl; 
 
     cellSearchDistPtr_->write(); 
 
@@ -204,13 +219,13 @@ void TriSurfaceMeshDistanceCalculator::calcCentresToElementsDistance
     // Get the distance field reference.
     const volScalarField& cellSearchDist_ = cellSearchDistPtr_(); 
 
-    DynamicList<pointIndexHit> cellsElementNearest_(C.size());
+    DynamicList<pointIndexHit> cellsElementNearest;
 
     mesh.time().cpuTimeIncrement();
     front.findNearest(
         C, 
         cellSearchDist_, 
-        cellsElementNearest_
+        cellsElementNearest
     );
     Info << "findNearest : " << mesh.time().cpuTimeIncrement() << endl; 
 
@@ -231,7 +246,7 @@ void TriSurfaceMeshDistanceCalculator::calcCentresToElementsDistance
         // Get the volume type.
         searchableSurface::volumeType vT = volType[I];
 
-        const pointIndexHit& h = cellsElementNearest_[I]; 
+        const pointIndexHit& h = cellsElementNearest[I]; 
 
         if (h.hit())
         {
@@ -239,31 +254,34 @@ void TriSurfaceMeshDistanceCalculator::calcCentresToElementsDistance
             if (vT == searchableSurface::OUTSIDE)
             {
                 // Set the negative distance.
-                Psi[I] = -Foam::mag(C[I] - h.hitPoint());
+                //Psi[I] = -Foam::mag(C[I] - h.hitPoint());
+                Psi[I] = Foam::mag(C[I] - h.hitPoint());
             }
             // If the volume is inside.
             else if (vT == searchableSurface::INSIDE)
             {
                 // Set the positive distance.
-                Psi[I] = Foam::mag(C[I] - h.hitPoint());
+                //Psi[I] = Foam::mag(C[I] - h.hitPoint());
+                Psi[I] = -Foam::mag(C[I] - h.hitPoint());
             }
-            // FIXME 
-            else // The cell is cut by the element.
-            {
-                // Compute the distance vector.
-                vector distance = C[I] - h.hitPoint(); 
-                // Get the element.
-                const labelledTri& element = elements[h.index()];
-                // Get the element normal
-                vector elementNormal = element.normal(vertices);
+            //remove 
+            //else 
+            //{
+                //// Compute the distance vector.
+                //vector distance = C[I] - h.hitPoint(); 
+                //// Get the element.
+                //const labelledTri& element = elements[h.index()];
+                //// Get the element normal
+                //vector elementNormal = element.normal(vertices);
 
-                // Project the distance to the element normal and set 
-                // signed the distance value.
-                Psi[I] = distance & (elementNormal / mag(elementNormal));
-            }
-
+                //// Project the distance to the element normal and set 
+                //// signed the distance value.
+                //Psi[I] = distance & (elementNormal / mag(elementNormal));
+            //}
         }
     }
+    Info << "Compute the Psi field: " 
+        << Psi.time().cpuTimeIncrement() << endl;
 
     // Enforce the narrow band of Psi initialized with GREAT in the whole domain.
     enforceNarrowBand(Psi); 

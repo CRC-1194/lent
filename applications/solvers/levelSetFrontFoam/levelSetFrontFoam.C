@@ -131,6 +131,7 @@ int main(int argc, char *argv[])
 
     Connection meshFrontConnection (mesh, front); 
 
+    // TODO make this a dictionary entry
     DistanceCalculator distCalc(4);
 
     while (runTime.run())
@@ -146,8 +147,6 @@ int main(int argc, char *argv[])
         
         //twoPhaseProperties.correct();
 
-        // Move the front points with the constant vector: test  
-        //front.move(vector(0,0,0.01));
 
         // Compute the new signed distance field. 
         distCalc.calcCentresToElementsDistance
@@ -158,7 +157,11 @@ int main(int argc, char *argv[])
         ); 
 
         //Reconstruct the front. 
-        front.reconstruct(Psi); 
+        Psi.time().cpuTimeIncrement(); 
+        front.reconstruct(Psi, false); 
+        Info << "Front reconstructed: " 
+            << Psi.time().cpuTimeIncrement() << endl; 
+
 
         // --- Pressure-velocity PIMPLE corrector loop
         //while (pimple.loop())
@@ -177,6 +180,9 @@ int main(int argc, char *argv[])
             //}
         //}
         
+        // Move the front points with the constant vector: test  
+        //front.move(vector(0,0,0.1));
+
         runTime.write();
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"

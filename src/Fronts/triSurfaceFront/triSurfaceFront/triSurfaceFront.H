@@ -96,13 +96,13 @@ public:
         const volScalarField& cellsToElementsDist, 
         const scalarField& pointsToElementsDist, 
         const bool regularise=true, 
-        const scalar mergeTol=SMALL
+        const scalar mergeTol=1e-06
     );
 
     void reconstruct(
         const volScalarField& cellsToElementsDist, 
         const bool regularise=true, 
-        const scalar mergeTol=SMALL
+        const scalar mergeTol=1e-06
     );
 
     // Move points with a spatially constant displacement vector.

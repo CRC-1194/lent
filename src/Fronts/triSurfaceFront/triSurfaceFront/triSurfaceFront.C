@@ -180,7 +180,7 @@ bool triSurfaceFront::writeObject
 
 void triSurfaceFront::operator=(const isoSurface& rhs)
 {
-    static_cast<triSurface*>(this)->operator=(static_cast<triSurface> (rhs)); 
+    static_cast<triSurface*>(this)->operator=(static_cast<const triSurface&> (rhs)); 
 }
 
 // ************************************************************************* //

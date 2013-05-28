@@ -64,6 +64,7 @@ void naiveNarrowBandPropagation::operator()(volScalarField& Psi)
             }
         }
     } while (jumpFace >= 0);
+    Psi.boundaryField().evaluate(); 
     Info << "Enforcing narrow band: " << Psi.time().cpuTimeIncrement() << endl;
 }
 

@@ -55,7 +55,7 @@ namespace Foam
 class TriSurfaceMeshDistanceCalculator
 {
     //- List of indices to the nearest elements to cells.
-    DynamicList<pointIndexHit> cellsElementNearest_; 
+    //DynamicList<pointIndexHit> cellsElementNearest_; 
 
     //- List of indices to the nearest elements to points.
     DynamicList<pointIndexHit> pointsElementNearest_; 
