@@ -123,8 +123,8 @@ void TriSurfaceMeshDistanceCalculator::calcCellSearchDistance(const fvMesh& mesh
     // Sum the deltaCoeffs for the internal faces.
     forAll(own, I)
     {
-        cellSearchDist_[own[I]] += (1 / deltaCoeffs[I]);
-        cellSearchDist_[nei[I]] += (1 / deltaCoeffs[I]);
+        cellSearchDist_[own[I]] += (1 / (deltaCoeffs[I] * deltaCoeffs[I]));
+        cellSearchDist_[nei[I]] += (1 / (deltaCoeffs[I] * deltaCoeffs[I]));
     }
 
     // Sum the deltaCoeffs for the boundary faces.
@@ -138,7 +138,10 @@ void TriSurfaceMeshDistanceCalculator::calcCellSearchDistance(const fvMesh& mesh
 
         forAll(mesh.boundary()[patchI], faceI)
         {
-            cellSearchDist_[faceCells[faceI]] += (1 / deltaCoeffsBoundary[faceI]);
+            cellSearchDist_[faceCells[faceI]] += (1 / 
+                    (deltaCoeffsBoundary[faceI] * 
+                     deltaCoeffsBoundary[faceI]));
+;
         }
     }
 
@@ -151,6 +154,7 @@ void TriSurfaceMeshDistanceCalculator::calcCellSearchDistance(const fvMesh& mesh
 
     // Expand the distance by the bandwidth.
     cellSearchDist_ *= bandwidth_; 
+    cellSearchDist_.boundaryField().evaluate(); 
 }
 
 void TriSurfaceMeshDistanceCalculator::calcPointSearchDistance(const fvMesh& mesh)

@@ -131,8 +131,24 @@ int main(int argc, char *argv[])
 
     Connection meshFrontConnection (mesh, front); 
 
+    IOdictionary levelSetFrontDict
+    (
+        IOobject
+        (
+            "levelSetFrontDict", 
+            "constant", 
+            runTime, 
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::AUTO_WRITE
+        )
+    );
+
+    label narrowBandWidth = levelSetFrontDict.lookupOrDefault<label>("narrowBandWidth", 4);
+
+    Info << "narrowBandWidth = " << narrowBandWidth << endl;
+
     // TODO make this a dictionary entry
-    DistanceCalculator distCalc(4);
+    DistanceCalculator distCalc(narrowBandWidth); 
 
     while (runTime.run())
     {
@@ -158,7 +174,7 @@ int main(int argc, char *argv[])
 
         //Reconstruct the front. 
         Psi.time().cpuTimeIncrement(); 
-        front.reconstruct(Psi, false); 
+        front.reconstruct(Psi, true); 
         Info << "Front reconstructed: " 
             << Psi.time().cpuTimeIncrement() << endl; 
 
@@ -181,7 +197,7 @@ int main(int argc, char *argv[])
         //}
         
         // Move the front points with the constant vector: test  
-        //front.move(vector(0,0,0.1));
+        front.move(vector(0.01,0,0));
 
         runTime.write();
 
