@@ -29,6 +29,7 @@ Author
 
 #include "triSurfaceFront.H"
 #include "volPointInterpolation.H"
+#include "fvcGrad.H" 
 
 // * * * * * * * * * * * * * * * * Static Data * * * * * * * * * * * * * * //
 
@@ -52,7 +53,7 @@ void triSurfaceFront::computeIsoSurface(
     const scalar mergeTol
 )
 {
-    *this = isoSurface 
+    isoSurface reconstructedFront = isoSurface 
     (
         cellsToElementsDist, 
         pointsToElementsDist, 
@@ -60,6 +61,12 @@ void triSurfaceFront::computeIsoSurface(
         regularise,
         mergeTol
     );
+    
+    // Copy the data to the front. 
+    *this = reconstructedFront; 
+
+    // Fix the element orientation.
+    fixElementOrientation(reconstructedFront, cellsToElementsDist);  
 }
 
 fileName triSurfaceFront::zeroPaddedFileName(word extension) const
@@ -83,6 +90,34 @@ fileName triSurfaceFront::zeroPaddedFileName(word extension) const
 
     return finalName; 
 }
+
+void triSurfaceFront::fixElementOrientation
+(
+    const isoSurface& reconstructedFront, 
+    const volScalarField& cellsToElementsDist
+)
+{
+    volVectorField distGrad = fvc::grad(cellsToElementsDist); 
+
+    // Get non-const access to elements.
+    List<labelledTri> & elements = storedFaces(); 
+
+    // Get the cells. 
+    const labelList& cells = reconstructedFront.meshCells(); 
+
+    // Get the element normals. 
+    const vectorField& elementNormals = faceNormals();  
+
+    // For all faces 
+    forAll (elements, faceI)
+    {
+         //If the face area normal is oposite to the distance gradient. 
+         if ((elementNormals[faceI] & distGrad[cells[faceI]]) < 0)
+         {
+             elements[faceI].flip(); 
+         }
+    }
+};
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 

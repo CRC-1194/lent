@@ -127,7 +127,6 @@ int main(int argc, char *argv[])
         )
     );
 
-    front.write(); 
 
     Connection meshFrontConnection (mesh, front); 
 
@@ -145,10 +144,22 @@ int main(int argc, char *argv[])
 
     label narrowBandWidth = levelSetFrontDict.lookupOrDefault<label>("narrowBandWidth", 4);
 
-    Info << "narrowBandWidth = " << narrowBandWidth << endl;
-
-    // TODO make this a dictionary entry
     DistanceCalculator distCalc(narrowBandWidth); 
+
+    // Compute the new signed distance field. 
+    distCalc.calcCentresToElementsDistance
+    (
+        Psi, 
+        meshFrontConnection, 
+        naiveNarrowBandPropagation()
+    ); 
+
+    //Reconstruct the front. 
+    //Psi.time().cpuTimeIncrement(); 
+    //front.reconstruct(Psi, true); 
+    front.reconstruct(Psi, false); 
+    // Write the front.
+    runTime.writeNow(); 
 
     while (runTime.run())
     {
@@ -162,22 +173,6 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
         
         //twoPhaseProperties.correct();
-
-
-        // Compute the new signed distance field. 
-        distCalc.calcCentresToElementsDistance
-        (
-            Psi, 
-            meshFrontConnection, 
-            naiveNarrowBandPropagation()
-        ); 
-
-        //Reconstruct the front. 
-        Psi.time().cpuTimeIncrement(); 
-        front.reconstruct(Psi, true); 
-        Info << "Front reconstructed: " 
-            << Psi.time().cpuTimeIncrement() << endl; 
-
 
         // --- Pressure-velocity PIMPLE corrector loop
         //while (pimple.loop())
@@ -197,7 +192,22 @@ int main(int argc, char *argv[])
         //}
         
         // Move the front points with the constant vector: test  
-        front.move(vector(0.01,0,0));
+        front.move(vector(0.017,0,0));
+        
+        // Compute the new signed distance field. 
+        distCalc.calcCentresToElementsDistance
+        (
+            Psi, 
+            meshFrontConnection, 
+            naiveNarrowBandPropagation()
+        ); 
+
+        //Reconstruct the front. 
+        Psi.time().cpuTimeIncrement(); 
+        // No regularization works! :)
+        front.reconstruct(Psi, false); 
+        Info << "Front reconstructed: " 
+            << Psi.time().cpuTimeIncrement() << endl; 
 
         runTime.write();
 

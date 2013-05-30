@@ -231,6 +231,7 @@ void TriSurfaceMeshDistanceCalculator::calcCentresToElementsDistance
         cellSearchDist_, 
         cellsElementNearest
     );
+
     Info << "findNearest : " << mesh.time().cpuTimeIncrement() << endl; 
 
     // Create a list of the volume types: based on the cell centre, the
@@ -269,21 +270,22 @@ void TriSurfaceMeshDistanceCalculator::calcCentresToElementsDistance
                 Psi[I] = -Foam::mag(C[I] - h.hitPoint());
             }
             //remove 
-            //else 
-            //{
-                //// Compute the distance vector.
-                //vector distance = C[I] - h.hitPoint(); 
-                //// Get the element.
-                //const labelledTri& element = elements[h.index()];
-                //// Get the element normal
-                //vector elementNormal = element.normal(vertices);
+            else 
+            {
+                // Compute the distance vector.
+                vector distance = C[I] - h.hitPoint(); 
+                // Get the element.
+                const labelledTri& element = elements[h.index()];
+                // Get the element normal
+                vector elementNormal = element.normal(vertices);
 
-                //// Project the distance to the element normal and set 
-                //// signed the distance value.
-                //Psi[I] = distance & (elementNormal / mag(elementNormal));
-            //}
+                // Project the distance to the element normal and set 
+                // signed the distance value.
+                Psi[I] = distance & (elementNormal / mag(elementNormal));
+            }
         }
     }
+
     Info << "Compute the Psi field: " 
         << Psi.time().cpuTimeIncrement() << endl;
 

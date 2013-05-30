@@ -78,6 +78,12 @@ class triSurfaceFront
     template<class Displacement>
     void executeMovePoints(const Displacement& d); 
 
+    void fixElementOrientation
+    (
+        const isoSurface& reconstructedFront, 
+        const volScalarField& cellsToElementsDist
+    ); 
+
 public:
        
     TypeName ("triSurfaceFront");
