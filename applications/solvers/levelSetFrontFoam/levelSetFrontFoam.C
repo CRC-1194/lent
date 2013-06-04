@@ -127,6 +127,8 @@ int main(int argc, char *argv[])
         )
     );
 
+    Front movedFront (front); 
+    movedFront.rename("movedFront"); 
 
     Connection meshFrontConnection (mesh, front); 
 
@@ -156,8 +158,9 @@ int main(int argc, char *argv[])
 
     //Reconstruct the front. 
     //Psi.time().cpuTimeIncrement(); 
-    //front.reconstruct(Psi, true); 
     front.reconstruct(Psi, false); 
+    //front.reconstruct(Psi, true); 
+
     // Write the front.
     runTime.writeNow(); 
 
@@ -192,7 +195,11 @@ int main(int argc, char *argv[])
         //}
         
         // Move the front points with the constant vector: test  
-        front.move(vector(0.017,0,0));
+        // TODO: displacement vector put in testing subdict 
+        //front.move(vector(0.05,0.05,0.05));
+        //movedFront.move(vector(0.05, 0.05, 0.05));
+        front.move(vector(0.05,0,0));
+        movedFront.move(vector(0.05, 0, 0));
         
         // Compute the new signed distance field. 
         distCalc.calcCentresToElementsDistance
@@ -206,6 +213,7 @@ int main(int argc, char *argv[])
         Psi.time().cpuTimeIncrement(); 
         // No regularization works! :)
         front.reconstruct(Psi, false); 
+        //front.reconstruct(Psi, true); 
         Info << "Front reconstructed: " 
             << Psi.time().cpuTimeIncrement() << endl; 
 

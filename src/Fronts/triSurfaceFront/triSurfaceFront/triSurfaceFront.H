@@ -78,7 +78,7 @@ class triSurfaceFront
     template<class Displacement>
     void executeMovePoints(const Displacement& d); 
 
-    void fixElementOrientation
+    void forceConsistentNormalOrientation 
     (
         const isoSurface& reconstructedFront, 
         const volScalarField& cellsToElementsDist
