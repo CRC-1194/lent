@@ -1,5 +1,5 @@
 triSurfaceFront/triSurfaceFront.C
-/*triSurfaceFrontFields/triSurfaceFrontFields.C*/
+triSurfaceFrontFields/triSurfaceFrontFields.C
 
 /*meshAndFrontConnection/meshAndFrontConnection.C*/
 /*frontTrackingCalculator/frontTrackingCalculator.C*/

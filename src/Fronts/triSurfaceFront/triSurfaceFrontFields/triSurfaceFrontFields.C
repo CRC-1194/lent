@@ -23,62 +23,62 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "levelSetFrontFields.H"
+#include "triSurfaceFrontFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace frontTracking
+namespace FrontTracking
 {
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 template<>
-const word levelSetFrontLabelField::typeName("levelSetFrontLabelField");
+const word triSurfaceFrontLabelField::typeName("triSurfaceFrontLabelField");
 
 template<>
-const word levelSetFrontScalarField::typeName("levelSetFrontScalarField");
+const word triSurfaceFrontScalarField::typeName("triSurfaceFrontScalarField");
 
 template<>
-const word levelSetFrontVectorField::typeName("levelSetFrontVectorField");
+const word triSurfaceFrontVectorField::typeName("triSurfaceFrontVectorField");
 
 template<>
-const word levelSetFrontSphericalTensorField::typeName
-("levelSetFrontSphericalTensorField");
+const word triSurfaceFrontSphericalTensorField::typeName
+("triSurfaceFrontSphericalTensorField");
 
 template<>
-const word levelSetFrontSymmTensorField::typeName
-("levelSetFrontSymmTensorField");
+const word triSurfaceFrontSymmTensorField::typeName
+("triSurfaceFrontSymmTensorField");
 
 template<>
-const word levelSetFrontTensorField::typeName("levelSetFrontTensorField");
+const word triSurfaceFrontTensorField::typeName("triSurfaceFrontTensorField");
 
 
 template<>
-const word levelSetFrontPointLabelField::typeName("levelSetFrontPointLabelField");
+const word triSurfaceFrontPointLabelField::typeName("triSurfaceFrontPointLabelField");
 
 template<>
-const word levelSetFrontPointScalarField::typeName("levelSetFrontPointScalarField");
+const word triSurfaceFrontPointScalarField::typeName("triSurfaceFrontPointScalarField");
 
 template<>
-const word levelSetFrontPointVectorField::typeName("levelSetFrontPointVectorField");
+const word triSurfaceFrontPointVectorField::typeName("triSurfaceFrontPointVectorField");
 
 template<>
-const word levelSetFrontPointSphericalTensorField::typeName
-("levelSetFrontPointSphericalTensorField");
+const word triSurfaceFrontPointSphericalTensorField::typeName
+("triSurfaceFrontPointSphericalTensorField");
 
 template<>
-const word levelSetFrontPointSymmTensorField::typeName
-("levelSetFrontPointSymmTensorField");
+const word triSurfaceFrontPointSymmTensorField::typeName
+("triSurfaceFrontPointSymmTensorField");
 
 template<>
-const word levelSetFrontPointTensorField::typeName("levelSetFrontPointTensorField");
+const word triSurfaceFrontPointTensorField::typeName("triSurfaceFrontPointTensorField");
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace frontTracking
+} // End namespace FrontTracking
 } // End namespace Foam
 
 // ************************************************************************* //

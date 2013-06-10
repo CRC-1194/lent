@@ -22,23 +22,23 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 InClass
-    Foam::levelSetFrontFields
+    Foam::triSurfaceFrontFields
 
 Description
-    Fields for levelSetFront
+    Fields for triSurfaceFront
 
 SourceFiles
-    levelSetFrontFields.C
+    triSurfaceFrontFields.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef levelSetFrontFields_H
-#define levelSetFrontFields_H
+#ifndef triSurfaceFrontFields_H
+#define triSurfaceFrontFields_H
 
 #include "DimensionedField.H"
-#include "levelSetFrontGeoMesh.H"
-#include "levelSetFrontPointGeoMesh.H"
-#include "levelSetFrontFieldsFwd.H"
+#include "triSurfaceFrontGeoMesh.H"
+#include "triSurfaceFrontPointGeoMesh.H"
+#include "triSurfaceFrontFieldsFwd.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

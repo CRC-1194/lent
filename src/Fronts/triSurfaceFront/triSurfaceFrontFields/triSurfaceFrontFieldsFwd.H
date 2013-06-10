@@ -23,17 +23,17 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef levelSetFrontFieldsFwd_H
-#define levelSetFrontFieldsFwd_H
+#ifndef triSurfaceFrontFieldsFwd_H
+#define triSurfaceFrontFieldsFwd_H
 
 #include "fieldTypes.H"
-#include "levelSetFront.H"
+#include "triSurfaceFront.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace frontTracking
+namespace FrontTracking
 {
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -41,39 +41,39 @@ namespace frontTracking
 template<class Type, class GeoMesh>
 class DimensionedField;
 
-class levelSetFrontGeoMesh;
+class triSurfaceFrontGeoMesh;
 
-typedef Foam::DimensionedField<label, levelSetFrontGeoMesh>
-    levelSetFrontLabelField;
-typedef Foam::DimensionedField<scalar, levelSetFrontGeoMesh>
-    levelSetFrontScalarField;
-typedef Foam::DimensionedField<vector, levelSetFrontGeoMesh>
-    levelSetFrontVectorField;
-typedef Foam::DimensionedField<sphericalTensor, levelSetFrontGeoMesh>
-    levelSetFrontSphericalTensorField;
-typedef Foam::DimensionedField<symmTensor, levelSetFrontGeoMesh>
-    levelSetFrontSymmTensorField;
-typedef Foam::DimensionedField<tensor, levelSetFrontGeoMesh>
-    levelSetFrontTensorField;
+typedef Foam::DimensionedField<label, triSurfaceFrontGeoMesh>
+    triSurfaceFrontLabelField;
+typedef Foam::DimensionedField<scalar, triSurfaceFrontGeoMesh>
+    triSurfaceFrontScalarField;
+typedef Foam::DimensionedField<vector, triSurfaceFrontGeoMesh>
+    triSurfaceFrontVectorField;
+typedef Foam::DimensionedField<sphericalTensor, triSurfaceFrontGeoMesh>
+    triSurfaceFrontSphericalTensorField;
+typedef Foam::DimensionedField<symmTensor, triSurfaceFrontGeoMesh>
+    triSurfaceFrontSymmTensorField;
+typedef Foam::DimensionedField<tensor, triSurfaceFrontGeoMesh>
+    triSurfaceFrontTensorField;
 
-class levelSetFrontPointGeoMesh;
+class triSurfaceFrontPointGeoMesh;
 
-typedef Foam::DimensionedField<label, levelSetFrontPointGeoMesh>
-    levelSetFrontPointLabelField;
-typedef Foam::DimensionedField<scalar, levelSetFrontPointGeoMesh>
-    levelSetFrontPointScalarField;
-typedef Foam::DimensionedField<vector, levelSetFrontPointGeoMesh>
-    levelSetFrontPointVectorField;
-typedef Foam::DimensionedField<sphericalTensor, levelSetFrontPointGeoMesh>
-    levelSetFrontPointSphericalTensorField;
-typedef Foam::DimensionedField<symmTensor, levelSetFrontPointGeoMesh>
-    levelSetFrontPointSymmTensorField;
-typedef Foam::DimensionedField<tensor, levelSetFrontPointGeoMesh>
-    levelSetFrontPointTensorField;
+typedef Foam::DimensionedField<label, triSurfaceFrontPointGeoMesh>
+    triSurfaceFrontPointLabelField;
+typedef Foam::DimensionedField<scalar, triSurfaceFrontPointGeoMesh>
+    triSurfaceFrontPointScalarField;
+typedef Foam::DimensionedField<vector, triSurfaceFrontPointGeoMesh>
+    triSurfaceFrontPointVectorField;
+typedef Foam::DimensionedField<sphericalTensor, triSurfaceFrontPointGeoMesh>
+    triSurfaceFrontPointSphericalTensorField;
+typedef Foam::DimensionedField<symmTensor, triSurfaceFrontPointGeoMesh>
+    triSurfaceFrontPointSymmTensorField;
+typedef Foam::DimensionedField<tensor, triSurfaceFrontPointGeoMesh>
+    triSurfaceFrontPointTensorField;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace frontTracking
+} // End namespace FrontTracking
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

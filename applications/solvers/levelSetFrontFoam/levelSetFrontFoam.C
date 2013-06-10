@@ -52,6 +52,10 @@ Description
 #include "FvMeshAndFrontConnection.H"
 #include "naiveNarrowBandPropagation.H"
 #include "TriSurfaceMeshDistanceCalculator.H"
+#include "TriSurfaceMeshCalculator.H"
+
+// Fields.
+#include "DynamicField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -60,7 +64,7 @@ using namespace FrontTracking;
 // Configure the Method
 typedef triSurfaceFront Front;
 typedef FvMeshAndFrontConnection<Front> Connection;
-typedef TriSurfaceMeshDistanceCalculator DistanceCalculator; 
+typedef TriSurfaceMeshCalculator Calculator; 
 
 int main(int argc, char *argv[])
 {
@@ -126,11 +130,14 @@ int main(int argc, char *argv[])
             IOobject::AUTO_WRITE
         )
     );
+    DynamicField<vector> frontVelocity (front.nPoints()); 
 
     Front movedFront (front); 
+    DynamicField<vector> movedFrontVelocity(movedFront.nPoints());
+
     movedFront.rename("movedFront"); 
 
-    Connection meshFrontConnection (mesh, front); 
+    //Connection meshFrontConnection (mesh, front); 
 
     IOdictionary levelSetFrontDict
     (
@@ -146,13 +153,13 @@ int main(int argc, char *argv[])
 
     label narrowBandWidth = levelSetFrontDict.lookupOrDefault<label>("narrowBandWidth", 4);
 
-    DistanceCalculator distCalc(narrowBandWidth); 
+    Calculator calc (narrowBandWidth); 
 
     // Compute the new signed distance field. 
-    distCalc.calcCentresToElementsDistance
+    calc.calcCentresToElementsDistance
     (
         Psi, 
-        meshFrontConnection, 
+        front,
         naiveNarrowBandPropagation()
     ); 
 
@@ -204,10 +211,10 @@ int main(int argc, char *argv[])
         movedFront.move(displacement);
         
         // Compute the new signed distance field. 
-        distCalc.calcCentresToElementsDistance
+        calc.calcCentresToElementsDistance
         (
             Psi, 
-            meshFrontConnection, 
+            front,
             naiveNarrowBandPropagation()
         ); 
 
