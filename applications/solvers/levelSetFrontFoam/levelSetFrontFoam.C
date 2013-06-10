@@ -157,12 +157,13 @@ int main(int argc, char *argv[])
     ); 
 
     //Reconstruct the front. 
-    //Psi.time().cpuTimeIncrement(); 
     front.reconstruct(Psi, false); 
     //front.reconstruct(Psi, true); 
 
     // Write the front.
     runTime.writeNow(); 
+
+    vector displacement = levelSetFrontDict.lookup("displacement"); 
 
     while (runTime.run())
     {
@@ -198,8 +199,9 @@ int main(int argc, char *argv[])
         // TODO: displacement vector put in testing subdict 
         //front.move(vector(0.05,0.05,0.05));
         //movedFront.move(vector(0.05, 0.05, 0.05));
-        front.move(vector(0.05,0,0));
-        movedFront.move(vector(0.05, 0, 0));
+        
+        front.move(displacement);
+        movedFront.move(displacement);
         
         // Compute the new signed distance field. 
         distCalc.calcCentresToElementsDistance
