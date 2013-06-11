@@ -60,6 +60,7 @@ class TriSurfaceMeshCalculator
 {
     // FIXME: add autPtr for the frontMesh. 
     //- Front Mesh autoPtr
+    mutable autoPtr<triSurfaceMesh> frontMeshPtr_; 
 
     //- List of indices to the nearest elements to cells.
     DynamicList<pointIndexHit> cellsElementNearest_; 
@@ -86,6 +87,14 @@ class TriSurfaceMeshCalculator
     void calcCellSearchDistance(const fvMesh& mesh); 
     // Compute the width of the point search stencil for the octree search. 
     void calcPointSearchDistance(const fvMesh& mesh); 
+
+    // Loose point in cell query: if the point is on a face, the function returns true. 
+    bool pointInCell(const point& p, label cellI, const fvMesh& mesh) const; 
+
+    // TODO: recode these, force deep copy and not ownership transfer using new autoPtr 
+    TriSurfaceMeshCalculator(const TriSurfaceMeshCalculator&); 
+    void operator=(const TriSurfaceMeshCalculator&); 
+
 
 public:
 

@@ -130,12 +130,12 @@ int main(int argc, char *argv[])
             IOobject::AUTO_WRITE
         )
     );
-    DynamicField<vector> frontVelocity (front.nPoints()); 
+    DynamicField<vector> frontDisplacement (front.nPoints()); 
 
-    Front movedFront (front); 
-    DynamicField<vector> movedFrontVelocity(movedFront.nPoints());
+    //Front movedFront (front); 
+    //DynamicField<vector> movedFrontVelocity(movedFront.nPoints());
 
-    movedFront.rename("movedFront"); 
+    //movedFront.rename("movedFront"); 
 
     //Connection meshFrontConnection (mesh, front); 
 
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
     // Write the front.
     runTime.writeNow(); 
 
-    vector displacement = levelSetFrontDict.lookup("displacement"); 
+    //vector displacement = levelSetFrontDict.lookup("displacement"); 
 
     while (runTime.run())
     {
@@ -207,9 +207,6 @@ int main(int argc, char *argv[])
         //front.move(vector(0.05,0.05,0.05));
         //movedFront.move(vector(0.05, 0.05, 0.05));
         
-        front.move(displacement);
-        movedFront.move(displacement);
-        
         // Compute the new signed distance field. 
         calc.calcCentresToElementsDistance
         (
@@ -225,6 +222,15 @@ int main(int argc, char *argv[])
         //front.reconstruct(Psi, true); 
         Info << "Front reconstructed: " 
             << Psi.time().cpuTimeIncrement() << endl; 
+
+
+        calc.calcFrontVelocity(frontDisplacement, front, U); 
+
+        frontDisplacement *= runTime.deltaT().value(); 
+
+        front.move(frontDisplacement);
+
+        //movedFront.move(displacement);
 
         runTime.write();
 

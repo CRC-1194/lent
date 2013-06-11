@@ -24,6 +24,6 @@ EXE_LIBS = \
     -lfvOptions \
     -ltriSurface \
     -lsampling \
-    -ltriSurfaceFront \ 
+    -ltriSurfaceFront \
     -lnarrowBandPropagation
 

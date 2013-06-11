@@ -167,10 +167,50 @@ void TriSurfaceMeshCalculator::calcPointSearchDistance(const fvMesh& mesh)
     interpolate.interpolate(cellSearchDistPtr_(), pointSearchDistPtr_()); 
 }
 
+bool TriSurfaceMeshCalculator::pointInCell
+(
+    const point& p, 
+    label cellI, 
+    const fvMesh& mesh
+) const
+{
+    const cellList& cells = mesh.cells(); 
+    const pointField& points = mesh.points(); 
+    const faceList& faces = mesh.faces();
+    const cell& cell = cells[cellI];
+    const labelList& own = mesh.faceOwner(); 
+    const surfaceVectorField& Cf = mesh.Cf(); 
+
+    bool inside = true;
+
+    forAll (cell, faceI)
+    {
+        face f = faces[cell[faceI]];
+
+        if (! (cellI == own[cell[faceI]]))
+        {
+            f = f.reverseFace(); 
+        }
+
+        vector pf = p - Cf[cell[faceI]];  
+
+        if ((pf & f.normal(points)) > 0)
+        {
+            inside = false;
+            break;
+        }
+    }
+
+    return inside;
+
+};
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 TriSurfaceMeshCalculator::TriSurfaceMeshCalculator(label bandwidth)
 :
+    frontMeshPtr_(), 
     cellsElementNearest_(),
     pointsElementNearest_(), 
     cellSearchDistPtr_(),
@@ -197,28 +237,30 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
 
     // Get the reference to the fvMesh
     const fvMesh& mesh = Psi.mesh();
-
-    // Construct the frontMesh. 
-    triSurfaceMesh frontMesh (
-        IOobject
-        (
-            "triSurfaceMesh", 
-            "frontMesh", 
-            mesh, 
-            IOobject::NO_READ, 
-            IOobject::NO_WRITE
-        ),
-        //static_cast<triSurface const &> (front)
-        front
+    
+    frontMeshPtr_ = autoPtr<triSurfaceMesh> 
+    (
+        new triSurfaceMesh (
+            IOobject
+            (
+                "triSurfaceMesh", 
+                "frontMesh", 
+                mesh, 
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ),
+            //static_cast<triSurface const &> (front)
+            front
+        )
     );
+
+    triSurfaceMesh& frontMesh = frontMeshPtr_(); 
 
     // Compute the search distance field.
     Psi.time().cpuTimeIncrement(); 
     calcCellSearchDistance(mesh); 
     Info << "Compute the search distance: " 
         << Psi.time().cpuTimeIncrement() << endl; 
-
-    cellSearchDistPtr_->write(); 
 
     // Get the cell centres.  
     const volVectorField& C = mesh.C(); 
@@ -235,7 +277,6 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
     Info << "findNearest : " << mesh.time().cpuTimeIncrement() << endl; 
 
     // Create a list of the volume types: based on the cell centre, the
-    // volume can be INSIDE, OUTSIDE or UNKNOWN with respect to the surface.
     List<searchableSurface::volumeType> volType;
     // Fill the list of the volume types. 
     frontMesh.getVolumeType(C, volType);
@@ -269,7 +310,7 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
                 //Psi[I] = Foam::mag(C[I] - h.hitPoint());
                 Psi[I] = -Foam::mag(C[I] - h.hitPoint());
             }
-            //remove 
+            // TODO: test, possibly remove 
             else 
             {
                 // Compute the distance vector.
@@ -394,44 +435,46 @@ void TriSurfaceMeshCalculator::calcFrontVelocity
     U.time().cpuTimeIncrement(); 
 
     frontVelocity.resize(front.nPoints()); 
+    frontVelocity = vector(0,0,0);
+
     interpolationCellPoint<vector> interpolation (U); 
 
     const fvMesh& mesh = U.mesh(); 
 
-    // FIXME: move the frontMesh to private attributes to avoid duplicating
-    //        the object construction after it has been reconstructed. 
-    // Construct the frontMesh.
-    triSurfaceMesh frontMesh (
-        IOobject
-        (
-            "triSurfaceMesh", 
-            "frontMesh", 
-            mesh, 
-            IOobject::NO_READ, 
-            IOobject::NO_WRITE
-        ),
-        front
-    );
+    const List<labelledTri>& elements = front.localFaces(); 
+    const pointField& vertices = front.localPoints(); 
 
-    const List<labelledTri>& elements = frontMesh.localFaces(); 
-    const pointField& vertices = frontMesh.localPoints(); 
+    Info << mesh.cells().size() - cellsElementNearest_.size() << endl;
 
     forAll (cellsElementNearest_, cellI)
     {
-        const labelledTri& element = elements[cellsElementNearest_[cellI].index()];
+        // Assume the connectivity is valid: get the element nearest to the cell.
+        const pointIndexHit& hit = cellsElementNearest_[cellI];
 
-        // For all element vertices. 
-        forAll (element, vertexI)
+        // If a nearest front element exists for the cell. 
+        if (hit.hit())
         {
-            // If element vertex is in the cell.
-            if (mesh.pointInCell(vertices[element[vertexI]], cellI))
+            const triFace& element = elements[hit.index()];
+
+            // TODO: this covers only the nearest elements, others get skipped! 
+            // get the front to store the cellID map from the isoSurface reconstruction 
+            // per element and use linear interpolation within a cell
+            
+            // For all element vertices. 
+            forAll (element, vertexI)
             {
-                // Interpolate the cell velocity to the front vertex.
-                frontVelocity[element[vertexI]] = interpolation.interpolate
-                (
-                    vertices[element[vertexI]], 
-                    cellI 
-                );
+                const point& vertex = vertices[element[vertexI]];
+
+                // If element vertex is in the current cell.
+                if (pointInCell(vertex, cellI, mesh))
+                {
+                    // Interpolate (bilinear) the velocity of the cell to the front vertex.
+                    frontVelocity[element[vertexI]] = interpolation.interpolate
+                    (
+                        vertex,  
+                        cellI 
+                    );
+                }
             }
         }
     }
