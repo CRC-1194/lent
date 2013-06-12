@@ -207,6 +207,12 @@ int main(int argc, char *argv[])
         //front.move(vector(0.05,0.05,0.05));
         //movedFront.move(vector(0.05, 0.05, 0.05));
         
+        calc.calcFrontVelocity(frontDisplacement, front, U); 
+
+        frontDisplacement *= runTime.deltaT().value(); 
+
+        front.move(frontDisplacement);
+        
         // Compute the new signed distance field. 
         calc.calcCentresToElementsDistance
         (
@@ -222,13 +228,6 @@ int main(int argc, char *argv[])
         //front.reconstruct(Psi, true); 
         Info << "Front reconstructed: " 
             << Psi.time().cpuTimeIncrement() << endl; 
-
-
-        calc.calcFrontVelocity(frontDisplacement, front, U); 
-
-        frontDisplacement *= runTime.deltaT().value(); 
-
-        front.move(frontDisplacement);
 
         //movedFront.move(displacement);
 

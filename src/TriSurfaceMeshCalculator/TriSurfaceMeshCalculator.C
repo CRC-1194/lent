@@ -224,7 +224,7 @@ template <typename NarrowBandPropagation>
 void TriSurfaceMeshCalculator::calcCentresToElementsDistance
 (
     volScalarField& Psi, 
-    const triSurface& front, 
+    const triSurfaceFront& front, 
     NarrowBandPropagation enforceNarrowBand
 )
 {
@@ -249,8 +249,7 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
                 IOobject::NO_READ, 
                 IOobject::NO_WRITE
             ),
-            //static_cast<triSurface const &> (front)
-            front
+            front // LSP
         )
     );
 
@@ -352,7 +351,7 @@ void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
     Connection const & connection
 ) 
 {
-    // Get the reference to the levelSetFront.
+    // Get the reference to the triSurfaceFront.
     const triSurfaceMesh& front = connection.front(); 
 
     // Get the reference to the fvMesh
@@ -427,7 +426,7 @@ void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
 void TriSurfaceMeshCalculator::calcFrontVelocity
 (
     DynamicField<vector>& frontVelocity, 
-    const triSurface& front,
+    const triSurfaceFront& front,
     const volVectorField& U 
 )
 {
@@ -446,36 +445,19 @@ void TriSurfaceMeshCalculator::calcFrontVelocity
 
     Info << mesh.cells().size() - cellsElementNearest_.size() << endl;
 
-    forAll (cellsElementNearest_, cellI)
+    const labelList& meshCells = front.meshCells(); 
+
+    forAll (meshCells, I)
     {
-        // Assume the connectivity is valid: get the element nearest to the cell.
-        const pointIndexHit& hit = cellsElementNearest_[cellI];
+        const triFace& element = elements[I]; 
 
-        // If a nearest front element exists for the cell. 
-        if (hit.hit())
+        forAll (element, vertexI)
         {
-            const triFace& element = elements[hit.index()];
-
-            // TODO: this covers only the nearest elements, others get skipped! 
-            // get the front to store the cellID map from the isoSurface reconstruction 
-            // per element and use linear interpolation within a cell
-            
-            // For all element vertices. 
-            forAll (element, vertexI)
-            {
-                const point& vertex = vertices[element[vertexI]];
-
-                // If element vertex is in the current cell.
-                if (pointInCell(vertex, cellI, mesh))
-                {
-                    // Interpolate (bilinear) the velocity of the cell to the front vertex.
-                    frontVelocity[element[vertexI]] = interpolation.interpolate
-                    (
-                        vertex,  
-                        cellI 
-                    );
-                }
-            }
+            frontVelocity[element[vertexI]] = interpolation.interpolate
+            (
+                vertices[element[vertexI]],  
+                meshCells[I] 
+            );
         }
     }
 

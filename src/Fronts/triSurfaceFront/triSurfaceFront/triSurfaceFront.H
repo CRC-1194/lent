@@ -41,6 +41,7 @@ SourceFiles
 #include "isoSurface.H"
 #include "triSurfaceMesh.H"
 #include "error.H"
+#include "DynamicList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -58,6 +59,10 @@ class triSurfaceFront
         public regIOobject, 
         public triSurface 
 {
+    // TODO: extend the isoSurface class in the main trunk, and avoid copying the 
+    // cell map from the isoSurface. 
+    DynamicList<label> meshCells_;  
+
     // Write format. 
     word writeFormat_;
 
@@ -130,6 +135,13 @@ public:
 
     bool writeData(Foam::Ostream& os) const; 
         
+    //- Access
+    const labelList& meshCells() const
+    {
+        return meshCells_; 
+    }
+
+
     // Member operators 
     void operator=(const triSurfaceFront& rhs);
     void operator=(const isoSurface& rhs);

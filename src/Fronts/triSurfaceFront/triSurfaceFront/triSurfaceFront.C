@@ -61,6 +61,8 @@ void triSurfaceFront::computeIsoSurface(
         regularise,
         mergeTol
     );
+
+    meshCells_ = reconstructedFront.meshCells(); 
     
     // Copy the data to the front. 
     *this = reconstructedFront; 
@@ -146,6 +148,7 @@ triSurfaceFront::triSurfaceFront(
 :
     regIOobject(io), 
     triSurface(io.filePath()), 
+    meshCells_(), 
     writeFormat_(writeFormat),
     prependZeros_(prependZeros)
 {}

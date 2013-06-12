@@ -45,6 +45,7 @@ Author
 #define TriSurfaceMeshCalculator_H
 
 #include "DynamicField.H"
+#include "triSurfaceFront.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -106,7 +107,7 @@ public:
     void calcCentresToElementsDistance
     (
         volScalarField& Psi, 
-        const triSurface & front, 
+        const triSurfaceFront& front, 
         NarrowBandPropagation enforceNarrowBand
     ); 
 
@@ -129,7 +130,7 @@ public:
     void calcFrontVelocity
     (
         DynamicField<vector>& frontVelocity, 
-        const triSurface& front, 
+        const triSurfaceFront& front, 
         const volVectorField& U
     );
 
