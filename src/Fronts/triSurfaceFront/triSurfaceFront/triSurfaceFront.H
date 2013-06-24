@@ -41,7 +41,6 @@ SourceFiles
 #include "isoSurface.H"
 #include "triSurfaceMesh.H"
 #include "error.H"
-#include "DynamicList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -61,7 +60,7 @@ class triSurfaceFront
 {
     // TODO: extend the isoSurface class in the main trunk, and avoid copying the 
     // cell map from the isoSurface. 
-    DynamicList<label> meshCells_;  
+    List<label> meshCells_;  
 
     // Write format. 
     word writeFormat_;
@@ -73,7 +72,7 @@ class triSurfaceFront
     void computeIsoSurface(
         const volScalarField& cellsToElementsDist, 
         const scalarField& pointsToElementsDist, 
-        const bool regularise=true, 
+        const bool regularise=false, 
         const scalar mergeTol=1e-06
     );
 
@@ -85,7 +84,7 @@ class triSurfaceFront
 
     void forceConsistentNormalOrientation 
     (
-        const isoSurface& reconstructedFront, 
+        //const isoSurface& reconstructedFront, 
         const volScalarField& cellsToElementsDist
     ); 
 
@@ -106,13 +105,13 @@ public:
     void reconstruct(
         const volScalarField& cellsToElementsDist, 
         const scalarField& pointsToElementsDist, 
-        const bool regularise=true, 
+        const bool regularise=false, 
         const scalar mergeTol=1e-06
     );
 
     void reconstruct(
         const volScalarField& cellsToElementsDist, 
-        const bool regularise=true, 
+        const bool regularise=false, 
         const scalar mergeTol=1e-06
     );
 

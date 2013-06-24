@@ -67,8 +67,8 @@ void triSurfaceFront::computeIsoSurface(
     // Copy the data to the front. 
     *this = reconstructedFront; 
 
-    // Fix the element orientation.
-    forceConsistentNormalOrientation(reconstructedFront, cellsToElementsDist);  
+    // FIXME: careful, BUG inside: normals are not consistent 
+    forceConsistentNormalOrientation(cellsToElementsDist);  
 }
 
 fileName triSurfaceFront::zeroPaddedFileName(word extension) const
@@ -95,46 +95,39 @@ fileName triSurfaceFront::zeroPaddedFileName(word extension) const
 
 void triSurfaceFront::forceConsistentNormalOrientation
 (
-    const isoSurface& reconstructedFront, 
+    //const isoSurface& reconstructedFront, 
     const volScalarField& cellsToElementsDist
 )
 {
+    Info << "Enforcing normal consistency: "; 
+    cellsToElementsDist.time().cpuTimeIncrement(); 
     volVectorField distGrad = fvc::grad(cellsToElementsDist); 
-
-    // TODO: remove, debugging
-    distGrad.write(); 
 
     // Get non-const access to elements.
     List<labelledTri> & elements = storedFaces(); 
 
     // Get the cells. 
-    const labelList& cells = reconstructedFront.meshCells(); 
+    const labelList& cells = meshCells(); 
 
     // Get the element normals. 
+    // FIXME: BUG: faceNormals are not updated when an in-place flip of an element.
     const vectorField& elementNormals = faceNormals();  
 
     // For all faces 
-    forAll (elements, I)
+    forAll (elements, E)
     {
-         // Get the average gradient orientation from the neighboring elements.
-         vector unitGrad = distGrad[cells[I]] / (mag(distGrad[cells[I]]) + SMALL);  
-         vector elementNormal = elementNormals[I] / (mag(elementNormals[I]) + SMALL); 
+        // Normalize the distance gradient to get only the direction. 
+        distGrad[cells[E]] /= mag(distGrad[cells[E]]); 
+        
+        // Use the element normals field.
+        vector elementNormal = elementNormals[E]; 
+        scalar elementNormalMag = mag(elementNormals[E]); 
 
-         //label gradCount = 0; 
-         //forAll (elementElements[I], J)
-         //{
-             //averageGrad += distGrad[cells[elementElements[I][J]]];
-             //++gradCount; 
-         //}
-
-         //averageGrad /= gradCount; 
-         
-         //if ((elementNormals[I] & distGrad[cells[I]]) < 0)
-         if ((elementNormal & unitGrad) < 0)
-         //if ((elementNormals[I] & averageGrad) < 0)
-         {
-             elements[I].flip(); 
-         }
+        // If the normal is oriented in the opposite way from the distance gradient. 
+        if ((elementNormal & distGrad[cells[E]]) < 0)
+        {
+            elements[E].flip(); 
+        }
     }
 };
 
@@ -235,6 +228,7 @@ bool triSurfaceFront::writeObject
 
 void triSurfaceFront::operator=(const isoSurface& rhs)
 {
+
     static_cast<triSurface*>(this)->operator=(static_cast<const triSurface&> (rhs)); 
 }
 

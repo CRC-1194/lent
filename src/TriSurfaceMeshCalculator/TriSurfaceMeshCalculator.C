@@ -310,19 +310,19 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
                 Psi[I] = -Foam::mag(C[I] - h.hitPoint());
             }
             // TODO: test, possibly remove 
-            else 
-            {
-                // Compute the distance vector.
-                vector distance = C[I] - h.hitPoint(); 
-                // Get the element.
-                const labelledTri& element = elements[h.index()];
-                // Get the element normal
-                vector elementNormal = element.normal(vertices);
+            //else 
+            //{
+                //// Compute the distance vector.
+                //vector distance = C[I] - h.hitPoint(); 
+                //// Get the element.
+                //const labelledTri& element = elements[h.index()];
+                //// Get the element normal
+                //vector elementNormal = element.normal(vertices);
 
-                // Project the distance to the element normal and set 
-                // signed the distance value.
-                Psi[I] = distance & (elementNormal / mag(elementNormal));
-            }
+                //// Project the distance to the element normal and set 
+                //// signed the distance value.
+                //Psi[I] = distance & (elementNormal / mag(elementNormal));
+            //}
         }
     }
 
@@ -442,9 +442,6 @@ void TriSurfaceMeshCalculator::calcFrontVelocity
 
     const List<labelledTri>& elements = front.localFaces(); 
     const pointField& vertices = front.localPoints(); 
-
-    Info << mesh.cells().size() - cellsElementNearest_.size() << endl;
-
     const labelList& meshCells = front.meshCells(); 
 
     forAll (meshCells, I)

@@ -96,27 +96,17 @@ int main(int argc, char *argv[])
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    fileName frontInputFile = "";
-    fileName frontOutputDirectory = "";
+    fileName frontInputFile = "frontInputFile.stl";
+    fileName frontOutputDirectory = "front";
 
-    // TODO: simplify : take away the options and request the fixed data.  
-    if (!args.optionFound("frontInputFile"))
-    {
-        frontInputFile = "frontInputFile.stl";
-        if (args.optionFound("frontOutputDirectory"))
-        {
-            frontOutputDirectory = 
-                args.optionRead<word>("frontOutputDirectory");
-        }
-        else
-        {
-            frontOutputDirectory = "front";
-        }
-    }
-    else
+    if (args.optionFound("frontInputFile"))
     {
         frontInputFile = args.optionRead<word>("frontInputFile");
-        frontOutputDirectory = frontInputFile.path(); 
+    }
+    if (args.optionFound("frontOutputDirectory"))
+    {
+        frontOutputDirectory = 
+            args.optionRead<word>("frontOutputDirectory");
     }
 
     Info<< "\nStarting time loop\n" << endl;
@@ -130,14 +120,12 @@ int main(int argc, char *argv[])
             IOobject::AUTO_WRITE
         )
     );
+
+    //Front oldFront(front); 
+    //oldFront.rename("oldFront.vtk"); 
+
+    // TODO: use triSurfaceFront fields. 
     DynamicField<vector> frontDisplacement (front.nPoints()); 
-
-    //Front movedFront (front); 
-    //DynamicField<vector> movedFrontVelocity(movedFront.nPoints());
-
-    //movedFront.rename("movedFront"); 
-
-    //Connection meshFrontConnection (mesh, front); 
 
     IOdictionary levelSetFrontDict
     (
@@ -165,12 +153,11 @@ int main(int argc, char *argv[])
 
     //Reconstruct the front. 
     front.reconstruct(Psi, false); 
-    //front.reconstruct(Psi, true); 
 
     // Write the front.
     runTime.writeNow(); 
 
-    //vector displacement = levelSetFrontDict.lookup("displacement"); 
+    vector constDisplacement = levelSetFrontDict.lookup("displacement"); 
 
     while (runTime.run())
     {
@@ -202,18 +189,16 @@ int main(int argc, char *argv[])
             //}
         //}
         
-        // Move the front points with the constant vector: test  
-        // TODO: displacement vector put in testing subdict 
-        //front.move(vector(0.05,0.05,0.05));
-        //movedFront.move(vector(0.05, 0.05, 0.05));
+        // Move the front points with the constant vector : used for testing.
+        front.move(constDisplacement*runTime.deltaT().value()); 
         
-        calc.calcFrontVelocity(frontDisplacement, front, U); 
-
-        frontDisplacement *= runTime.deltaT().value(); 
-
-        front.move(frontDisplacement);
+        // Compute the velocity using the meshCells of the isoSurface reconstruction.
+        //calc.calcFrontVelocity(frontDisplacement, front, U); 
+        //// FIXME: Put this in the calcFrontVelocity function and scale the displacement. 
+        //frontDisplacement *= runTime.deltaT().value(); 
+        //front.move(frontDisplacement);
         
-        // Compute the new signed distance field. 
+        // Compute the new signed distance field with the surfaceMesh octree search.  
         calc.calcCentresToElementsDistance
         (
             Psi, 
@@ -221,17 +206,17 @@ int main(int argc, char *argv[])
             naiveNarrowBandPropagation()
         ); 
 
-        //Reconstruct the front. 
+        //Reconstruct the front: 
         Psi.time().cpuTimeIncrement(); 
-        // No regularization works! :)
-        front.reconstruct(Psi, false); 
-        //front.reconstruct(Psi, true); 
+
+        //New meshCells() information computed.  
+        front.reconstruct(Psi, false, 1e-10); 
+
         Info << "Front reconstructed: " 
             << Psi.time().cpuTimeIncrement() << endl; 
 
-        //movedFront.move(displacement);
-
         runTime.write();
+        Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"

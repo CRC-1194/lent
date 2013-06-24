@@ -45,9 +45,7 @@ void Foam::FrontTracking::triSurfaceFront::executeMovePoints(
 {
     //FIXME: remove the freaking copy of points, hardcoded to triSurface. 
     pointField newPoints(points()); 
-
     newPoints += d; 
-
     movePoints(newPoints);
 }
 
