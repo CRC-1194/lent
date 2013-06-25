@@ -281,9 +281,9 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
     frontMesh.getVolumeType(C, volType);
 
     // Get front elements.
-    const List<labelledTri>& elements = frontMesh.localFaces(); 
+    //const List<labelledTri>& elements = frontMesh.localFaces(); 
     // Get front vertices. 
-    const pointField& vertices = frontMesh.localPoints(); 
+    //const pointField& vertices = frontMesh.points(); 
 
     // For all volume types. 
     forAll(volType, I)
@@ -438,10 +438,10 @@ void TriSurfaceMeshCalculator::calcFrontVelocity
 
     interpolationCellPoint<vector> interpolation (U); 
 
-    const fvMesh& mesh = U.mesh(); 
+    //const fvMesh& mesh = U.mesh(); 
 
     const List<labelledTri>& elements = front.localFaces(); 
-    const pointField& vertices = front.localPoints(); 
+    const pointField& vertices = front.points(); 
     const labelList& meshCells = front.meshCells(); 
 
     forAll (meshCells, I)

@@ -190,13 +190,13 @@ int main(int argc, char *argv[])
         //}
         
         // Move the front points with the constant vector : used for testing.
-        front.move(constDisplacement*runTime.deltaT().value()); 
+        //front.move(constDisplacement*runTime.deltaT().value()); 
         
         // Compute the velocity using the meshCells of the isoSurface reconstruction.
-        //calc.calcFrontVelocity(frontDisplacement, front, U); 
-        //// FIXME: Put this in the calcFrontVelocity function and scale the displacement. 
-        //frontDisplacement *= runTime.deltaT().value(); 
-        //front.move(frontDisplacement);
+        calc.calcFrontVelocity(frontDisplacement, front, U); 
+        //// FIXME: Put this in thecalcFrontVelocity function and scale the displacement. 
+        frontDisplacement *= runTime.deltaT().value(); 
+        front.move(frontDisplacement);
         
         // Compute the new signed distance field with the surfaceMesh octree search.  
         calc.calcCentresToElementsDistance
@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
         Psi.time().cpuTimeIncrement(); 
 
         //New meshCells() information computed.  
-        front.reconstruct(Psi, false, 1e-10); 
+        //front.reconstruct(Psi, false, 1e-10); 
 
         Info << "Front reconstructed: " 
             << Psi.time().cpuTimeIncrement() << endl; 

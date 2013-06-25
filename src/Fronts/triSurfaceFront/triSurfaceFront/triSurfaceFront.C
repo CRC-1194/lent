@@ -120,8 +120,12 @@ void triSurfaceFront::forceConsistentNormalOrientation
         distGrad[cells[E]] /= mag(distGrad[cells[E]]); 
         
         // Use the element normals field.
-        vector elementNormal = elementNormals[E]; 
-        scalar elementNormalMag = mag(elementNormals[E]); 
+        // WORKING!: 
+        //vector elementNormal = elementNormals[E]; 
+        //scalar elementNormalMag = mag(elementNormals[E]); 
+        
+        vector elementNormal = elementNormals[E] / mag(elementNormals[E]); 
+        
 
         // If the normal is oriented in the opposite way from the distance gradient. 
         if ((elementNormal & distGrad[cells[E]]) < 0)
