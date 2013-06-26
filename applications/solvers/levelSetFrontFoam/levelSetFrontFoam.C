@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
 
         //New meshCells() information computed.  
         // TODO: user defined reconstruction interval.  
-        if (runTime.timeIndex() % 100 > 1)
+        if (runTime.timeIndex() % 10 == 0)
         {
             front.reconstruct(Psi, false, 1e-10); 
         }
