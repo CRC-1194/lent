@@ -210,7 +210,11 @@ int main(int argc, char *argv[])
         Psi.time().cpuTimeIncrement(); 
 
         //New meshCells() information computed.  
-        front.reconstruct(Psi, false, 1e-10); 
+        // TODO: user defined reconstruction interval.  
+        if (runTime.timeIndex() % 100 > 1)
+        {
+            front.reconstruct(Psi, false, 1e-10); 
+        }
 
         Info << "Front reconstructed: " 
             << Psi.time().cpuTimeIncrement() << endl; 

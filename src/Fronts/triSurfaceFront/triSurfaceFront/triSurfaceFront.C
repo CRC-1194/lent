@@ -103,6 +103,9 @@ void triSurfaceFront::forceConsistentNormalOrientation
     cellsToElementsDist.time().cpuTimeIncrement(); 
     volVectorField distGrad = fvc::grad(cellsToElementsDist); 
 
+    // TODO: used for debugging, remove 
+    distGrad.write(); 
+
     // Get non-const access to elements.
     List<labelledTri> & elements = storedFaces(); 
 
