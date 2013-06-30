@@ -77,8 +77,8 @@ TriSurfaceMeshCalculator::initPointSearchDistance(
     const fvMesh& mesh
 )
 {
-    if (pointSearchDistPtr_.empty())
-    {
+    //if (pointSearchDistPtr_.empty())
+    //{
         pointSearchDistPtr_ = autoPtr<pointScalarField>  
         (
             new pointScalarField
@@ -97,11 +97,11 @@ TriSurfaceMeshCalculator::initPointSearchDistance(
             ) 
         );
                 
-    }
-    else
-    {
-        pointSearchDistPtr_->resize(mesh.points().size()); 
-    }
+    //}
+    //else
+    //{
+        //pointSearchDistPtr_->resize(mesh.points().size()); 
+    //}
 
     pointSearchDistPtr_() = 0;
 }
@@ -165,6 +165,9 @@ void TriSurfaceMeshCalculator::calcPointSearchDistance(const fvMesh& mesh)
 
     volPointInterpolation interpolate(mesh); 
     interpolate.interpolate(cellSearchDistPtr_(), pointSearchDistPtr_()); 
+
+    // TODO: remove, debugging
+    //pointSearchDistPtr_() * 2; 
 }
 
 bool TriSurfaceMeshCalculator::pointInCell
@@ -280,11 +283,6 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
     // Fill the list of the volume types. 
     frontMesh.getVolumeType(C, volType);
 
-    // Get front elements.
-    //const List<labelledTri>& elements = frontMesh.localFaces(); 
-    // Get front vertices. 
-    //const pointField& vertices = frontMesh.points(); 
-
     // For all volume types. 
     forAll(volType, I)
     {
@@ -345,19 +343,20 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
     //calcCentresToElementsDistance(Psi, front, enforceNarrowBand); 
 //}
 
-template<typename Connection>
+template<typename Mesh>
 void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
     scalarField& psi, 
-    Connection const & connection
+    const triSurfaceFront& front, 
+    const Mesh& mesh
 ) 
 {
-    // Get the reference to the triSurfaceFront.
-    const triSurfaceMesh& front = connection.front(); 
+    // TODO: check the initialization in createFields.
+    psi = GREAT;
 
     // Get the reference to the fvMesh
-    const fvMesh& mesh = connection.mesh();
+    //const fvMesh& mesh = connection.mesh();
 
-    // Compute the search distance field.
+    // Compulistte the search distance field.
     calcPointSearchDistance(mesh); 
     
     // Get the cell centres.  
@@ -366,7 +365,7 @@ void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
     // Get the distance field reference.
     const pointScalarField& pointSearchDist_ = pointSearchDistPtr_(); 
 
-    front.findNearest(
+    frontMeshPtr_->findNearest(
         points, 
         pointSearchDist_, 
         pointsElementNearest_
@@ -376,12 +375,13 @@ void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
     // volume can be INSIDE, OUTSIDE or UNKNOWN with respect to the surface.
     List<searchableSurface::volumeType> volType;
     // Fill the list of the volume types. 
-    front.getVolumeType(points, volType);
+    frontMeshPtr_->getVolumeType(points, volType);
 
     // Get front elements.
-    const List<labelledTri>& elements = front.localFaces(); 
+    //const List<labelledTri>& elements = front.localFaces(); 
+
     // Get front vertices. 
-    const pointField& vertices = front.localPoints(); 
+    //const pointField& vertices = front.points(); 
 
     // For all volume types. 
     forAll(volType, I)
@@ -405,19 +405,19 @@ void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
                 // Set the negative distance.
                 psi[I] = -Foam::mag(points[I] - h.hitPoint());
             }
-            else // The cell is cut by the element.
-            {
-                // Compute the distance vector.
-                vector distance = points[I] - h.hitPoint(); 
-                // Get the element.
-                const labelledTri& element = elements[h.index()];
-                // Get the element normal
-                vector elementNormal = element.normal(vertices);
+            //else // The cell is cut by the element.
+            //{
+                //// Compute the distance vector.
+                //vector distance = points[I] - h.hitPoint(); 
+                //// Get the element.
+                //const labelledTri& element = elements[h.index()];
+                //// Get the element normal
+                //vector elementNormal = element.normal(vertices);
 
-                // Project the distance to the element normal and set 
-                // signed the distance value.
-                psi[I] = distance & (elementNormal / mag(elementNormal));
-            }
+                //// Project the distance to the element normal and set 
+                //// signed the distance value.
+                //psi[I] = distance & (elementNormal / mag(elementNormal));
+            //}
 
         }
     }

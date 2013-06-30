@@ -120,11 +120,13 @@ public:
     //); 
 
     // TODO: may not be necessary, check with mesh refinement
-    template <typename Connection>
+    // TODO: implement front fields
+    template<typename Mesh>
     void calcPointsToElementsDistance
     (
         scalarField& psi, 
-        Connection const & connection
+        const triSurfaceFront& front, 
+        const Mesh& mesh
     ); 
 
     void calcFrontVelocity

@@ -53,7 +53,7 @@
             IOobject::NO_WRITE
         ),
         pointMesh(mesh), 
-        0,
+        GREAT,
         "zeroGradient"
     );
 

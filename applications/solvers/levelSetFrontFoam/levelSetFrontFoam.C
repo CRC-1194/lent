@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     //Front oldFront(front); 
     //oldFront.rename("oldFront.vtk"); 
 
-    // TODO: use triSurfaceFront fields. 
+    // TODO: use triSurfaceFront fields, put this in createFields. 
     DynamicField<vector> frontDisplacement (front.nPoints()); 
 
     IOdictionary levelSetFrontDict
@@ -151,8 +151,16 @@ int main(int argc, char *argv[])
         naiveNarrowBandPropagation()
     ); 
 
+    calc.calcPointsToElementsDistance
+    (
+        psi, 
+        front,
+        mesh
+    ); 
+
     //Reconstruct the front. 
-    front.reconstruct(Psi, false, 1e-10); 
+    front.reconstruct(Psi, psi, false, 1e-10); 
+    //front.reconstruct(Psi, false, 1e-10); 
 
     // Write the front.
     runTime.writeNow(); 
@@ -193,10 +201,10 @@ int main(int argc, char *argv[])
         //front.move(constDisplacement*runTime.deltaT().value()); 
         
         // Compute the velocity using the meshCells of the isoSurface reconstruction.
-        calc.calcFrontVelocity(frontDisplacement, front, U); 
+        //calc.calcFrontVelocity(frontDisplacement, front, U); 
         //// FIXME: Put this in thecalcFrontVelocity function and scale the displacement. 
-        frontDisplacement *= runTime.deltaT().value(); 
-        front.move(frontDisplacement);
+        //frontDisplacement *= runTime.deltaT().value(); 
+        //front.move(frontDisplacement);
         
         // Compute the new signed distance field with the surfaceMesh octree search.  
         calc.calcCentresToElementsDistance
@@ -206,6 +214,15 @@ int main(int argc, char *argv[])
             naiveNarrowBandPropagation()
         ); 
 
+        // Compute the new signed point distance field. 
+        calc.calcPointsToElementsDistance
+        (
+            psi, 
+            front,
+            mesh
+        ); 
+
+
         //Reconstruct the front: 
         Psi.time().cpuTimeIncrement(); 
 
@@ -213,7 +230,7 @@ int main(int argc, char *argv[])
         // TODO: user defined reconstruction interval.  
         if (runTime.timeIndex() % 10 == 0)
         {
-            front.reconstruct(Psi, false, 1e-10); 
+            front.reconstruct(Psi, psi, false, 1e-10); 
         }
 
         Info << "Front reconstructed: " 
