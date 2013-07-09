@@ -64,6 +64,9 @@ public:
 
         void operator()(volScalarField& Psi); 
 
+        // TODO: use front fields
+        void operator()(scalarField& psi, const fvMesh & mesh); 
+
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

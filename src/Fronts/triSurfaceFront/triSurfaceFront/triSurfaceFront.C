@@ -101,6 +101,7 @@ void triSurfaceFront::forceConsistentNormalOrientation
 {
     Info << "Enforcing normal consistency: "; 
     cellsToElementsDist.time().cpuTimeIncrement(); 
+
     volVectorField distGrad = fvc::grad(cellsToElementsDist); 
 
     // TODO: used for debugging, remove 
@@ -110,30 +111,38 @@ void triSurfaceFront::forceConsistentNormalOrientation
     List<labelledTri> & elements = storedFaces(); 
 
     // Get the cells. 
-    const labelList& cells = meshCells(); 
+    const labelList& elementCells = meshCells(); 
 
     // Get the element normals. 
-    // FIXME: BUG: faceNormals are not updated when an in-place flip of an element.
+    // FIXME: isoSurface: faceNormals are not updated when an in-place flip of an element.
     const vectorField& elementNormals = faceNormals();  
 
     // For all faces 
     forAll (elements, E)
     {
         // Normalize the distance gradient to get only the direction. 
-        distGrad[cells[E]] /= mag(distGrad[cells[E]]); 
-        
-        // Use the element normals field.
-        // WORKING!: 
-        //vector elementNormal = elementNormals[E]; 
-        //scalar elementNormalMag = mag(elementNormals[E]); 
-        
-        vector elementNormal = elementNormals[E] / mag(elementNormals[E]); 
-        
+        // TODO: remove, debugging only
+        scalar gradMag = mag(distGrad[elementCells[E]]); 
 
-        // If the normal is oriented in the opposite way from the distance gradient. 
-        if ((elementNormal & distGrad[cells[E]]) < 0)
+        // TODO: remove, debugging only
+        if (gradMag >= SMALL)
         {
-            elements[E].flip(); 
+            distGrad[elementCells[E]] /= gradMag; 
+            
+            // TODO: remove, debugging only
+            scalar normalMag = mag(elementNormals[E]); 
+
+            // TODO: remove, debugging only
+            if (normalMag > SMALL)
+            {
+                vector elementNormal = elementNormals[E] / mag(elementNormals[E]); 
+
+                // If the normal is oriented in the opposite way from the distance gradient. 
+                if ((elementNormal & distGrad[elementCells[E]]) < 0)
+                {
+                    elements[E].flip(); 
+                }
+            }
         }
     }
 };

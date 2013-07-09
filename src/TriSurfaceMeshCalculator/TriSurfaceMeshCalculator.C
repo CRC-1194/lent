@@ -343,11 +343,12 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
     //calcCentresToElementsDistance(Psi, front, enforceNarrowBand); 
 //}
 
-template<typename Mesh>
+template<typename Mesh, typename NarrowBandPropagation>
 void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
-    scalarField& psi, 
+    pointScalarField& psi, 
     const triSurfaceFront& front, 
-    const Mesh& mesh
+    const Mesh& mesh, 
+    NarrowBandPropagation enforceNarrowBand
 ) 
 {
     // TODO: check the initialization in createFields.
@@ -405,22 +406,9 @@ void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
                 // Set the negative distance.
                 psi[I] = -Foam::mag(points[I] - h.hitPoint());
             }
-            //else // The cell is cut by the element.
-            //{
-                //// Compute the distance vector.
-                //vector distance = points[I] - h.hitPoint(); 
-                //// Get the element.
-                //const labelledTri& element = elements[h.index()];
-                //// Get the element normal
-                //vector elementNormal = element.normal(vertices);
-
-                //// Project the distance to the element normal and set 
-                //// signed the distance value.
-                //psi[I] = distance & (elementNormal / mag(elementNormal));
-            //}
-
         }
     }
+    enforceNarrowBand(psi, mesh); 
 }
 
 void TriSurfaceMeshCalculator::calcFrontVelocity

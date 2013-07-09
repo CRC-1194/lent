@@ -155,7 +155,8 @@ int main(int argc, char *argv[])
     (
         psi, 
         front,
-        mesh
+        mesh, 
+        naiveNarrowBandPropagation()
     ); 
 
     //Reconstruct the front. 
@@ -219,7 +220,8 @@ int main(int argc, char *argv[])
         (
             psi, 
             front,
-            mesh
+            mesh, 
+            naiveNarrowBandPropagation()
         ); 
 
 

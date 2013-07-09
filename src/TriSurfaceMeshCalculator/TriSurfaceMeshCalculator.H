@@ -121,12 +121,13 @@ public:
 
     // TODO: may not be necessary, check with mesh refinement
     // TODO: implement front fields
-    template<typename Mesh>
+    template<typename Mesh, typename NarrowBandPropagation>
     void calcPointsToElementsDistance
     (
-        scalarField& psi, 
+        pointScalarField& psi, 
         const triSurfaceFront& front, 
-        const Mesh& mesh
+        const Mesh& mesh, 
+        NarrowBandPropagation enforceNarrowBand
     ); 
 
     void calcFrontVelocity

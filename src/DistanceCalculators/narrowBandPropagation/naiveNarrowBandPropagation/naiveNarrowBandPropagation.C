@@ -66,7 +66,43 @@ void naiveNarrowBandPropagation::operator()(volScalarField& Psi)
     } while (jumpFace >= 0);
 
     Psi.boundaryField().evaluate(); 
-    Info << "Enforcing narrow band: " << Psi.time().cpuTimeIncrement() << endl;
+    Info << "Enforcing cells narrow band: " << Psi.time().cpuTimeIncrement() << endl;
+}
+
+void naiveNarrowBandPropagation::operator()(scalarField& psi, fvMesh const & mesh)
+{
+    const labelListList& pointPoints = mesh.pointPoints(); 
+
+    mesh.time().cpuTimeIncrement(); 
+
+    label jumpPoint = -1; 
+
+    do 
+    {
+        jumpPoint = -1; 
+
+        forAll (pointPoints, pointI)
+        {
+            const labelList& pointIpoints = pointPoints[pointI];  
+            
+            forAll(pointIpoints, pointJ)
+            {
+                if 
+                (
+                    (psi[pointIpoints[pointJ]] == GREAT) && 
+                    (psi[pointI] < 0)
+                ) 
+                {
+                    jumpPoint = pointIpoints[pointJ]; 
+                    psi[pointIpoints[pointJ]] *= -1; 
+                }
+            }
+        }
+
+    } while (jumpPoint >= 0);
+
+    Info << "Enforcing points narrow band: " << mesh.time().cpuTimeIncrement() << endl;
+
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
