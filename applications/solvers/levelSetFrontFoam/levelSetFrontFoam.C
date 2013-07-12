@@ -202,10 +202,10 @@ int main(int argc, char *argv[])
         //front.move(constDisplacement*runTime.deltaT().value()); 
         
         // Compute the velocity using the meshCells of the isoSurface reconstruction.
-        //calc.calcFrontVelocity(frontDisplacement, front, U); 
+        calc.calcFrontVelocity(frontDisplacement, front, U); 
         //// FIXME: Put this in thecalcFrontVelocity function and scale the displacement. 
-        //frontDisplacement *= runTime.deltaT().value(); 
-        //front.move(frontDisplacement);
+        frontDisplacement *= runTime.deltaT().value(); 
+        front.move(frontDisplacement);
         
         // Compute the new signed distance field with the surfaceMesh octree search.  
         calc.calcCentresToElementsDistance
