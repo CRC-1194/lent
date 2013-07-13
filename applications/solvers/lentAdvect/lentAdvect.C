@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    levelSetFrontFoam
+    lentAdvection
 
 Author
     Tomislav Maric
@@ -49,21 +49,18 @@ Description
 #include "fvIOoptionList.H"
 
 #include "triSurfaceFront.H"
-#include "FvMeshAndFrontConnection.H"
 #include "naiveNarrowBandPropagation.H"
-#include "TriSurfaceMeshDistanceCalculator.H"
 #include "TriSurfaceMeshCalculator.H"
 
-// Fields.
+// TODO: switch to registered front Fields.
 #include "DynamicField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
 
-// Configure the Method
+// Configure the LENT Algorithm 
 typedef triSurfaceFront Front;
-typedef FvMeshAndFrontConnection<Front> Connection;
 typedef TriSurfaceMeshCalculator Calculator; 
 
 int main(int argc, char *argv[])

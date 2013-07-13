@@ -49,9 +49,7 @@ Description
 #include "fvIOoptionList.H"
 
 #include "triSurfaceFront.H"
-#include "FvMeshAndFrontConnection.H"
 #include "naiveNarrowBandPropagation.H"
-#include "TriSurfaceMeshDistanceCalculator.H"
 #include "TriSurfaceMeshCalculator.H"
 
 // Fields.
@@ -63,7 +61,6 @@ using namespace FrontTracking;
 
 // Configure the Method
 typedef triSurfaceFront Front;
-typedef FvMeshAndFrontConnection<Front> Connection;
 typedef TriSurfaceMeshCalculator Calculator; 
 
 int main(int argc, char *argv[])
