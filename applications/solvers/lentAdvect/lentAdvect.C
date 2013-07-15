@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
     ); 
 
     //Reconstruct the front. 
-    front.reconstruct(Psi, psi, false, 1e-10); 
+    //front.reconstruct(Psi, psi, false, 1e-10); 
     //front.reconstruct(Psi, false, 1e-10); 
 
     // Write the front.
@@ -227,10 +227,10 @@ int main(int argc, char *argv[])
 
         //New meshCells() information computed.  
         // TODO: user defined reconstruction interval.  
-        if (runTime.timeIndex() % 10 == 0)
-        {
-            front.reconstruct(Psi, psi, false, 1e-10); 
-        }
+        //if (runTime.timeIndex() % 10 == 0)
+        //{
+            //front.reconstruct(Psi, psi, false, 1e-10); 
+        //}
 
         Info << "Front reconstructed: " 
             << Psi.time().cpuTimeIncrement() << endl; 
