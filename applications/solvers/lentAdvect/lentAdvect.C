@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
     ); 
 
     //Reconstruct the front. 
-    //front.reconstruct(Psi, psi, false, 1e-10); 
+    front.reconstruct(Psi, psi, false, 1e-10); 
     //front.reconstruct(Psi, false, 1e-10); 
 
     // Write the front.

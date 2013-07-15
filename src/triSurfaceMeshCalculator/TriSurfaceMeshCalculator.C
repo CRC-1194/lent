@@ -430,6 +430,7 @@ void TriSurfaceMeshCalculator::calcFrontVelocity
 
     const List<labelledTri>& elements = front.localFaces(); 
     const pointField& vertices = front.points(); 
+    // Update mesh cells after motion only !!! 
     const labelList& meshCells = front.meshCells(); 
 
     forAll (meshCells, I)
