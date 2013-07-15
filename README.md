@@ -11,10 +11,12 @@ Contact: Tomislav Maric tomislav.maric@gmx.com
 
     . etc/bashrc
 
+
 * Execute Allwmake from within the top directory:
 
 
     . ./Allwmake
+
 
 * For permanent configuration of the environmental variables, source the *bashrc* script from your local *~/.bashrc*: 
 
