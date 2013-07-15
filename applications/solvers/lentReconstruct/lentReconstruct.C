@@ -193,12 +193,9 @@ int main(int argc, char *argv[])
             naiveNarrowBandPropagation()
         ); 
 
-
         //Reconstruct the front: 
         Psi.time().cpuTimeIncrement(); 
-
         front.reconstruct(Psi, psi, false, 1e-10); 
-
         Info << "Front reconstructed: " 
             << Psi.time().cpuTimeIncrement() << endl; 
 

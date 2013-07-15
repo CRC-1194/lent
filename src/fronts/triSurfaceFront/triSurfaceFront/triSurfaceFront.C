@@ -212,6 +212,8 @@ void triSurfaceFront::move(const vectorField& deltaV)
 
 bool triSurfaceFront::write() const
 {
+    Info << typeName << "::write()" << endl;
+
     fileName paddedName = zeroPaddedFileName(writeFormat_);
 
     triSurface::write(paddedName); 

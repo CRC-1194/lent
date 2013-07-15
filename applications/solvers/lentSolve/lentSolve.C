@@ -221,23 +221,15 @@ int main(int argc, char *argv[])
             naiveNarrowBandPropagation()
         ); 
 
-
         //Reconstruct the front: 
         Psi.time().cpuTimeIncrement(); 
-
-        //New meshCells() information computed.  
-        // TODO: user defined reconstruction interval.  
-        if (runTime.timeIndex() % 10 == 0)
-        {
-            front.reconstruct(Psi, psi, false, 1e-10); 
-        }
-
+        front.reconstruct(Psi, psi, false, 1e-10); 
         Info << "Front reconstructed: " 
             << Psi.time().cpuTimeIncrement() << endl; 
 
         runTime.write();
-        Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
 
+        Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
             << nl << endl;
