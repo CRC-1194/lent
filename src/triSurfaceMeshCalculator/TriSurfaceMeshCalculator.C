@@ -37,39 +37,25 @@ TriSurfaceMeshCalculator::initCellSearchDistance(
     const fvMesh& mesh
 )
 {
-    //if (cellSearchDistPtr_.empty())
-    //{
-        cellSearchDistPtr_ = autoPtr<volScalarField> (
-            new volScalarField (
-               IOobject (
-                   "cellSearchDist", 
-                   mesh.time().timeName(), 
-                   mesh, 
-                   IOobject::NO_READ, 
-                   IOobject::NO_WRITE
-               ), 
+    // FIXME: field is to be initialized only once, then resized.
+    cellSearchDistPtr_ = autoPtr<volScalarField> (
+        new volScalarField (
+           IOobject (
+               "cellSearchDist", 
+               mesh.time().timeName(), 
                mesh, 
-               dimensionedScalar ( 
-                  "zero", 
-                  dimLength, 
-                  0
-               ), 
-               "zeroGradient"
-           )
-        );
-    //}
-    //else
-    //{
-        //volScalarField cellSearchDist = cellSearchDistPtr_(); 
-        //cellSearchDist.resize(mesh.cells().size()); 
-        //cellSearchDist = dimensionedScalar 
-        //(
-            //"zero", 
-            //dimLength, 
-            //0 
-        //);
-        //cellSearchDist.boundaryField().evaluate(); 
-    //}
+               IOobject::NO_READ, 
+               IOobject::NO_WRITE
+           ), 
+           mesh, 
+           dimensionedScalar ( 
+              "zero", 
+              dimLength, 
+              0
+           ), 
+           "zeroGradient"
+       )
+    );
 }
 
 void
@@ -77,31 +63,24 @@ TriSurfaceMeshCalculator::initPointSearchDistance(
     const fvMesh& mesh
 )
 {
-    //if (pointSearchDistPtr_.empty())
-    //{
-        pointSearchDistPtr_ = autoPtr<pointScalarField>  
+    // FIXME: field is to be reinitialized only once, then resized.
+    pointSearchDistPtr_ = autoPtr<pointScalarField>  
+    (
+        new pointScalarField
         (
-            new pointScalarField
+            IOobject
             (
-                IOobject
-                (
-                    "pointSearchDist", 
-                    mesh.time().timeName(), 
-                    mesh, 
-                    IOobject::NO_READ, 
-                    IOobject::NO_WRITE
-                ),
-                pointMesh(mesh), 
-                0,
-                "zeroGradient"
-            ) 
-        );
-                
-    //}
-    //else
-    //{
-        //pointSearchDistPtr_->resize(mesh.points().size()); 
-    //}
+                "pointSearchDist", 
+                mesh.time().timeName(), 
+                mesh, 
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ),
+            pointMesh(mesh), 
+            0,
+            "zeroGradient"
+        ) 
+    );
 
     pointSearchDistPtr_() = 0;
 }
@@ -111,10 +90,9 @@ TriSurfaceMeshCalculator::initPointSearchDistance(
 void TriSurfaceMeshCalculator::calcCellSearchDistance(const fvMesh& mesh)
 {
     initCellSearchDistance(mesh); 
-
+    // FIXME: pointer can be dereferenced even if the field is not initialized.
+    //        refactor into getSearchDist() which initialized the field if necessary.
     volScalarField& cellSearchDist_ = cellSearchDistPtr_(); 
-
-    //Info << cellSearchDist_ << endl;
 
     // Sum deltaCoeffs inversed.
     const surfaceScalarField& deltaCoeffs = mesh.deltaCoeffs(); 
@@ -143,7 +121,6 @@ void TriSurfaceMeshCalculator::calcCellSearchDistance(const fvMesh& mesh)
             cellSearchDist_[faceCells[faceI]] += (1 / 
                     (deltaCoeffsBoundary[faceI] * 
                      deltaCoeffsBoundary[faceI]));
-;
         }
     }
 
@@ -165,9 +142,6 @@ void TriSurfaceMeshCalculator::calcPointSearchDistance(const fvMesh& mesh)
 
     volPointInterpolation interpolate(mesh); 
     interpolate.interpolate(cellSearchDistPtr_(), pointSearchDistPtr_()); 
-
-    // TODO: remove, debugging
-    //pointSearchDistPtr_() * 2; 
 }
 
 bool TriSurfaceMeshCalculator::pointInCell
@@ -186,26 +160,32 @@ bool TriSurfaceMeshCalculator::pointInCell
 
     bool inside = true;
 
+    // For all face labels of the cell.
     forAll (cell, faceI)
     {
         face f = faces[cell[faceI]];
 
+        // If the cell does not own the face.
         if (! (cellI == own[cell[faceI]]))
         {
             f = f.reverseFace(); 
         }
 
+        // Compute the vector from the face center to the point p.
         vector pf = p - Cf[cell[faceI]];  
 
+        // If the projection of pf onto the outward pointing face normal 
+        // is positive. 
         if ((pf & f.normal(points)) > 0)
         {
+            // The point is not inside the outward face normal halfspace, 
+            // which means it is outside the cell.
             inside = false;
             break;
         }
     }
 
     return inside;
-
 };
 
 
@@ -252,7 +232,7 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
                 IOobject::NO_READ, 
                 IOobject::NO_WRITE
             ),
-            front // LSP
+            front 
         )
     );
 
@@ -297,30 +277,14 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
             if (vT == searchableSurface::OUTSIDE)
             {
                 // Set the negative distance.
-                //Psi[I] = -Foam::mag(C[I] - h.hitPoint());
                 Psi[I] = Foam::mag(C[I] - h.hitPoint());
             }
             // If the volume is inside.
             else if (vT == searchableSurface::INSIDE)
             {
                 // Set the positive distance.
-                //Psi[I] = Foam::mag(C[I] - h.hitPoint());
                 Psi[I] = -Foam::mag(C[I] - h.hitPoint());
             }
-            // TODO: test, possibly remove 
-            //else 
-            //{
-                //// Compute the distance vector.
-                //vector distance = C[I] - h.hitPoint(); 
-                //// Get the element.
-                //const labelledTri& element = elements[h.index()];
-                //// Get the element normal
-                //vector elementNormal = element.normal(vertices);
-
-                //// Project the distance to the element normal and set 
-                //// signed the distance value.
-                //Psi[I] = distance & (elementNormal / mag(elementNormal));
-            //}
         }
     }
 
@@ -331,17 +295,6 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
     enforceNarrowBand(Psi); 
 }
 
-//template<typename Connection, typename NarrowBandPropagation>
-//void TriSurfaceMeshCalculator::calcCentresToElementsDistance
-//(
-    //volScalarField& Psi, 
-    //Connection const & connection, 
-    //NarrowBandPropagation enforceNarrowBand
-//) 
-//{
-    //const triSurface& front = static_cast<const triSurface&> (connection.front());
-    //calcCentresToElementsDistance(Psi, front, enforceNarrowBand); 
-//}
 
 template<typename Mesh, typename NarrowBandPropagation>
 void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
@@ -351,11 +304,8 @@ void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
     NarrowBandPropagation enforceNarrowBand
 ) 
 {
-    // TODO: check the initialization in createFields.
+    // FIXME: check the initialization in createFields.
     psi = GREAT;
-
-    // Get the reference to the fvMesh
-    //const fvMesh& mesh = connection.mesh();
 
     // Compulistte the search distance field.
     calcPointSearchDistance(mesh); 
@@ -377,12 +327,6 @@ void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
     List<searchableSurface::volumeType> volType;
     // Fill the list of the volume types. 
     frontMeshPtr_->getVolumeType(points, volType);
-
-    // Get front elements.
-    //const List<labelledTri>& elements = front.localFaces(); 
-
-    // Get front vertices. 
-    //const pointField& vertices = front.points(); 
 
     // For all volume types. 
     forAll(volType, I)
@@ -418,7 +362,6 @@ void TriSurfaceMeshCalculator::calcFrontVelocity
     const volVectorField& U 
 )
 {
-    // TODO: remove, optimization 
     U.time().cpuTimeIncrement(); 
 
     frontVelocity.resize(front.nPoints()); 
@@ -426,11 +369,8 @@ void TriSurfaceMeshCalculator::calcFrontVelocity
 
     interpolationCellPoint<vector> interpolation (U); 
 
-    //const fvMesh& mesh = U.mesh(); 
-
     const List<labelledTri>& elements = front.localFaces(); 
     const pointField& vertices = front.points(); 
-    // Update mesh cells after motion only !!! 
     const labelList& meshCells = front.meshCells(); 
 
     forAll (meshCells, I)
@@ -447,7 +387,6 @@ void TriSurfaceMeshCalculator::calcFrontVelocity
         }
     }
 
-    // TODO: remove, optimization 
     Info << "velocity interpolation: " << U.time().cpuTimeIncrement() << endl;
 }
 

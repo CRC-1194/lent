@@ -111,16 +111,6 @@ public:
         NarrowBandPropagation enforceNarrowBand
     ); 
 
-    //template <typename Connection, typename NarrowBandPropagation>
-    //void calcCentresToElementsDistance
-    //(
-        //volScalarField& Psi, 
-        //Connection const & connection, 
-        //NarrowBandPropagation enforceNarrowBand 
-    //); 
-
-    // TODO: may not be necessary, check with mesh refinement
-    // TODO: implement front fields
     template<typename Mesh, typename NarrowBandPropagation>
     void calcPointsToElementsDistance
     (
