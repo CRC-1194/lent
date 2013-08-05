@@ -141,15 +141,13 @@ int main(int argc, char *argv[])
     Calculator calc (narrowBandWidth); 
 
     // Compute the new signed distance field. 
-    calc.calcCentresToElementsDistance
-    (
+    calc.calcCentresToElementsDistance(
         Psi, 
         front,
         naiveNarrowBandPropagation()
     ); 
 
-    calc.calcPointsToElementsDistance
-    (
+    calc.calcPointsToElementsDistance(
         psi, 
         front,
         mesh, 
@@ -205,16 +203,14 @@ int main(int argc, char *argv[])
         front.move(frontDisplacement);
         
         // Compute the new signed distance field with the surfaceMesh octree search.  
-        calc.calcCentresToElementsDistance
-        (
+        calc.calcCentresToElementsDistance(
             Psi, 
             front,
             naiveNarrowBandPropagation()
         ); 
 
         // Compute the new signed point distance field. 
-        calc.calcPointsToElementsDistance
-        (
+        calc.calcPointsToElementsDistance(
             psi, 
             front,
             mesh, 

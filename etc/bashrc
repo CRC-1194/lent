@@ -2,4 +2,4 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-export LEVEL_SET_FRONT_PROJECT_DIR=${DIR%%/etc*}
+export LENT_PROJECT=${DIR%%/etc*}

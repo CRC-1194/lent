@@ -9,7 +9,7 @@ EXE_INC = \
     -I$(LIB_SRC)/fvOptions/lnInclude \
     -I$(LIB_SRC)/triSurface/lnInclude \
     -I$(LIB_SRC)/sampling/lnInclude \
-    -I$(LEVEL_SET_FRONT_PROJECT_DIR)/src/lnInclude
+    -I$(LENT_PROJECT)/src/lnInclude
 
 EXE_LIBS = \
     -L$(FOAM_USER_LIBBIN) \
