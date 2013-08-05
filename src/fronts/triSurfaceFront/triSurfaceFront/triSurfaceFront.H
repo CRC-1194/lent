@@ -58,8 +58,7 @@ class triSurfaceFront
         public regIOobject, 
         public triSurface 
 {
-    // TODO: extend the isoSurface class in the main trunk, and avoid copying the 
-    // cell map from the isoSurface. 
+    // For each front element a cell to which it belongs.
     List<label> meshCells_;  
 
     // Write format. 
@@ -140,6 +139,10 @@ public:
         return meshCells_; 
     }
 
+    labelList& meshCells() 
+    {
+        return meshCells_; 
+    }
 
     // Member operators 
     void operator=(const triSurfaceFront& rhs);

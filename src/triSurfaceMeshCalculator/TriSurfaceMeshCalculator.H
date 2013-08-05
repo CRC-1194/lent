@@ -92,6 +92,9 @@ class TriSurfaceMeshCalculator
     // Loose point in cell query: if the point is on a face, the function returns true. 
     bool pointInCell(const point& p, label cellI, const fvMesh& mesh) const; 
 
+    // Heuristic cell locator, based on a seed label.  
+    label findCell (const point&p, label cellI, const fvMesh& mesh) const; 
+
     // TODO: recode these, force deep copy and not ownership transfer using new autoPtr 
     TriSurfaceMeshCalculator(const TriSurfaceMeshCalculator&); 
     void operator=(const TriSurfaceMeshCalculator&); 
@@ -123,7 +126,7 @@ public:
     void calcFrontVelocity
     (
         DynamicField<vector>& frontVelocity, 
-        const triSurfaceFront& front, 
+        triSurfaceFront& front, 
         const volVectorField& U
     );
 

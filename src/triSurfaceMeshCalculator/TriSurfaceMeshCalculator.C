@@ -188,6 +188,41 @@ bool TriSurfaceMeshCalculator::pointInCell
     return inside;
 };
 
+label TriSurfaceMeshCalculator::findCell
+(
+    const point& p, 
+    label cellI, 
+    const fvMesh& mesh
+) const
+{
+    const labelListList& cellCells = mesh.cellCells(); 
+    const volVectorField& C = mesh.C(); 
+
+    scalar minDistance = GREAT; 
+    scalar minLabel = -1; 
+
+    // For all neighbour cells of the seed cell. 
+    forAll (cellCells[cellI], I) {
+        // Compute the distance between the cell center and the point. 
+        scalar distance = mag(C[cellCells[cellI][I]] - p); 
+        // Set label of the cell with the minimal distance. 
+        if (distance < minDistance) {
+            minDistance = distance; 
+            minLabel = cellCells[cellI][I];
+        }
+    }
+        
+    // If point lies in cell with minimal distance. 
+    if (pointInCell(p, minLabel, mesh)) {
+        // Return cell label.
+        return minLabel; 
+    } else {
+        // Seed label becomes the minimal label and the search becomes recursive.
+        return findCell(p, minLabel, mesh); 
+    }
+
+    return -1; 
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -358,7 +393,7 @@ void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
 void TriSurfaceMeshCalculator::calcFrontVelocity
 (
     DynamicField<vector>& frontVelocity, 
-    const triSurfaceFront& front,
+    triSurfaceFront& front,
     const volVectorField& U 
 )
 {
@@ -371,18 +406,27 @@ void TriSurfaceMeshCalculator::calcFrontVelocity
 
     const List<labelledTri>& elements = front.localFaces(); 
     const pointField& vertices = front.points(); 
-    const labelList& meshCells = front.meshCells(); 
+    labelList& meshCells = front.meshCells(); 
 
-    forAll (meshCells, I)
+    const fvMesh& mesh = U.mesh(); 
+
+    forAll (meshCells, elementI)
     {
-        const triFace& element = elements[I]; 
+        const triFace& element = elements[elementI]; 
 
         forAll (element, vertexI)
         {
+            const point& vertex = vertices[element[vertexI]];  
+
+            if (!pointInCell(vertex, meshCells[elementI], mesh))
+            {
+                meshCells[elementI] = findCell(vertex, meshCells[elementI], mesh); 
+            }
+
             frontVelocity[element[vertexI]] = interpolation.interpolate
             (
                 vertices[element[vertexI]],  
-                meshCells[I] 
+                meshCells[elementI]
             );
         }
     }
