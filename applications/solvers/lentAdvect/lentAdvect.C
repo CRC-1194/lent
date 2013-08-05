@@ -118,9 +118,6 @@ int main(int argc, char *argv[])
         )
     );
 
-    //Front oldFront(front); 
-    //oldFront.rename("oldFront.vtk"); 
-
     // TODO: use triSurfaceFront fields, put this in createFields. 
     DynamicField<vector> frontDisplacement (front.nPoints()); 
 
@@ -136,6 +133,7 @@ int main(int argc, char *argv[])
         )
     );
 
+    // FIXME: move the alg config to fvSolution::lent
     label narrowBandWidth = levelSetFrontDict.lookupOrDefault<label>("narrowBandWidth", 4);
 
     Calculator calc (narrowBandWidth); 
@@ -156,7 +154,6 @@ int main(int argc, char *argv[])
 
     //Reconstruct the front. 
     front.reconstruct(Psi, psi, false, 1e-10); 
-    //front.reconstruct(Psi, false, 1e-10); 
 
     // Write the front.
     runTime.writeNow(); 
