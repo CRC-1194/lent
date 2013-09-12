@@ -29,9 +29,9 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-scalar maxAlphaCo
+scalar maxHeavisideCo 
 (
-    readScalar(runTime.controlDict().lookup("maxAlphaCo"))
+    readScalar(runTime.controlDict().lookup("maxHeavisideCo"))
 );
 
 scalar alphaCoNum = 0.0;
@@ -41,7 +41,7 @@ if (mesh.nInternalFaces())
 {
     scalarField sumPhi
     (
-        pos(alpha1 - 0.01)*pos(0.99 - alpha1)
+        pos(H - 0.01)*pos(0.99 - H)
        *fvc::surfaceSum(mag(phi))().internalField()
     );
 

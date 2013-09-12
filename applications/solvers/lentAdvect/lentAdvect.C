@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
     {
         #include "readTimeControls.H"
         #include "CourantNo.H"
-        #include "alphaCourantNo.H"
+        #include "heavisideCourantNo.H"
         #include "setDeltaT.H"
 
         runTime++;

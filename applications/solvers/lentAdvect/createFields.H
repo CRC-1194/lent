@@ -75,9 +75,7 @@
 
 
     Info<< "Reading transportProperties\n" << endl;
-    incompressibleTwoPhaseMixture twoPhaseProperties(U, phi);
-
-    volScalarField& alpha1(twoPhaseProperties.alpha1());
+    incompressibleTwoPhaseMixture twoPhaseProperties(U, phi, "H");
 
     const dimensionedScalar& rho1 = twoPhaseProperties.rho1();
     const dimensionedScalar& rho2 = twoPhaseProperties.rho2();
@@ -93,9 +91,10 @@
             mesh,
             IOobject::READ_IF_PRESENT
         ),
-        alpha1*rho1 + (scalar(1) - alpha1)*rho2,
-        alpha1.boundaryField().types()
+        H*rho1 + (scalar(1) - H)*rho2,
+        H.boundaryField().types()
     );
+
     rho.oldTime();
 
 
@@ -117,7 +116,7 @@
 
 
     // Construct interface from alpha1 distribution
-    interfaceProperties interface(alpha1, U, twoPhaseProperties);
+    interfaceProperties interface(H, U, twoPhaseProperties);
 
 
     // Construct incompressible turbulence model
