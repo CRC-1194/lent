@@ -162,24 +162,7 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
         
-        //twoPhaseProperties.correct();
-
-        // --- Pressure-velocity PIMPLE corrector loop
-        //while (pimple.loop())
-        //{
-            //#include "UEqn.H"
-
-            // --- Pressure corrector loop
-            //while (pimple.correct())
-            //{
-                //#include "pEqn.H"
-            //}
-
-            //if (pimple.turbCorr())
-            //{
-                //turbulence->correct();
-            //}
-        //}
+        twoPhaseProperties.correct();
         
         // Move the front points with the constant vector : used for testing.
         //front.move(constDisplacement*runTime.deltaT().value()); 
