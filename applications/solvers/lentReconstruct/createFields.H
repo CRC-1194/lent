@@ -118,13 +118,6 @@
     // Construct interface from alpha1 distribution
     interfaceProperties interface(H, U, twoPhaseProperties);
 
-
-    // Construct incompressible turbulence model
-    autoPtr<incompressible::turbulenceModel> turbulence
-    (
-        incompressible::turbulenceModel::New(U, phi, twoPhaseProperties)
-    );
-
     #include "readGravitationalAcceleration.H"
 
     /*

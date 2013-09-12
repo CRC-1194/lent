@@ -40,17 +40,13 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "MULES.H"
-#include "subCycle.H"
 #include "interfaceProperties.H"
 #include "incompressibleTwoPhaseMixture.H"
-#include "turbulenceModel.H"
-#include "pimpleControl.H"
-#include "fvIOoptionList.H"
 
 #include "triSurfaceFront.H"
 #include "naiveNarrowBandPropagation.H"
 #include "TriSurfaceMeshCalculator.H"
+#include "leftAlgorithmHeavisideFunction.H"
 
 // Fields.
 #include "DynamicField.H"
@@ -65,61 +61,28 @@ typedef TriSurfaceMeshCalculator Calculator;
 
 int main(int argc, char *argv[])
 {
-    argList::addOption
-    (
-        "frontInputFile",
-        "pathname to the surface mesh file used for initializing the front"
-    );
-
-    argList::addOption
-    (
-        "frontOutputDirectory",
-        "name of the directory where the front will be stored"
-    );
-
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
 
-    pimpleControl pimple(mesh);
-
-    #include "initContinuityErrs.H"
     #include "createFields.H"
     #include "readTimeControls.H"
-    #include "correctPhi.H"
-    #include "CourantNo.H"
-    #include "setInitialDeltaT.H"
 
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    fileName frontInputFile = "frontInputFile.stl";
-    fileName frontOutputDirectory = "front";
-
-    if (args.optionFound("frontInputFile"))
-    {
-        frontInputFile = args.optionRead<word>("frontInputFile");
-    }
-    if (args.optionFound("frontOutputDirectory"))
-    {
-        frontOutputDirectory = 
-            args.optionRead<word>("frontOutputDirectory");
-    }
-
-    Info<< "\nStarting time loop\n" << endl;
-
     Front front (
         IOobject (
-            frontInputFile,
-            frontOutputDirectory,
+            "front.stl",
+            "front",
             runTime, 
             IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
         )
     );
 
-    //Front oldFront(front); 
-    //oldFront.rename("oldFront.vtk"); 
+    autoPtr<heavisideFunction> heavisideModelPtr = 
+        heavisideFunction::New("leftAlgorithmHeaviside"); 
 
     // TODO: use triSurfaceFront fields, put this in createFields. 
     DynamicField<vector> frontDisplacement (front.nPoints()); 
@@ -156,9 +119,10 @@ int main(int argc, char *argv[])
         naiveNarrowBandPropagation()
     ); 
 
+    heavisideModelPtr->calcHeaviside(H, Psi, calc.getCellSearchDistSqr()); 
+
     //Reconstruct the front. 
     front.reconstruct(Psi, psi, false, 1e-10); 
-    //front.reconstruct(Psi, false, 1e-10); 
 
     // Write the front.
     runTime.writeNow(); 
@@ -166,13 +130,12 @@ int main(int argc, char *argv[])
     while (runTime.run())
     {
         #include "readTimeControls.H"
-        #include "CourantNo.H"
-        #include "heavisideCourantNo.H"
-        #include "setDeltaT.H"
 
         runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
+
+        twoPhaseProperties.correct();
 
         // Compute the new signed distance field with the surfaceMesh octree search.  
         calc.calcCentresToElementsDistance
@@ -194,10 +157,14 @@ int main(int argc, char *argv[])
         //Reconstruct the front: 
         Psi.time().cpuTimeIncrement(); 
         front.reconstruct(Psi, psi, false, 1e-10); 
+
         Info << "Front reconstructed: " 
             << Psi.time().cpuTimeIncrement() << endl; 
 
+        heavisideModelPtr->calcHeaviside(H, Psi, calc.getCellSearchDistSqr()); 
+
         runTime.write();
+
         Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
