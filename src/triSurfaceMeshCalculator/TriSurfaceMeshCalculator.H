@@ -70,7 +70,7 @@ class TriSurfaceMeshCalculator
     DynamicList<pointIndexHit> pointsElementNearest_; 
 
     //- Cell search distance field used by the octree search algorithm.
-    autoPtr<volScalarField> cellSearchDistPtr_;
+    autoPtr<volScalarField> cellSearchDistSqrPtr_;
 
     //- Point search distance field used by the octree search algorithm.
     autoPtr<pointScalarField> pointSearchDistPtr_;
@@ -133,6 +133,11 @@ public:
     void setBandwidth(label bandwidth)
     {
         bandwidth_ = bandwidth; 
+    }
+
+    const volScalarField& getCellSearchDistSqr()
+    {
+        return cellSearchDistSqrPtr_(); 
     }
 
 };

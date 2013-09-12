@@ -163,8 +163,6 @@ int main(int argc, char *argv[])
     // Write the front.
     runTime.writeNow(); 
 
-    vector constDisplacement = levelSetFrontDict.lookup("displacement"); 
-
     while (runTime.run())
     {
         #include "readTimeControls.H"

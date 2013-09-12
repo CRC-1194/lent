@@ -1,0 +1,96 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+\*---------------------------------------------------------------------------*/
+
+#include "leftAlgorithmHeavisideFunction.H"
+#include "addToRunTimeSelectionTable.H"
+#include "volFields.H"
+#include "mathematicalConstants.H"
+
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+namespace Foam {
+    defineTypeNameAndDebug(leftAlgorithmHeavisideFunction, 0); 
+    addToRunTimeSelectionTable(heavisideFunction, leftAlgorithmHeavisideFunction, Empty);
+}
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::leftAlgorithmHeavisideFunction::leftAlgorithmHeavisideFunction()
+{}
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+Foam::leftAlgorithmHeavisideFunction::~leftAlgorithmHeavisideFunction()
+{}
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+void Foam::leftAlgorithmHeavisideFunction::calcHeaviside(
+    volScalarField& heaviside, 
+    const volScalarField& signedDistance, 
+    const volScalarField& narrowBandWidthSqr 
+) const
+{
+    scalar pi = constant::mathematical::pi; 
+
+    forAll (heaviside, cellI)
+    {
+        scalar narrowBandWidth = sqrt(narrowBandWidthSqr[cellI]);
+
+        if (mag(signedDistance[cellI]) < narrowBandWidth)
+        {
+            heaviside[cellI] = 0.5 * (
+                1 + signedDistance[cellI] / narrowBandWidth + 1/pi * 
+                sin((pi * signedDistance[cellI]) / narrowBandWidth)
+            );
+        } 
+        else
+        {
+            if (signedDistance[cellI] > 0)
+            {
+                heaviside[cellI] = 1; 
+            }
+            if (signedDistance[cellI] < 0)
+            {
+                heaviside[cellI] = 0;
+            }
+        }
+    }
+}
+
+// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
+
+void Foam::leftAlgorithmHeavisideFunction::operator=(const leftAlgorithmHeavisideFunction& rhs)
+{
+    // Check for assignment to self
+    if (this == &rhs)
+    {
+        FatalErrorIn("Foam::leftAlgorithmHeavisideFunction::operator=(const Foam::leftAlgorithmHeavisideFunction&)")
+            << "Attempted assignment to self"
+            << abort(FatalError);
+    }
+}
+
+// ************************************************************************* //

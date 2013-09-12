@@ -51,6 +51,7 @@ Description
 #include "triSurfaceFront.H"
 #include "naiveNarrowBandPropagation.H"
 #include "TriSurfaceMeshCalculator.H"
+#include "leftAlgorithmHeavisideFunction.H"
 
 // TODO: switch to registered front Fields.
 #include "DynamicField.H"
@@ -93,30 +94,20 @@ int main(int argc, char *argv[])
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    fileName frontInputFile = "frontInputFile.stl";
-    fileName frontOutputDirectory = "front";
-
-    if (args.optionFound("frontInputFile"))
-    {
-        frontInputFile = args.optionRead<word>("frontInputFile");
-    }
-    if (args.optionFound("frontOutputDirectory"))
-    {
-        frontOutputDirectory = 
-            args.optionRead<word>("frontOutputDirectory");
-    }
-
     Info<< "\nStarting time loop\n" << endl;
 
     Front front (
         IOobject (
-            frontInputFile,
-            frontOutputDirectory,
+            "front.stl",
+            "front",
             runTime, 
             IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
         )
     );
+
+    autoPtr<heavisideFunction> heavisideModelPtr = 
+        heavisideFunction::New("leftAlgorithmHeaviside"); 
 
     // TODO: use triSurfaceFront fields, put this in createFields. 
     DynamicField<vector> frontDisplacement (front.nPoints()); 
@@ -152,13 +143,13 @@ int main(int argc, char *argv[])
         naiveNarrowBandPropagation()
     ); 
 
+    heavisideModelPtr->calcHeaviside(H, Psi, calc.getCellSearchDistSqr()); 
+
     //Reconstruct the front. 
     front.reconstruct(Psi, psi, false, 1e-10); 
 
     // Write the front.
     runTime.writeNow(); 
-
-    vector constDisplacement = levelSetFrontDict.lookup("displacement"); 
 
     while (runTime.run())
     {
@@ -214,6 +205,7 @@ int main(int argc, char *argv[])
             naiveNarrowBandPropagation()
         ); 
 
+        heavisideModelPtr->calcHeaviside(H, Psi, calc.getCellSearchDistSqr()); 
 
         //Reconstruct the front: 
         Psi.time().cpuTimeIncrement(); 

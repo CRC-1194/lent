@@ -27,7 +27,7 @@
         mesh
     );
 
-    Info << "Reading the cell-centred distance field Psi\n" << endl;
+    Info << "Reading the cell-centered distance field Psi\n" << endl;
     volScalarField Psi
     (
         IOobject
@@ -55,6 +55,20 @@
         pointMesh(mesh), 
         GREAT,
         "zeroGradient"
+    );
+
+    Info << "Reading the cell-centered Heaviside field H\n" << endl;
+    volScalarField H 
+    (
+        IOobject
+        (
+            "H",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ, 
+            IOobject::AUTO_WRITE
+        ),
+        mesh
     );
 
     #include "createPhi.H"

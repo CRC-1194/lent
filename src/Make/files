@@ -2,4 +2,7 @@ fronts/triSurfaceFront/triSurfaceFront/triSurfaceFront.C
 fronts/triSurfaceFront/triSurfaceFrontFields/triSurfaceFrontFields.C
 narrowBandPropagation/naiveNarrowBandPropagation/naiveNarrowBandPropagation.C
 
+heavisideFunctions/heavisideFunction/heavisideFunction.C
+heavisideFunctions/leftAlgorithmHeavisideFunction/leftAlgorithmHeavisideFunction.C
+
 LIB = $(FOAM_USER_LIBBIN)/liblent

@@ -38,10 +38,10 @@ TriSurfaceMeshCalculator::initCellSearchDistance(
 )
 {
     // FIXME: field is to be initialized only once, then resized.
-    cellSearchDistPtr_ = autoPtr<volScalarField> (
+    cellSearchDistSqrPtr_ = autoPtr<volScalarField> (
         new volScalarField (
            IOobject (
-               "cellSearchDist", 
+               "cellSearchDistSqr", 
                mesh.time().timeName(), 
                mesh, 
                IOobject::NO_READ, 
@@ -92,7 +92,7 @@ void TriSurfaceMeshCalculator::calcCellSearchDistance(const fvMesh& mesh)
     initCellSearchDistance(mesh); 
     // FIXME: pointer can be dereferenced even if the field is not initialized.
     //        refactor into getSearchDist() which initialized the field if necessary.
-    volScalarField& cellSearchDist_ = cellSearchDistPtr_(); 
+    volScalarField& cellSearchDistSqr_ = cellSearchDistSqrPtr_(); 
 
     // Sum deltaCoeffs inversed.
     const surfaceScalarField& deltaCoeffs = mesh.deltaCoeffs(); 
@@ -103,8 +103,8 @@ void TriSurfaceMeshCalculator::calcCellSearchDistance(const fvMesh& mesh)
     // Sum the deltaCoeffs for the internal faces.
     forAll(own, I)
     {
-        cellSearchDist_[own[I]] += (1 / (deltaCoeffs[I] * deltaCoeffs[I]));
-        cellSearchDist_[nei[I]] += (1 / (deltaCoeffs[I] * deltaCoeffs[I]));
+        cellSearchDistSqr_[own[I]] += (1 / (deltaCoeffs[I] * deltaCoeffs[I]));
+        cellSearchDistSqr_[nei[I]] += (1 / (deltaCoeffs[I] * deltaCoeffs[I]));
     }
 
     // Sum the deltaCoeffs for the boundary faces.
@@ -118,22 +118,22 @@ void TriSurfaceMeshCalculator::calcCellSearchDistance(const fvMesh& mesh)
 
         forAll(mesh.boundary()[patchI], faceI)
         {
-            cellSearchDist_[faceCells[faceI]] += (1 / 
+            cellSearchDistSqr_[faceCells[faceI]] += (1 / 
                     (deltaCoeffsBoundary[faceI] * 
                      deltaCoeffsBoundary[faceI]));
         }
     }
 
     // Correct the cell centred distance. 
-    forAll(cellSearchDist_, I)
+    forAll(cellSearchDistSqr_, I)
     {
         // Average the distance with the number of cell-faces. 
-        cellSearchDist_[I] /=  mesh.cells()[I].size();
+        cellSearchDistSqr_[I] /=  mesh.cells()[I].size();
     }
 
     // Expand the distance by the bandwidth.
-    cellSearchDist_ *= bandwidth_; 
-    cellSearchDist_.boundaryField().evaluate(); 
+    cellSearchDistSqr_ *= bandwidth_; 
+    cellSearchDistSqr_.boundaryField().evaluate(); 
 }
 
 void TriSurfaceMeshCalculator::calcPointSearchDistance(const fvMesh& mesh)
@@ -141,7 +141,7 @@ void TriSurfaceMeshCalculator::calcPointSearchDistance(const fvMesh& mesh)
     initPointSearchDistance(mesh); 
 
     volPointInterpolation interpolate(mesh); 
-    interpolate.interpolate(cellSearchDistPtr_(), pointSearchDistPtr_()); 
+    interpolate.interpolate(cellSearchDistSqrPtr_(), pointSearchDistPtr_()); 
 }
 
 bool TriSurfaceMeshCalculator::pointInCell
@@ -231,7 +231,7 @@ TriSurfaceMeshCalculator::TriSurfaceMeshCalculator(label bandwidth)
     frontMeshPtr_(), 
     cellsElementNearest_(),
     pointsElementNearest_(), 
-    cellSearchDistPtr_(),
+    cellSearchDistSqrPtr_(),
     pointSearchDistPtr_(),
     bandwidth_(bandwidth)
 {}
@@ -283,12 +283,12 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance
     const volVectorField& C = mesh.C(); 
 
     // Get the distance field reference.
-    const volScalarField& cellSearchDist_ = cellSearchDistPtr_(); 
+    const volScalarField& cellSearchDistSqr_ = cellSearchDistSqrPtr_(); 
 
     mesh.time().cpuTimeIncrement();
     frontMesh.findNearest(
         C, 
-        cellSearchDist_, 
+        cellSearchDistSqr_, 
         cellsElementNearest_
     );
     Info << "findNearest : " << mesh.time().cpuTimeIncrement() << endl; 
