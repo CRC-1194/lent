@@ -66,13 +66,12 @@ int main(int argc, char *argv[])
     #include "createMesh.H"
 
     #include "createFields.H"
-    #include "readTimeControls.H"
 
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    Front front (
-        IOobject (
+    Front front(
+        IOobject(
             "front.stl",
             "front",
             runTime, 
@@ -99,69 +98,74 @@ int main(int argc, char *argv[])
         )
     );
 
-    label narrowBandWidth = levelSetFrontDict.lookupOrDefault<label>("narrowBandWidth", 4);
+    label narrowBandWidth = 
+        levelSetFrontDict.lookupOrDefault<label>(
+            "narrowBandWidth", 4
+        );
 
     Calculator calc (narrowBandWidth); 
 
     // Compute the new signed distance field. 
-    calc.calcCentresToElementsDistance
-    (
-        Psi, 
+    calc.calcCentresToElementsDistance(
+        signedDistance, 
         front,
         naiveNarrowBandPropagation()
     ); 
 
-    calc.calcPointsToElementsDistance
-    (
-        psi, 
+    calc.calcPointsToElementsDistance(
+        pointSignedDistance, 
         front,
         mesh, 
         naiveNarrowBandPropagation()
     ); 
 
-    heavisideModelPtr->calcHeaviside(H, Psi, calc.getCellSearchDistSqr()); 
+    heavisideModelPtr->calcHeaviside(
+        heaviside, 
+        signedDistance, 
+        calc.getCellSearchDistSqr()
+    ); 
 
     //Reconstruct the front. 
-    front.reconstruct(Psi, psi, false, 1e-10); 
+    front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
 
     // Write the front.
     runTime.writeNow(); 
 
-    while (runTime.run())
-    {
-        #include "readTimeControls.H"
-
+    while (runTime.run()) {
         runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         twoPhaseProperties.correct();
 
-        // Compute the new signed distance field with the surfaceMesh octree search.  
-        calc.calcCentresToElementsDistance
-        (
-            Psi, 
+        // Compute the new signed distance field with the surfaceMesh octree
+        // search.  
+        calc.calcCentresToElementsDistance(
+            signedDistance, 
             front,
             naiveNarrowBandPropagation()
         ); 
 
         // Compute the new signed point distance field. 
-        calc.calcPointsToElementsDistance
-        (
-            psi, 
+        calc.calcPointsToElementsDistance(
+            pointSignedDistance, 
             front,
             mesh, 
             naiveNarrowBandPropagation()
         ); 
 
         //Reconstruct the front: 
-        Psi.time().cpuTimeIncrement(); 
-        front.reconstruct(Psi, psi, false, 1e-10); 
+        signedDistance.time().cpuTimeIncrement(); 
+        front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
 
         Info << "Front reconstructed: " 
-            << Psi.time().cpuTimeIncrement() << endl; 
+            << signedDistance.time().cpuTimeIncrement() << endl; 
 
-        heavisideModelPtr->calcHeaviside(H, Psi, calc.getCellSearchDistSqr()); 
+        heavisideModelPtr->calcHeaviside(
+            heaviside, 
+            signedDistance, 
+            calc.getCellSearchDistSqr()
+        ); 
 
         runTime.write();
 

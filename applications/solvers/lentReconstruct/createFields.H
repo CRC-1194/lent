@@ -27,12 +27,12 @@
         mesh
     );
 
-    Info << "Reading the cell-centered distance field Psi\n" << endl;
-    volScalarField Psi
+    Info << "Reading the cell-centered distance field signedDistance\n" << endl;
+    volScalarField signedDistance
     (
         IOobject
         (
-            "Psi",
+            "signedDistance",
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ, 
@@ -42,11 +42,11 @@
     );
 
     // Initialize the points-to-elements distance. 
-    pointScalarField psi 
+    pointScalarField pointSignedDistance 
     (
         IOobject
         (
-            "psi", 
+            "pointSignedDistance", 
             runTime.timeName(), 
             mesh, 
             IOobject::NO_READ, 
@@ -57,12 +57,12 @@
         "zeroGradient"
     );
 
-    Info << "Reading the cell-centered Heaviside field H\n" << endl;
-    volScalarField H 
+    Info << "Reading the cell-centered Heaviside field heaviside\n" << endl;
+    volScalarField heaviside 
     (
         IOobject
         (
-            "H",
+            "heaviside",
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ, 
@@ -75,7 +75,7 @@
 
 
     Info<< "Reading transportProperties\n" << endl;
-    incompressibleTwoPhaseMixture twoPhaseProperties(U, phi, "H");
+    incompressibleTwoPhaseMixture twoPhaseProperties(U, phi, "heaviside");
 
     const dimensionedScalar& rho1 = twoPhaseProperties.rho1();
     const dimensionedScalar& rho2 = twoPhaseProperties.rho2();
@@ -91,8 +91,8 @@
             mesh,
             IOobject::READ_IF_PRESENT
         ),
-        H*rho1 + (scalar(1) - H)*rho2,
-        H.boundaryField().types()
+        heaviside*rho1 + (scalar(1) - heaviside)*rho2,
+        heaviside.boundaryField().types()
     );
 
     rho.oldTime();
@@ -116,7 +116,7 @@
 
 
     // Construct interface from alpha1 distribution
-    interfaceProperties interface(H, U, twoPhaseProperties);
+    interfaceProperties interface(heaviside, U, twoPhaseProperties);
 
     #include "readGravitationalAcceleration.H"
 
