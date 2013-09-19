@@ -65,18 +65,6 @@ typedef TriSurfaceMeshCalculator Calculator;
 
 int main(int argc, char *argv[])
 {
-    argList::addOption
-    (
-        "frontInputFile",
-        "pathname to the surface mesh file used for initializing the front"
-    );
-
-    argList::addOption
-    (
-        "frontOutputDirectory",
-        "name of the directory where the front will be stored"
-    );
-
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -93,25 +81,12 @@ int main(int argc, char *argv[])
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    fileName frontInputFile = "frontInputFile.stl";
-    fileName frontOutputDirectory = "front";
-
-    if (args.optionFound("frontInputFile"))
-    {
-        frontInputFile = args.optionRead<word>("frontInputFile");
-    }
-    if (args.optionFound("frontOutputDirectory"))
-    {
-        frontOutputDirectory = 
-            args.optionRead<word>("frontOutputDirectory");
-    }
-
     Info<< "\nStarting time loop\n" << endl;
 
-    Front front (
-        IOobject (
-            frontInputFile,
-            frontOutputDirectory,
+    Front front(
+        IOobject(
+            "front.stl",
+            "front",
             runTime, 
             IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
@@ -119,12 +94,10 @@ int main(int argc, char *argv[])
     );
 
     // TODO: use triSurfaceFront fields, put this in createFields. 
-    DynamicField<vector> frontDisplacement (front.nPoints()); 
+    DynamicField<vector> frontDisplacement(front.nPoints()); 
 
-    IOdictionary levelSetFrontDict
-    (
-        IOobject
-        (
+    IOdictionary levelSetFrontDict(
+        IOobject(
             "levelSetFrontDict", 
             "constant", 
             runTime, 
@@ -133,29 +106,28 @@ int main(int argc, char *argv[])
         )
     );
 
-    label narrowBandWidth = levelSetFrontDict.lookupOrDefault<label>("narrowBandWidth", 4);
+    label narrowBandWidth = 
+        levelSetFrontDict.lookupOrDefault<label>("narrowBandWidth", 4);
 
-    Calculator calc (narrowBandWidth); 
+    Calculator calc(narrowBandWidth); 
 
     // Compute the new signed distance field. 
-    calc.calcCentresToElementsDistance
-    (
-        Psi, 
+    calc.calcCentresToElementsDistance(
+        signedDistance, 
         front,
         naiveNarrowBandPropagation()
     ); 
 
-    calc.calcPointsToElementsDistance
-    (
-        psi, 
+    calc.calcPointsToElementsDistance(
+        pointSignedDistance, 
         front,
         mesh, 
         naiveNarrowBandPropagation()
     ); 
 
     //Reconstruct the front. 
-    front.reconstruct(Psi, psi, false, 1e-10); 
-    //front.reconstruct(Psi, false, 1e-10); 
+    front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
+    //front.reconstruct(signedDistance, false, 1e-10); 
 
     // Write the front.
     runTime.writeNow(); 
@@ -199,7 +171,7 @@ int main(int argc, char *argv[])
         // Compute the new signed distance field with the surfaceMesh octree search.  
         calc.calcCentresToElementsDistance
         (
-            Psi, 
+            signedDistance, 
             front,
             naiveNarrowBandPropagation()
         ); 
@@ -207,17 +179,17 @@ int main(int argc, char *argv[])
         // Compute the new signed point distance field. 
         calc.calcPointsToElementsDistance
         (
-            psi, 
+            pointSignedDistance, 
             front,
             mesh, 
             naiveNarrowBandPropagation()
         ); 
 
         //Reconstruct the front: 
-        Psi.time().cpuTimeIncrement(); 
-        front.reconstruct(Psi, psi, false, 1e-10); 
+        signedDistance.time().cpuTimeIncrement(); 
+        front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
         Info << "Front reconstructed: " 
-            << Psi.time().cpuTimeIncrement() << endl; 
+            << signedDistance.time().cpuTimeIncrement() << endl; 
 
         runTime.write();
 
