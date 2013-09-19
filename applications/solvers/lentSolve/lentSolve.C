@@ -118,9 +118,6 @@ int main(int argc, char *argv[])
         )
     );
 
-    //Front oldFront(front); 
-    //oldFront.rename("oldFront.vtk"); 
-
     // TODO: use triSurfaceFront fields, put this in createFields. 
     DynamicField<vector> frontDisplacement (front.nPoints()); 
 
@@ -174,27 +171,24 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
         
-        //twoPhaseProperties.correct();
+        twoPhaseProperties.correct();
 
         // --- Pressure-velocity PIMPLE corrector loop
-        //while (pimple.loop())
-        //{
-            //#include "UEqn.H"
+        while (pimple.loop())
+        {
+            #include "UEqn.H"
 
-            // --- Pressure corrector loop
-            //while (pimple.correct())
-            //{
-                //#include "pEqn.H"
-            //}
+            //--- Pressure corrector loop
+            while (pimple.correct())
+            {
+                #include "pEqn.H"
+            }
 
-            //if (pimple.turbCorr())
-            //{
-                //turbulence->correct();
-            //}
-        //}
-        
-        // Move the front points with the constant vector : used for testing.
-        //front.move(constDisplacement*runTime.deltaT().value()); 
+            if (pimple.turbCorr())
+            {
+                turbulence->correct();
+            }
+        }
         
         // Compute the velocity using the meshCells of the isoSurface reconstruction.
         calc.calcFrontVelocity(frontDisplacement, front, U); 
