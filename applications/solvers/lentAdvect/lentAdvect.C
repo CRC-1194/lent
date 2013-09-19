@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    lentAdvection
+    lentAdvect
 
 Author
     Tomislav Maric
@@ -53,7 +53,6 @@ Description
 #include "TriSurfaceMeshCalculator.H"
 #include "leftAlgorithmHeavisideFunction.H"
 
-// TODO: switch to registered front Fields.
 #include "DynamicField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -81,8 +80,8 @@ int main(int argc, char *argv[])
 
     Info<< "\nStarting time loop\n" << endl;
 
-    Front front (
-        IOobject (
+    Front front(
+        IOobject(
             "front.stl",
             "front",
             runTime, 
@@ -97,10 +96,8 @@ int main(int argc, char *argv[])
     // TODO: use triSurfaceFront fields, put this in createFields. 
     DynamicField<vector> frontDisplacement (front.nPoints()); 
 
-    IOdictionary levelSetFrontDict
-    (
-        IOobject
-        (
+    IOdictionary levelSetFrontDict(
+        IOobject(
             "levelSetFrontDict", 
             "constant", 
             runTime, 
@@ -110,28 +107,33 @@ int main(int argc, char *argv[])
     );
 
     // FIXME: move the alg config to fvSolution::lent
-    label narrowBandWidth = levelSetFrontDict.lookupOrDefault<label>("narrowBandWidth", 4);
+    label narrowBandWidth = 
+        levelSetFrontDict.lookupOrDefault<label>("narrowBandWidth", 4);
 
-    Calculator calc (narrowBandWidth); 
+    Calculator calc(narrowBandWidth); 
 
     // Compute the new signed distance field. 
     calc.calcCentresToElementsDistance(
-        Psi, 
+        signedDistance, 
         front,
         naiveNarrowBandPropagation()
     ); 
 
     calc.calcPointsToElementsDistance(
-        psi, 
+        pointSignedDistance, 
         front,
         mesh, 
         naiveNarrowBandPropagation()
     ); 
 
-    heavisideModelPtr->calcHeaviside(H, Psi, calc.getCellSearchDistSqr()); 
+    heavisideModelPtr->calcHeaviside(
+        heaviside, 
+        signedDistance, 
+        calc.getCellSearchDistSqr()
+    ); 
 
     //Reconstruct the front. 
-    front.reconstruct(Psi, psi, false, 1e-10); 
+    front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
 
     // Write the front.
     runTime.writeNow(); 
@@ -160,33 +162,37 @@ int main(int argc, char *argv[])
         
         // Compute the new signed distance field with the surfaceMesh octree search.  
         calc.calcCentresToElementsDistance(
-            Psi, 
+            signedDistance, 
             front,
             naiveNarrowBandPropagation()
         ); 
 
         // Compute the new signed point distance field. 
         calc.calcPointsToElementsDistance(
-            psi, 
+            pointSignedDistance, 
             front,
             mesh, 
             naiveNarrowBandPropagation()
         ); 
 
-        heavisideModelPtr->calcHeaviside(H, Psi, calc.getCellSearchDistSqr()); 
+        heavisideModelPtr->calcHeaviside(
+            heaviside, 
+            signedDistance, 
+            calc.getCellSearchDistSqr()
+        ); 
 
         //Reconstruct the front: 
-        Psi.time().cpuTimeIncrement(); 
+        signedDistance.time().cpuTimeIncrement(); 
 
         //New meshCells() information computed.  
         // TODO: user defined reconstruction interval.  
         //if (runTime.timeIndex() % 10 == 0)
         //{
-            //front.reconstruct(Psi, psi, false, 1e-10); 
+            //front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
         //}
 
         Info << "Front reconstructed: " 
-            << Psi.time().cpuTimeIncrement() << endl; 
+            << signedDistance.time().cpuTimeIncrement() << endl; 
 
         runTime.write();
         Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
