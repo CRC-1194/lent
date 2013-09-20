@@ -51,6 +51,7 @@ Description
 #include "triSurfaceFront.H"
 #include "naiveNarrowBandPropagation.H"
 #include "TriSurfaceMeshCalculator.H"
+#include "leftAlgorithmHeavisideFunction.H"
 
 // TODO: switch to registered front Fields.
 #include "DynamicField.H"
@@ -93,6 +94,9 @@ int main(int argc, char *argv[])
         )
     );
 
+    autoPtr<heavisideFunction> heavisideModelPtr = 
+        heavisideFunction::New("leftAlgorithmHeaviside"); 
+
     // TODO: use triSurfaceFront fields, put this in createFields. 
     DynamicField<vector> frontDisplacement(front.nPoints()); 
 
@@ -123,6 +127,12 @@ int main(int argc, char *argv[])
         front,
         mesh, 
         naiveNarrowBandPropagation()
+    ); 
+
+    heavisideModelPtr->calcHeaviside(
+        heaviside, 
+        signedDistance, 
+        calc.getCellSearchDistSqr()
     ); 
 
     //Reconstruct the front. 
@@ -161,6 +171,8 @@ int main(int argc, char *argv[])
                 turbulence->correct();
             }
         }
+
+        #include "UEqn.H"
         
         // Compute the velocity using the meshCells of the isoSurface reconstruction.
         calc.calcFrontVelocity(frontDisplacement, front, U); 
@@ -185,11 +197,17 @@ int main(int argc, char *argv[])
             naiveNarrowBandPropagation()
         ); 
 
+        heavisideModelPtr->calcHeaviside(
+            heaviside, 
+            signedDistance, 
+            calc.getCellSearchDistSqr()
+        ); 
+
         //Reconstruct the front: 
-        signedDistance.time().cpuTimeIncrement(); 
-        front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
-        Info << "Front reconstructed: " 
-            << signedDistance.time().cpuTimeIncrement() << endl; 
+        //signedDistance.time().cpuTimeIncrement(); 
+        //front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
+        //Info << "Front reconstructed: " 
+            //<< signedDistance.time().cpuTimeIncrement() << endl; 
 
         runTime.write();
 
