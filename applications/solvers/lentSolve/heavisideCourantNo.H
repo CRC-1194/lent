@@ -38,7 +38,7 @@ scalar meanAlphaCoNum = 0.0;
 
 if (mesh.nInternalFaces()) {
     scalarField sumPhi(
-        pos(H - 0.01)*pos(0.99 - H)
+        pos(heaviside - 0.01)*pos(0.99 - heaviside)
        *fvc::surfaceSum(mag(phi))().internalField()
     );
 

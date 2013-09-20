@@ -50,7 +50,7 @@
     );
 
     Info << "Reading the cell-centered Heaviside field\n" << endl;
-    volScalarField H(
+    volScalarField heaviside(
         IOobject(
             "heaviside",
             runTime.timeName(),
@@ -65,7 +65,7 @@
 
 
     Info<< "Reading transportProperties\n" << endl;
-    incompressibleTwoPhaseMixture twoPhaseProperties(U, phi, "H");
+    incompressibleTwoPhaseMixture twoPhaseProperties(U, phi, "heaviside");
 
     const dimensionedScalar& rho1 = twoPhaseProperties.rho1();
     const dimensionedScalar& rho2 = twoPhaseProperties.rho2();
@@ -79,8 +79,8 @@
             mesh,
             IOobject::READ_IF_PRESENT
         ),
-        H*rho1 + (scalar(1) - H)*rho2,
-        H.boundaryField().types()
+        heaviside*rho1 + (scalar(1) - heaviside)*rho2,
+        heaviside.boundaryField().types()
     );
 
     rho.oldTime();
@@ -102,7 +102,7 @@
 
 
     // Construct interface from alpha1 distribution
-    interfaceProperties interface(H, U, twoPhaseProperties);
+    interfaceProperties interface(heaviside, U, twoPhaseProperties);
 
 
     // Construct incompressible turbulence model
