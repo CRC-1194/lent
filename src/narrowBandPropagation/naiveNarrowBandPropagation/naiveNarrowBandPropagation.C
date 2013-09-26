@@ -27,10 +27,8 @@ License
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
-namespace FrontTracking
-{
+namespace Foam {
+namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -46,7 +44,6 @@ void naiveNarrowBandPropagation::operator()(volScalarField& Psi)
 
     label jumpFace = -1; 
 
-    Psi.time().cpuTimeIncrement(); 
     do 
     {
         jumpFace = -1; 
@@ -66,14 +63,11 @@ void naiveNarrowBandPropagation::operator()(volScalarField& Psi)
     } while (jumpFace >= 0);
 
     Psi.boundaryField().evaluate(); 
-    Info << "Enforcing cells narrow band: " << Psi.time().cpuTimeIncrement() << endl;
 }
 
 void naiveNarrowBandPropagation::operator()(scalarField& psi, fvMesh const & mesh)
 {
     const labelListList& pointPoints = mesh.pointPoints(); 
-
-    mesh.time().cpuTimeIncrement(); 
 
     label jumpPoint = -1; 
 
@@ -100,9 +94,6 @@ void naiveNarrowBandPropagation::operator()(scalarField& psi, fvMesh const & mes
         }
 
     } while (jumpPoint >= 0);
-
-    Info << "Enforcing points narrow band: " << mesh.time().cpuTimeIncrement() << endl;
-
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

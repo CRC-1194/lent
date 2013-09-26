@@ -97,7 +97,6 @@ int main(int argc, char *argv[])
     autoPtr<heavisideFunction> heavisideModelPtr = 
         heavisideFunction::New("leftAlgorithmHeaviside"); 
 
-    // TODO: use triSurfaceFront fields, put this in createFields. 
     DynamicField<vector> frontDisplacement(front.nPoints()); 
 
     IOdictionary levelSetFrontDict(
@@ -137,7 +136,9 @@ int main(int argc, char *argv[])
 
     //Reconstruct the front. 
     front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
-    //front.reconstruct(signedDistance, false, 1e-10); 
+
+    // Update the density field. 
+    rho == heaviside*rho1 + (scalar(1) - heaviside)*rho2;
 
     // Write the front.
     runTime.writeNow(); 
@@ -155,6 +156,10 @@ int main(int argc, char *argv[])
         
         twoPhaseProperties.correct();
 
+        // Update the density field. 
+        rho == heaviside*rho1 + (scalar(1) - heaviside)*rho2;
+
+        Info << "p-U algorithm ... " << endl;
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
@@ -171,14 +176,21 @@ int main(int argc, char *argv[])
                 turbulence->correct();
             }
         }
+        Info << "Done." << endl; 
 
+        Info << "Final velocity calculation..." << endl;
         #include "UEqn.H"
+        Info << "Done. " << endl;
         
         // Compute the velocity using the meshCells of the isoSurface reconstruction.
+        Info << "Computing front velocity..." << endl;
         calc.calcFrontVelocity(frontDisplacement, front, U); 
+        Info << "Done." << endl;
         //// FIXME: Put this in thecalcFrontVelocity function and scale the displacement. 
+        Info << "Moving the front..." << endl;
         frontDisplacement *= runTime.deltaT().value(); 
         front.move(frontDisplacement);
+        Info << "Done." << endl;
         
         // Compute the new signed distance field with the surfaceMesh octree search.  
         calc.calcCentresToElementsDistance
@@ -204,10 +216,10 @@ int main(int argc, char *argv[])
         ); 
 
         //Reconstruct the front: 
-        //signedDistance.time().cpuTimeIncrement(); 
-        //front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
-        //Info << "Front reconstructed: " 
-            //<< signedDistance.time().cpuTimeIncrement() << endl; 
+        if (runTime.timeIndex() % 10 == 0)
+        {
+            front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
+        }
 
         runTime.write();
 

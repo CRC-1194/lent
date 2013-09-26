@@ -99,9 +99,6 @@ void triSurfaceFront::forceConsistentNormalOrientation
     const volScalarField& cellsToElementsDist
 )
 {
-    Info << "Enforcing normal consistency: "; 
-    cellsToElementsDist.time().cpuTimeIncrement(); 
-
     volVectorField distGrad = fvc::grad(cellsToElementsDist); 
 
     // Get non-const access to elements.
@@ -209,8 +206,6 @@ void triSurfaceFront::move(const vectorField& deltaV)
 
 bool triSurfaceFront::write() const
 {
-    Info << typeName << "::write()" << endl;
-
     fileName paddedName = zeroPaddedFileName(writeFormat_);
 
     triSurface::write(paddedName); 
@@ -220,8 +215,6 @@ bool triSurfaceFront::write() const
 
 bool triSurfaceFront::writeData(Foam::Ostream& os) const
 {
-    Info << "writeData(Ostream) " << endl;
-
     triSurface::write(os); 
 
     return true; 

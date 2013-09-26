@@ -77,7 +77,8 @@
             "rho",
             runTime.timeName(),
             mesh,
-            IOobject::READ_IF_PRESENT
+            IOobject::READ_IF_PRESENT, 
+            IOobject::AUTO_WRITE //TODO: remove 
         ),
         heaviside*rho1 + (scalar(1) - heaviside)*rho2,
         heaviside.boundaryField().types()
