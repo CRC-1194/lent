@@ -112,6 +112,13 @@ int main(int argc, char *argv[])
     label narrowBandWidth = 
         levelSetFrontDict.lookupOrDefault<label>("narrowBandWidth", 4);
 
+    // FIXME: as soon as the solver is running: refactor the calculation
+    //          * separate the front from front operations
+    //          * separate calculator from calculations (command pattern)
+    //          * make it possible to assemble calculators from commands
+    //          * clean up the solver interface
+    //          * bind calculators to mesh.update for motion/topology
+    //            changes
     Calculator calc(narrowBandWidth); 
 
     // Compute the new signed distance field. 
@@ -154,7 +161,10 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
         
+        // Correct the curvature and the properties before going into the 
+        // pressure velocity coupling cycle.
         twoPhaseProperties.correct();
+        interface.correct(); 
 
         // Update the density field. 
         rho == heaviside*rho1 + (scalar(1) - heaviside)*rho2;
@@ -183,26 +193,26 @@ int main(int argc, char *argv[])
         Info << "Done. " << endl;
         
         // Compute the velocity using the meshCells of the isoSurface reconstruction.
+        // FIXME: computing front displacement, see below
         Info << "Computing front velocity..." << endl;
         calc.calcFrontVelocity(frontDisplacement, front, U); 
         Info << "Done." << endl;
-        //// FIXME: Put this in thecalcFrontVelocity function and scale the displacement. 
+
+        // FIXME: Put this in calcFrontVelocity function. 
         Info << "Moving the front..." << endl;
         frontDisplacement *= runTime.deltaT().value(); 
         front.move(frontDisplacement);
         Info << "Done." << endl;
         
         // Compute the new signed distance field with the surfaceMesh octree search.  
-        calc.calcCentresToElementsDistance
-        (
+        calc.calcCentresToElementsDistance(
             signedDistance, 
             front,
             naiveNarrowBandPropagation()
         ); 
 
         // Compute the new signed point distance field. 
-        calc.calcPointsToElementsDistance
-        (
+        calc.calcPointsToElementsDistance(
             pointSignedDistance, 
             front,
             mesh, 

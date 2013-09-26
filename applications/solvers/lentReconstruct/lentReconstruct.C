@@ -155,11 +155,7 @@ int main(int argc, char *argv[])
         ); 
 
         //Reconstruct the front: 
-        signedDistance.time().cpuTimeIncrement(); 
         front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
-
-        Info << "Front reconstructed: " 
-            << signedDistance.time().cpuTimeIncrement() << endl; 
 
         heavisideModelPtr->calcHeaviside(
             heaviside, 
@@ -168,8 +164,6 @@ int main(int argc, char *argv[])
         ); 
 
         runTime.write();
-
-        Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"

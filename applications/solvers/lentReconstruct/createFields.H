@@ -115,7 +115,7 @@
     );
 
 
-    // Construct interface from alpha1 distribution
+    // Construct interface from heaviside distribution
     interfaceProperties interface(heaviside, U, twoPhaseProperties);
 
     #include "readGravitationalAcceleration.H"
