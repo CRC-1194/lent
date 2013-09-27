@@ -9,7 +9,6 @@
 
 generate_hex_mesh() {
 
-    echo "generate_hex_mesh"
 
     CASE=$1 
 
@@ -18,7 +17,6 @@ generate_hex_mesh() {
 
 generate_tet_mesh() {
 
-    echo "generate_tet_mesh"
 
     CASE=$1
 
@@ -26,22 +24,22 @@ generate_tet_mesh() {
 
     gmsh -3 $CASE/gmsh-input.geo 
 
-    gmshToFoam $CASE/gmsh-input.msh
+    gmshToFoam -case $CASE  $CASE/gmsh-input.msh
 
+    # Clean up.
     rm $CASE/gmsh-input.msh
 }
 
 generate_poly_mesh() {
 
-    echo "generate_poly_mesh"
 
     CASE=$1
 
     generate_tet_mesh $CASE
 
-    # polyDualMesh 
-
-    # Move the mesh appropriately
+    # Call polyDualMesh 
+    # Move the mesh directory to constant/polyMesh
+    # Clean up.
 }
 
 generate_mesh() {
@@ -51,30 +49,68 @@ generate_mesh() {
     CASE_UPPERCASE=${CASE^^}
     CASE_UPPERCASE=${CASE_UPPERCASE##*/}
 
-    echo $CASE_UPPERCASE
-
     if [[ "$CASE_UPPERCASE" == *HEX* ]]
     then
-        echo "HEX"
         generate_hex_mesh $CASE
     fi
 
     if [[ "$CASE_UPPERCASE" == *TET* ]]
     then
-        echo "TET" 
         generate_tet_mesh $CASE
     fi
 
     if [[ "$CASE_UPPERCASE" == *POLY* ]]
     then
-        echo "POLY"
         generate_poly_mesh $CASE
     fi
 }
 
+is_openfoam_case() {
+
+    CASE=$1
+
+    FILES=$(ls $CASE)
+
+}
+
+clear_case() {
+
+    CASE=$1
+
+    echo "Clearing case " $CASE
+    pyFoamClearCase.py $CASE
+    foamClearPolyMesh -case $CASE
+    echo "Reseting 0 directory " $CASE/0
+    rm -rf $CASE/0
+    cp -r $CASE/0.orig $CASE/0
+    echo "Removing error files " $CASE/*.dat
+    rm -rf $CASE/*.dat
+    echo "Removing pyFoam files " $CASE
+    rm -rf $CASE/PyFoam*
+    echo "Removing postProcessing directory " $CASE
+    rm -rf $CASE/postProcessing
+    echo "Removing log files " $CASE
+    rm -rf $CASE/*.log
+}
+
 clear_cases() {
 
-    echo "BEGIN clear_cases " $1 
+    echo "BEGIN clear_lent_cases " $1 
+
+    CASES_PARENT_FOLDER=$1
+
+    # Clear cases, clear poly mesh, reset the initial directory
+    for CASE in $(find $CASES_PARENT_FOLDER -type d -name *-0*); 
+    do 
+        clear_case $CASE
+    done;
+
+    echo "END clear_lent_cases " $1 
+}
+
+clear_lent_cases() {
+
+    echo "BEGIN clear_lent_cases " $1 
 
     CASES_PARENT_FOLDER=$1
 
@@ -83,20 +119,9 @@ clear_cases() {
     # Delete the front stl files.
     find $CASES_PARENT_FOLDER -type f -name front-*.stl -exec rm -rf {} \; 
 
-    # Clear cases, clear poly mesh, reset the initial directory
-    for CASE in $(find $CASES_PARENT_FOLDER -type d -name *-0*); 
-    do 
-        echo "Clearing case " $CASE
-        pyFoamClearCase.py $CASE
-        foamClearPolyMesh -case $CASE
-        echo "Reseting 0 directory " $CASE/0
-        rm -rf $CASE/0
-        cp -r $CASE/0.orig $CASE/0
-        echo "Removing error files " $CASE/*.dat
-        rm -rf $CASE/*.dat
-    done;
+    clear_cases $CASES_PARENT_FOLDER
 
-    echo "END clear_cases " $1 
+    echo "END clear_lent_cases " $1 
 }
 
 # First argument is the tested string. 
@@ -105,7 +130,6 @@ clear_cases() {
 found_pattern() {
 
     WORD_ARGUMENT=$1
-
     WORDS=(${2})
 
     for i in "${!WORDS[@]}"
@@ -121,15 +145,21 @@ found_pattern() {
 
 generate_meshes() {
 
-    CASES_PARENT_FOLDER=$1
-    
     echo "BEGIN run_cases " $1
+
+    CASES_PARENT_FOLDER=$1
+    EXCLUDED_CASES=$2
 
     for CASE in $(find $CASES_PARENT_FOLDER -type d -name *-0*); 
     do
         # If case is not excluded.  
-        echo "Creating mesh " $CASE
-        generate_mesh $CASE
+        if found_pattern $CASE "$EXCLUDED_CASES";
+        then 
+            continue
+        else
+            echo "Creating mesh " $CASE
+            generate_mesh $CASE
+        fi
     done;
 
     echo "END run_cases " $1

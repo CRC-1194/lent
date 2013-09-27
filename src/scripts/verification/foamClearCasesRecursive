@@ -1,0 +1,22 @@
+#!/usr/bin/bash
+
+# Description
+# Clear all OpenFOAM cases in subdirectories (recursive).
+
+# Authors
+# Tomislav Maric tomislav<<dot>>maric<<a>>gmx<<dot>>com
+
+. verificationFunctions 
+
+TARGET_DIR=$1
+
+if [ ! -d $TARGET_DIR ];
+then
+    TARGET_DIR=$(pwd)
+fi
+
+for file in $(find $TARGET_DIR -type f -name *.foam); 
+do 
+    CASE=${file%/*}
+    clear_case $CASE
+done

@@ -8,21 +8,11 @@
 
 . verificationFunctions 
 
+foamClearCasesRecursive
 
-if found_pattern "hex-0128" "128 tet";
-then
-    echo FOUND
-else
-    echo NOT FOUND
-fi
-
-#clear_cases "hex" 
-#clear_cases "tet"
-#clear_cases "poly" 
-
-#generate_meshes "hex"
-#generate_meshes "tet"
-#generate_meshes "poly"
+generate_meshes "hex" "64 128"
+generate_meshes "tet" "32 64 128"
+generate_meshes "poly" "32 64 128"
 
 #collect_tet_case_data(tet)
 #create_test_reports(tet)
