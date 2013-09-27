@@ -1,0 +1,137 @@
+#!/usr/bin/bash
+
+# Description 
+# Utility BASH functions for mesh generation, case and mesh cleanup. 
+# Used to verify the LENT algorithm.
+
+# Authors
+# Tomislav Maric tomislav<<dot>>maric<<a>>gmx<<dot>>com
+
+generate_hex_mesh() {
+
+    echo "generate_hex_mesh"
+
+    CASE=$1 
+
+    blockMesh -case $CASE
+}
+
+generate_tet_mesh() {
+
+    echo "generate_tet_mesh"
+
+    CASE=$1
+
+    echo $CASE/gmsh-input.geo
+
+    gmsh -3 $CASE/gmsh-input.geo 
+
+    gmshToFoam $CASE/gmsh-input.msh
+
+    rm $CASE/gmsh-input.msh
+}
+
+generate_poly_mesh() {
+
+    echo "generate_poly_mesh"
+
+    CASE=$1
+
+    generate_tet_mesh $CASE
+
+    # polyDualMesh 
+
+    # Move the mesh appropriately
+}
+
+generate_mesh() {
+
+    CASE=$1
+
+    CASE_UPPERCASE=${CASE^^}
+    CASE_UPPERCASE=${CASE_UPPERCASE##*/}
+
+    echo $CASE_UPPERCASE
+
+    if [[ "$CASE_UPPERCASE" == *HEX* ]]
+    then
+        echo "HEX"
+        generate_hex_mesh $CASE
+    fi
+
+    if [[ "$CASE_UPPERCASE" == *TET* ]]
+    then
+        echo "TET" 
+        generate_tet_mesh $CASE
+    fi
+
+    if [[ "$CASE_UPPERCASE" == *POLY* ]]
+    then
+        echo "POLY"
+        generate_poly_mesh $CASE
+    fi
+}
+
+clear_cases() {
+
+    echo "BEGIN clear_cases " $1 
+
+    CASES_PARENT_FOLDER=$1
+
+    # Delete gmsh.msh cases.
+    find $CASES_PARENT_FOLDER -type f -name *.msh -exec rm -rf {} \; 
+    # Delete the front stl files.
+    find $CASES_PARENT_FOLDER -type f -name front-*.stl -exec rm -rf {} \; 
+
+    # Clear cases, clear poly mesh, reset the initial directory
+    for CASE in $(find $CASES_PARENT_FOLDER -type d -name *-0*); 
+    do 
+        echo "Clearing case " $CASE
+        pyFoamClearCase.py $CASE
+        foamClearPolyMesh -case $CASE
+        echo "Reseting 0 directory " $CASE/0
+        rm -rf $CASE/0
+        cp -r $CASE/0.orig $CASE/0
+        echo "Removing error files " $CASE/*.dat
+        rm -rf $CASE/*.dat
+    done;
+
+    echo "END clear_cases " $1 
+}
+
+# First argument is the tested string. 
+# Second argument, is split with spaces as delimiter into an array.
+# If any of the second arguments are in the first argument, return true.  
+found_pattern() {
+
+    WORD_ARGUMENT=$1
+
+    WORDS=(${2})
+
+    for i in "${!WORDS[@]}"
+    do
+        if [[ ${WORD_ARGUMENT^^} =~ ${WORDS[i]^^} ]]; 
+        then
+            return 0;
+        fi
+    done
+
+    return 1;
+}
+
+generate_meshes() {
+
+    CASES_PARENT_FOLDER=$1
+    
+    echo "BEGIN run_cases " $1
+
+    for CASE in $(find $CASES_PARENT_FOLDER -type d -name *-0*); 
+    do
+        # If case is not excluded.  
+        echo "Creating mesh " $CASE
+        generate_mesh $CASE
+    done;
+
+    echo "END run_cases " $1
+
+}
