@@ -3,3 +3,5 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export LENT_PROJECT=${DIR%%/etc*}
+
+export PATH=$LENT_PROJECT/src/scripts/verification:$PATH
