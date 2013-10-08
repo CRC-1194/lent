@@ -51,8 +51,13 @@ generate_poly_mesh() {
     generate_tet_mesh $CASE
 
     # Call polyDualMesh 
-    # Move the mesh directory to constant/polyMesh
-    # Clean up.
+    polyDualMesh -case $CASE 60
+    # Move the mesh and the fields. 
+    cp -rf $CASE/1/polyMesh $CASE/constant
+    rm -rf $CASE/0
+    mv $CASE/1 $CASE/0
+
+    rm -rf *.obj
 }
 
 generate_mesh() {
@@ -88,8 +93,11 @@ clear_case() {
     foamClearPolyMesh -case $CASE
     pyFoamClearCase.py $CASE
     # Reseting 0 directory  
-    rm -rf $CASE/0
-    cp -r $CASE/0.orig $CASE/0
+    if [ -d $CASE/0.orig ]; 
+    then 
+        rm -rf $CASE/0
+        cp -rf $CASE/0.orig $CASE/0
+    fi
     # Removing error files  
     rm -rf $CASE/*.dat
     # Removing pyFoam files  
