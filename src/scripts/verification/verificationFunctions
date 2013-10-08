@@ -7,8 +7,23 @@
 # Authors
 # Tomislav Maric tomislav<<dot>>maric<<a>>gmx<<dot>>com
 
-generate_hex_mesh() {
+found_pattern() {
 
+    WORD_ARGUMENT=$1
+    WORDS=(${2})
+
+    for i in "${!WORDS[@]}"
+    do
+        if [[ ${WORD_ARGUMENT^^} =~ ${WORDS[i]^^} ]]; 
+        then
+            return 0;
+        fi
+    done
+
+    return 1;
+}
+
+generate_hex_mesh() {
 
     CASE=$1 
 
@@ -16,7 +31,6 @@ generate_hex_mesh() {
 }
 
 generate_tet_mesh() {
-
 
     CASE=$1
 
@@ -31,7 +45,6 @@ generate_tet_mesh() {
 }
 
 generate_poly_mesh() {
-
 
     CASE=$1
 
@@ -49,116 +62,125 @@ generate_mesh() {
     CASE_UPPERCASE=${CASE^^}
     CASE_UPPERCASE=${CASE_UPPERCASE##*/}
 
+    if [[ "$CASE_UPPERCASE" == *POLY* ]]
+    then
+        generate_poly_mesh $CASE
+        return
+    fi
+
     if [[ "$CASE_UPPERCASE" == *HEX* ]]
     then
         generate_hex_mesh $CASE
+        return
     fi
 
     if [[ "$CASE_UPPERCASE" == *TET* ]]
     then
         generate_tet_mesh $CASE
+        return
     fi
-
-    if [[ "$CASE_UPPERCASE" == *POLY* ]]
-    then
-        generate_poly_mesh $CASE
-    fi
-}
-
-is_openfoam_case() {
-
-    CASE=$1
-
-    FILES=$(ls $CASE)
-
 }
 
 clear_case() {
 
     CASE=$1
 
-    echo "Clearing case " $CASE
-    pyFoamClearCase.py $CASE
     foamClearPolyMesh -case $CASE
-    echo "Reseting 0 directory " $CASE/0
+    pyFoamClearCase.py $CASE
+    # Reseting 0 directory  
     rm -rf $CASE/0
     cp -r $CASE/0.orig $CASE/0
-    echo "Removing error files " $CASE/*.dat
+    # Removing error files  
     rm -rf $CASE/*.dat
-    echo "Removing pyFoam files " $CASE
+    # Removing pyFoam files  
     rm -rf $CASE/PyFoam*
-    echo "Removing postProcessing directory " $CASE
+    # Removing postProcessing directory  
     rm -rf $CASE/postProcessing
-    echo "Removing log files " $CASE
+    # Removing log files  
     rm -rf $CASE/*.log
+    # Removing front msh files
+    rm -rf $CASE/*.msh
+    # Removing front files
+    rm -rf $CASE/front/front-*.stl
 }
 
 clear_cases() {
 
-    echo "BEGIN clear_lent_cases " $1 
+    echo "BEGIN clear_cases " 
 
-    CASES_PARENT_FOLDER=$1
+    TARGET_DIR=$1
+    EXCLUDE=$2
 
-    # Clear cases, clear poly mesh, reset the initial directory
-    for CASE in $(find $CASES_PARENT_FOLDER -type d -name *-0*); 
+    if [ ! -d $TARGET_DIR ];
+    then
+        TARGET_DIR=$(pwd)
+    fi
+
+    for file in $(find $TARGET_DIR -type f -name *.foam); 
     do 
-        clear_case $CASE
-    done;
-
-    echo "END clear_lent_cases " $1 
-}
-
-clear_lent_cases() {
-
-    echo "BEGIN clear_lent_cases " $1 
-
-    CASES_PARENT_FOLDER=$1
-
-    # Delete gmsh.msh cases.
-    find $CASES_PARENT_FOLDER -type f -name *.msh -exec rm -rf {} \; 
-    # Delete the front stl files.
-    find $CASES_PARENT_FOLDER -type f -name front-*.stl -exec rm -rf {} \; 
-
-    clear_cases $CASES_PARENT_FOLDER
-
-    echo "END clear_lent_cases " $1 
-}
-
-# First argument is the tested string. 
-# Second argument, is split with spaces as delimiter into an array.
-# If any of the second arguments are in the first argument, return true.  
-found_pattern() {
-
-    WORD_ARGUMENT=$1
-    WORDS=(${2})
-
-    for i in "${!WORDS[@]}"
-    do
-        if [[ ${WORD_ARGUMENT^^} =~ ${WORDS[i]^^} ]]; 
+        CASE=${file%/*}
+        if ! found_pattern $CASE $EXCLUDE;
         then
-            return 0;
+            clear_case $CASE
         fi
     done
 
-    return 1;
+    echo "END clear_cases " 
 }
+
 
 generate_meshes() {
 
-    echo "BEGIN run_cases " $1
+    echo "BEGIN Creating meshes" 
 
-    CASES_PARENT_FOLDER=$1
-    EXCLUDED_CASES=$2
+    EXCLUDED_CASES=$1
 
-    for CASE in $(find $CASES_PARENT_FOLDER -type d -name *-0*); 
-    do
+    for file in $(find -type f -name *.foam); 
+    do 
+        CASE=${file%/*}
+
         # If case is not excluded.  
         if found_pattern $CASE "$EXCLUDED_CASES";
         then 
             continue
         else
-            echo "Creating mesh " $CASE
+            echo "BEGIN Creating mesh " $CASE
             generate_mesh $CASE
+            echo "END Creating mesh " $CASE
+        fi
+    done;
+
+    echo "END Creating meshes" 
+
+}
+
+run_openfoam_command () {
+
+    COMMAND=$1 
+    CASE=$2
+
+    $COMMAND -case $CASE
+}
+
+run_cases() {
+
+    echo "BEGIN run_cases " $1
+
+    COMMAND=$1
+    EXCLUDED_CASES=$2
+
+    for file in $(find -type f -name *.foam); 
+    do 
+        CASE=${file%/*}
+
+        # If case is not excluded.  
+        if found_pattern $CASE "$EXCLUDED_CASES";
+        then 
+            continue
+        else
+            echo "BEGIN Running " $COMMAND " for a case " $CASE
+            run_openfoam_command $COMMAND $CASE
+            echo "END Running " $COMMAND " for a case " $CASE
         fi
     done;
 

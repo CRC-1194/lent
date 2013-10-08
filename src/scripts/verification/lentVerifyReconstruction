@@ -10,9 +10,9 @@
 
 foamClearCasesRecursive
 
-generate_meshes "hex" "64 128"
-generate_meshes "tet" "32 64 128"
-generate_meshes "poly" "32 64 128"
+generate_meshes "32 64 128"
+
+run_cases "lentReconstruct" "32 64 128"
 
 #collect_tet_case_data(tet)
 #create_test_reports(tet)
