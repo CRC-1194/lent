@@ -24,9 +24,10 @@ License
 Class
     Foam::triSurfaceFront
 
-Author
+Authors
     Tomislav Maric
-    tomislav.maric@gmx.com
+    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
+    tomislav<<dot>>maric<<at>>gmx<<dot>>com
 
 Description
 

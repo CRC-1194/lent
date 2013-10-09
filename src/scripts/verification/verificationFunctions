@@ -109,7 +109,7 @@ clear_case() {
     # Removing front msh files
     rm -rf $CASE/*.msh
     # Removing front files
-    rm -rf $CASE/front/front-*.stl
+    find . -type f -name "front-*stl" -exec rm {} \;
 }
 
 clear_cases() {

@@ -75,16 +75,13 @@ int main(int argc, char *argv[])
             "front.stl",
             "front",
             runTime, 
-            IOobject::MUST_READ, 
+            IOobject::NO_READ, 
             IOobject::AUTO_WRITE
         )
     );
 
     autoPtr<heavisideFunction> heavisideModelPtr = 
         heavisideFunction::New("leftAlgorithmHeaviside"); 
-
-    // TODO: use triSurfaceFront fields, put this in createFields. 
-    DynamicField<vector> frontDisplacement (front.nPoints()); 
 
     IOdictionary levelSetFrontDict
     (
@@ -104,26 +101,6 @@ int main(int argc, char *argv[])
         );
 
     Calculator calc (narrowBandWidth); 
-
-    // Compute the new signed distance field. 
-    calc.calcCentresToElementsDistance(
-        signedDistance, 
-        front,
-        naiveNarrowBandPropagation()
-    ); 
-
-    calc.calcPointsToElementsDistance(
-        pointSignedDistance, 
-        front,
-        mesh, 
-        naiveNarrowBandPropagation()
-    ); 
-
-    heavisideModelPtr->calcHeaviside(
-        heaviside, 
-        signedDistance, 
-        calc.getCellSearchDistSqr()
-    ); 
 
     //Reconstruct the front. 
     front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 

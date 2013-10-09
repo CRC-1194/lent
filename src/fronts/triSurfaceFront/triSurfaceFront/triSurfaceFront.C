@@ -21,9 +21,10 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Author
+Authors
     Tomislav Maric
-    tomislav.maric@gmx.com
+    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
+    tomislav<<dot>>maric<<at>>gmx<<dot>>com
 
 \*---------------------------------------------------------------------------*/
 
