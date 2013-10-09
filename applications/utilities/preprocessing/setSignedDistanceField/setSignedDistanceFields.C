@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
             "front",
             runTime, 
             IOobject::MUST_READ, 
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         )
     );
 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
         naiveNarrowBandPropagation()
     ); 
 
-    //signedDistance.write(); 
+    signedDistance.write(); 
 
     calc.calcPointsToElementsDistance(
         pointSignedDistance, 
@@ -116,9 +116,7 @@ int main(int argc, char *argv[])
         naiveNarrowBandPropagation()
     ); 
 
-    //pointSignedDistance.write(); 
-
-    runTime.write(); 
+    pointSignedDistance.write(); 
 
     Info<< "End\n" << endl;
 

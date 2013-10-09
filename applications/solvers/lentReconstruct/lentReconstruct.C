@@ -102,12 +102,6 @@ int main(int argc, char *argv[])
 
     Calculator calc (narrowBandWidth); 
 
-    //Reconstruct the front. 
-    front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
-
-    // Write the front.
-    runTime.writeNow(); 
-
     while (runTime.run()) {
         runTime++;
 

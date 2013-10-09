@@ -13,6 +13,8 @@
     );
     Info << "Done." << endl;
 
+    pointMesh pmesh(mesh); 
+
     Info << "Initializing points-to-elements distance field pointSignedDistance\n"; 
     pointScalarField pointSignedDistance 
     (
@@ -24,7 +26,7 @@
             IOobject::NO_READ, 
             IOobject::AUTO_WRITE
         ),
-        pointMesh(mesh), 
+        pmesh,
         GREAT,
         "zeroGradient"
     );
