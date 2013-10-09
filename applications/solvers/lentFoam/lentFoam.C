@@ -24,14 +24,10 @@ License
 Application
     lentAdvection
 
-Author
+Authors
     Tomislav Maric
-    maric@csi.tu-darmstadt.de
-    tomislav.maric@gmx.com
-    Mathematical Modelling and Analysis Group 
-    Center of Smart Interfaces
-    TU Darmstadt
-    Germany
+    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
+    tomislav<<dot>>maric<<at>>gmx<<dot>>com
 
 Description
     A DNS two-phase flow solver employing a hybrid level-set / front-tracking

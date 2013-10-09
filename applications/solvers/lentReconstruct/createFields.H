@@ -41,6 +41,8 @@
         mesh
     );
 
+    pointMesh pmesh(mesh); 
+
     // Initialize the points-to-elements distance. 
     pointScalarField pointSignedDistance 
     (
@@ -49,10 +51,10 @@
             "pointSignedDistance", 
             runTime.timeName(), 
             mesh, 
-            IOobject::NO_READ, 
+            IOobject::READ_IF_PRESENT,
             IOobject::NO_WRITE
         ),
-        pointMesh(mesh), 
+        pmesh,
         GREAT,
         "zeroGradient"
     );
