@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
         naiveNarrowBandPropagation()
     ); 
 
-    signedDistance.write(); 
+    //signedDistance.write(); 
 
     calc.calcPointsToElementsDistance(
         pointSignedDistance, 
@@ -116,7 +116,9 @@ int main(int argc, char *argv[])
         naiveNarrowBandPropagation()
     ); 
 
-    pointSignedDistance.write(); 
+    //pointSignedDistance.write(); 
+
+    runTime.write(); 
 
     Info<< "End\n" << endl;
 

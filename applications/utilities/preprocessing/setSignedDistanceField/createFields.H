@@ -1,4 +1,4 @@
-    Info << "Reading the cells-to-elements distance field signedDistance\n" << endl;
+    Info << "Reading the cells-to-elements distance field signedDistance\n"; 
     volScalarField signedDistance
     (
         IOobject
@@ -13,8 +13,7 @@
     );
     Info << "Done." << endl;
 
-    Info << "Initializing points-to-elements distance field pointSignedDistance\n" << endl;
-    // Initialize the points-to-elements distance. 
+    Info << "Initializing points-to-elements distance field pointSignedDistance\n"; 
     pointScalarField pointSignedDistance 
     (
         IOobject
@@ -23,7 +22,7 @@
             runTime.timeName(), 
             mesh, 
             IOobject::NO_READ, 
-            IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
         ),
         pointMesh(mesh), 
         GREAT,
