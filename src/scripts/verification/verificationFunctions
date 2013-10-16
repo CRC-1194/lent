@@ -111,7 +111,7 @@ clear_case() {
     # Removing front msh files
     rm -rf $CASE/*.msh
     # Removing front files
-    find . -type f -name "front-*" -exec rm {} \;
+    find . -type f -name "*.vtk" -exec rm {} \;
 }
 
 clear_cases() {
