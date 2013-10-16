@@ -1,5 +1,3 @@
-#!/usr/bin/bash
-
 # Description
 # Clear all OpenFOAM cases in subdirectories (recursive).
 
