@@ -98,6 +98,20 @@ int main(int argc, char *argv[])
 
     Calculator calc (narrowBandWidth); 
 
+    calc.calcCentresToElementsDistance(
+        signedDistance, 
+        front,
+        naiveNarrowBandPropagation()
+    ); 
+
+    heavisideModelPtr->calcHeaviside(
+        heaviside, 
+        signedDistance, 
+        calc.getCellSearchDistSqr()
+    ); 
+
+    heaviside.write(); 
+
     while (runTime.run()) {
         runTime++;
 

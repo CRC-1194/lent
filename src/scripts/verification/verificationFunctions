@@ -90,7 +90,6 @@ clear_case() {
 
     CASE=$1
 
-    foamClearPolyMesh -case $CASE
     pyFoamClearCase.py $CASE
     # Reseting 0 directory  
     if [ -d $CASE/0.orig ]; 
