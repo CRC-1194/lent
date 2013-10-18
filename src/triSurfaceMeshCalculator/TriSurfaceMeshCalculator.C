@@ -190,7 +190,7 @@ label TriSurfaceMeshCalculator::findCell(
     const labelListList& cellCells = mesh.cellCells(); 
     const volVectorField& C = mesh.C(); 
 
-    scalar minDistance = GREAT; 
+    scalar minDistance = GREAT;  
     scalar minLabel = -1; 
 
     // For all neighbour cells of the seed cell. 
@@ -241,8 +241,7 @@ void TriSurfaceMeshCalculator::calcCentresToElementsDistance(
     NarrowBandPropagation enforceNarrowBand
 )
 {
-    Psi = dimensionedScalar
-    (
+    Psi = dimensionedScalar(
         "distance", 
         dimLength, 
         GREAT
@@ -325,8 +324,7 @@ void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
     NarrowBandPropagation enforceNarrowBand
 ) 
 {
-    // FIXME: check the initialization in createFields.
-    psi = GREAT;
+    psi = dimensionedScalar("GREAT", dimLength, GREAT);
 
     // Compulistte the search distance field.
     calcPointSearchDistance(mesh); 
