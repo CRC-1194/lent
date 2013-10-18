@@ -27,7 +27,7 @@
         mesh
     );
 
-    Info << "Reading the cell-centered distance field signedDistance\n" << endl;
+    Info << "Reading the cell distance field signedDistance\n" << endl;
     volScalarField signedDistance
     (
         IOobject
@@ -44,6 +44,7 @@
     pointMesh pmesh(mesh); 
 
     // Initialize the points-to-elements distance. 
+    Info << "Reading the point distance field signedDistance\n" << endl;
     pointScalarField pointSignedDistance 
     (
         IOobject
@@ -51,12 +52,10 @@
             "pointSignedDistance", 
             runTime.timeName(), 
             mesh, 
-            IOobject::READ_IF_PRESENT,
-            IOobject::NO_WRITE
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
         ),
-        pmesh,
-        GREAT,
-        "zeroGradient"
+        pmesh
     );
 
     Info << "Reading the cell-centered Heaviside field heaviside\n" << endl;
