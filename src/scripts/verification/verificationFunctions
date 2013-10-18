@@ -1,5 +1,3 @@
-#!/usr/bin/bash
-
 # Description 
 # Utility BASH functions for mesh generation, case and mesh cleanup. 
 # Used to verify the LENT algorithm.
