@@ -1,0 +1,9 @@
+# Description
+# Script for automatical verification of the lent algorithm.
+
+# Authors
+# Tomislav Maric tomislav<<dot>>maric<<a>>gmx<<dot>>com
+
+. verificationFunctions 
+
+generate_meshes 

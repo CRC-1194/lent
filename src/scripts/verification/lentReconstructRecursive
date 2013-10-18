@@ -6,11 +6,4 @@
 
 . verificationFunctions 
 
-foamClearCasesRecursive
-
-generate_meshes 
-
 run_cases "lentReconstruct" 
-
-#collect_tet_case_data(tet)
-#create_test_reports(tet)
