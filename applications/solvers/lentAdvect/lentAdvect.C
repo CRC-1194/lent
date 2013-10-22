@@ -141,11 +141,12 @@ int main(int argc, char *argv[])
     while (runTime.run())
     {
         #include "readTimeControls.H"
+
+        runTime++;
+
         #include "CourantNo.H"
         #include "heavisideCourantNo.H"
         #include "setDeltaT.H"
-
-        runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
         
