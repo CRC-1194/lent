@@ -104,6 +104,8 @@ public:
 
     TriSurfaceMeshCalculator(label bandwidth);
 
+    TriSurfaceMeshCalculator(const fvMesh& mesh, label bandWidth); 
+
     // Member Functions
     
     template <typename NarrowBandPropagation>

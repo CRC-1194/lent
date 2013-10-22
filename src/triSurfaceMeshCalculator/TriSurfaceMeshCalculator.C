@@ -222,15 +222,28 @@ label TriSurfaceMeshCalculator::findCell(
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-TriSurfaceMeshCalculator::TriSurfaceMeshCalculator(label bandwidth)
+TriSurfaceMeshCalculator::TriSurfaceMeshCalculator(label bandWidth)
 :
     frontMeshPtr_(), 
     cellsElementNearest_(),
     pointsElementNearest_(), 
     cellSearchDistSqrPtr_(),
     pointSearchDistPtr_(),
-    bandwidth_(bandwidth)
-{}
+    bandwidth_(bandWidth)
+{
+}
+
+TriSurfaceMeshCalculator::TriSurfaceMeshCalculator(const fvMesh& mesh, label bandWidth)
+    :
+        frontMeshPtr_(), 
+        cellsElementNearest_(),
+        pointsElementNearest_(), 
+        cellSearchDistSqrPtr_(),
+        pointSearchDistPtr_(),
+        bandwidth_(bandWidth)
+{
+    initCellSearchDistance(mesh); 
+}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
@@ -324,7 +337,8 @@ void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
     NarrowBandPropagation enforceNarrowBand
 ) 
 {
-    psi = dimensionedScalar("GREAT", dimLength, GREAT);
+    //psi = dimensionedScalar("GREAT", dimLength, GREAT);
+    psi = GREAT; 
 
     // Compulistte the search distance field.
     calcPointSearchDistance(mesh); 
