@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
             "front.stl",
             "front",
             runTime, 
-            IOobject::NO_READ, 
+            IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
         )
     );
@@ -104,6 +104,13 @@ int main(int argc, char *argv[])
         naiveNarrowBandPropagation()
     ); 
 
+    calc.calcPointsToElementsDistance(
+        pointSignedDistance, 
+        front,
+        mesh, 
+        naiveNarrowBandPropagation()
+    ); 
+
     heavisideModelPtr->calcHeaviside(
         heaviside, 
         signedDistance, 
@@ -116,6 +123,9 @@ int main(int argc, char *argv[])
         runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
+
+        //Reconstruct the front: 
+        front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
 
         twoPhaseProperties.correct();
 
@@ -135,8 +145,6 @@ int main(int argc, char *argv[])
             naiveNarrowBandPropagation()
         ); 
 
-        //Reconstruct the front: 
-        front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
 
         heavisideModelPtr->calcHeaviside(
             heaviside, 

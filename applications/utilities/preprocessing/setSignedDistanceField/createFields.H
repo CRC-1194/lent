@@ -23,11 +23,9 @@
             "pointSignedDistance", 
             runTime.timeName(), 
             mesh, 
-            IOobject::NO_READ, 
+            IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
         ),
-        pmesh,
-        GREAT,
-        "zeroGradient"
+        pmesh
     );
     Info << "Done." << endl;
