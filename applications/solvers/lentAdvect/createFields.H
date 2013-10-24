@@ -35,18 +35,18 @@
         mesh
     );
 
+    pointMesh pmesh(mesh); 
+
     // Initialize the points-to-elements distance. 
     pointScalarField pointSignedDistance(
         IOobject(
             "pointSignedDistance", 
             runTime.timeName(), 
             mesh, 
-            IOobject::NO_READ, 
+            IOobject::MUST_READ,
             IOobject::NO_WRITE
         ),
-        pointMesh(mesh), 
-        GREAT,
-        "zeroGradient"
+        pmesh
     );
 
     Info << "Reading the cell-centered Heaviside function field H\n" << endl;

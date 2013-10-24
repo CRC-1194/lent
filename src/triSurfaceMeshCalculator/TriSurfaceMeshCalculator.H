@@ -92,6 +92,9 @@ class TriSurfaceMeshCalculator
     // Loose point in cell query: if the point is on a face, the function returns true. 
     bool pointInCell(const point& p, label cellI, const fvMesh& mesh) const; 
 
+    // Wide cell stencil builder. 
+    labelList wideStencil(label cellI, const fvMesh& mesh) const; 
+
     // Heuristic cell locator, based on a seed label.  
     label findCell (const point&p, label cellI, const fvMesh& mesh) const; 
 

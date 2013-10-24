@@ -24,6 +24,8 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "interpolationCellPoint.H"
+#include <set>
+#include <algorithm>
 
 namespace Foam {
     namespace FrontTracking {
@@ -143,43 +145,87 @@ bool TriSurfaceMeshCalculator::pointInCell(
 ) const
 {
     const cellList& cells = mesh.cells(); 
-    const pointField& points = mesh.points(); 
-    const faceList& faces = mesh.faces();
+    //const faceList& faces = mesh.faces();
     const cell& cell = cells[cellI];
     const labelList& own = mesh.faceOwner(); 
     const surfaceVectorField& Cf = mesh.Cf(); 
+    const surfaceVectorField& Sf = mesh.Sf(); 
 
     bool inside = true;
 
+    //Info << "point " << p << endl;
 
     // For all face labels of the cell.
     forAll (cell, faceI) 
     {
-        face f = faces[cell[faceI]];
+        label faceLabel = cell[faceI];
+
+        vector faceNormal = Sf[faceLabel];   
 
         // If the cell does not own the face.
         if (! (cellI == own[cell[faceI]])) 
         {
-            f = f.reverseFace(); 
+            faceNormal *= -1;  
         }
 
         // Compute the vector from the face center to the point p.
-        vector pf = p - Cf[cell[faceI]];  
+        vector fp = p - Cf[cell[faceI]];  
 
-        // If the projection of pf onto the outward pointing face normal 
-        // is positive. 
-        // TODO: introduce code-wide tolerance 
-        if ((pf & f.normal(points)) > 1e-10) 
+        // If the point is outside, the projection of pf to the face unit normal
+        // vector will be positive with a tolerance.  
+        
+        // TODO: introduce the generalized tolerance for a distance
+        //if ((fp & faceNormal) > 1e-10) 
+        if ((fp & faceNormal) > SMALL) 
         {
             // The point is not inside the outward face normal halfspace, 
             // which means it is outside the cell.
+            //Info << "point outside face = " << (fp & faceNormal) << endl; 
             inside = false;
             break;
+        }
+        else
+        {
+            //Info << "point inside face = " << (fp & faceNormal) << endl; 
         }
     }
 
     return inside;
 };
+
+labelList TriSurfaceMeshCalculator::wideStencil(
+    label cellI, 
+    const fvMesh& mesh
+) const
+{
+    //const labelListList& cellCells = mesh.cellCells(); 
+    //labelList neighborCells = cellCells[cellI]; 
+    
+    const faceList& faces = mesh.faces(); 
+    const cellList& cells = mesh.cells(); 
+
+    labelList cellPoints = cells[cellI].labels(faces); 
+
+    //std::set<label> newNeighborCells(neighborCells.begin(), neighborCells.end()); 
+    std::set<label> newNeighborCells;
+
+    //forAll (neighborCells, I)
+    const labelListList& pointCells = mesh.pointCells(); 
+    forAll (cellPoints, I)
+    {
+        //const labelList& nNeighborCells = cellCells[neighborCells[I]]; 
+        const labelList& addedNeighborCells = pointCells[cellPoints[I]]; 
+        forAll(addedNeighborCells, J)
+        {
+            newNeighborCells.insert(addedNeighborCells[J]);
+        }
+    }
+
+    //labelList neighborCells(newNeighborCells.begin(), newNeighborCells.end()); 
+    //std::copy(newNeighborCells.begin(), newNeighborCells.end(), neighborCells.begin()); 
+
+    return labelList(newNeighborCells.begin(), newNeighborCells.end());  
+}
 
 label TriSurfaceMeshCalculator::findCell(
     const point& p, 
@@ -187,35 +233,84 @@ label TriSurfaceMeshCalculator::findCell(
     const fvMesh& mesh
 ) const
 {
-    const labelListList& cellCells = mesh.cellCells(); 
-    const volVectorField& C = mesh.C(); 
+    //Info << "BEGIN FIND CELL" << endl;
 
-    scalar minDistance = GREAT;  
-    scalar minLabel = -1; 
+    if (pointInCell(p, cellI, mesh))
+    //if (mesh.pointInCell(p, cellI))
+    {
+        return cellI;  
+    }
+
+    const volVectorField& C = mesh.C(); 
+    scalar minDistance = mag(C[cellI] - p);
+    label minLabel = cellI; 
+
+    //scalar minDistance = GREAT; label minLabel = -1; 
+
+    //Info << "minLabel above = " << minLabel << endl;
 
     // For all neighbour cells of the seed cell. 
-    forAll (cellCells[cellI], I) 
+    const labelListList& cellCells = mesh.cellCells(); 
+    labelList neighborCells = cellCells[cellI]; 
+
+    // For a tetrahedron.
+    const cellList& cells = mesh.cells(); 
+    if (cells[cellI].size() == 4)
     {
-        // Compute the distance between the cell center and the point. 
-        scalar distance = mag(C[cellCells[cellI][I]] - p); 
-        // Set label of the cell with the minimal distance. 
-        if (distance < minDistance) 
-        {
-            minDistance = distance; 
-            minLabel = cellCells[cellI][I];
-        }
+        neighborCells = wideStencil(cellI, mesh);  
     }
+
+    //Info << "used stencil = " << neighborCells  << endl;
+
+    forAll (neighborCells, I) 
+    {
+        label neighborCell = neighborCells[I]; 
+
+        //Info << "minDistance = " << minDistance << endl;
+
+        //if (mesh.pointInCell(p, neighborCell)) 
+        if (pointInCell(p, neighborCell, mesh)) 
+        {
+            return neighborCell; 
+        }
+        //else
+        //{
+            //Info << "checking neighbor cell = " << neighborCell << endl;
+            // Compute the distance between the cell center and the point. 
+            scalar distance = mag(C[neighborCell] - p); 
+            //Info << "distance = " << distance << endl;
+
+            // Set label of the cell with the minimal distance. 
+            if (distance <= minDistance) 
+            {
+                minDistance = distance; 
+                minLabel = neighborCell; 
+                //Info << "minLabel = " << minLabel << endl;
+            }
+        //}
+    }
+
+    // FIXME: Use octree  
+    //if (minLabel == cellI)
+    //{
+        ////Info << "RETURNED TO THE SOURCE CELL, BUT POINT NOT INSIDE" << endl;
+        //return -1;
+    //}
         
     // If point lies in cell with minimal distance. 
     if (pointInCell(p, minLabel, mesh)) 
+    //if (mesh.pointInCell(p, minLabel)) 
     {
         // Return cell label.
         return minLabel; 
     } else 
     {
         // Seed label becomes the minimal label and the search becomes recursive.
+        //Info << "skipping to cell " << minLabel << endl;
         return findCell(p, minLabel, mesh); 
     }
+
+    //Info << "END find cell" << endl;
 
     return -1; 
 }
@@ -337,8 +432,8 @@ void TriSurfaceMeshCalculator::calcPointsToElementsDistance(
     NarrowBandPropagation enforceNarrowBand
 ) 
 {
-    //psi = dimensionedScalar("GREAT", dimLength, GREAT);
-    psi = GREAT; 
+    psi = dimensionedScalar("GREAT", dimLength, GREAT);
+    //psi = GREAT; 
 
     // Compulistte the search distance field.
     calcPointSearchDistance(mesh); 

@@ -1,0 +1,15 @@
+INPUT_FILE=${1%.geo}
+
+for TIMESTEP_POLYMESH in $(find . -type d -iname "polyMesh" | grep -v constant); 
+do 
+    rm -rf $TIMESTEP_POLYMESH 
+done
+
+echo $INPUT_FILE
+
+gmsh -3 $INPUT_FILE.geo
+gmshToFoam $INPUT_FILE.msh
+
+polyDualMesh 60
+cp -r 1/polyMesh constant/ 
+rm -rf 1

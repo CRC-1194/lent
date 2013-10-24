@@ -8,7 +8,7 @@ linux*
 lnInclude
 *.dep
 *.swp
-*.log
+*log*
 lnInclude/
 linux*/
 *.dep
