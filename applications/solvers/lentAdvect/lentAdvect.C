@@ -159,9 +159,7 @@ int main(int argc, char *argv[])
         calc.calcFrontVelocity(frontDisplacement, front, U); 
         // FIXME: Put this in thecalcFrontVelocity function and scale the displacement. 
         frontDisplacement *= runTime.deltaT().value(); 
-        Info << "BEGIN move " << endl;
         front.move(frontDisplacement);
-        Info << "END move " << endl;
         
         // Compute the new signed distance field with the surfaceMesh octree search.  
         calc.calcCentresToElementsDistance(
