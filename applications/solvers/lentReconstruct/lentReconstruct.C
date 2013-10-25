@@ -39,10 +39,12 @@ Description
 #include "interfaceProperties.H"
 #include "incompressibleTwoPhaseMixture.H"
 
-#include "triSurfaceFront.H"
-#include "naiveNarrowBandPropagation.H"
-#include "TriSurfaceMeshCalculator.H"
-#include "leftAlgorithmHeavisideFunction.H"
+#include "lentMethod.H"
+
+//#include "triSurfaceFront.H"
+//#include "naiveNarrowBandPropagation.H"
+//#include "TriSurfaceMeshCalculator.H"
+//#include "leftAlgorithmHeavisideFunction.H"
 
 // Fields.
 #include "DynamicField.H"
@@ -52,8 +54,8 @@ Description
 using namespace FrontTracking;
 
 // Configure the Method
-typedef triSurfaceFront Front;
-typedef TriSurfaceMeshCalculator Calculator; 
+//typedef triSurfaceFront Front;
+//typedef TriSurfaceMeshCalculator Calculator; 
 
 int main(int argc, char *argv[])
 {
@@ -66,7 +68,7 @@ int main(int argc, char *argv[])
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    Front front(
+    triSurfaceFront front(
         IOobject(
             "front.stl",
             "front",
@@ -76,46 +78,52 @@ int main(int argc, char *argv[])
         )
     );
 
-    autoPtr<heavisideFunction> heavisideModelPtr = 
-        heavisideFunction::New("leftAlgorithmHeaviside"); 
+    //autoPtr<heavisideFunction> heavisideModelPtr = 
+        //heavisideFunction::New("leftAlgorithmHeaviside"); 
 
-    IOdictionary levelSetFrontDict
-    (
-        IOobject
-        (
-            "levelSetFrontDict", 
-            "constant", 
-            runTime, 
-            IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::AUTO_WRITE
-        )
-    );
+    //IOdictionary levelSetFrontDict
+    //(
+        //IOobject
+        //(
+            //"levelSetFrontDict", 
+            //"constant", 
+            //runTime, 
+            //IOobject::MUST_READ_IF_MODIFIED,
+            //IOobject::AUTO_WRITE
+        //)
+    //);
 
-    label narrowBandWidth = 
-        levelSetFrontDict.lookupOrDefault<label>(
-            "narrowBandWidth", 4
-        );
+    //label narrowBandWidth = 
+        //levelSetFrontDict.lookupOrDefault<label>(
+            //"narrowBandWidth", 4
+        //);
 
-    Calculator calc (narrowBandWidth); 
+    //Calculator calc (narrowBandWidth); 
+    
+    lentMethod lent(front, mesh); 
 
-    calc.calcCentresToElementsDistance(
-        signedDistance, 
-        front,
-        naiveNarrowBandPropagation()
-    ); 
+    lent.calcSignedDistanceFields(signedDistance, pointSignedDistance); //signedDistance, pointSignedDistance); 
 
-    calc.calcPointsToElementsDistance(
-        pointSignedDistance, 
-        front,
-        mesh, 
-        naiveNarrowBandPropagation()
-    ); 
+    //calc.calcCentresToElementsDistance(
+        //signedDistance, 
+        //front,
+        //naiveNarrowBandPropagation()
+    //); 
 
-    heavisideModelPtr->calcHeaviside(
-        heaviside, 
-        signedDistance, 
-        calc.getCellSearchDistSqr()
-    ); 
+    //calc.calcPointsToElementsDistance(
+        //pointSignedDistance, 
+        //front,
+        //mesh, 
+        //naiveNarrowBandPropagation()
+    //); 
+
+    //heavisideModelPtr->calcHeaviside(
+        //heaviside, 
+        //signedDistance, 
+        //calc.getCellSearchDistSqr()
+    //); 
+    
+    lent.calcHeavisideField(heaviside,signedDistance); 
 
     heaviside.write(); 
 
@@ -125,32 +133,37 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         //Reconstruct the front: 
-        front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
+        //front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
+        
+        lent.reconstructFront(front, signedDistance, pointSignedDistance); //signedDistance, pointSignedDistance, false, 1e-10); 
 
         twoPhaseProperties.correct();
 
         // Compute the new signed distance field with the surfaceMesh octree
         // search.  
-        calc.calcCentresToElementsDistance(
-            signedDistance, 
-            front,
-            naiveNarrowBandPropagation()
-        ); 
+        //calc.calcCentresToElementsDistance(
+            //signedDistance, 
+            //front,
+            //naiveNarrowBandPropagation()
+        //); 
 
         // Compute the new signed point distance field. 
-        calc.calcPointsToElementsDistance(
-            pointSignedDistance, 
-            front,
-            mesh, 
-            naiveNarrowBandPropagation()
-        ); 
+        //calc.calcPointsToElementsDistance(
+            //pointSignedDistance, 
+            //front,
+            //mesh, 
+            //naiveNarrowBandPropagation()
+        //); 
 
 
-        heavisideModelPtr->calcHeaviside(
-            heaviside, 
-            signedDistance, 
-            calc.getCellSearchDistSqr()
-        ); 
+        //heavisideModelPtr->calcHeaviside(
+            //heaviside, 
+            //signedDistance, 
+            //calc.getCellSearchDistSqr()
+        //); 
+
+        lent.calcSignedDistanceFields(signedDistance, pointSignedDistance); 
+        lent.calcHeavisideField(heaviside, signedDistance); 
 
         runTime.write();
 
