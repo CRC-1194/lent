@@ -102,7 +102,11 @@ int main(int argc, char *argv[])
     
     lentMethod lent(front, mesh); 
 
-    lent.calcSignedDistanceFields(signedDistance, pointSignedDistance); //signedDistance, pointSignedDistance); 
+    lent.calcSignedDistanceFields(
+        signedDistance, 
+        pointSignedDistance,
+        searchDistanceSqr
+    ); //signedDistance, pointSignedDistance); 
 
     //calc.calcCentresToElementsDistance(
         //signedDistance, 
@@ -123,7 +127,11 @@ int main(int argc, char *argv[])
         //calc.getCellSearchDistSqr()
     //); 
     
-    lent.calcHeavisideField(heaviside,signedDistance); 
+    lent.calcHeavisideField(
+        heaviside,
+        signedDistance,
+        searchDistanceSqr
+    ); 
 
     heaviside.write(); 
 
@@ -162,8 +170,17 @@ int main(int argc, char *argv[])
             //calc.getCellSearchDistSqr()
         //); 
 
-        lent.calcSignedDistanceFields(signedDistance, pointSignedDistance); 
-        lent.calcHeavisideField(heaviside, signedDistance); 
+        lent.calcSignedDistanceFields(
+            signedDistance, 
+            pointSignedDistance,
+            searchDistanceSqr
+        ); 
+
+        lent.calcHeavisideField(
+            heaviside, 
+            signedDistance, 
+            searchDistanceSqr
+        ); 
 
         runTime.write();
 

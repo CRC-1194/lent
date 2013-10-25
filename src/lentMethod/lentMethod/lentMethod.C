@@ -87,7 +87,8 @@ lentMethod::~lentMethod()
 
 void lentMethod::calcSignedDistanceFields(
     volScalarField& signedDistance, 
-    pointScalarField& pointSignedDistance
+    pointScalarField& pointSignedDistance,
+    const volScalarField& searchDistSqr
 ) const
 {
     // Update points-front distance field.
@@ -97,11 +98,15 @@ void lentMethod::calcSignedDistanceFields(
 
 void lentMethod::calcHeavisideField(
    volScalarField& heaviside,
-   const volScalarField& signedDistance
+   const volScalarField& signedDistance,
+   const volScalarField& searchDistanceSqr
 ) const
 {
-    // Calculate the heaviside field from th 
-    // Update cells-front distance field.  
+    heavisideModelTmp_->calcHeavisideField(
+        heaviside, 
+        signedDistance, 
+        searchDistanceSqr
+    ); 
 }
 
 

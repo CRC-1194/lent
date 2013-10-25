@@ -88,7 +88,7 @@ public:
 
     // Member Functions
         
-        virtual void calcHeaviside(
+        virtual void calcHeavisideField(
             volScalarField& heaviside, 
             const volScalarField& signedDistance, 
             const volScalarField& narrowBandWidthSqr 

@@ -41,6 +41,25 @@
         mesh
     );
 
+    volScalarField searchDistanceSqr 
+    (
+        IOobject
+        (
+            "signedDistance",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh, 
+        dimensionedScalar
+        (
+            "GREAT", 
+            dimLength, 
+            GREAT 
+        )
+    );
+
     pointMesh pmesh(mesh); 
 
     // Initialize the points-to-elements distance. 

@@ -109,12 +109,14 @@ public:
     
         void calcSignedDistanceFields(
             volScalarField& signedDistance, 
-            pointScalarField& pointSignedDistance
+            pointScalarField& pointSignedDistance,
+            const volScalarField& searchDistSqr
         ) const;
 
         void calcHeavisideField(
             volScalarField& heaviside,
-            const volScalarField& signedDistance
+            const volScalarField& signedDistance,
+            const volScalarField& searchDistanceSqr
         ) const; 
 
         void reconstructFront(

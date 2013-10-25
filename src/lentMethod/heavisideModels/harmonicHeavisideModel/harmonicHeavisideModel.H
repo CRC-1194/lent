@@ -74,16 +74,11 @@ public:
 
     // Member Functions
     
-        virtual void calcHeaviside(
+        virtual void calcHeavisideField(
             volScalarField& heaviside, 
             const volScalarField& signedDistance,
             const volScalarField& narrowBandWidthSqr
         ) const;  
-
-
-    // Member Operators 
-    //void operator=(const harmonicHeavisideModel& rhs); 
-
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

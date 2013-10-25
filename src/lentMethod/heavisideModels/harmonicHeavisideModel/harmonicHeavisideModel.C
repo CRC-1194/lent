@@ -53,7 +53,7 @@ harmonicHeavisideModel::~harmonicHeavisideModel()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void harmonicHeavisideModel::calcHeaviside(
+void harmonicHeavisideModel::calcHeavisideField(
     volScalarField& heaviside, 
     const volScalarField& signedDistance, 
     const volScalarField& narrowBandWidthSqr 
@@ -85,19 +85,6 @@ void harmonicHeavisideModel::calcHeaviside(
         }
     }
 }
-
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-//void harmonicHeavisideModel::operator=(const harmonicHeavisideModel& rhs)
-//{
-    //// Check for assignment to self
-    //if (this == &rhs)
-    //{
-        //FatalErrorIn("harmonicHeavisideModel::operator=(const harmonicHeavisideModel&)")
-            //<< "Attempted assignment to self"
-            //<< abort(FatalError);
-    //}
-//}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
