@@ -22,84 +22,73 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::heavisideFunction
+    Foam::harmonicHeavisideModel
 
 Description
     Abstract base class for the heaviside function calculation from a signed 
     distance field.
 
 SourceFiles
-    heavisideFunction.C
+    harmonicHeavisideModel.C
 
-Authors:
-    Tomislav Maric 
-    tomislav.maric@gmx.com
+Authors
+    Tomislav Maric
+    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
+    tomislav<<dot>>maric<<at>>gmx<<dot>>com
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef heavisideFunction_H
-#define heavisideFunction_H
+#ifndef harmonicHeavisideModel_H
+#define harmonicHeavisideModel_H
 
 #include "typeInfo.H"
 #include "autoPtr.H"
 #include "volFieldsFwd.H"
+#include "heavisideModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
+namespace Foam {
+namespace FrontTracking {
+
 
 /*---------------------------------------------------------------------------*\
-                         Class heavisideFunction Declaration
+                         Class harmonicHeavisideModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class heavisideFunction
+class harmonicHeavisideModel
+    :
+        public heavisideModel
 {
 
 public:
 
-    TypeName ("heavisideFunction"); 
-
-    declareRunTimeSelectionTable (
-        autoPtr,  
-        heavisideFunction,  
-        Empty,  
-        (
-            const word& name
-        ),
-        () 
-    );
+    TypeName ("harmonicHeaviside"); 
 
     // Constructors
 
-        //- Construct null
-        heavisideFunction();
-
-    // Selectors
-
-        //- Select null constructed
-        static autoPtr<heavisideFunction> New(const word& name);
-
+        harmonicHeavisideModel();
 
     //- Destructor
-    virtual ~heavisideFunction();
-
+    virtual ~harmonicHeavisideModel();
 
     // Member Functions
-        
+    
         virtual void calcHeaviside(
             volScalarField& heaviside, 
-            const volScalarField& signedDistance, 
-            const volScalarField& narrowBandWidthSqr 
-        ) const = 0;  
+            const volScalarField& signedDistance,
+            const volScalarField& narrowBandWidthSqr
+        ) const;  
 
-        bool distanceWithinNarrowBand(scalar distance, scalar narrowBandWidth) const; 
 
     // Member Operators 
-    void operator=(const heavisideFunction& rhs); 
+    //void operator=(const harmonicHeavisideModel& rhs); 
 
 };
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace FrontTracking 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

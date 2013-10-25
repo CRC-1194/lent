@@ -54,27 +54,29 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 lentMethod::lentMethod(const triSurfaceFront& front, const fvMesh& mesh)
-//:
-     //distanceFieldCalculatorTmp_(), 
+:
+    lentControlDict_(
+         IOobject(
+            "lentSolution", 
+            "system", 
+            mesh, 
+            IOobject::MUST_READ_IF_MODIFIED, 
+            IOobject::NO_WRITE
+         )
+     ),
+     distanceFieldCalculatorTmp_(),
      //frontReconstructorTmp_(), 
      //frontVelocityCalculatorTmp_(), 
      //frontMotionSolver_(), 
-     //heavisideModelTmp_()
+     heavisideModelTmp_()
 {}
 
-//lentMethod::lentMethod(const lentMethod&)
-//: 
-//{}
-
-
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-
-//autoPtr<lentMethod>
-//lentMethod::New()
-//{
-    //return autoPtr<lentMethod>(new lentMethod);
-//}
-
+lentMethod::lentMethod(const lentMethod& copy)
+: 
+    lentControlDict_(copy.lentControlDict_),
+    distanceFieldCalculatorTmp_(copy.distanceFieldCalculatorTmp_),
+    heavisideModelTmp_(copy.heavisideModelTmp_)
+{}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
@@ -86,16 +88,17 @@ lentMethod::~lentMethod()
 void lentMethod::calcSignedDistanceFields(
     volScalarField& signedDistance, 
     pointScalarField& pointSignedDistance
-)
+) const
 {
     // Update points-front distance field.
+    //distanceFieldCalculatorTmp_->calcPointDistanceField(); 
     // Update cells-front distance field.  
 }
 
 void lentMethod::calcHeavisideField(
    volScalarField& heaviside,
    const volScalarField& signedDistance
-)
+) const
 {
     // Calculate the heaviside field from th 
     // Update cells-front distance field.  
@@ -106,10 +109,8 @@ void lentMethod::reconstructFront(
     triSurfaceFront& front, 
     const volScalarField& signedDistance, 
     const pointScalarField& pointSignedDistance
-) 
-{
-
-}
+) const
+{}
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
 
@@ -123,7 +124,8 @@ void lentMethod::operator=(const lentMethod& rhs)
             << abort(FatalError);
     }
 
-
+    distanceFieldCalculatorTmp_ = rhs.distanceFieldCalculatorTmp_; 
+    heavisideModelTmp_ = rhs.heavisideModelTmp_; 
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

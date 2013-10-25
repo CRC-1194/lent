@@ -23,74 +23,89 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "leftAlgorithmHeavisideFunction.H"
-#include "addToRunTimeSelectionTable.H"
-#include "volFields.H"
-#include "mathematicalConstants.H"
+#include "heavisideModel.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
-    defineTypeNameAndDebug(leftAlgorithmHeavisideFunction, 0); 
-    addToRunTimeSelectionTable(heavisideFunction, leftAlgorithmHeavisideFunction, Empty);
-}
+namespace FrontTracking { 
+
+    defineTypeNameAndDebug(heavisideModel, 0); 
+    defineRunTimeSelectionTable(heavisideModel, Empty);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::leftAlgorithmHeavisideFunction::leftAlgorithmHeavisideFunction()
+heavisideModel::heavisideModel()
 {}
+
+// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
+
+autoPtr<heavisideModel>
+heavisideModel::New(const word& name)
+{
+    if (debug)
+    {
+        Info<< "Selecting heavisideModel" << name << endl;
+    }
+
+    // Find the constructor pointer for the model in the constructor table.
+    EmptyConstructorTable::iterator cstrIter =
+        EmptyConstructorTablePtr_->find(name);
+
+    // If the constructor pointer is not found in the table.
+    if (cstrIter == EmptyConstructorTablePtr_->end())
+    {
+        FatalErrorIn (
+            "heavisideModel::New(const dictionary&)"
+        )   << "Unknown heavisideModel type "
+            << name << nl << nl
+            << "Valid heavisideModels are : " << endl
+            << EmptyConstructorTablePtr_->sortedToc()
+            << exit(FatalError);
+    }
+
+    // Construct the model and return the autoPtr to the object. 
+    return autoPtr<heavisideModel>
+            (cstrIter()(name));
+}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::leftAlgorithmHeavisideFunction::~leftAlgorithmHeavisideFunction()
+heavisideModel::~heavisideModel()
 {}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::leftAlgorithmHeavisideFunction::calcHeaviside(
-    volScalarField& heaviside, 
-    const volScalarField& signedDistance, 
-    const volScalarField& narrowBandWidthSqr 
+bool heavisideModel::distanceWithinNarrowBand(
+    scalar distance, 
+    scalar narrowBandWidth
 ) const
 {
-    scalar pi = constant::mathematical::pi; 
-
-    forAll (heaviside, cellI)
-    {
-        scalar narrowBandWidth = sqrt(narrowBandWidthSqr[cellI]);
-
-        if (mag(signedDistance[cellI]) < narrowBandWidth)
-        {
-            heaviside[cellI] = 0.5 * (
-                1 + signedDistance[cellI] / narrowBandWidth + 1/pi * 
-                sin((pi * signedDistance[cellI]) / narrowBandWidth)
-            );
-        } 
-        else
-        {
-            if (signedDistance[cellI] > 0)
-            {
-                heaviside[cellI] = 1; 
-            }
-            if (signedDistance[cellI] < 0)
-            {
-                heaviside[cellI] = 0;
-            }
-        }
-    }
+    return mag(distance) < narrowBandWidth;  
 }
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
 
-void Foam::leftAlgorithmHeavisideFunction::operator=(const leftAlgorithmHeavisideFunction& rhs)
+void heavisideModel::operator=(const heavisideModel& rhs)
 {
     // Check for assignment to self
     if (this == &rhs)
     {
-        FatalErrorIn("Foam::leftAlgorithmHeavisideFunction::operator=(const Foam::leftAlgorithmHeavisideFunction&)")
+        FatalErrorIn("heavisideModel::operator=(const heavisideModel&)")
             << "Attempted assignment to self"
             << abort(FatalError);
     }
 }
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace FrontTracking 
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // ************************************************************************* //

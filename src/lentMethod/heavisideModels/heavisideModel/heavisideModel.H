@@ -22,14 +22,14 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::lentMethod 
+    Foam::heavisideModel
 
 Description
-    A facade class that simplifies the user interface for the LENT hybrid 
-    front-tracking level-set method. 
+    Abstract base class for the heaviside function calculation from a signed 
+    distance field.
 
 SourceFiles
-    lentMethod.C
+    heavisideModel.C
 
 Authors
     Tomislav Maric
@@ -38,106 +38,72 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentMethod_H
-#define lentMethod_H
+#ifndef heavisideModel_H
+#define heavisideModel_H
 
 #include "typeInfo.H"
-#include "triSurfaceFront.H"
-#include "fvMesh.H"
-
-//#include "distanceFieldCalculator.H"
-//#include "frontReconstructor.H"
-//#include "frontVelocityCalculator.H"
-//#include "frontMotionSolver.H"
-//#include "heavisideModel.H"
-
-//#include "tmp.H"
+#include "autoPtr.H"
+#include "refCount.H"
 #include "volFieldsFwd.H"
-#include "pointFieldsFwd.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
-namespace FrontTracking { 
+namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class lentMethod Declaration
+                         Class heavisideModel Declaration
 \*---------------------------------------------------------------------------*/
 
-
-class lentMethod
+class heavisideModel
+    :
+        public refCount
 {
-    // Field calculator
-    //tmp<distanceFieldCalculator> distanceFieldCalculatorTmp_; 
 
-    //// Front reconstructor.
-    //tmp<frontReconstructor> frontReconstructorTmp_; 
-
-    //// Velocity calculator. 
-    //tmp<frontVelocityCalculator> frontVelocityCalculatorTmp_; 
-
-    //// Front motion solver. 
-    //tmp<frontMotionSolver> frontMotionSolver_; 
-
-    //// Heaviside model. 
-    //tmp<heavisideModel> heavisideModelTmp_; 
-    
 public:
 
-    TypeName("lentMethod"); 
+    TypeName ("heavisideModel"); 
+
+    declareRunTimeSelectionTable (
+        autoPtr,  
+        heavisideModel,  
+        Empty,  
+        (
+            const word& name
+        ),
+        () 
+    );
 
     // Constructors
 
-        lentMethod(const triSurfaceFront& front, const fvMesh& mesh);
-
-        //- Construct from components
-        //lentMethod(const lentControl& lentControl);
-
-        //- Construct from Istream
-        //lentMethod(Istream&);
-
-        //- Construct as copy
-        //lentMethod(const lentMethod&);
-
+        heavisideModel();
 
     // Selectors
 
         //- Select null constructed
-        //static autoPtr<lentMethod> New();
-
+        static autoPtr<heavisideModel> New(const word& name);
 
     //- Destructor
-    virtual ~lentMethod();
+        virtual ~heavisideModel();
 
     // Member Functions
-    
-        void calcSignedDistanceFields(
-            volScalarField& signedDistance, 
-            pointScalarField& pointSignedDistance
-        );
-
-        void calcHeavisideField(
-            volScalarField& heaviside,
-            const volScalarField& signedDistance
-        ); 
-
-        void reconstructFront(
-            triSurfaceFront& front,
+        
+        virtual void calcHeaviside(
+            volScalarField& heaviside, 
             const volScalarField& signedDistance, 
-            const pointScalarField& pointSignedDistance
-        ); 
+            const volScalarField& narrowBandWidthSqr 
+        ) const = 0;  
 
-    // Member Operators
+        bool distanceWithinNarrowBand(scalar distance, scalar narrowBandWidth) const; 
 
-        void operator=(const lentMethod&);
+    // Member Operators 
+        void operator=(const heavisideModel& rhs); 
+
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

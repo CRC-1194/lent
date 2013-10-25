@@ -22,69 +22,70 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::leftAlgorithmHeavisideFunction
+    Foam::distanceFieldCalculator
 
 Description
-    Abstract base class for the heaviside function calculation from a signed 
-    distance field.
+
+    Interface class for the distance field calculator. 
+
+    Provides the interface for calculating the signed distance field between
+    a volume mesh and an immersed surface mesh.
 
 SourceFiles
-    leftAlgorithmHeavisideFunction.C
+    distanceFieldCalculator.H
 
-Authors:
-    Tomislav Maric 
-    tomislav.maric@gmx.com
+Authors
+    Tomislav Maric
+    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
+    tomislav<<dot>>maric<<at>>gmx<<dot>>com
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef leftAlgorithmHeavisideFunction_H
-#define leftAlgorithmHeavisideFunction_H
+#ifndef distanceFieldCalculator_H
+#define distanceFieldCalculator_H
 
 #include "typeInfo.H"
-#include "autoPtr.H"
-#include "volFieldsFwd.H"
-#include "heavisideFunction.H"
+#include "refCount.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
+namespace Foam {
+namespace FrontTracking {
+
 
 /*---------------------------------------------------------------------------*\
-                         Class leftAlgorithmHeavisideFunction Declaration
+                         Class distanceFieldCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class leftAlgorithmHeavisideFunction
+class distanceFieldCalculator
     :
-        public heavisideFunction
+        public refCount
 {
 
 public:
 
-    TypeName ("leftAlgorithmHeaviside"); 
-
+    TypeName("distanceFieldCalculator"); 
+     
     // Constructors
 
-        //- Construct null
-        leftAlgorithmHeavisideFunction();
+        //- Construct from components
+        distanceFieldCalculator(const dictionary& config);
 
     //- Destructor
-    virtual ~leftAlgorithmHeavisideFunction();
-
+    virtual ~distanceFieldCalculator();
 
     // Member Functions
-    
-        virtual void calcHeaviside(
-            volScalarField& heaviside, 
-            const volScalarField& signedDistance,
-            const volScalarField& narrowBandWidthSqr
-        ) const;  
 
-
-    // Member Operators 
-    void operator=(const leftAlgorithmHeavisideFunction& rhs); 
-
+        virtual void calcCellsToFrontDistance(
+            volScalarField& signedDistance, 
+            const polyMesh& mesh, 
+            const triSurfaceFront& front
+        ) = 0;
 };
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace FrontTracking 
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
