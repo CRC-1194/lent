@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
         IOobject(
             "front.stl",
             "front",
-            runTime, 
+            mesh, 
             IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
         )
@@ -85,10 +85,10 @@ int main(int argc, char *argv[])
         pointSearchDistanceSqr
     );
 
-    lent.calcSignedDistances(
-        signedDistance, 
-        pointSignedDistance
-    ); 
+    //lent.calcSignedDistances(
+        //signedDistance, 
+        //pointSignedDistance
+    //); 
     
     //lent.calcHeaviside(
         //heaviside,

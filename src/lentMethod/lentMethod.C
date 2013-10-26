@@ -81,8 +81,8 @@ lentMethod::lentMethod(
      ),
      lentDistanceFieldCalculatorTmp_(
         lentDistanceFieldCalculator::New(
-            lentControlDict_.lookup("lentDistanceFieldCalculator"), 
-            lentControlDict_.subDict("distanceCalculator"))
+            lentControlDict_.subDict("distanceCalculator")
+        )
      ),
      //frontReconstructorTmp_(), 
      //frontVelocityCalculatorTmp_(), 
@@ -118,11 +118,8 @@ void lentMethod::calcSearchDistances(
 {
     lentDistanceFieldCalculator& distanceCalc = lentDistanceFieldCalculatorTmp_(); 
 
-    distanceCalc.calcSearchDistances(
-        searchDistanceSqr, 
-        pointSearchDistanceSqr, 
-        frontTmp_()
-    );
+    distanceCalc.calcCellSearchDistance(searchDistancePtr); 
+    distanceCalc.calcPointSearchDistance(searchDistancePtr, pointSearchDistanceSqr); 
 }
 
 void lentMethod::calcSignedDistances(

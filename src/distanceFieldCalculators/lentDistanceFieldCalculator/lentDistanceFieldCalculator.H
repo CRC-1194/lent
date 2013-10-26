@@ -65,6 +65,9 @@ class lentDistanceFieldCalculator
     :
         public refCount
 {
+
+    scalar narrowBandWidth_;
+
 public:
 
     TypeName("lentDistanceFieldCalculator"); 
@@ -81,7 +84,9 @@ public:
      
     // Constructors
     
-        lentDistanceFieldCalculator(const dictionary& configDict);
+        lentDistanceFieldCalculator(
+            const dictionary& configDict
+        );
 
     // Destructor
     
@@ -90,27 +95,23 @@ public:
     // Selector
     
         static tmp<lentDistanceFieldCalculator> New(
-            const word& name,
             const dictionary& configDict
         );
 
     // Member Functions
 
         virtual void calcCellSearchDistance(
-            volScalarField& searchDistanceSqr, 
-            const triSurfaceFront& front
-        ) = 0; 
+            volScalarField& searchDistanceSqr
+        ); 
 
         virtual void calcPointSearchDistance(
-            pointScalarField& pointSearchDistanceSqr, 
-            const triSurfaceFront& front
-        ) = 0; 
+            pointScalarField& pointSearchDistanceSqr,
+            const volScalarField& cellSearchDistanceSqr
+        ); 
 
-        void calcSearchDistances(
-            volScalarField& searchDistanceSqr, 
-            pointScalarField& pointSearchDistanceSqr, 
-            const triSurfaceFront& front
-        ) ;
+        virtual void calcPointSearchDistance(
+            pointScalarField& pointSearchDistanceSqr
+        ); 
 
         virtual void calcCellsToFrontDistance(
             volScalarField& signedDistance, 

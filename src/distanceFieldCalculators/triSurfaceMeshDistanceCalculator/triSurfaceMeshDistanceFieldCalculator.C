@@ -47,12 +47,14 @@ namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-triSurfaceMeshDistanceFieldCalculator::triSurfaceMeshDistanceFieldCalculator(const dictionary& config)
+triSurfaceMeshDistanceFieldCalculator::triSurfaceMeshDistanceFieldCalculator(
+    const dictionary& config
+)
 :
-    lentDistanceFieldCalculator(config)
-{
-
-}
+    lentDistanceFieldCalculator(config),
+    cellsElementNearest_(), 
+    pointsElementNearest_() 
+{}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
@@ -61,35 +63,134 @@ triSurfaceMeshDistanceFieldCalculator::~triSurfaceMeshDistanceFieldCalculator()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-
-void triSurfaceMeshDistanceFieldCalculator::calcCellSearchDistance(
-    volScalarField& searchDistanceSqr, 
-    const triSurfaceFront& front
-)
-{
-}
-
-void triSurfaceMeshDistanceFieldCalculator::calcPointSearchDistance(
-    pointScalarField& searchDistanceSqr, 
-    const triSurfaceFront& front
-)
-{
-}
-
 void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
     volScalarField& signedDistance, 
     const volScalarField& searchDistanceSqr, 
     const triSurfaceFront& front
 )
 {
+    signedDistance = dimensionedScalar(
+        "distance", 
+        dimLength, 
+        GREAT
+    );
+
+    const fvMesh& mesh = signedDistance.mesh();
+    
+    triSurfaceMesh frontMesh(
+        IOobject(
+            "triSurfaceMesh", 
+            "frontMesh", 
+            mesh, 
+            IOobject::NO_READ, 
+            IOobject::NO_WRITE
+        ),
+        front 
+    );
+
+    // Get the cell centres.  
+    const volVectorField& C = mesh.C(); 
+
+    frontMesh.findNearest(
+        C, 
+        searchDistanceSqr, 
+        cellsElementNearest_
+    );
+
+    // Create a list of the volume types: based on the cell centre, the
+    List<searchableSurface::volumeType> volType;
+    // Fill the list of the volume types. 
+    frontMesh.getVolumeType(C, volType);
+
+    // For all volume types. 
+    forAll(volType, I) 
+    {
+        // Get the volume type.
+        searchableSurface::volumeType vT = volType[I];
+
+        const pointIndexHit& h = cellsElementNearest_[I]; 
+
+        if (h.hit()) 
+        {
+            // If the volume is OUTSIDE.
+            if (vT == searchableSurface::OUTSIDE) 
+            {
+                // Set the negative distance.
+                signedDistance[I] = Foam::mag(C[I] - h.hitPoint());
+            }
+            // If the volume is inside.
+            else if (vT == searchableSurface::INSIDE) 
+            {
+                // Set the positive distance.
+                signedDistance[I] = -Foam::mag(C[I] - h.hitPoint());
+            }
+        }
+    }
+
+    // FIXME: select the narrow band model and enforce narrow band.
+    //enforceNarrowBand(signedDistance); 
 }
 
 void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
     pointScalarField& pointSignedDistance, 
-    const pointScalarField& searchDistanceSqr, 
+    const pointScalarField& pointSearchDistanceSqr, 
     const triSurfaceFront& front
 )
 {
+    pointSignedDistance = dimensionedScalar("GREAT", dimLength, GREAT);
+    
+    // Get the cell centres.  
+    const pointMesh& pMesh = pointSignedDistance.mesh(); 
+
+    const pointField& points = pMesh().points(); 
+
+    triSurfaceMesh frontMesh(
+        IOobject(
+            "triSurfaceMesh", 
+            "frontMesh", 
+            pointSignedDistance.mesh().thisDb(), 
+            IOobject::NO_READ, 
+            IOobject::NO_WRITE
+        ),
+        front 
+    );
+
+    frontMesh.findNearest(
+        points, 
+        pointSearchDistanceSqr, 
+        pointsElementNearest_
+    );
+
+    List<searchableSurface::volumeType> volType;
+    frontMesh.getVolumeType(points, volType);
+
+    // For all volume types. 
+    forAll(volType, I)
+    {
+        // Get the volume type.
+        searchableSurface::volumeType vT = volType[I];
+
+        const pointIndexHit& h = pointsElementNearest_[I]; 
+
+        if (h.hit())
+        {
+            // If the volume is OUTSIDE.
+            if (vT == searchableSurface::OUTSIDE)
+            {
+                // Set the positive distance.
+                pointSignedDistance[I] = Foam::mag(points[I] - h.hitPoint());
+            }
+            // If the volume is inside.
+            else if (vT == searchableSurface::INSIDE)
+            {
+                // Set the negative distance.
+                pointSignedDistance[I] = -Foam::mag(points[I] - h.hitPoint());
+            }
+        }
+    }
+    
+    // FIXME: select and enforce the narrow band.
+    //enforceNarrowBand(pointSignedDistance, mesh); 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -30,6 +30,8 @@ Authors
 \*---------------------------------------------------------------------------*/
 
 #include "lentDistanceFieldCalculator.H"
+#include "volPointInterpolation.H"
+#include "error.H"
 
 namespace Foam {
 namespace FrontTracking { 
@@ -41,22 +43,24 @@ namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-lentDistanceFieldCalculator::lentDistanceFieldCalculator(const dictionary& config)
-{}
+lentDistanceFieldCalculator::lentDistanceFieldCalculator(
+    const dictionary& configDict
+)
+:
+    narrowBandWidth_(0)
+{
+    narrowBandWidth_ = readScalar(configDict.lookup("narrowBandWidth")); 
+}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 
 tmp<lentDistanceFieldCalculator>
 lentDistanceFieldCalculator::New(
-   const word& name,
    const dictionary& configDict
 )
 {
-    if (debug)
-    {
-        Info<< "Selecting lentDistanceFieldCalculator" << name << endl;
-    }
+    const word name = configDict.lookup("type"); 
 
     // Find the constructor pointer for the model in the constructor table.
     DictionaryConstructorTable::iterator cstrIter =
@@ -76,7 +80,7 @@ lentDistanceFieldCalculator::New(
 
     // Construct the model and return the autoPtr to the object. 
     return tmp<lentDistanceFieldCalculator> (cstrIter()(configDict));
-}
+} 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
@@ -85,14 +89,72 @@ lentDistanceFieldCalculator::~lentDistanceFieldCalculator()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void lentDistanceFieldCalculator::calcSearchDistances(
-    volScalarField& searchDistanceSqr, 
-    pointScalarField& pointSearchDistanceSqr, 
-    const triSurfaceFront& front
+void lentDistanceFieldCalculator::calcCellSearchDistance(
+    volScalarField& searchDistanceSqr
 ) 
 {
-    calcCellSearchDistance(searchDistanceSqr, front); 
-    calcPointSearchDistance(pointSearchDistanceSqr, front); 
+    const fvMesh& mesh = searchDistanceSqr.mesh(); 
+
+    // Sum deltaCoeffs inversed.
+    const surfaceScalarField& deltaCoeffs = mesh.deltaCoeffs(); 
+
+    const labelList& own = mesh.owner(); 
+    const labelList& nei = mesh.neighbour(); 
+
+    // Sum the deltaCoeffs for the internal faces.
+    forAll(own, I) 
+    {
+        searchDistanceSqr[own[I]] += (1 / (deltaCoeffs[I] * deltaCoeffs[I]));
+        searchDistanceSqr[nei[I]] += (1 / (deltaCoeffs[I] * deltaCoeffs[I]));
+    }
+
+    // Sum the deltaCoeffs for the boundary faces.
+    forAll(mesh.boundary(), patchI) 
+    {
+        const fvsPatchField<scalar>& deltaCoeffsBoundary = 
+            deltaCoeffs.boundaryField()[patchI];
+
+        const labelList& faceCells =
+            mesh.boundary()[patchI].faceCells();
+
+        forAll(mesh.boundary()[patchI], faceI) 
+        {
+            searchDistanceSqr[faceCells[faceI]] += (1 / 
+                    (deltaCoeffsBoundary[faceI] * 
+                     deltaCoeffsBoundary[faceI]));
+        }
+    }
+
+    // Correct the cell centered distance. 
+    forAll(searchDistanceSqr, I) 
+    {
+        // Average the distance with the number of cell-faces. 
+        searchDistanceSqr[I] /=  mesh.cells()[I].size();
+    }
+
+    // Expand the distance by the bandwidth.
+    // FIXME: fix this
+    searchDistanceSqr *= (narrowBandWidth_ * narrowBandWidth_); 
+    searchDistanceSqr.boundaryField().evaluate(); 
+
+}
+
+void lentDistanceFieldCalculator::calcPointSearchDistance(
+    pointScalarField& pointSearchDistanceSqr,
+    const volScalarField& searchDistanceSqr
+) 
+{
+    const fvMesh& mesh = searchDistanceSqr.mesh();
+
+    volPointInterpolation ip(mesh); 
+    ip.interpolate(searchDistanceSqr, pointSearchDistanceSqr); 
+}
+
+void lentDistanceFieldCalculator::calcPointSearchDistance(
+    pointScalarField& pointSearchDistanceSqr
+) 
+{
+    notImplemented("lentDistanceFieldCalculator::calcPointSearchDistance(pointScalarField&"); 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

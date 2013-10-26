@@ -44,6 +44,7 @@ Authors
 
 #include "typeInfo.H"
 #include "refCount.H"
+#include "triSurfaceMesh.H"
 
 #include "lentDistanceFieldCalculator.H"
 
@@ -62,29 +63,27 @@ class triSurfaceMeshDistanceFieldCalculator
         public lentDistanceFieldCalculator
 {
 
+    //- List of indices to the nearest elements to cells.
+    DynamicList<pointIndexHit> cellsElementNearest_; 
+
+    //- List of indices to the nearest elements to points.
+    DynamicList<pointIndexHit> pointsElementNearest_; 
+
 public:
 
     TypeName("triSurfaceMeshDistanceFieldCalculator"); 
      
     // Constructors
     
-        triSurfaceMeshDistanceFieldCalculator(const dictionary& config);
+        triSurfaceMeshDistanceFieldCalculator(
+            const dictionary& config
+        );
 
     // Destructor
     
         virtual ~triSurfaceMeshDistanceFieldCalculator();
 
     // Member Functions
-        void calcCellSearchDistance(
-            volScalarField& searchDistanceSqr, 
-            const triSurfaceFront& front
-        ); 
-
-        void calcPointSearchDistance(
-            pointScalarField& pointSearchDistanceSqr, 
-            const triSurfaceFront& front
-        );
-
         void calcCellsToFrontDistance(
             volScalarField& signedDistance, 
             const volScalarField& searchDistanceSqr,
@@ -93,7 +92,7 @@ public:
 
         virtual void calcPointsToFrontDistance(
             pointScalarField& pointSignedDistance, 
-            const pointScalarField& searchDistanceSqr, 
+            const pointScalarField& pointSearchDistanceSqr, 
             const triSurfaceFront& front
         );
 };
