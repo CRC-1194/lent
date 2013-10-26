@@ -45,8 +45,7 @@ Authors
 #include "typeInfo.H"
 #include "refCount.H"
 
-#include "triSurfaceFront.H"
-#include "fvMesh.H"
+#include "lentDistanceFieldCalculator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -60,7 +59,7 @@ namespace FrontTracking {
 
 class triSurfaceMeshDistanceFieldCalculator
     :
-        public refCount
+        public lentDistanceFieldCalculator
 {
 
 public:
@@ -84,7 +83,7 @@ public:
         );
 
         virtual void calcPointsToFrontDistance(
-            volScalarField& signedDistance, 
+            pointScalarField& pointSignedDistance, 
             const fvMesh& mesh, 
             const triSurfaceFront& front
         );

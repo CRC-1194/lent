@@ -49,6 +49,7 @@ Authors
 
 #include "triSurfaceFront.H"
 #include "fvMesh.H"
+#include "pointFieldsFwd.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -103,7 +104,7 @@ public:
         ) = 0;
 
         virtual void calcPointsToFrontDistance(
-            volScalarField& signedDistance, 
+            pointScalarField& pointSignedDistance, 
             const fvMesh& mesh, 
             const triSurfaceFront& front
         ) = 0;

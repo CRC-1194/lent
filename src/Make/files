@@ -8,7 +8,7 @@ heavisideModels/harmonicHeavisideModel/harmonicHeavisideModel.C
 heavisideModels/sharpHeavisideModel/sharpHeavisideModel.C
 
 distanceFieldCalculators/lentDistanceFieldCalculator/lentDistanceFieldCalculator.C
-/*lentMethod/distanceFieldCalculators/triSurfaceMeshDistanceCalculator/triSurfaceMeshDistanceFieldCalculator.C*/
+distanceFieldCalculators/triSurfaceMeshDistanceCalculator/triSurfaceMeshDistanceFieldCalculator.C
 
 lentMethod/lentMethod.C
 

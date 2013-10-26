@@ -37,7 +37,11 @@ namespace Foam {
 namespace FrontTracking { 
 
     defineTypeNameAndDebug(triSurfaceMeshDistanceFieldCalculator, 0);
-    addToRunTimeSelectionTable(triSurfaceMeshDistanceFieldCalculator, sharpHeavisideModel, Dictionary);
+    addToRunTimeSelectionTable(
+       lentDistanceFieldCalculator, 
+       triSurfaceMeshDistanceFieldCalculator, 
+       Dictionary
+    );
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -45,7 +49,7 @@ namespace FrontTracking {
 
 triSurfaceMeshDistanceFieldCalculator::triSurfaceMeshDistanceFieldCalculator(const dictionary& config)
 :
-    lentDistanceFieldCalculator(dict)
+    lentDistanceFieldCalculator(config)
 {}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -56,7 +60,7 @@ triSurfaceMeshDistanceFieldCalculator::~triSurfaceMeshDistanceFieldCalculator()
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 
-triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
+void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
     volScalarField& signedDistance, 
     const fvMesh& mesh, 
     const triSurfaceFront& front
@@ -64,8 +68,8 @@ triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
 {
 }
 
-triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
-    volScalarField& signedDistance, 
+void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
+    pointScalarField& pointSignedDistance, 
     const fvMesh& mesh, 
     const triSurfaceFront& front
 )
