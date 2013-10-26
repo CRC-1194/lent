@@ -62,10 +62,10 @@ public:
 
     // Member Operators 
 
-        void operator()(volScalarField& Psi); 
+        void operator()(volScalarField& signedDistance); 
 
         // TODO: use front fields
-        void operator()(scalarField& psi, const fvMesh & mesh); 
+        void operator()(pointScalarField& pointSignedDistance);
 
 };
 

@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "naiveNarrowBandPropagation.H"
+#include "pointMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -36,9 +37,9 @@ naiveNarrowBandPropagation::naiveNarrowBandPropagation() {}
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
 
-void naiveNarrowBandPropagation::operator()(volScalarField& Psi)
+void naiveNarrowBandPropagation::operator()(volScalarField& signedDistance)
 {
-    const fvMesh& mesh = Psi.mesh(); 
+    const fvMesh& mesh = signedDistance.mesh(); 
     const labelList& own = mesh.owner(); 
     const labelList& nei = mesh.neighbour(); 
 
@@ -49,25 +50,29 @@ void naiveNarrowBandPropagation::operator()(volScalarField& Psi)
         jumpFace = -1; 
         forAll (own, faceI)
         {
-            if ((Psi[own[faceI]] < 0) && (Psi[nei[faceI]] == GREAT))
+            if ((signedDistance[own[faceI]] < 0) && 
+                (signedDistance[nei[faceI]] == GREAT))
             {
                 jumpFace = faceI; 
-                Psi[nei[faceI]] *= -1; 
+                signedDistance[nei[faceI]] *= -1; 
             }
-            if ((Psi[nei[faceI]] < 0) && (Psi[own[faceI]] == GREAT))
+            if ((signedDistance[nei[faceI]] < 0) &&
+                (signedDistance[own[faceI]] == GREAT))
             {
                 jumpFace = faceI; 
-                Psi[own[faceI]] *= -1;
+                signedDistance[own[faceI]] *= -1;
             }
         }
     } while (jumpFace >= 0);
 
-    Psi.boundaryField().evaluate(); 
+    signedDistance.boundaryField().evaluate(); 
 }
 
-void naiveNarrowBandPropagation::operator()(scalarField& psi, fvMesh const & mesh)
+void naiveNarrowBandPropagation::operator()(pointScalarField& pointSignedDistance)
 {
-    const labelListList& pointPoints = mesh.pointPoints(); 
+    const pointMesh& pMesh = pointSignedDistance.mesh(); 
+
+    const labelListList& pointPoints = pMesh().pointPoints(); 
 
     label jumpPoint = -1; 
 
@@ -83,12 +88,12 @@ void naiveNarrowBandPropagation::operator()(scalarField& psi, fvMesh const & mes
             {
                 if 
                 (
-                    (psi[pointIpoints[pointJ]] == GREAT) && 
-                    (psi[pointI] < 0)
+                    (pointSignedDistance[pointIpoints[pointJ]] == GREAT) && 
+                    (pointSignedDistance[pointI] < 0)
                 ) 
                 {
                     jumpPoint = pointIpoints[pointJ]; 
-                    psi[pointIpoints[pointJ]] *= -1; 
+                    pointSignedDistance[pointIpoints[pointJ]] *= -1; 
                 }
             }
         }

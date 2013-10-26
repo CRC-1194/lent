@@ -53,7 +53,8 @@ triSurfaceMeshDistanceFieldCalculator::triSurfaceMeshDistanceFieldCalculator(
 :
     lentDistanceFieldCalculator(config),
     cellsElementNearest_(), 
-    pointsElementNearest_() 
+    pointsElementNearest_(), 
+    ensureNarrowBand_() 
 {}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -127,8 +128,7 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
         }
     }
 
-    // FIXME: select the narrow band model and enforce narrow band.
-    //enforceNarrowBand(signedDistance); 
+    ensureNarrowBand_(signedDistance); 
 }
 
 void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
@@ -189,8 +189,7 @@ void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
         }
     }
     
-    // FIXME: select and enforce the narrow band.
-    //enforceNarrowBand(pointSignedDistance, mesh); 
+    ensureNarrowBand_(pointSignedDistance); 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
