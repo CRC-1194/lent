@@ -64,7 +64,7 @@ lentMethod::lentMethod(const triSurfaceFront& front, const fvMesh& mesh)
             IOobject::NO_WRITE
          )
      ),
-     distanceFieldCalculatorTmp_(),
+     //distanceFieldCalculatorTmp_(),
      //frontReconstructorTmp_(), 
      //frontVelocityCalculatorTmp_(), 
      //frontMotionSolver_(), 
@@ -77,7 +77,7 @@ lentMethod::lentMethod(const triSurfaceFront& front, const fvMesh& mesh)
 lentMethod::lentMethod(const lentMethod& copy)
 : 
     lentControlDict_(copy.lentControlDict_),
-    distanceFieldCalculatorTmp_(copy.distanceFieldCalculatorTmp_),
+    //distanceFieldCalculatorTmp_(copy.distanceFieldCalculatorTmp_),
     heavisideModelTmp_(copy.heavisideModelTmp_)
 {}
 
@@ -132,7 +132,7 @@ void lentMethod::operator=(const lentMethod& rhs)
             << abort(FatalError);
     }
 
-    distanceFieldCalculatorTmp_ = rhs.distanceFieldCalculatorTmp_; 
+    //distanceFieldCalculatorTmp_ = rhs.distanceFieldCalculatorTmp_; 
     heavisideModelTmp_ = rhs.heavisideModelTmp_; 
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

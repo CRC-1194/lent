@@ -5,6 +5,7 @@ narrowBandPropagation/naiveNarrowBandPropagation/naiveNarrowBandPropagation.C
 
 lentMethod/heavisideModels/heavisideModel/heavisideModel.C
 lentMethod/heavisideModels/harmonicHeavisideModel/harmonicHeavisideModel.C
+lentMethod/heavisideModels/sharpHeavisideModel/sharpHeavisideModel.C
 
 lentMethod/lentMethod/lentMethod.C
 

@@ -22,14 +22,14 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::lentMethod 
+    Foam::sharpHeavisideModel
 
 Description
-    A facade class that simplifies the user interface for the LENT hybrid 
-    front-tracking level-set method. 
+    Abstract base class for the heaviside function calculation from a signed 
+    distance field.
 
 SourceFiles
-    lentMethod.C
+    sharpHeavisideModel.C
 
 Authors
     Tomislav Maric
@@ -38,104 +38,52 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentMethod_H
-#define lentMethod_H
+#ifndef sharpHeavisideModel_H
+#define sharpHeavisideModel_H
 
 #include "typeInfo.H"
-#include "triSurfaceFront.H"
-#include "fvMesh.H"
-
-#include "distanceFieldCalculator.H"
-//#include "frontReconstructor.H"
-//#include "frontVelocityCalculator.H"
-//#include "frontMotionSolver.H"
+#include "autoPtr.H"
+#include "volFieldsFwd.H"
 #include "heavisideModel.H"
-
-//#include "tmp.H"
-//#include "volFieldsFwd.H"
-//#include "pointFieldsFwd.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
-namespace FrontTracking { 
+namespace FrontTracking {
+
 
 /*---------------------------------------------------------------------------*\
-                         Class lentMethod Declaration
+                         Class sharpHeavisideModel Declaration
 \*---------------------------------------------------------------------------*/
 
-
-class lentMethod
+class sharpHeavisideModel
+    :
+        public heavisideModel
 {
-    // Lent method configuration dictionary.
-    IOdictionary lentControlDict_;  
 
-    // Field calculator
-    //tmp<distanceFieldCalculator> distanceFieldCalculatorTmp_; 
-
-    //// Front reconstructor.
-    //tmp<frontReconstructor> frontReconstructorTmp_; 
-
-    //// Velocity calculator. 
-    //tmp<frontVelocityCalculator> frontVelocityCalculatorTmp_; 
-
-    //// Front motion solver. 
-    //tmp<frontMotionSolver> frontMotionSolver_; 
-
-    // Heaviside model. 
-    tmp<heavisideModel> heavisideModelTmp_; 
-    
 public:
 
-    TypeName("lentMethod"); 
+    TypeName ("sharp"); 
 
     // Constructors
 
-        lentMethod(const triSurfaceFront& front, const fvMesh& mesh);
-
-        //- Construct from components
-        //lentMethod(const lentControl& lentControl);
-
-        //- Construct from Istream
-        //lentMethod(Istream&);
-
-        //- Construct as copy
-        lentMethod(const lentMethod& copy);
+        sharpHeavisideModel();
 
     //- Destructor
-    virtual ~lentMethod();
+    virtual ~sharpHeavisideModel();
 
     // Member Functions
     
-        void calcSignedDistanceFields(
-            volScalarField& signedDistance, 
-            pointScalarField& pointSignedDistance,
-            const volScalarField& searchDistSqr
-        ) const;
-
-        void calcHeavisideField(
-            volScalarField& heaviside,
+        virtual void calcHeavisideField(
+            volScalarField& heaviside, 
             const volScalarField& signedDistance,
             const volScalarField& searchDistanceSqr
-        ) const; 
-
-        void reconstructFront(
-            triSurfaceFront& front,
-            const volScalarField& signedDistance, 
-            const pointScalarField& pointSignedDistance
-        ) const; 
-
-    // Member Operators
-
-        void operator=(const lentMethod&);
+        ) const;  
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -78,36 +78,23 @@ int main(int argc, char *argv[])
         )
     );
 
-
-    //tmp<heavisideModel> heavisideModelPtr (new harmonicHeavisideModel()); 
-        //heavisideModel::New<tmp>("harmonic");
-
-    //IOdictionary levelSetFrontDict
-    //(
-        //IOobject
-        //(
-            //"levelSetFrontDict", 
-            //"constant", 
-            //runTime, 
-            //IOobject::MUST_READ_IF_MODIFIED,
-            //IOobject::AUTO_WRITE
-        //)
-    //);
-
-    //label narrowBandWidth = 
-        //levelSetFrontDict.lookupOrDefault<label>(
-            //"narrowBandWidth", 4
-        //);
-
-    //Calculator calc (narrowBandWidth); 
-    
     lentMethod lent(front, mesh); 
+
+    lentMethod lent2(front, mesh);
+
+    lent2 = lent; 
+
+    lent2.calcSignedDistanceFields(
+        signedDistance, 
+        pointSignedDistance,
+        searchDistanceSqr
+    ); 
 
     lent.calcSignedDistanceFields(
         signedDistance, 
         pointSignedDistance,
         searchDistanceSqr
-    ); //signedDistance, pointSignedDistance); 
+    ); 
 
     //calc.calcCentresToElementsDistance(
         //signedDistance, 
@@ -121,73 +108,67 @@ int main(int argc, char *argv[])
         //mesh, 
         //naiveNarrowBandPropagation()
     //); 
-
-    //heavisideModelPtr->calcHeavisideField(
-        //heaviside, 
-        //signedDistance, 
-        //searchDistanceSqr
-    //); 
-
+    
+    lent2.calcHeavisideField(
+        heaviside,
+        signedDistance,
+        searchDistanceSqr
+    ); 
+    
     lent.calcHeavisideField(
         heaviside,
         signedDistance,
         searchDistanceSqr
     ); 
 
-    //heaviside.write(); 
+    heaviside.write(); 
 
-    //while (runTime.run()) {
-        //runTime++;
+    while (runTime.run()) {
+        runTime++;
 
-        //Info<< "Time = " << runTime.timeName() << nl << endl;
+        Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        ////Reconstruct the front: 
-        ////front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
+        //Reconstruct the front: 
+        //front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
         
         //lent.reconstructFront(front, signedDistance, pointSignedDistance); //signedDistance, pointSignedDistance, false, 1e-10); 
 
-        //twoPhaseProperties.correct();
+        twoPhaseProperties.correct();
 
-        //// Compute the new signed distance field with the surfaceMesh octree
-        //// search.  
-        ////calc.calcCentresToElementsDistance(
-            ////signedDistance, 
-            ////front,
-            ////naiveNarrowBandPropagation()
-        ////); 
-
-        //// Compute the new signed point distance field. 
-        ////calc.calcPointsToElementsDistance(
-            ////pointSignedDistance, 
-            ////front,
-            ////mesh, 
-            ////naiveNarrowBandPropagation()
-        ////); 
-
-        //heavisideModelPtr->calcHeavisideField(
-            //heaviside, 
+        // Compute the new signed distance field with the surfaceMesh octree
+        // search.  
+        //calc.calcCentresToElementsDistance(
             //signedDistance, 
-            //searchDistanceSqr 
+            //front,
+            //naiveNarrowBandPropagation()
         //); 
 
-        //lent.calcSignedDistanceFields(
-            //signedDistance, 
-            //pointSignedDistance,
-            //searchDistanceSqr
+        // Compute the new signed point distance field. 
+        //calc.calcPointsToElementsDistance(
+            //pointSignedDistance, 
+            //front,
+            //mesh, 
+            //naiveNarrowBandPropagation()
         //); 
 
-        //lent.calcHeavisideField(
-            //heaviside, 
-            //signedDistance, 
-            //searchDistanceSqr
-        //); 
+        lent.calcSignedDistanceFields(
+            signedDistance, 
+            pointSignedDistance,
+            searchDistanceSqr
+        ); 
 
-        //runTime.write();
+        lent.calcHeavisideField(
+            heaviside, 
+            signedDistance, 
+            searchDistanceSqr
+        ); 
 
-        //Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            //<< "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            //<< nl << endl;
-    //}
+        runTime.write();
+
+        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
+    }
 
     Info<< "End\n" << endl;
 
