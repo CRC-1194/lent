@@ -44,10 +44,7 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 sharpHeavisideModel::sharpHeavisideModel()
-{
-
-    Info << "HARMONIC HEAVISIDE MODEL SELECTED" << endl;
-}
+{}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
@@ -62,7 +59,7 @@ void sharpHeavisideModel::calcHeavisideField(
     const volScalarField& searchDistanceSqr 
 ) const
 {
-    Info << "CALC HEAVISIDE FIELD" << endl;
+    Info << "SHARP HEAVISIDE FIELD" << endl;
 
     scalar pi = constant::mathematical::pi; 
 

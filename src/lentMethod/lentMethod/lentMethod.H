@@ -91,7 +91,11 @@ public:
 
     // Constructors
 
-        lentMethod(const triSurfaceFront& front, const fvMesh& mesh);
+        lentMethod(
+            const triSurfaceFront& front, 
+            const fvMesh& mesh, 
+            word dictName="lentSolution"
+        );
 
         //- Construct from components
         //lentMethod(const lentControl& lentControl);

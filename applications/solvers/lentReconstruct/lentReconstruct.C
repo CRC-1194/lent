@@ -80,9 +80,7 @@ int main(int argc, char *argv[])
 
     lentMethod lent(front, mesh); 
 
-    lentMethod lent2(front, mesh);
-
-    lent2 = lent; 
+    lentMethod lent2(front, mesh, "lentSolutionSharp");
 
     lent2.calcSignedDistanceFields(
         signedDistance, 
@@ -158,6 +156,12 @@ int main(int argc, char *argv[])
         ); 
 
         lent.calcHeavisideField(
+            heaviside, 
+            signedDistance, 
+            searchDistanceSqr
+        ); 
+
+        lent2.calcHeavisideField(
             heaviside, 
             signedDistance, 
             searchDistanceSqr

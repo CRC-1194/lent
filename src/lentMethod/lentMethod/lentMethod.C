@@ -53,15 +53,19 @@ namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-lentMethod::lentMethod(const triSurfaceFront& front, const fvMesh& mesh)
+lentMethod::lentMethod(
+    const triSurfaceFront& front, 
+    const fvMesh& mesh,
+    word dictName 
+)
 :
     lentControlDict_(
          IOobject(
-            "lentSolution", 
+            dictName, 
             "system", 
-            mesh, 
+            mesh.time(), 
             IOobject::MUST_READ_IF_MODIFIED, 
-            IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
          )
      ),
      //distanceFieldCalculatorTmp_(),

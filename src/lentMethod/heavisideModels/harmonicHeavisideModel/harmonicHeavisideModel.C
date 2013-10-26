@@ -62,7 +62,7 @@ void harmonicHeavisideModel::calcHeavisideField(
     const volScalarField& searchDistanceSqr 
 ) const
 {
-    Info << "CALC HEAVISIDE FIELD" << endl;
+    Info << "HARMONIC HEAVISIDE FIELD" << endl;
 
     scalar pi = constant::mathematical::pi; 
 
