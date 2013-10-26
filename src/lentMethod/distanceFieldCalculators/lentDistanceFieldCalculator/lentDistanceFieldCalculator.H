@@ -22,14 +22,17 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::heavisideModel
+    Foam::lentDistanceFieldCalculator
 
 Description
-    Abstract base class for the heaviside function calculation from a signed 
-    distance field.
+
+    Interface class for the distance field calculator. 
+
+    Provides the interface for calculating the signed distance field between
+    a volume mesh (cells and points) and an immersed surface mesh (elements).
 
 SourceFiles
-    heavisideModel.C
+    lentDistanceFieldCalculator.H
 
 Authors
     Tomislav Maric
@@ -38,73 +41,78 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef heavisideModel_H
-#define heavisideModel_H
+#ifndef lentDistanceFieldCalculator_H
+#define lentDistanceFieldCalculator_H
 
 #include "typeInfo.H"
-#include "autoPtr.H"
-#include "tmp.H"
 #include "refCount.H"
-#include "volFieldsFwd.H"
+
+#include "triSurfaceFront.H"
+#include "fvMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
+
 /*---------------------------------------------------------------------------*\
-                         Class heavisideModel Declaration
+                         Class lentDistanceFieldCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class heavisideModel
+class lentDistanceFieldCalculator
     :
         public refCount
 {
 
 public:
 
-    TypeName ("heavisideModel"); 
+    TypeName("lentDistanceFieldCalculator"); 
 
     declareRunTimeSelectionTable (
         tmp,  
-        heavisideModel,  
-        Empty,  
+        lentDistanceFieldCalculator,  
+        Dictionary,  
         (
-            const word& name
+            const dictionary& configDict
         ),
-        () 
+        (configDict)
     );
-
+     
     // Constructors
-
-        heavisideModel();
-
-    // Selectors
-
-        static tmp<heavisideModel> New(const word& name);
+    
+        lentDistanceFieldCalculator(const dictionary& configDict);
 
     // Destructor
-        virtual ~heavisideModel();
+    
+        virtual ~lentDistanceFieldCalculator();
+
+    // Selector
+    
+        static tmp<lentDistanceFieldCalculator> New(
+            const word& name,
+            const dictionary& configDict
+        );
 
     // Member Functions
-        
-        virtual void calcHeavisideField(
-            volScalarField& heaviside, 
-            const volScalarField& signedDistance, 
-            const volScalarField& narrowBandWidthSqr 
-        ) const = 0;  
 
-        bool distanceWithinNarrowBand(scalar distance, scalar narrowBandWidth) const; 
+        virtual void calcCellsToFrontDistance(
+            volScalarField& signedDistance, 
+            const fvMesh& mesh, 
+            const triSurfaceFront& front
+        ) = 0;
 
-    // Member Operators 
-    
-        void operator=(const heavisideModel& rhs); 
-
+        virtual void calcPointsToFrontDistance(
+            volScalarField& signedDistance, 
+            const fvMesh& mesh, 
+            const triSurfaceFront& front
+        ) = 0;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

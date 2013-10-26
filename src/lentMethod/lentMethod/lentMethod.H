@@ -41,11 +41,12 @@ Authors
 #ifndef lentMethod_H
 #define lentMethod_H
 
+#include "regIOobject.H"
 #include "typeInfo.H"
 #include "triSurfaceFront.H"
 #include "fvMesh.H"
 
-#include "distanceFieldCalculator.H"
+#include "lentDistanceFieldCalculator.H"
 //#include "frontReconstructor.H"
 //#include "frontVelocityCalculator.H"
 //#include "frontMotionSolver.H"
@@ -66,12 +67,14 @@ namespace FrontTracking {
 
 
 class lentMethod
+:
+    public regIOobject
 {
     // Lent method configuration dictionary.
     IOdictionary lentControlDict_;  
 
     // Field calculator
-    //tmp<distanceFieldCalculator> distanceFieldCalculatorTmp_; 
+    tmp<lentDistanceFieldCalculator> lentDistanceFieldCalculatorTmp_; 
 
     //// Front reconstructor.
     //tmp<frontReconstructor> frontReconstructorTmp_; 
@@ -111,6 +114,7 @@ public:
 
     // Member Functions
     
+        // Calculations
         void calcSignedDistanceFields(
             volScalarField& signedDistance, 
             pointScalarField& pointSignedDistance,
@@ -128,6 +132,13 @@ public:
             const volScalarField& signedDistance, 
             const pointScalarField& pointSignedDistance
         ) const; 
+
+
+        // Configurators 
+        void setHeavisideModel(word name); 
+
+        // Writer.
+        bool writeData(Ostream& os) const; 
 
     // Member Operators
 

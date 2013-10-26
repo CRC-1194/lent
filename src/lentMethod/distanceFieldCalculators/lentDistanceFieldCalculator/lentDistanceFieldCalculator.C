@@ -21,29 +21,66 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+
+Authors
+    Tomislav Maric
+    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
+    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+
 \*---------------------------------------------------------------------------*/
 
-#include "distanceFieldCalculator.H"
-
+#include "lentDistanceFieldCalculator.H"
 
 namespace Foam {
 namespace FrontTracking { 
 
-    defineTypeNameAndDebug(distanceFieldCalculator, 0);
+    defineTypeNameAndDebug(lentDistanceFieldCalculator, 0);
+    defineRunTimeSelectionTable(lentDistanceFieldCalculator, Dictionary);
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::distanceFieldCalculator::distanceFieldCalculator(const dictionary& config)
+lentDistanceFieldCalculator::lentDistanceFieldCalculator(const dictionary& config)
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 
+tmp<lentDistanceFieldCalculator>
+lentDistanceFieldCalculator::New(
+   const word& name,
+   const dictionary& configDict
+)
+{
+    if (debug)
+    {
+        Info<< "Selecting lentDistanceFieldCalculator" << name << endl;
+    }
+
+    // Find the constructor pointer for the model in the constructor table.
+    DictionaryConstructorTable::iterator cstrIter =
+        DictionaryConstructorTablePtr_->find(name);
+
+    // If the constructor pointer is not found in the table.
+    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    {
+        FatalErrorIn (
+            "lentDistanceFieldCalculator::New(const word& name)"
+        )   << "Unknown lentDistanceFieldCalculator type "
+            << name << nl << nl
+            << "Valid lentDistanceFieldCalculators are : " << endl
+            << DictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalError);
+    }
+
+    // Construct the model and return the autoPtr to the object. 
+    return tmp<lentDistanceFieldCalculator> (cstrIter()(configDict));
+}
+
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::distanceFieldCalculator::~distanceFieldCalculator()
+lentDistanceFieldCalculator::~lentDistanceFieldCalculator()
 {}
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //

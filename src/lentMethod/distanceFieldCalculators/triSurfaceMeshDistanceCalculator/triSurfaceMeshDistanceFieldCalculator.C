@@ -21,6 +21,7 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+
 Authors
     Tomislav Maric
     maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
@@ -28,59 +29,47 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#include "sharpHeavisideModel.H"
+#include "triSurfaceMeshDistanceFieldCalculator.H"
 #include "addToRunTimeSelectionTable.H"
-#include "volFields.H"
-#include "mathematicalConstants.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking { 
-    
-    defineTypeNameAndDebug(sharpHeavisideModel, 0); 
-    addToRunTimeSelectionTable(heavisideModel, sharpHeavisideModel, Empty);
+
+    defineTypeNameAndDebug(triSurfaceMeshDistanceFieldCalculator, 0);
+    addToRunTimeSelectionTable(triSurfaceMeshDistanceFieldCalculator, sharpHeavisideModel, Dictionary);
+
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-sharpHeavisideModel::sharpHeavisideModel()
+triSurfaceMeshDistanceFieldCalculator::triSurfaceMeshDistanceFieldCalculator(const dictionary& config)
+:
+    lentDistanceFieldCalculator(dict)
 {}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-sharpHeavisideModel::~sharpHeavisideModel()
+triSurfaceMeshDistanceFieldCalculator::~triSurfaceMeshDistanceFieldCalculator()
 {}
 
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void sharpHeavisideModel::calcHeavisideField(
-    volScalarField& heaviside, 
-    const volScalarField& signedDistance, 
-    const volScalarField& searchDistanceSqr 
-) const
+
+triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
+    volScalarField& signedDistance, 
+    const fvMesh& mesh, 
+    const triSurfaceFront& front
+)
 {
-    Info << "SHARP HEAVISIDE FIELD" << endl;
+}
 
-    forAll (heaviside, cellI)
-    {
-        scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
-
-        if (mag(signedDistance[cellI]) < searchDistance)
-        {
-            heaviside[cellI] = 0.5;
-        } 
-        else
-        {
-            if (signedDistance[cellI] > 0)
-            {
-                heaviside[cellI] = 1; 
-            }
-            if (signedDistance[cellI] < 0)
-            {
-                heaviside[cellI] = 0;
-            }
-        }
-    }
+triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
+    volScalarField& signedDistance, 
+    const fvMesh& mesh, 
+    const triSurfaceFront& front
+)
+{
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -93,5 +82,5 @@ void sharpHeavisideModel::calcHeavisideField(
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// ************************************************************************* //
 
+// ************************************************************************* //

@@ -56,6 +56,7 @@ namespace FrontTracking
 
 class triSurfaceFront
     :
+        public refCount, 
         public regIOobject, 
         public triSurface 
 {

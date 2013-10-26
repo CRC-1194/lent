@@ -29,6 +29,7 @@ Authors
 \*---------------------------------------------------------------------------*/
 
 #include "lentMethod.H"
+#include "error.H"
 
 namespace Foam  { 
 
@@ -59,6 +60,15 @@ lentMethod::lentMethod(
     word dictName 
 )
 :
+    regIOobject(
+        IOobject(
+            "lentMethod", 
+            mesh.time().timeName(), 
+            mesh.time(), 
+            IOobject::NO_READ, 
+            IOobject::NO_WRITE
+        )
+    ),
     lentControlDict_(
          IOobject(
             dictName, 
@@ -68,7 +78,11 @@ lentMethod::lentMethod(
             IOobject::AUTO_WRITE
          )
      ),
-     //distanceFieldCalculatorTmp_(),
+     lentDistanceFieldCalculatorTmp_(
+        lentDistanceFieldCalculator::New(
+            lentControlDict_.lookup("lentDistanceFieldCalculator"), 
+            lentControlDict_.subDict("distanceCalculator"))
+     ),
      //frontReconstructorTmp_(), 
      //frontVelocityCalculatorTmp_(), 
      //frontMotionSolver_(), 
@@ -80,8 +94,9 @@ lentMethod::lentMethod(
 
 lentMethod::lentMethod(const lentMethod& copy)
 : 
+    regIOobject(copy),
     lentControlDict_(copy.lentControlDict_),
-    //distanceFieldCalculatorTmp_(copy.distanceFieldCalculatorTmp_),
+    //lentDistanceFieldCalculatorTmp_(copy.lentDistanceFieldCalculatorTmp_),
     heavisideModelTmp_(copy.heavisideModelTmp_)
 {}
 
@@ -99,8 +114,9 @@ void lentMethod::calcSignedDistanceFields(
 ) const
 {
     // Update points-front distance field.
-    //distanceFieldCalculatorTmp_->calcPointDistanceField(); 
+    //lentDistanceFieldCalculatorTmp_->calcPointsToFrontDistanceField(); 
     // Update cells-front distance field.  
+    //lentDistanceFieldCalculatorTmp_->cellsToFrontDistanceField(); 
 }
 
 void lentMethod::calcHeavisideField(
@@ -124,6 +140,20 @@ void lentMethod::reconstructFront(
 ) const
 {}
 
+void lentMethod::setHeavisideModel(word name) 
+{
+    heavisideModelTmp_ = heavisideModel::New(name); 
+}
+
+bool lentMethod::writeData(Ostream& os) const
+{
+    FatalErrorIn("lentMethod::writeData(Ostream& os)")
+    << "lentMethod is not supposed to be written "
+    << "regIOobject inherited to allow registry queries." << endl;
+
+    return false; 
+}
+
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
 
 void lentMethod::operator=(const lentMethod& rhs)
@@ -136,7 +166,7 @@ void lentMethod::operator=(const lentMethod& rhs)
             << abort(FatalError);
     }
 
-    //distanceFieldCalculatorTmp_ = rhs.distanceFieldCalculatorTmp_; 
+    lentDistanceFieldCalculatorTmp_ = rhs.lentDistanceFieldCalculatorTmp_; 
     heavisideModelTmp_ = rhs.heavisideModelTmp_; 
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

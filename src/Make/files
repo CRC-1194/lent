@@ -7,6 +7,9 @@ lentMethod/heavisideModels/heavisideModel/heavisideModel.C
 lentMethod/heavisideModels/harmonicHeavisideModel/harmonicHeavisideModel.C
 lentMethod/heavisideModels/sharpHeavisideModel/sharpHeavisideModel.C
 
+lentMethod/distanceFieldCalculators/lentDistanceFieldCalculator/lentDistanceFieldCalculator.C
+/*lentMethod/distanceFieldCalculators/triSurfaceMeshDistanceCalculator/triSurfaceMeshDistanceFieldCalculator.C*/
+
 lentMethod/lentMethod/lentMethod.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent

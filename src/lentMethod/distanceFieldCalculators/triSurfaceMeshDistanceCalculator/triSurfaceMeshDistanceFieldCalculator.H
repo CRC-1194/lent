@@ -22,17 +22,15 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::distanceFieldCalculator
+    Foam::triSurfaceMeshDistanceFieldCalculator
 
 Description
+    Computes signed distance fields between the volume mesh and the immersed
+    surface mesh using octree searches implemented in the triSurfaceMesh class.
 
-    Interface class for the distance field calculator. 
-
-    Provides the interface for calculating the signed distance field between
-    a volume mesh and an immersed surface mesh.
 
 SourceFiles
-    distanceFieldCalculator.H
+    triSurfaceMeshDistanceFieldCalculator.H
 
 Authors
     Tomislav Maric
@@ -41,11 +39,14 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef distanceFieldCalculator_H
-#define distanceFieldCalculator_H
+#ifndef triSurfaceMeshDistanceFieldCalculator_H
+#define triSurfaceMeshDistanceFieldCalculator_H
 
 #include "typeInfo.H"
 #include "refCount.H"
+
+#include "triSurfaceFront.H"
+#include "fvMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -54,33 +55,39 @@ namespace FrontTracking {
 
 
 /*---------------------------------------------------------------------------*\
-                         Class distanceFieldCalculator Declaration
+                         Class triSurfaceMeshDistanceFieldCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class distanceFieldCalculator
+class triSurfaceMeshDistanceFieldCalculator
     :
         public refCount
 {
 
 public:
 
-    TypeName("distanceFieldCalculator"); 
+    TypeName("triSurfaceMeshDistanceFieldCalculator"); 
      
     // Constructors
+    
+        triSurfaceMeshDistanceFieldCalculator(const dictionary& config);
 
-        //- Construct from components
-        distanceFieldCalculator(const dictionary& config);
-
-    //- Destructor
-    virtual ~distanceFieldCalculator();
+    // Destructor
+    
+        virtual ~triSurfaceMeshDistanceFieldCalculator();
 
     // Member Functions
 
-        virtual void calcCellsToFrontDistance(
+        void calcCellsToFrontDistance(
             volScalarField& signedDistance, 
-            const polyMesh& mesh, 
+            const fvMesh& mesh, 
             const triSurfaceFront& front
-        ) = 0;
+        );
+
+        virtual void calcPointsToFrontDistance(
+            volScalarField& signedDistance, 
+            const fvMesh& mesh, 
+            const triSurfaceFront& front
+        );
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
