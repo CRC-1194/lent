@@ -68,8 +68,11 @@ lentMethod::lentMethod(const triSurfaceFront& front, const fvMesh& mesh)
      //frontReconstructorTmp_(), 
      //frontVelocityCalculatorTmp_(), 
      //frontMotionSolver_(), 
-     heavisideModelTmp_()
-{}
+     heavisideModelTmp_(
+         heavisideModel::New(lentControlDict_.lookup("heavisideModel"))
+     ) 
+{
+}
 
 lentMethod::lentMethod(const lentMethod& copy)
 : 

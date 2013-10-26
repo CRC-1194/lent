@@ -40,7 +40,7 @@ heavisideModel::heavisideModel()
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
-autoPtr<heavisideModel>
+tmp<heavisideModel>
 heavisideModel::New(const word& name)
 {
     if (debug)
@@ -56,7 +56,7 @@ heavisideModel::New(const word& name)
     if (cstrIter == EmptyConstructorTablePtr_->end())
     {
         FatalErrorIn (
-            "heavisideModel::New(const dictionary&)"
+            "heavisideModel::New(const word& name)"
         )   << "Unknown heavisideModel type "
             << name << nl << nl
             << "Valid heavisideModels are : " << endl
@@ -65,8 +65,7 @@ heavisideModel::New(const word& name)
     }
 
     // Construct the model and return the autoPtr to the object. 
-    return autoPtr<heavisideModel>
-            (cstrIter()(name));
+    return tmp<heavisideModel> (cstrIter()(name));
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //

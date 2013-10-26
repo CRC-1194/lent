@@ -63,7 +63,7 @@ class harmonicHeavisideModel
 
 public:
 
-    TypeName ("harmonicHeaviside"); 
+    TypeName ("harmonic"); 
 
     // Constructors
 
@@ -77,7 +77,7 @@ public:
         virtual void calcHeavisideField(
             volScalarField& heaviside, 
             const volScalarField& signedDistance,
-            const volScalarField& narrowBandWidthSqr
+            const volScalarField& searchDistanceSqr
         ) const;  
 };
 

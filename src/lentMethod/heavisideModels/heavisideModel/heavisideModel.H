@@ -43,6 +43,7 @@ Authors
 
 #include "typeInfo.H"
 #include "autoPtr.H"
+#include "tmp.H"
 #include "refCount.H"
 #include "volFieldsFwd.H"
 
@@ -65,7 +66,7 @@ public:
     TypeName ("heavisideModel"); 
 
     declareRunTimeSelectionTable (
-        autoPtr,  
+        tmp,  
         heavisideModel,  
         Empty,  
         (
@@ -81,7 +82,7 @@ public:
     // Selectors
 
         //- Select null constructed
-        static autoPtr<heavisideModel> New(const word& name);
+        static tmp<heavisideModel> New(const word& name);
 
     //- Destructor
         virtual ~heavisideModel();

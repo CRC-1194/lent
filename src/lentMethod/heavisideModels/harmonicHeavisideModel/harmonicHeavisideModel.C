@@ -44,7 +44,10 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 harmonicHeavisideModel::harmonicHeavisideModel()
-{}
+{
+
+    Info << "HARMONIC HEAVISIDE MODEL SELECTED" << endl;
+}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
@@ -56,20 +59,22 @@ harmonicHeavisideModel::~harmonicHeavisideModel()
 void harmonicHeavisideModel::calcHeavisideField(
     volScalarField& heaviside, 
     const volScalarField& signedDistance, 
-    const volScalarField& narrowBandWidthSqr 
+    const volScalarField& searchDistanceSqr 
 ) const
 {
+    Info << "CALC HEAVISIDE FIELD" << endl;
+
     scalar pi = constant::mathematical::pi; 
 
     forAll (heaviside, cellI)
     {
-        scalar narrowBandWidth = sqrt(narrowBandWidthSqr[cellI]);
+        scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
 
-        if (mag(signedDistance[cellI]) < narrowBandWidth)
+        if (mag(signedDistance[cellI]) < searchDistance)
         {
             heaviside[cellI] = 0.5 * (
-                1 + signedDistance[cellI] / narrowBandWidth + 1/pi * 
-                sin((pi * signedDistance[cellI]) / narrowBandWidth)
+                1 + signedDistance[cellI] / searchDistance + 1/pi * 
+                sin((pi * signedDistance[cellI]) / searchDistance)
             );
         } 
         else

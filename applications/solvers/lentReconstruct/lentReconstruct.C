@@ -78,8 +78,9 @@ int main(int argc, char *argv[])
         )
     );
 
-    //autoPtr<heavisideFunction> heavisideModelPtr = 
-        //heavisideFunction::New("leftAlgorithmHeaviside"); 
+
+    //tmp<heavisideModel> heavisideModelPtr (new harmonicHeavisideModel()); 
+        //heavisideModel::New<tmp>("harmonic");
 
     //IOdictionary levelSetFrontDict
     //(
@@ -121,73 +122,72 @@ int main(int argc, char *argv[])
         //naiveNarrowBandPropagation()
     //); 
 
-    //heavisideModelPtr->calcHeaviside(
+    //heavisideModelPtr->calcHeavisideField(
         //heaviside, 
         //signedDistance, 
-        //calc.getCellSearchDistSqr()
+        //searchDistanceSqr
     //); 
-    
+
     lent.calcHeavisideField(
         heaviside,
         signedDistance,
         searchDistanceSqr
     ); 
 
-    heaviside.write(); 
+    //heaviside.write(); 
 
-    while (runTime.run()) {
-        runTime++;
+    //while (runTime.run()) {
+        //runTime++;
 
-        Info<< "Time = " << runTime.timeName() << nl << endl;
+        //Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        //Reconstruct the front: 
-        //front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
+        ////Reconstruct the front: 
+        ////front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
         
-        lent.reconstructFront(front, signedDistance, pointSignedDistance); //signedDistance, pointSignedDistance, false, 1e-10); 
+        //lent.reconstructFront(front, signedDistance, pointSignedDistance); //signedDistance, pointSignedDistance, false, 1e-10); 
 
-        twoPhaseProperties.correct();
+        //twoPhaseProperties.correct();
 
-        // Compute the new signed distance field with the surfaceMesh octree
-        // search.  
-        //calc.calcCentresToElementsDistance(
-            //signedDistance, 
-            //front,
-            //naiveNarrowBandPropagation()
-        //); 
+        //// Compute the new signed distance field with the surfaceMesh octree
+        //// search.  
+        ////calc.calcCentresToElementsDistance(
+            ////signedDistance, 
+            ////front,
+            ////naiveNarrowBandPropagation()
+        ////); 
 
-        // Compute the new signed point distance field. 
-        //calc.calcPointsToElementsDistance(
-            //pointSignedDistance, 
-            //front,
-            //mesh, 
-            //naiveNarrowBandPropagation()
-        //); 
+        //// Compute the new signed point distance field. 
+        ////calc.calcPointsToElementsDistance(
+            ////pointSignedDistance, 
+            ////front,
+            ////mesh, 
+            ////naiveNarrowBandPropagation()
+        ////); 
 
-
-        //heavisideModelPtr->calcHeaviside(
+        //heavisideModelPtr->calcHeavisideField(
             //heaviside, 
             //signedDistance, 
-            //calc.getCellSearchDistSqr()
+            //searchDistanceSqr 
         //); 
 
-        lent.calcSignedDistanceFields(
-            signedDistance, 
-            pointSignedDistance,
-            searchDistanceSqr
-        ); 
+        //lent.calcSignedDistanceFields(
+            //signedDistance, 
+            //pointSignedDistance,
+            //searchDistanceSqr
+        //); 
 
-        lent.calcHeavisideField(
-            heaviside, 
-            signedDistance, 
-            searchDistanceSqr
-        ); 
+        //lent.calcHeavisideField(
+            //heaviside, 
+            //signedDistance, 
+            //searchDistanceSqr
+        //); 
 
-        runTime.write();
+        //runTime.write();
 
-        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            << nl << endl;
-    }
+        //Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            //<< "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            //<< nl << endl;
+    //}
 
     Info<< "End\n" << endl;
 
