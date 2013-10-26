@@ -3,13 +3,13 @@ fronts/triSurfaceFront/triSurfaceFrontFields/triSurfaceFrontFields.C
 narrowBandPropagation/naiveNarrowBandPropagation/naiveNarrowBandPropagation.C
 
 
-lentMethod/heavisideModels/heavisideModel/heavisideModel.C
-lentMethod/heavisideModels/harmonicHeavisideModel/harmonicHeavisideModel.C
-lentMethod/heavisideModels/sharpHeavisideModel/sharpHeavisideModel.C
+heavisideModels/heavisideModel/heavisideModel.C
+heavisideModels/harmonicHeavisideModel/harmonicHeavisideModel.C
+heavisideModels/sharpHeavisideModel/sharpHeavisideModel.C
 
-lentMethod/distanceFieldCalculators/lentDistanceFieldCalculator/lentDistanceFieldCalculator.C
+distanceFieldCalculators/lentDistanceFieldCalculator/lentDistanceFieldCalculator.C
 /*lentMethod/distanceFieldCalculators/triSurfaceMeshDistanceCalculator/triSurfaceMeshDistanceFieldCalculator.C*/
 
-lentMethod/lentMethod/lentMethod.C
+lentMethod/lentMethod.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent
