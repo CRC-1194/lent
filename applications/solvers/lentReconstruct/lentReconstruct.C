@@ -80,99 +80,74 @@ int main(int argc, char *argv[])
 
     lentMethod lent(front, mesh); 
 
-    lentMethod lent2(front, mesh, "lentSolutionSharp");
+    lent.calcSearchDistances(
+        searchDistanceSqr, 
+        pointSearchDistanceSqr
+    );
 
-    lent2.calcSignedDistanceFields(
+    lent.calcSignedDistances(
         signedDistance, 
-        pointSignedDistance,
-        searchDistanceSqr
-    ); 
-
-    lent.calcSignedDistanceFields(
-        signedDistance, 
-        pointSignedDistance,
-        searchDistanceSqr
-    ); 
-
-    //calc.calcCentresToElementsDistance(
-        //signedDistance, 
-        //front,
-        //naiveNarrowBandPropagation()
-    //); 
-
-    //calc.calcPointsToElementsDistance(
-        //pointSignedDistance, 
-        //front,
-        //mesh, 
-        //naiveNarrowBandPropagation()
-    //); 
-    
-    lent2.calcHeavisideField(
-        heaviside,
-        signedDistance,
-        searchDistanceSqr
+        pointSignedDistance
     ); 
     
-    lent.calcHeavisideField(
-        heaviside,
-        signedDistance,
-        searchDistanceSqr
-    ); 
+    //lent.calcHeaviside(
+        //heaviside,
+        //signedDistance
+    //); 
 
     heaviside.write(); 
 
-    while (runTime.run()) {
-        runTime++;
+    //while (runTime.run()) {
+        //runTime++;
 
-        Info<< "Time = " << runTime.timeName() << nl << endl;
+        //Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        //Reconstruct the front: 
-        //front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
+        ////Reconstruct the front: 
+        ////front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
         
-        //lent.reconstructFront(front, signedDistance, pointSignedDistance); //signedDistance, pointSignedDistance, false, 1e-10); 
+        ////lent.reconstructFront(front, signedDistance, pointSignedDistance); //signedDistance, pointSignedDistance, false, 1e-10); 
 
-        twoPhaseProperties.correct();
+        //twoPhaseProperties.correct();
 
-        // Compute the new signed distance field with the surfaceMesh octree
-        // search.  
-        //calc.calcCentresToElementsDistance(
-            //signedDistance, 
-            //front,
-            //naiveNarrowBandPropagation()
+        //// Compute the new signed distance field with the surfaceMesh octree
+        //// search.  
+        ////calc.calcCentresToElementsDistance(
+            ////signedDistance, 
+            ////front,
+            ////naiveNarrowBandPropagation()
+        ////); 
+
+        //// Compute the new signed point distance field. 
+        ////calc.calcPointsToElementsDistance(
+            ////pointSignedDistance, 
+            ////front,
+            ////mesh, 
+            ////naiveNarrowBandPropagation()
+        ////); 
+
+        //lent.calcSignedDistanceFields(
+            ////signedDistance, 
+            ////pointSignedDistance,
+            ////searchDistanceSqr
         //); 
 
-        // Compute the new signed point distance field. 
-        //calc.calcPointsToElementsDistance(
-            //pointSignedDistance, 
-            //front,
-            //mesh, 
-            //naiveNarrowBandPropagation()
+        //lent.calcHeavisideField(
+            ////heaviside, 
+            ////signedDistance, 
+            ////searchDistanceSqr
         //); 
 
-        lent.calcSignedDistanceFields(
-            signedDistance, 
-            pointSignedDistance,
-            searchDistanceSqr
-        ); 
+        //lent2.calcHeavisideField(
+            //heaviside, 
+            //signedDistance
+        //); 
 
-        lent.calcHeavisideField(
-            heaviside, 
-            signedDistance, 
-            searchDistanceSqr
-        ); 
+        //runTime.write();
 
-        lent2.calcHeavisideField(
-            heaviside, 
-            signedDistance, 
-            searchDistanceSqr
-        ); 
-
-        runTime.write();
-
-        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            << nl << endl;
-    }
+        //Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            //<< "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            //<< nl << endl;
+    //}
 
     Info<< "End\n" << endl;
 

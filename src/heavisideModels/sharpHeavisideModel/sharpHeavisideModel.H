@@ -67,17 +67,16 @@ public:
 
     // Constructors
 
-        sharpHeavisideModel();
+        sharpHeavisideModel(const dictionary& configDict);
 
     //- Destructor
     virtual ~sharpHeavisideModel();
 
     // Member Functions
     
-        virtual void calcHeavisideField(
+        virtual void calcHeaviside(
             volScalarField& heaviside, 
-            const volScalarField& signedDistance,
-            const volScalarField& searchDistanceSqr
+            const volScalarField& signedDistance
         ) const;  
 };
 

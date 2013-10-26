@@ -70,6 +70,9 @@ class lentMethod
 :
     public regIOobject
 {
+    // Front.
+    tmp<triSurfaceFront> frontTmp_; 
+
     // Lent method configuration dictionary.
     IOdictionary lentControlDict_;  
 
@@ -115,27 +118,29 @@ public:
     // Member Functions
     
         // Calculations
-        void calcSignedDistanceFields(
-            volScalarField& signedDistance, 
-            pointScalarField& pointSignedDistance,
-            const volScalarField& searchDistSqr
-        ) const;
+        void calcSearchDistances(
+            volScalarField& searchDistanceSqr, 
+            pointScalarField& pointSearchDistanceSqr
+        ); 
 
-        void calcHeavisideField(
+        void calcSignedDistances(
+            volScalarField& signedDistance, 
+            pointScalarField& pointSignedDistance
+        );
+
+        void calcHeaviside(
             volScalarField& heaviside,
-            const volScalarField& signedDistance,
-            const volScalarField& searchDistanceSqr
+            const volScalarField& signedDistance
         ) const; 
 
         void reconstructFront(
             triSurfaceFront& front,
-            const volScalarField& signedDistance, 
-            const pointScalarField& pointSignedDistance
+            const volScalarField& signedDistance
         ) const; 
 
 
         // Configurators 
-        void setHeavisideModel(word name); 
+        //void setHeavisideModel(word name); 
 
         // Writer.
         bool writeData(Ostream& os) const; 

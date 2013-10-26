@@ -83,11 +83,21 @@ lentDistanceFieldCalculator::New(
 lentDistanceFieldCalculator::~lentDistanceFieldCalculator()
 {}
 
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+void lentDistanceFieldCalculator::calcSearchDistances(
+    volScalarField& searchDistanceSqr, 
+    pointScalarField& pointSearchDistanceSqr, 
+    const triSurfaceFront& front
+) 
+{
+    calcCellSearchDistance(searchDistanceSqr, front); 
+    calcPointSearchDistance(pointSearchDistanceSqr, front); 
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

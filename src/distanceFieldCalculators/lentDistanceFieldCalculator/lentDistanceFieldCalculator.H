@@ -65,7 +65,6 @@ class lentDistanceFieldCalculator
     :
         public refCount
 {
-
 public:
 
     TypeName("lentDistanceFieldCalculator"); 
@@ -97,15 +96,31 @@ public:
 
     // Member Functions
 
+        virtual void calcCellSearchDistance(
+            volScalarField& searchDistanceSqr, 
+            const triSurfaceFront& front
+        ) = 0; 
+
+        virtual void calcPointSearchDistance(
+            pointScalarField& pointSearchDistanceSqr, 
+            const triSurfaceFront& front
+        ) = 0; 
+
+        void calcSearchDistances(
+            volScalarField& searchDistanceSqr, 
+            pointScalarField& pointSearchDistanceSqr, 
+            const triSurfaceFront& front
+        ) ;
+
         virtual void calcCellsToFrontDistance(
             volScalarField& signedDistance, 
-            const fvMesh& mesh, 
+            const volScalarField& searchDistanceSqr, 
             const triSurfaceFront& front
         ) = 0;
 
         virtual void calcPointsToFrontDistance(
             pointScalarField& pointSignedDistance, 
-            const fvMesh& mesh, 
+            const pointScalarField& pointSearchDistanceSqr, 
             const triSurfaceFront& front
         ) = 0;
 };

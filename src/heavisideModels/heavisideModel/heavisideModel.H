@@ -68,30 +68,29 @@ public:
     declareRunTimeSelectionTable (
         tmp,  
         heavisideModel,  
-        Empty,  
+        Dictionary,  
         (
-            const word& name
+            const dictionary& configDict 
         ),
-        () 
+        (configDict) 
     );
 
     // Constructors
 
-        heavisideModel();
+        heavisideModel(const dictionary& configDict);
 
     // Selectors
 
-        static tmp<heavisideModel> New(const word& name);
+        static tmp<heavisideModel> New(const word& name, const dictionary& configDict);
 
     // Destructor
         virtual ~heavisideModel();
 
     // Member Functions
         
-        virtual void calcHeavisideField(
+        virtual void calcHeaviside(
             volScalarField& heaviside, 
-            const volScalarField& signedDistance, 
-            const volScalarField& narrowBandWidthSqr 
+            const volScalarField& signedDistance
         ) const = 0;  
 
         bool distanceWithinNarrowBand(scalar distance, scalar narrowBandWidth) const; 

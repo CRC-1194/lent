@@ -69,6 +69,7 @@ lentMethod::lentMethod(
             IOobject::NO_WRITE
         )
     ),
+    frontTmp_(front), 
     lentControlDict_(
          IOobject(
             dictName, 
@@ -87,7 +88,10 @@ lentMethod::lentMethod(
      //frontVelocityCalculatorTmp_(), 
      //frontMotionSolver_(), 
      heavisideModelTmp_(
-         heavisideModel::New(lentControlDict_.lookup("heavisideModel"))
+         heavisideModel::New(
+            lentControlDict_.lookup("heavisideModel"), 
+            lentControlDict_.subDict("heavisideModel")
+         )
      ) 
 {
 }
@@ -107,11 +111,24 @@ lentMethod::~lentMethod()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void lentMethod::calcSignedDistanceFields(
+void lentMethod::calcSearchDistances(
+    volScalarField& searchDistanceSqr, 
+    pointScalarField& pointSearchDistanceSqr
+) 
+{
+    lentDistanceFieldCalculator& distanceCalc = lentDistanceFieldCalculatorTmp_(); 
+
+    distanceCalc.calcSearchDistances(
+        searchDistanceSqr, 
+        pointSearchDistanceSqr, 
+        frontTmp_()
+    );
+}
+
+void lentMethod::calcSignedDistances(
     volScalarField& signedDistance, 
-    pointScalarField& pointSignedDistance,
-    const volScalarField& searchDistSqr
-) const
+    pointScalarField& pointSignedDistance
+) 
 {
     // Update points-front distance field.
     //lentDistanceFieldCalculatorTmp_->calcPointsToFrontDistanceField(); 
@@ -119,31 +136,27 @@ void lentMethod::calcSignedDistanceFields(
     //lentDistanceFieldCalculatorTmp_->cellsToFrontDistanceField(); 
 }
 
-void lentMethod::calcHeavisideField(
+void lentMethod::calcHeaviside(
    volScalarField& heaviside,
-   const volScalarField& signedDistance,
-   const volScalarField& searchDistanceSqr
+   const volScalarField& signedDistance
 ) const
 {
-    heavisideModelTmp_->calcHeavisideField(
+    heavisideModelTmp_->calcHeaviside(
         heaviside, 
-        signedDistance, 
-        searchDistanceSqr
+        signedDistance
     ); 
 }
 
-
 void lentMethod::reconstructFront(
     triSurfaceFront& front, 
-    const volScalarField& signedDistance, 
-    const pointScalarField& pointSignedDistance
+    const volScalarField& signedDistance
 ) const
 {}
 
-void lentMethod::setHeavisideModel(word name) 
-{
-    heavisideModelTmp_ = heavisideModel::New(name); 
-}
+//void lentMethod::setHeavisideModel(word name) 
+//{
+    //heavisideModelTmp_ = heavisideModel::New(name); 
+//}
 
 bool lentMethod::writeData(Ostream& os) const
 {

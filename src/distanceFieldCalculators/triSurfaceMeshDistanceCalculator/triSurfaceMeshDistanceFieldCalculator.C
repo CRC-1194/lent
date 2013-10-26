@@ -50,7 +50,9 @@ namespace FrontTracking {
 triSurfaceMeshDistanceFieldCalculator::triSurfaceMeshDistanceFieldCalculator(const dictionary& config)
 :
     lentDistanceFieldCalculator(config)
-{}
+{
+
+}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
@@ -60,9 +62,23 @@ triSurfaceMeshDistanceFieldCalculator::~triSurfaceMeshDistanceFieldCalculator()
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 
+void triSurfaceMeshDistanceFieldCalculator::calcCellSearchDistance(
+    volScalarField& searchDistanceSqr, 
+    const triSurfaceFront& front
+)
+{
+}
+
+void triSurfaceMeshDistanceFieldCalculator::calcPointSearchDistance(
+    pointScalarField& searchDistanceSqr, 
+    const triSurfaceFront& front
+)
+{
+}
+
 void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
     volScalarField& signedDistance, 
-    const fvMesh& mesh, 
+    const volScalarField& searchDistanceSqr, 
     const triSurfaceFront& front
 )
 {
@@ -70,7 +86,7 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
 
 void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
     pointScalarField& pointSignedDistance, 
-    const fvMesh& mesh, 
+    const pointScalarField& searchDistanceSqr, 
     const triSurfaceFront& front
 )
 {

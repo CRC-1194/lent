@@ -52,11 +52,10 @@
             IOobject::NO_WRITE
         ),
         mesh, 
-        dimensionedScalar
-        (
-            "GREAT", 
-            dimLength, 
-            GREAT 
+        dimensionedScalar(
+            "zero",
+            dimLength,
+            0
         )
     );
 
@@ -75,6 +74,24 @@
             IOobject::AUTO_WRITE
         ),
         pmesh
+    );
+
+    pointScalarField pointSearchDistanceSqr
+    (
+        IOobject
+        (
+            "pointSearchDistanceSqr", 
+            runTime.timeName(), 
+            mesh, 
+            IOobject::NO_READ, 
+            IOobject::NO_WRITE
+        ),
+        pmesh,
+        dimensionedScalar(
+            "zero",
+            dimLength,
+            0
+        )
     );
 
     Info << "Reading the cell-centered Heaviside field heaviside\n" << endl;

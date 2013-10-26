@@ -31,17 +31,17 @@ namespace Foam {
 namespace FrontTracking { 
 
     defineTypeNameAndDebug(heavisideModel, 0); 
-    defineRunTimeSelectionTable(heavisideModel, Empty);
+    defineRunTimeSelectionTable(heavisideModel, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-heavisideModel::heavisideModel()
+heavisideModel::heavisideModel(const dictionary& configDict)
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 tmp<heavisideModel>
-heavisideModel::New(const word& name)
+heavisideModel::New(const word& name, const dictionary& configDict)
 {
     if (debug)
     {
@@ -49,23 +49,23 @@ heavisideModel::New(const word& name)
     }
 
     // Find the constructor pointer for the model in the constructor table.
-    EmptyConstructorTable::iterator cstrIter =
-        EmptyConstructorTablePtr_->find(name);
+    DictionaryConstructorTable::iterator cstrIter =
+        DictionaryConstructorTablePtr_->find(name);
 
     // If the constructor pointer is not found in the table.
-    if (cstrIter == EmptyConstructorTablePtr_->end())
+    if (cstrIter == DictionaryConstructorTablePtr_->end())
     {
         FatalErrorIn (
             "heavisideModel::New(const word& name)"
         )   << "Unknown heavisideModel type "
             << name << nl << nl
             << "Valid heavisideModels are : " << endl
-            << EmptyConstructorTablePtr_->sortedToc()
+            << DictionaryConstructorTablePtr_->sortedToc()
             << exit(FatalError);
     }
 
     // Construct the model and return the autoPtr to the object. 
-    return tmp<heavisideModel> (cstrIter()(name));
+    return tmp<heavisideModel> (cstrIter()(configDict));
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //

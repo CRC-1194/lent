@@ -39,11 +39,13 @@ namespace Foam {
 namespace FrontTracking { 
     
     defineTypeNameAndDebug(sharpHeavisideModel, 0); 
-    addToRunTimeSelectionTable(heavisideModel, sharpHeavisideModel, Empty);
+    addToRunTimeSelectionTable(heavisideModel, sharpHeavisideModel, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-sharpHeavisideModel::sharpHeavisideModel()
+sharpHeavisideModel::sharpHeavisideModel(const dictionary& configDict)
+:
+    heavisideModel(configDict)
 {}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -53,34 +55,35 @@ sharpHeavisideModel::~sharpHeavisideModel()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void sharpHeavisideModel::calcHeavisideField(
+void sharpHeavisideModel::calcHeaviside(
     volScalarField& heaviside, 
-    const volScalarField& signedDistance, 
-    const volScalarField& searchDistanceSqr 
+    const volScalarField& signedDistance
 ) const
 {
     Info << "SHARP HEAVISIDE FIELD" << endl;
 
-    forAll (heaviside, cellI)
-    {
-        scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
+    // Get the searchDistanceSqr from the registry.  
 
-        if (mag(signedDistance[cellI]) < searchDistance)
-        {
-            heaviside[cellI] = 0.5;
-        } 
-        else
-        {
-            if (signedDistance[cellI] > 0)
-            {
-                heaviside[cellI] = 1; 
-            }
-            if (signedDistance[cellI] < 0)
-            {
-                heaviside[cellI] = 0;
-            }
-        }
-    }
+    //forAll (heaviside, cellI)
+    //{
+        //scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
+
+        //if (mag(signedDistance[cellI]) < searchDistance)
+        //{
+            //heaviside[cellI] = 0.5;
+        //} 
+        //else
+        //{
+            //if (signedDistance[cellI] > 0)
+            //{
+                //heaviside[cellI] = 1; 
+            //}
+            //if (signedDistance[cellI] < 0)
+            //{
+                //heaviside[cellI] = 0;
+            //}
+        //}
+    //}
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

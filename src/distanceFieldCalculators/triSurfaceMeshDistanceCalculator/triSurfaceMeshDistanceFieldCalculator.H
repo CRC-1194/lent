@@ -75,16 +75,25 @@ public:
         virtual ~triSurfaceMeshDistanceFieldCalculator();
 
     // Member Functions
+        void calcCellSearchDistance(
+            volScalarField& searchDistanceSqr, 
+            const triSurfaceFront& front
+        ); 
+
+        void calcPointSearchDistance(
+            pointScalarField& pointSearchDistanceSqr, 
+            const triSurfaceFront& front
+        );
 
         void calcCellsToFrontDistance(
             volScalarField& signedDistance, 
-            const fvMesh& mesh, 
+            const volScalarField& searchDistanceSqr,
             const triSurfaceFront& front
         );
 
         virtual void calcPointsToFrontDistance(
             pointScalarField& pointSignedDistance, 
-            const fvMesh& mesh, 
+            const pointScalarField& searchDistanceSqr, 
             const triSurfaceFront& front
         );
 };
