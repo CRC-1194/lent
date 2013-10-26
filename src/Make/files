@@ -10,6 +10,6 @@ heavisideModels/sharpHeavisideModel/sharpHeavisideModel.C
 distanceFieldCalculators/lentDistanceFieldCalculator/lentDistanceFieldCalculator.C
 distanceFieldCalculators/triSurfaceMeshDistanceCalculator/triSurfaceMeshDistanceFieldCalculator.C
 
-/*lentMethod/lentMethod.C*/
+lentMethod/lentMethod.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent

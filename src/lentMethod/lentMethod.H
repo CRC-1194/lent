@@ -79,7 +79,7 @@ class lentMethod
     // Field calculator
     tmp<lentDistanceFieldCalculator> lentDistanceFieldCalculatorTmp_; 
 
-    //// Front reconstructor.
+    // Front reconstructor.
     //tmp<frontReconstructor> frontReconstructorTmp_; 
 
     //// Velocity calculator. 

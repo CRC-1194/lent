@@ -118,8 +118,8 @@ void lentMethod::calcSearchDistances(
 {
     lentDistanceFieldCalculator& distanceCalc = lentDistanceFieldCalculatorTmp_(); 
 
-    distanceCalc.calcCellSearchDistance(searchDistancePtr); 
-    distanceCalc.calcPointSearchDistance(searchDistancePtr, pointSearchDistanceSqr); 
+    distanceCalc.calcCellSearchDistance(searchDistanceSqr); 
+    distanceCalc.calcPointSearchDistance(pointSearchDistanceSqr, searchDistanceSqr); 
 }
 
 void lentMethod::calcSignedDistances(
