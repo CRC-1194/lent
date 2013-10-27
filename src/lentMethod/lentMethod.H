@@ -70,9 +70,6 @@ class lentMethod
 :
     public regIOobject
 {
-    // Front.
-    //tmp<triSurfaceFront> frontTmp_; 
-
     // Triangles-cells map.
     DynamicList<label> meshCells_; 
 
@@ -128,7 +125,10 @@ public:
 
         void calcSignedDistances(
             volScalarField& signedDistance, 
-            pointScalarField& pointSignedDistance
+            pointScalarField& pointSignedDistance,
+            const volScalarField& searchDistanceSqr, 
+            const pointScalarField& pointSearchDistanceSqr,
+            const triSurfaceFront& front
         );
 
         void calcHeaviside(
@@ -140,7 +140,7 @@ public:
             triSurfaceFront& front,
             const volScalarField& signedDistance,
             const pointScalarField& pointSignedDistance
-        ) const; 
+        ); 
 
         // Writer.
         bool writeData(Ostream& os) const; 

@@ -80,74 +80,45 @@ int main(int argc, char *argv[])
 
     lentMethod lent(front, mesh); 
 
-    lent.calcSearchDistances(
-        searchDistanceSqr, 
-        pointSearchDistanceSqr
-    );
+    lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
-    //lent.calcSignedDistances(
-        //signedDistance, 
-        //pointSignedDistance
-    //); 
+    lent.calcSignedDistances(
+        signedDistance, 
+        pointSignedDistance, 
+        searchDistanceSqr, 
+        pointSearchDistanceSqr,
+        front
+    ); 
     
-    //lent.calcHeaviside(
-        //heaviside,
-        //signedDistance
-    //); 
+    lent.calcHeaviside(heaviside, signedDistance); 
 
     heaviside.write(); 
 
-    //while (runTime.run()) {
-        //runTime++;
+    while (runTime.run()) {
+        runTime++;
 
-        //Info<< "Time = " << runTime.timeName() << nl << endl;
+        Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        ////Reconstruct the front: 
-        ////front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
-        
-        ////lent.reconstructFront(front, signedDistance, pointSignedDistance); //signedDistance, pointSignedDistance, false, 1e-10); 
+        lent.reconstructFront(front, signedDistance, pointSignedDistance); 
 
-        //twoPhaseProperties.correct();
+        twoPhaseProperties.correct();
 
-        //// Compute the new signed distance field with the surfaceMesh octree
-        //// search.  
-        ////calc.calcCentresToElementsDistance(
-            ////signedDistance, 
-            ////front,
-            ////naiveNarrowBandPropagation()
-        ////); 
+        lent.calcSignedDistances(
+            signedDistance, 
+            pointSignedDistance,
+            searchDistanceSqr,
+            pointSearchDistanceSqr, 
+            front
+        ); 
 
-        //// Compute the new signed point distance field. 
-        ////calc.calcPointsToElementsDistance(
-            ////pointSignedDistance, 
-            ////front,
-            ////mesh, 
-            ////naiveNarrowBandPropagation()
-        ////); 
+        lent.calcHeaviside(heaviside, signedDistance); 
 
-        //lent.calcSignedDistanceFields(
-            ////signedDistance, 
-            ////pointSignedDistance,
-            ////searchDistanceSqr
-        //); 
+        runTime.write();
 
-        //lent.calcHeavisideField(
-            ////heaviside, 
-            ////signedDistance, 
-            ////searchDistanceSqr
-        //); 
-
-        //lent2.calcHeavisideField(
-            //heaviside, 
-            //signedDistance
-        //); 
-
-        //runTime.write();
-
-        //Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            //<< "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            //<< nl << endl;
-    //}
+        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
+    }
 
     Info<< "End\n" << endl;
 

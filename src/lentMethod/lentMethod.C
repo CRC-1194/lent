@@ -69,7 +69,6 @@ lentMethod::lentMethod(
             IOobject::NO_WRITE
         )
     ),
-    //frontTmp_(front), 
     meshCells_(),
     lentControlDict_(
          IOobject(
@@ -105,7 +104,6 @@ lentMethod::lentMethod(
 lentMethod::lentMethod(const lentMethod& copy)
 : 
     regIOobject(copy),
-    //frontTmp_(cooy.frontTmp_), 
     meshCells_(copy.meshCells_),
     lentControlDict_(copy.lentControlDict_),
     lentDistanceFieldCalculatorTmp_(copy.lentDistanceFieldCalculatorTmp_),
@@ -133,13 +131,23 @@ void lentMethod::calcSearchDistances(
 
 void lentMethod::calcSignedDistances(
     volScalarField& signedDistance, 
-    pointScalarField& pointSignedDistance
+    pointScalarField& pointSignedDistance,
+    const volScalarField& searchDistanceSqr, 
+    const pointScalarField& pointSearchDistanceSqr,
+    const triSurfaceFront& front
 ) 
 {
-    // Update points-front distance field.
-    //lentDistanceFieldCalculatorTmp_->calcPointsToFrontDistanceField(); 
-    // Update cells-front distance field.  
-    //lentDistanceFieldCalculatorTmp_->cellsToFrontDistanceField(); 
+    lentDistanceFieldCalculatorTmp_->calcCellsToFrontDistance(
+        signedDistance, 
+        searchDistanceSqr,
+        front
+    ); 
+
+    lentDistanceFieldCalculatorTmp_->calcPointsToFrontDistance(
+        pointSignedDistance, 
+        pointSearchDistanceSqr,
+        front
+    ); 
 }
 
 void lentMethod::calcHeaviside(
@@ -157,9 +165,9 @@ void lentMethod::reconstructFront(
     triSurfaceFront& front,
     const volScalarField& signedDistance,
     const pointScalarField& pointSignedDistance
-) const
+) 
 {
-    frontReconstructorTmp_->reconstructFront(
+    meshCells_ = frontReconstructorTmp_->reconstructFront(
         front,
         signedDistance, 
         pointSignedDistance

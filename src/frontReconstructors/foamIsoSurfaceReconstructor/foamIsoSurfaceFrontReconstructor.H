@@ -58,7 +58,7 @@ class foamIsoSurfaceFrontReconstructor
 {
 
     scalar mergeTolerance_; 
-    bool regularize_; 
+    Switch regularize_; 
 
 public:
 

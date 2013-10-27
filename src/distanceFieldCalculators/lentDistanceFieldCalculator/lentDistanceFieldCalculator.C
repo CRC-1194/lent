@@ -133,7 +133,6 @@ void lentDistanceFieldCalculator::calcCellSearchDistance(
     }
 
     // Expand the distance by the bandwidth.
-    // FIXME: fix this
     searchDistanceSqr *= (narrowBandWidth_ * narrowBandWidth_); 
     searchDistanceSqr.boundaryField().evaluate(); 
 

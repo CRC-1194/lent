@@ -43,7 +43,7 @@ foamIsoSurfaceFrontReconstructor::foamIsoSurfaceFrontReconstructor(
 :
     frontReconstructor(configDict), 
     mergeTolerance_(readScalar(configDict.lookup("mergeTolerance"))), 
-    regularize_(configDict.lookup("regularize"))
+    regularize_(configDict.lookup("regularization"))
 {}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
