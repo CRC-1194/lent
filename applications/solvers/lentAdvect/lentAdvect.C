@@ -24,14 +24,10 @@ License
 Application
     lentAdvect
 
-Author
+Authors
     Tomislav Maric
-    maric@csi.tu-darmstadt.de
-    tomislav.maric@gmx.com
-    Mathematical Modelling and Analysis Group 
-    Center of Smart Interfaces
-    TU Darmstadt
-    Germany
+    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
+    tomislav<<dot>>maric<<at>>gmx<<dot>>com
 
 Description
     A DNS two-phase flow solver employing a hybrid level-set / front-tracking
@@ -48,20 +44,14 @@ Description
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
 
-#include "triSurfaceFront.H"
-#include "naiveNarrowBandPropagation.H"
-#include "TriSurfaceMeshCalculator.H"
-#include "leftAlgorithmHeavisideFunction.H"
+#include "lentMethod.H"
 
+// TODO: switch to registered front fields.
 #include "DynamicField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
-
-// Configure the LENT Algorithm 
-typedef triSurfaceFront Front;
-typedef TriSurfaceMeshCalculator Calculator; 
 
 int main(int argc, char *argv[])
 {
@@ -80,7 +70,7 @@ int main(int argc, char *argv[])
 
     Info<< "\nStarting time loop\n" << endl;
 
-    Front front(
+    triSurfaceFront front(
         IOobject(
             "front.stl",
             "front",
@@ -90,53 +80,17 @@ int main(int argc, char *argv[])
         )
     );
 
-    autoPtr<heavisideFunction> heavisideModelPtr = 
-        heavisideFunction::New("leftAlgorithmHeaviside"); 
+    DynamicField<vector> frontVelocity(front.nPoints()); 
 
-    // TODO: use triSurfaceFront fields, put this in createFields. 
-    DynamicField<vector> frontDisplacement (front.nPoints()); 
+    lentMethod lent(front, mesh); 
 
-    IOdictionary levelSetFrontDict(
-        IOobject(
-            "levelSetFrontDict", 
-            "constant", 
-            runTime, 
-            IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::AUTO_WRITE
-        )
-    );
+    lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
 
-    // FIXME: move the alg config to fvSolution::lent
-    label narrowBandWidth = 
-        levelSetFrontDict.lookupOrDefault<label>("narrowBandWidth", 4);
-
-    Calculator calc(narrowBandWidth); 
-
-    // Compute the new signed distance field. 
-    calc.calcCentresToElementsDistance(
-        signedDistance, 
-        front,
-        naiveNarrowBandPropagation()
-    ); 
-
-    calc.calcPointsToElementsDistance(
-        pointSignedDistance, 
-        front,
-        mesh, 
-        naiveNarrowBandPropagation()
-    ); 
-
-    heavisideModelPtr->calcHeaviside(
-        heaviside, 
-        signedDistance, 
-        calc.getCellSearchDistSqr()
-    ); 
-
-    //Reconstruct the front. 
-    front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
-
-    // Write the front.
-    runTime.writeNow(); 
+    //Read the front from the runTime the front, or reconstruct it if it is not 
+    //there. 
+    //front.reconstruct(signedDistance, pointSignedDistance); 
+    
+    heaviside.write(); 
 
     while (runTime.run())
     {
@@ -151,52 +105,27 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
         
         twoPhaseProperties.correct();
-        
-        // Move the front points with the constant vector : used for testing.
-        //front.move(constDisplacement*runTime.deltaT().value()); 
-        
+
         // Compute the velocity using the meshCells of the isoSurface reconstruction.
-        calc.calcFrontVelocity(frontDisplacement, front, U); 
-        // FIXME: Put this in thecalcFrontVelocity function and scale the displacement. 
-        frontDisplacement *= runTime.deltaT().value(); 
-        front.move(frontDisplacement);
+        lent.calcFrontVelocity(frontVelocity, U); 
+
+        lent.evolveFront(frontVelocity); 
         
         // Compute the new signed distance field with the surfaceMesh octree search.  
-        calc.calcCentresToElementsDistance(
+        lent.calcSignedDistances(
             signedDistance, 
-            front,
-            naiveNarrowBandPropagation()
+            pointSignedDistance,
+            searchDistanceSqr,
+            pointSearchDistanceSqr, 
+            front
         ); 
 
-        // Compute the new signed point distance field. 
-        calc.calcPointsToElementsDistance(
-            pointSignedDistance, 
-            front,
-            mesh, 
-            naiveNarrowBandPropagation()
-        ); 
+        lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
 
-        heavisideModelPtr->calcHeaviside(
-            heaviside, 
-            signedDistance, 
-            calc.getCellSearchDistSqr()
-        ); 
-
-        //Reconstruct the front: 
-        signedDistance.time().cpuTimeIncrement(); 
-
-        //New meshCells() information computed.  
-        // TODO: user defined reconstruction interval.  
-        //if (runTime.timeIndex() % 10 == 0)
-        //{
-            //front.reconstruct(signedDistance, pointSignedDistance, false, 1e-10); 
-        //}
-
-        Info << "Front reconstructed: " 
-            << signedDistance.time().cpuTimeIncrement() << endl; 
+        // FIXME: add reconstruction model (every N timesteps, coalescenceModel)..
+        front.reconstruct(signedDistance, pointSignedDistance); 
 
         runTime.write();
-        Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"

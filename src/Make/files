@@ -13,6 +13,9 @@ heavisideModels/heavisideModel/heavisideModel.C
 heavisideModels/harmonicHeavisideModel/harmonicHeavisideModel.C
 heavisideModels/sharpHeavisideModel/sharpHeavisideModel.C
 
+frontReconstructionModels/frontReconstructionModel/frontReconstructionModel.C
+frontReconstructionModels/timeStepFrontReconstructionModel/timeStepFrontReconstructionModel.C
+
 frontReconstructors/frontReconstructor/frontReconstructor.C
 frontReconstructors/foamIsoSurfaceReconstructor/foamIsoSurfaceFrontReconstructor.C
 

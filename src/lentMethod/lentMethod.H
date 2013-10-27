@@ -47,6 +47,7 @@ Authors
 #include "fvMesh.H"
 
 #include "lentDistanceFieldCalculator.H"
+#include "frontReconstructionModel.H"
 #include "frontReconstructor.H"
 //#include "frontVelocityCalculator.H"
 //#include "frontMotionSolver.H"
@@ -75,6 +76,9 @@ class lentMethod
 
     // Field calculator
     tmp<lentDistanceFieldCalculator> lentDistanceFieldCalculatorTmp_; 
+
+    // Front reconstruction model. 
+    tmp<frontReconstructionModel> frontReconstructionModelTmp_;  
 
     // Front reconstructor.
     tmp<frontReconstructor> frontReconstructorTmp_; 

@@ -84,6 +84,11 @@ lentMethod::lentMethod(
             lentControlDict_.subDict("distanceCalculator")
         )
      ),
+     frontReconstructionModelTmp_(
+        frontReconstructionModel::New(
+            lentControlDict_.subDict("frontReconstructionModel")
+        )
+     ), 
      frontReconstructorTmp_(
         frontReconstructor::New(
             lentControlDict_.subDict("frontReconstructor")
@@ -167,11 +172,14 @@ void lentMethod::reconstructFront(
     const pointScalarField& pointSignedDistance
 ) 
 {
-    meshCells_ = frontReconstructorTmp_->reconstructFront(
-        front,
-        signedDistance, 
-        pointSignedDistance
-    );
+    if (frontReconstructionModelTmp_->reconstructionRequired(front, signedDistance))
+    {
+        meshCells_ = frontReconstructorTmp_->reconstructFront(
+            front,
+            signedDistance, 
+            pointSignedDistance
+        );
+    }
 }
 
 bool lentMethod::writeData(Ostream& os) const
