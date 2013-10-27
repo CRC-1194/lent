@@ -22,50 +22,62 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::naiveNarrowBandPropagation
+    Foam::foamIsoSurfaceFrontReconstructor
 
 Description
+    Abstract base class for the heaviside function calculation from a signed 
+    distance field.
 
 SourceFiles
-    naiveNarrowBandPropagationI.H
-    naiveNarrowBandPropagation.C
-    naiveNarrowBandPropagationIO.C
+    foamIsoSurfaceFrontReconstructor.C
+
+Authors
+    Tomislav Maric
+    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
+    tomislav<<dot>>maric<<at>>gmx<<dot>>com
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef naiveNarrowBandPropagation_H
-#define naiveNarrowBandPropagation_H
+#ifndef foamIsoSurfaceFrontReconstructor_H
+#define foamIsoSurfaceFrontReconstructor_H
 
-#include "volFields.H"
+#include "frontReconstructor.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
-namespace FrontTracking
-{
+namespace Foam {
+namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class naiveNarrowBandPropagation Declaration
+                         Class foamIsoSurfaceFrontReconstructor Declaration
 \*---------------------------------------------------------------------------*/
 
-class naiveNarrowBandPropagation
+class foamIsoSurfaceFrontReconstructor
+    :
+        public frontReconstructor 
 {
+
+    scalar mergeTolerance_; 
+    bool regularize_; 
 
 public:
 
-    // Constructors 
-    
-        //- Construct null
-        naiveNarrowBandPropagation();
+    TypeName ("foamIsoSurfaceFrontReconstructor"); 
 
+    // Constructors
 
-    // Member Operators 
+        foamIsoSurfaceFrontReconstructor(const dictionary& configDict);
 
-        void operator()(volScalarField& signedDistance); 
+    // Destructor
+        virtual ~foamIsoSurfaceFrontReconstructor();
 
-        void operator()(pointScalarField& pointSignedDistance);
-
+    // Member Functions
+        
+        labelList reconstructFront(
+            triSurfaceFront& front, 
+            const volScalarField& signedDistance,
+            const pointScalarField& pointSignedDistance
+        ) const;  
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

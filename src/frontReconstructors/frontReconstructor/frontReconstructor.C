@@ -21,63 +21,64 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::naiveNarrowBandPropagation
-
-Description
-
-SourceFiles
-    naiveNarrowBandPropagationI.H
-    naiveNarrowBandPropagation.C
-    naiveNarrowBandPropagationIO.C
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef naiveNarrowBandPropagation_H
-#define naiveNarrowBandPropagation_H
+#include "frontReconstructor.H"
 
-#include "volFields.H"
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+namespace Foam {
+namespace FrontTracking { 
 
-namespace Foam
+    defineTypeNameAndDebug(frontReconstructor, 0); 
+    defineRunTimeSelectionTable(frontReconstructor, Dictionary);
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+frontReconstructor::frontReconstructor(const dictionary& configDict)
+{}
+
+// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
+
+tmp<frontReconstructor>
+frontReconstructor::New(const dictionary& configDict)
 {
-namespace FrontTracking
-{
+    const word name = configDict.lookup("type"); 
 
-/*---------------------------------------------------------------------------*\
-                         Class naiveNarrowBandPropagation Declaration
-\*---------------------------------------------------------------------------*/
+    // Find the constructor pointer for the model in the constructor table.
+    DictionaryConstructorTable::iterator cstrIter =
+        DictionaryConstructorTablePtr_->find(name);
 
-class naiveNarrowBandPropagation
-{
+    // If the constructor pointer is not found in the table.
+    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    {
+        FatalErrorIn (
+            "frontReconstructor::New(const word& name)"
+        )   << "Unknown frontReconstructor type "
+            << name << nl << nl
+            << "Valid frontReconstructors are : " << endl
+            << DictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalError);
+    }
 
-public:
+    // Construct the model and return the autoPtr to the object. 
+    return tmp<frontReconstructor> (cstrIter()(configDict));
+}
 
-    // Constructors 
-    
-        //- Construct null
-        naiveNarrowBandPropagation();
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-
-    // Member Operators 
-
-        void operator()(volScalarField& signedDistance); 
-
-        void operator()(pointScalarField& pointSignedDistance);
-
-};
+frontReconstructor::~frontReconstructor()
+{}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

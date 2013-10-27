@@ -47,7 +47,7 @@ Authors
 #include "fvMesh.H"
 
 #include "lentDistanceFieldCalculator.H"
-//#include "frontReconstructor.H"
+#include "frontReconstructor.H"
 //#include "frontVelocityCalculator.H"
 //#include "frontMotionSolver.H"
 #include "heavisideModel.H"
@@ -71,7 +71,10 @@ class lentMethod
     public regIOobject
 {
     // Front.
-    tmp<triSurfaceFront> frontTmp_; 
+    //tmp<triSurfaceFront> frontTmp_; 
+
+    // Triangles-cells map.
+    DynamicList<label> meshCells_; 
 
     // Lent method configuration dictionary.
     IOdictionary lentControlDict_;  
@@ -80,9 +83,9 @@ class lentMethod
     tmp<lentDistanceFieldCalculator> lentDistanceFieldCalculatorTmp_; 
 
     // Front reconstructor.
-    //tmp<frontReconstructor> frontReconstructorTmp_; 
+    tmp<frontReconstructor> frontReconstructorTmp_; 
 
-    //// Velocity calculator. 
+    // Velocity calculator. 
     //tmp<frontVelocityCalculator> frontVelocityCalculatorTmp_; 
 
     //// Front motion solver. 
@@ -135,12 +138,9 @@ public:
 
         void reconstructFront(
             triSurfaceFront& front,
-            const volScalarField& signedDistance
+            const volScalarField& signedDistance,
+            const pointScalarField& pointSignedDistance
         ) const; 
-
-
-        // Configurators 
-        //void setHeavisideModel(word name); 
 
         // Writer.
         bool writeData(Ostream& os) const; 

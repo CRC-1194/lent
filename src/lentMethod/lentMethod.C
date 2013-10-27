@@ -69,7 +69,8 @@ lentMethod::lentMethod(
             IOobject::NO_WRITE
         )
     ),
-    frontTmp_(front), 
+    //frontTmp_(front), 
+    meshCells_(),
     lentControlDict_(
          IOobject(
             dictName, 
@@ -84,11 +85,16 @@ lentMethod::lentMethod(
             lentControlDict_.subDict("distanceCalculator")
         )
      ),
-     //frontReconstructorTmp_(), 
+     frontReconstructorTmp_(
+        frontReconstructor::New(
+            lentControlDict_.subDict("frontReconstructor")
+        )
+     ), 
      //frontVelocityCalculatorTmp_(), 
      //frontMotionSolver_(), 
      heavisideModelTmp_(
          heavisideModel::New(
+             // TODO: remove the name, use type entry in the dictionary
             lentControlDict_.lookup("heavisideModel"), 
             lentControlDict_.subDict("heavisideModel")
          )
@@ -99,8 +105,11 @@ lentMethod::lentMethod(
 lentMethod::lentMethod(const lentMethod& copy)
 : 
     regIOobject(copy),
+    //frontTmp_(cooy.frontTmp_), 
+    meshCells_(copy.meshCells_),
     lentControlDict_(copy.lentControlDict_),
-    //lentDistanceFieldCalculatorTmp_(copy.lentDistanceFieldCalculatorTmp_),
+    lentDistanceFieldCalculatorTmp_(copy.lentDistanceFieldCalculatorTmp_),
+    frontReconstructorTmp_(copy.frontReconstructorTmp_),
     heavisideModelTmp_(copy.heavisideModelTmp_)
 {}
 
@@ -145,15 +154,17 @@ void lentMethod::calcHeaviside(
 }
 
 void lentMethod::reconstructFront(
-    triSurfaceFront& front, 
-    const volScalarField& signedDistance
+    triSurfaceFront& front,
+    const volScalarField& signedDistance,
+    const pointScalarField& pointSignedDistance
 ) const
-{}
-
-//void lentMethod::setHeavisideModel(word name) 
-//{
-    //heavisideModelTmp_ = heavisideModel::New(name); 
-//}
+{
+    frontReconstructorTmp_->reconstructFront(
+        front,
+        signedDistance, 
+        pointSignedDistance
+    );
+}
 
 bool lentMethod::writeData(Ostream& os) const
 {
@@ -176,7 +187,10 @@ void lentMethod::operator=(const lentMethod& rhs)
             << abort(FatalError);
     }
 
+    meshCells_ = rhs.meshCells_;
+    lentControlDict_ = rhs.lentControlDict_; 
     lentDistanceFieldCalculatorTmp_ = rhs.lentDistanceFieldCalculatorTmp_; 
+    frontReconstructorTmp_ = rhs.frontReconstructorTmp_;
     heavisideModelTmp_ = rhs.heavisideModelTmp_; 
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

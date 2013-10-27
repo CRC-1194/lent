@@ -21,63 +21,66 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::naiveNarrowBandPropagation
-
-Description
-
-SourceFiles
-    naiveNarrowBandPropagationI.H
-    naiveNarrowBandPropagation.C
-    naiveNarrowBandPropagationIO.C
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef naiveNarrowBandPropagation_H
-#define naiveNarrowBandPropagation_H
+#include "foamIsoSurfaceFrontReconstructor.H"
+#include "addToRunTimeSelectionTable.H"
+#include "isoSurface.H"
 
-#include "volFields.H"
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+namespace Foam {
+namespace FrontTracking { 
 
-namespace Foam
+    defineTypeNameAndDebug(foamIsoSurfaceFrontReconstructor, 0); 
+    addToRunTimeSelectionTable(foamIsoSurfaceFrontReconstructor, foamIsoSurfaceFrontReconstructor, Dictionary);
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+foamIsoSurfaceFrontReconstructor::foamIsoSurfaceFrontReconstructor(
+   const dictionary& configDict
+)
+:
+    frontReconstructor(configDict), 
+    mergeTolerance_(readScalar(configDict.lookup("mergeTolerance"))), 
+    regularize_(configDict.lookup("regularize"))
+{}
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+foamIsoSurfaceFrontReconstructor::~foamIsoSurfaceFrontReconstructor()
+{}
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+labelList foamIsoSurfaceFrontReconstructor::reconstructFront(
+    triSurfaceFront& front, 
+    const volScalarField& signedDistance,
+    const pointScalarField& pointSignedDistance
+) const
 {
-namespace FrontTracking
-{
+    isoSurface iso (
+        signedDistance, 
+        pointSignedDistance, 
+        0, 
+        regularize_,
+        mergeTolerance_
+    );
 
-/*---------------------------------------------------------------------------*\
-                         Class naiveNarrowBandPropagation Declaration
-\*---------------------------------------------------------------------------*/
+    front = iso; 
 
-class naiveNarrowBandPropagation
-{
-
-public:
-
-    // Constructors 
-    
-        //- Construct null
-        naiveNarrowBandPropagation();
-
-
-    // Member Operators 
-
-        void operator()(volScalarField& signedDistance); 
-
-        void operator()(pointScalarField& pointSignedDistance);
-
-};
+    return iso.meshCells(); 
+} 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //
