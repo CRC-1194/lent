@@ -113,7 +113,6 @@ clear_case() {
 
 clear_cases() {
 
-    echo "BEGIN clear_cases " 
 
     TARGET_DIR=$1
     EXCLUDE=$2
@@ -131,8 +130,6 @@ clear_cases() {
             clear_case $CASE
         fi
     done
-
-    echo "END clear_cases " 
 }
 
 
