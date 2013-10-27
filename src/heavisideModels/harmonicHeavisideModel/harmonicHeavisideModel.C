@@ -47,7 +47,6 @@ harmonicHeavisideModel::harmonicHeavisideModel(const dictionary& configDict)
 :
     heavisideModel(configDict)
 {
-    Info << "HARMONIC HEAVISIDE MODEL SELECTED" << endl;
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -63,8 +62,6 @@ void harmonicHeavisideModel::calcHeaviside(
     const volScalarField& searchDistanceSqr
 ) const
 {
-    Info << "HARMONIC HEAVISIDE FIELD" << endl;
-
     scalar pi = constant::mathematical::pi; 
 
     forAll (heaviside, cellI)

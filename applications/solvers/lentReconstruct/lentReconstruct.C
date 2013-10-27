@@ -41,21 +41,9 @@ Description
 
 #include "lentMethod.H"
 
-//#include "triSurfaceFront.H"
-//#include "naiveNarrowBandPropagation.H"
-//#include "TriSurfaceMeshCalculator.H"
-//#include "leftAlgorithmHeavisideFunction.H"
-
-// Fields.
-#include "DynamicField.H"
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
-
-// Configure the Method
-//typedef triSurfaceFront Front;
-//typedef TriSurfaceMeshCalculator Calculator; 
 
 int main(int argc, char *argv[])
 {
@@ -64,7 +52,6 @@ int main(int argc, char *argv[])
     #include "createMesh.H"
 
     #include "createFields.H"
-
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
