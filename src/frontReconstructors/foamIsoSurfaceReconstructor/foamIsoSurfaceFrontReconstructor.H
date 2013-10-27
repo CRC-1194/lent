@@ -78,6 +78,11 @@ public:
             const volScalarField& signedDistance,
             const pointScalarField& pointSignedDistance
         ) const;  
+
+        virtual void forceConsistentNormalOrientation(
+            isoSurface& iso, 
+            const volScalarField& signedDistance
+        ) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

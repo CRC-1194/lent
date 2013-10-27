@@ -26,6 +26,7 @@ License
 #include "foamIsoSurfaceFrontReconstructor.H"
 #include "addToRunTimeSelectionTable.H"
 #include "isoSurface.H"
+#include "fvcGrad.H" 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -67,10 +68,52 @@ labelList foamIsoSurfaceFrontReconstructor::reconstructFront(
         mergeTolerance_
     );
 
+    forceConsistentNormalOrientation(iso, signedDistance);
+
     front = iso; 
 
     return iso.meshCells(); 
 } 
+void foamIsoSurfaceFrontReconstructor::forceConsistentNormalOrientation(
+    isoSurface& iso, 
+    const volScalarField& signedDistance
+) const
+{
+    volVectorField distGrad = fvc::grad(signedDistance); 
+
+    // Get non-const access to elements.
+    List<labelledTri>& elements = const_cast<List<labelledTri>& > (iso.localFaces()); 
+
+    // Get the cells. 
+    const labelList& elementCells = iso.meshCells(); 
+
+    // Get the element normals. 
+    const vectorField& elementNormals = iso.faceNormals();  
+
+    // For all faces 
+    forAll (elements, E)
+    {
+        // Normalize the distance gradient to get only the direction. 
+        scalar gradMag = mag(distGrad[elementCells[E]]); 
+
+        if (gradMag >= SMALL)
+        {
+            distGrad[elementCells[E]] /= gradMag; 
+            
+            scalar normalMag = mag(elementNormals[E]); 
+
+            if (normalMag > SMALL)
+            {
+                vector elementNormal = elementNormals[E] / mag(elementNormals[E]); 
+
+                if ((elementNormal & distGrad[elementCells[E]]) < 0)
+                {
+                    elements[E].flip(); 
+                }
+            }
+        }
+    }
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
