@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
         IOobject(
             "front.stl",
             "front",
-            mesh, 
+            runTime, 
             IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
         )
