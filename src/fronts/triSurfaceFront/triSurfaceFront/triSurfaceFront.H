@@ -83,11 +83,6 @@ class triSurfaceFront
     template<class Displacement>
     void executeMovePoints(const Displacement& d); 
 
-    void forceConsistentNormalOrientation 
-    (
-        //const isoSurface& reconstructedFront, 
-        const volScalarField& cellsToElementsDist
-    ); 
 
 public:
        
@@ -115,6 +110,12 @@ public:
         const bool regularise=false, 
         const scalar mergeTol=1e-06
     );
+
+    void forceConsistentNormalOrientation 
+    (
+        //const isoSurface& reconstructedFront, 
+        const volScalarField& cellsToElementsDist
+    ); 
 
     // Move points with a spatially constant displacement vector.
     void move(vector deltaV);

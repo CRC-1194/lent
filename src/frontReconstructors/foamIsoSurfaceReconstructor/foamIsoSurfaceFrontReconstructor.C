@@ -82,7 +82,7 @@ void foamIsoSurfaceFrontReconstructor::forceConsistentNormalOrientation(
     volVectorField distGrad = fvc::grad(signedDistance); 
 
     // Get non-const access to elements.
-    List<labelledTri>& elements = const_cast<List<labelledTri>& > (iso.localFaces()); 
+    List<labelledTri>& elements = static_cast<List<labelledTri>& > (iso);  
 
     // Get the cells. 
     const labelList& elementCells = iso.meshCells(); 

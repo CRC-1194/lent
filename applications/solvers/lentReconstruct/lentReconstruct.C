@@ -79,7 +79,8 @@ int main(int argc, char *argv[])
     
     lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
 
-    runTime.write(); 
+    heaviside.write(); 
+    signedDistance.write(); 
 
     while (runTime.run()) {
         runTime++;

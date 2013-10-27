@@ -118,13 +118,13 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
             // If the volume is OUTSIDE.
             if (vT == searchableSurface::OUTSIDE) 
             {
-                // Set the negative distance.
+                // Set the positive distance.
                 signedDistance[I] = Foam::mag(C[I] - h.hitPoint());
             }
             // If the volume is inside.
             else if (vT == searchableSurface::INSIDE) 
             {
-                // Set the positive distance.
+                // Set the negative distance.
                 signedDistance[I] = -Foam::mag(C[I] - h.hitPoint());
             }
         }
