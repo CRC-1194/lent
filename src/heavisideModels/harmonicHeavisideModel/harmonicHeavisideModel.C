@@ -59,36 +59,37 @@ harmonicHeavisideModel::~harmonicHeavisideModel()
 
 void harmonicHeavisideModel::calcHeaviside(
     volScalarField& heaviside, 
-    const volScalarField& signedDistance
+    const volScalarField& signedDistance,
+    const volScalarField& searchDistanceSqr
 ) const
 {
     Info << "HARMONIC HEAVISIDE FIELD" << endl;
 
     scalar pi = constant::mathematical::pi; 
 
-    //forAll (heaviside, cellI)
-    //{
-        //scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
+    forAll (heaviside, cellI)
+    {
+        scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
 
-        //if (mag(signedDistance[cellI]) < searchDistance)
-        //{
-            //heaviside[cellI] = 0.5 * (
-                //1 + signedDistance[cellI] / searchDistance + 1/pi * 
-                //sin((pi * signedDistance[cellI]) / searchDistance)
-            //);
-        //} 
-        //else
-        //{
-            //if (signedDistance[cellI] > 0)
-            //{
-                //heaviside[cellI] = 1; 
-            //}
-            //if (signedDistance[cellI] < 0)
-            //{
-                //heaviside[cellI] = 0;
-            //}
-        //}
-    //}
+        if (mag(signedDistance[cellI]) < searchDistance)
+        {
+            heaviside[cellI] = 0.5 * (
+                1 + signedDistance[cellI] / searchDistance + 1/pi * 
+                sin((pi * signedDistance[cellI]) / searchDistance)
+            );
+        } 
+        else
+        {
+            if (signedDistance[cellI] > 0)
+            {
+                heaviside[cellI] = 1; 
+            }
+            if (signedDistance[cellI] < 0)
+            {
+                heaviside[cellI] = 0;
+            }
+        }
+    }
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

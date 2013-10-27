@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "heavisideModel.H"
+#include "dictionary.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -41,18 +42,13 @@ heavisideModel::heavisideModel(const dictionary& configDict)
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 tmp<heavisideModel>
-heavisideModel::New(const word& name, const dictionary& configDict)
+heavisideModel::New(const dictionary& configDict)
 {
-    if (debug)
-    {
-        Info<< "Selecting heavisideModel" << name << endl;
-    }
+    const word name = configDict.lookup("type"); 
 
-    // Find the constructor pointer for the model in the constructor table.
     DictionaryConstructorTable::iterator cstrIter =
         DictionaryConstructorTablePtr_->find(name);
 
-    // If the constructor pointer is not found in the table.
     if (cstrIter == DictionaryConstructorTablePtr_->end())
     {
         FatalErrorIn (
@@ -64,7 +60,6 @@ heavisideModel::New(const word& name, const dictionary& configDict)
             << exit(FatalError);
     }
 
-    // Construct the model and return the autoPtr to the object. 
     return tmp<heavisideModel> (cstrIter()(configDict));
 }
 

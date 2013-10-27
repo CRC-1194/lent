@@ -25,19 +25,34 @@ License
 
 #include "naiveNarrowBandPropagation.H"
 #include "pointMesh.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
+    defineTypeNameAndDebug(naiveNarrowBandPropagation, 0);
+
+    addToRunTimeSelectionTable(narrowBandPropagation, naiveNarrowBandPropagation, Dictionary);
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-naiveNarrowBandPropagation::naiveNarrowBandPropagation() {}
+naiveNarrowBandPropagation::naiveNarrowBandPropagation(const dictionary& configDict) 
+:
+    narrowBandPropagation(configDict)
+{}
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+naiveNarrowBandPropagation::~naiveNarrowBandPropagation() {}
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
 
-void naiveNarrowBandPropagation::operator()(volScalarField& signedDistance)
+void naiveNarrowBandPropagation::ensureNarrowBand(
+    volScalarField& signedDistance, 
+    scalar L
+) const
 {
     const fvMesh& mesh = signedDistance.mesh(); 
     const labelList& own = mesh.owner(); 
@@ -51,13 +66,13 @@ void naiveNarrowBandPropagation::operator()(volScalarField& signedDistance)
         forAll (own, faceI)
         {
             if ((signedDistance[own[faceI]] < 0) && 
-                (signedDistance[nei[faceI]] == GREAT))
+                (signedDistance[nei[faceI]] == L))
             {
                 jumpFace = faceI; 
                 signedDistance[nei[faceI]] *= -1; 
             }
             if ((signedDistance[nei[faceI]] < 0) &&
-                (signedDistance[own[faceI]] == GREAT))
+                (signedDistance[own[faceI]] == L))
             {
                 jumpFace = faceI; 
                 signedDistance[own[faceI]] *= -1;
@@ -68,7 +83,10 @@ void naiveNarrowBandPropagation::operator()(volScalarField& signedDistance)
     signedDistance.boundaryField().evaluate(); 
 }
 
-void naiveNarrowBandPropagation::operator()(pointScalarField& pointSignedDistance)
+void naiveNarrowBandPropagation::ensureNarrowBand(
+    pointScalarField& pointSignedDistance, 
+    scalar L
+) const
 {
     const pointMesh& pMesh = pointSignedDistance.mesh(); 
 
@@ -88,7 +106,7 @@ void naiveNarrowBandPropagation::operator()(pointScalarField& pointSignedDistanc
             {
                 if 
                 (
-                    (pointSignedDistance[pointIpoints[pointJ]] == GREAT) && 
+                    (pointSignedDistance[pointIpoints[pointJ]] == L) && 
                     (pointSignedDistance[pointI] < 0)
                 ) 
                 {

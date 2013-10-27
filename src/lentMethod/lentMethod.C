@@ -93,8 +93,6 @@ lentMethod::lentMethod(
      //frontMotionSolver_(), 
      heavisideModelTmp_(
          heavisideModel::New(
-             // TODO: remove the name, use type entry in the dictionary
-            lentControlDict_.lookup("heavisideModel"), 
             lentControlDict_.subDict("heavisideModel")
          )
      ) 
@@ -152,12 +150,14 @@ void lentMethod::calcSignedDistances(
 
 void lentMethod::calcHeaviside(
    volScalarField& heaviside,
-   const volScalarField& signedDistance
+   const volScalarField& signedDistance,
+   const volScalarField& searchDistanceSqr
 ) const
 {
     heavisideModelTmp_->calcHeaviside(
         heaviside, 
-        signedDistance
+        signedDistance,
+        searchDistanceSqr
     ); 
 }
 

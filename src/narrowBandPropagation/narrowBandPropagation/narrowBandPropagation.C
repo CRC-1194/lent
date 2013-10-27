@@ -21,67 +21,52 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::harmonicHeavisideModel
-
-Description
-    Abstract base class for the heaviside function calculation from a signed 
-    distance field.
-
-SourceFiles
-    harmonicHeavisideModel.C
-
-Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef harmonicHeavisideModel_H
-#define harmonicHeavisideModel_H
-
-#include "typeInfo.H"
-#include "autoPtr.H"
-#include "volFieldsFwd.H"
-#include "heavisideModel.H"
+#include "narrowBandPropagation.H"
+#include "pointMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
+    defineTypeNameAndDebug(narrowBandPropagation, 0); 
+    defineRunTimeSelectionTable(narrowBandPropagation, Dictionary);
 
-/*---------------------------------------------------------------------------*\
-                         Class harmonicHeavisideModel Declaration
-\*---------------------------------------------------------------------------*/
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-class harmonicHeavisideModel
-    :
-        public heavisideModel
+narrowBandPropagation::narrowBandPropagation(const dictionary& configDict) {}
+
+// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
+
+tmp<narrowBandPropagation>
+narrowBandPropagation::New(const dictionary& configDict)
 {
 
-public:
+    const word name = configDict.lookup("type"); 
 
-    TypeName ("harmonic"); 
+    DictionaryConstructorTable::iterator cstrIter =
+        DictionaryConstructorTablePtr_->find(name);
 
-    // Constructors
+    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    {
+        FatalErrorIn (
+            "narrowBandPropagation::New(const word& name)"
+        )   << "Unknown narrowBandPropagation type "
+            << name << nl << nl
+            << "Valid narrowBandPropagations are : " << endl
+            << DictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalError);
+    }
 
-        harmonicHeavisideModel(const dictionary& configDict);
+    return tmp<narrowBandPropagation> (cstrIter()(configDict));
+}
 
-    //- Destructor
-    virtual ~harmonicHeavisideModel();
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-    // Member Functions
-    
-        virtual void calcHeaviside(
-            volScalarField& heaviside, 
-            const volScalarField& signedDistance, 
-            const volScalarField& searchDistanceSqr
-        ) const;  
-};
+narrowBandPropagation::~narrowBandPropagation() {}
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
 
@@ -91,6 +76,5 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#endif
 
 // ************************************************************************* //

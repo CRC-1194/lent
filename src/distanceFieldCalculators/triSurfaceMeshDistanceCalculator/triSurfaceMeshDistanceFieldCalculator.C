@@ -54,7 +54,9 @@ triSurfaceMeshDistanceFieldCalculator::triSurfaceMeshDistanceFieldCalculator(
     lentDistanceFieldCalculator(config),
     cellsElementNearest_(), 
     pointsElementNearest_(), 
-    ensureNarrowBand_() 
+    narrowBandTmp_( 
+       narrowBandPropagation::New(config.subDict("narrowBandPropagation"))
+    ) 
 {}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -128,7 +130,8 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
         }
     }
 
-    ensureNarrowBand_(signedDistance); 
+    // TODO: GREAT --> controllable configuraton value
+    narrowBandTmp_->ensureNarrowBand(signedDistance, GREAT); 
 }
 
 void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
@@ -189,7 +192,8 @@ void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
         }
     }
     
-    ensureNarrowBand_(pointSignedDistance); 
+    // TODO: GREAT --> controllable configuraton value
+    narrowBandTmp_->ensureNarrowBand(pointSignedDistance, GREAT); 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

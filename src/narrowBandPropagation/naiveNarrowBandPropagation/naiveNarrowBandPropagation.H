@@ -36,7 +36,7 @@ SourceFiles
 #ifndef naiveNarrowBandPropagation_H
 #define naiveNarrowBandPropagation_H
 
-#include "volFields.H"
+#include "narrowBandPropagation.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -50,21 +50,28 @@ namespace FrontTracking
 \*---------------------------------------------------------------------------*/
 
 class naiveNarrowBandPropagation
+:
+    public narrowBandPropagation
+
 {
 
 public:
 
+    TypeName("naiveNarrowBand"); 
+
     // Constructors 
     
-        //- Construct null
-        naiveNarrowBandPropagation();
+        naiveNarrowBandPropagation(const dictionary& configDict);
 
+    // Destructor 
+        
+        virtual ~naiveNarrowBandPropagation(); 
 
-    // Member Operators 
+    // Member Functions 
 
-        void operator()(volScalarField& signedDistance); 
+        void ensureNarrowBand(volScalarField& signedDistance, scalar L) const; 
 
-        void operator()(pointScalarField& pointSignedDistance);
+        void ensureNarrowBand(pointScalarField& pointSignedDistance, scalar L) const;
 
 };
 

@@ -52,9 +52,6 @@ Authors
 //#include "frontMotionSolver.H"
 #include "heavisideModel.H"
 
-//#include "tmp.H"
-//#include "volFieldsFwd.H"
-//#include "pointFieldsFwd.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -103,13 +100,6 @@ public:
             word dictName="lentSolution"
         );
 
-        //- Construct from components
-        //lentMethod(const lentControl& lentControl);
-
-        //- Construct from Istream
-        //lentMethod(Istream&);
-
-        //- Construct as copy
         lentMethod(const lentMethod& copy);
 
     //- Destructor
@@ -133,7 +123,8 @@ public:
 
         void calcHeaviside(
             volScalarField& heaviside,
-            const volScalarField& signedDistance
+            const volScalarField& signedDistance,
+            const volScalarField& searchDistanceSqr
         ) const; 
 
         void reconstructFront(
@@ -142,11 +133,11 @@ public:
             const pointScalarField& pointSignedDistance
         ); 
 
-        // Writer.
+        // Empty writer: regIOobject is used only for registry queries. 
         bool writeData(Ostream& os) const; 
 
     // Member Operators
-
+    //
         void operator=(const lentMethod&);
 };
 

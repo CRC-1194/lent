@@ -22,52 +22,47 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::heavisideModel
+    Foam::narrowBandPropagation
 
 Description
-    Abstract base class for the heaviside function calculation from a signed 
-    distance field.
 
 SourceFiles
-    heavisideModel.C
-
-Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+    narrowBandPropagationI.H
+    narrowBandPropagation.C
+    narrowBandPropagationIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef heavisideModel_H
-#define heavisideModel_H
+#ifndef narrowBandPropagation_H
+#define narrowBandPropagation_H
 
-#include "typeInfo.H"
-#include "autoPtr.H"
-#include "tmp.H"
 #include "refCount.H"
-#include "volFieldsFwd.H"
+#include "runTimeSelectionTables.H"
+#include "volFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam {
-namespace FrontTracking {
+namespace Foam
+{
+namespace FrontTracking
+{
 
 /*---------------------------------------------------------------------------*\
-                         Class heavisideModel Declaration
+                         Class narrowBandPropagation Declaration
 \*---------------------------------------------------------------------------*/
 
-class heavisideModel
-    :
-        public refCount
+class narrowBandPropagation
+:
+    public refCount
 {
 
 public:
 
-    TypeName ("heavisideModel"); 
+    TypeName("narrowBandPropagation"); 
 
     declareRunTimeSelectionTable (
         tmp,  
-        heavisideModel,  
+        narrowBandPropagation,  
         Dictionary,  
         (
             const dictionary& configDict 
@@ -75,31 +70,28 @@ public:
         (configDict) 
     );
 
-    // Constructors
+    // Constructors 
+    
+        narrowBandPropagation(const dictionary& configDict);
 
-        heavisideModel(const dictionary& configDict);
+    // Destructor 
+        virtual ~narrowBandPropagation(); 
 
     // Selectors
 
-        static tmp<heavisideModel> New(const dictionary& configDict);
+        static tmp<narrowBandPropagation> New(const dictionary& configDict);
 
-    // Destructor
-        virtual ~heavisideModel();
+    // Member Functions 
 
-    // Member Functions
-        
-        virtual void calcHeaviside(
-            volScalarField& heaviside, 
-            const volScalarField& signedDistance, 
-            const volScalarField& searchDistanceSqr
-        ) const = 0;  
+        virtual void ensureNarrowBand(
+            volScalarField& signedDistance, 
+            scalar L = GREAT
+        ) const = 0; 
 
-        bool distanceWithinNarrowBand(scalar distance, scalar narrowBandWidth) const; 
-
-    // Member Operators 
-    
-        void operator=(const heavisideModel& rhs); 
-
+        virtual void ensureNarrowBand(
+            pointScalarField& pointSignedDistance, 
+            scalar L = GREAT
+        ) const = 0;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

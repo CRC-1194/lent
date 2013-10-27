@@ -76,7 +76,8 @@ public:
     
         virtual void calcHeaviside(
             volScalarField& heaviside, 
-            const volScalarField& signedDistance
+            const volScalarField& signedDistance,
+            const volScalarField& searchDistanceSqr
         ) const;  
 };
 

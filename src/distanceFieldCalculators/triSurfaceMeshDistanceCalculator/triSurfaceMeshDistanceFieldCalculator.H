@@ -47,7 +47,7 @@ Authors
 #include "triSurfaceMesh.H"
 
 #include "lentDistanceFieldCalculator.H"
-#include "naiveNarrowBandPropagation.H"
+#include "narrowBandPropagation.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -71,11 +71,11 @@ class triSurfaceMeshDistanceFieldCalculator
     DynamicList<pointIndexHit> pointsElementNearest_; 
 
     //- Narrow band propagator.
-    naiveNarrowBandPropagation ensureNarrowBand_; 
+    tmp<narrowBandPropagation> narrowBandTmp_; 
 
 public:
 
-    TypeName("triSurfaceMeshDistanceFieldCalculator"); 
+    TypeName("triSurfaceMeshCalculator"); 
      
     // Constructors
     

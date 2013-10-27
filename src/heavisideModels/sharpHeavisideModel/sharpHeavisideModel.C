@@ -57,33 +57,30 @@ sharpHeavisideModel::~sharpHeavisideModel()
 
 void sharpHeavisideModel::calcHeaviside(
     volScalarField& heaviside, 
-    const volScalarField& signedDistance
+    const volScalarField& signedDistance,
+    const volScalarField& searchDistanceSqr
 ) const
 {
-    Info << "SHARP HEAVISIDE FIELD" << endl;
+    forAll (heaviside, cellI)
+    {
+        scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
 
-    // Get the searchDistanceSqr from the registry.  
-
-    //forAll (heaviside, cellI)
-    //{
-        //scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
-
-        //if (mag(signedDistance[cellI]) < searchDistance)
-        //{
-            //heaviside[cellI] = 0.5;
-        //} 
-        //else
-        //{
-            //if (signedDistance[cellI] > 0)
-            //{
-                //heaviside[cellI] = 1; 
-            //}
-            //if (signedDistance[cellI] < 0)
-            //{
-                //heaviside[cellI] = 0;
-            //}
-        //}
-    //}
+        if (mag(signedDistance[cellI]) < searchDistance)
+        {
+            heaviside[cellI] = 0.5;
+        } 
+        else
+        {
+            if (signedDistance[cellI] > 0)
+            {
+                heaviside[cellI] = 1; 
+            }
+            if (signedDistance[cellI] < 0)
+            {
+                heaviside[cellI] = 0;
+            }
+        }
+    }
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
