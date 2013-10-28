@@ -173,8 +173,6 @@ triSurfaceFront::triSurfaceFront(
 {
     fileName file = existingFrontFileName(io);
 
-    Info << "FILE = " << file << endl;
-
     static_cast<triSurface&>(*this) = triSurface(file);
 }
 
