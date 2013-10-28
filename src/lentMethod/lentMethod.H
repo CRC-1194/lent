@@ -52,7 +52,7 @@ Authors
 #include "frontReconstructor.H"
 #include "triSurfaceFrontFields.H"
 #include "frontVelocityCalculator.H"
-//#include "frontMotionSolver.H"
+#include "frontMotionSolver.H"
 #include "heavisideModel.H"
 
 
@@ -89,7 +89,7 @@ class lentMethod
     tmp<frontVelocityCalculator> frontVelocityCalculatorTmp_; 
 
     //// Front motion solver. 
-    //tmp<frontMotionSolver> frontMotionSolver_; 
+    tmp<frontMotionSolver> frontMotionSolverTmp_; 
 
     // Heaviside model. 
     tmp<heavisideModel> heavisideModelTmp_; 
@@ -143,6 +143,11 @@ public:
             triSurfaceFrontVectorField& frontVelocity, 
             const volVectorField& U 
         ); 
+
+        void evolveFront(
+            triSurfaceFront& front, 
+            const triSurfaceFrontVectorField& frontVelocity
+        ) const; 
 
         // Empty writer: regIOobject is used only for registry queries. 
         bool writeData(Ostream& os) const; 

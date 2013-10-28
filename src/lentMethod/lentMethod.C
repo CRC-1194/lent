@@ -99,7 +99,11 @@ lentMethod::lentMethod(
             lentControlDict_.subDict("frontVelocityCalculator")
         )
      ), 
-     //frontMotionSolver_(), 
+     frontMotionSolverTmp_(
+        frontMotionSolver::New(
+            lentControlDict_.subDict("frontMotionSolver")
+        )
+     ), 
      heavisideModelTmp_(
          heavisideModel::New(
             lentControlDict_.subDict("heavisideModel")
@@ -196,6 +200,17 @@ void lentMethod::calcFrontVelocity(
         U
     );
 }
+
+void lentMethod::evolveFront(
+    triSurfaceFront& front, 
+    const triSurfaceFrontVectorField& frontVelocity
+) const
+{
+    frontMotionSolverTmp_->evolveFront(
+        front, 
+        frontVelocity 
+    );
+} 
 
 
 bool lentMethod::writeData(Ostream& os) const

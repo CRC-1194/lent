@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,73 +21,71 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Application
-    lentSetFields
+Class
+    Foam::eulerFrontMotionSolver
+
+Description
+    Evolve the front using the first order accurate Euler temporal discretization
+    scheme. 
+
+SourceFiles
+    eulerFrontMotionSolver.C
 
 Authors
     Tomislav Maric
     maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
     tomislav<<dot>>maric<<at>>gmx<<dot>>com
 
-Description
-    Pre-processing application that sets two signed distance fields and a 
-    heaviside marker field using an input surface mesh in the STL format. 
-    Used as a pre-processing application for the LENT algorithm. 
-
-
 \*---------------------------------------------------------------------------*/
 
-#include "fvCFD.H"
-#include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
+#ifndef eulerFrontMotionSolver_H
+#define eulerFrontMotionSolver_H
 
-#include "lentMethod.H"
+#include "frontMotionSolver.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-using namespace FrontTracking;
+namespace Foam {
+namespace FrontTracking {
 
-int main(int argc, char *argv[])
+/*---------------------------------------------------------------------------*\
+                         Class eulerFrontMotionSolver Declaration
+\*---------------------------------------------------------------------------*/
+
+class eulerFrontMotionSolver
+    :
+        public frontMotionSolver 
 {
-    #include "setRootCase.H"
-    #include "createTime.H"
-    #include "createMesh.H"
 
-    #include "createFields.H"
+public:
 
+    TypeName ("eulerFrontMotionSolver"); 
 
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    // Constructors
 
-    triSurfaceFront front(
-        IOobject(
-            "front.stl",
-            "front",
-            runTime, 
-            IOobject::MUST_READ, 
-            IOobject::AUTO_WRITE
-        )
-    );
+        eulerFrontMotionSolver(const dictionary& configDict);
 
-    lentMethod lent(front, mesh); 
+    // Destructor
+        virtual ~eulerFrontMotionSolver();
 
-    lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
+    // Member Functions
+        
+        void evolveFront(
+            triSurfaceFront& front, 
+            const triSurfaceFrontVectorField& frontVelocity 
+        ) const;  
+};
 
-    lent.calcSignedDistances(
-        signedDistance, 
-        pointSignedDistance, 
-        searchDistanceSqr, 
-        pointSearchDistanceSqr,
-        front
-    ); 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
-    
-    runTime.writeNow(); 
+} // End namespace FrontTracking 
 
-    Info<< "End\n" << endl;
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    return 0;
-}
+} // End namespace Foam
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

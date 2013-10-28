@@ -96,53 +96,43 @@ int main(int argc, char *argv[])
     ); 
 
     lentMethod lent(front, mesh); 
-
-    lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
-
-    //FIXME: Read the front using runTime, or reconstruct it if it is not 
-    //front.reconstruct(signedDistance, pointSignedDistance); 
     
-    heaviside.write(); 
+    while (runTime.run())
+    {
+        #include "readTimeControls.H"
 
-    //while (runTime.run())
-    //{
-        //#include "readTimeControls.H"
+        runTime++;
 
-        //runTime++;
+        #include "CourantNo.H"
+        #include "heavisideCourantNo.H"
+        #include "setDeltaT.H"
 
-        //#include "CourantNo.H"
-        //#include "heavisideCourantNo.H"
-        //#include "setDeltaT.H"
+        Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        //Info<< "Time = " << runTime.timeName() << nl << endl;
+        lent.calcSignedDistances(
+            signedDistance, 
+            pointSignedDistance,
+            searchDistanceSqr,
+            pointSearchDistanceSqr, 
+            front
+        ); 
+
+        lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+
+        twoPhaseProperties.correct();
+
+        front.reconstruct(signedDistance, pointSignedDistance); 
+
+        lent.calcFrontVelocity(frontVelocity, U); 
+
+        lent.evolveFront(front, frontVelocity); 
         
-        //twoPhaseProperties.correct();
+        runTime.write();
 
-        //// Compute the velocity using the meshCells of the isoSurface reconstruction.
-        //lent.calcFrontVelocity(frontVelocity, U); 
-
-        //lent.evolveFront(frontVelocity); 
-        
-        //// Compute the new signed distance field with the surfaceMesh octree search.  
-        //lent.calcSignedDistances(
-            //signedDistance, 
-            //pointSignedDistance,
-            //searchDistanceSqr,
-            //pointSearchDistanceSqr, 
-            //front
-        //); 
-
-        //lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
-
-        //// FIXME: add reconstruction model (every N timesteps, coalescenceModel)..
-        //front.reconstruct(signedDistance, pointSignedDistance); 
-
-        //runTime.write();
-
-        //Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            //<< "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            //<< nl << endl;
-    //}
+        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
+    }
 
     Info<< "End\n" << endl;
 

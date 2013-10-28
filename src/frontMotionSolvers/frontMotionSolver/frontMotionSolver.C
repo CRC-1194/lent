@@ -21,15 +21,6 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::bilinearFrontVelocityInterpolator
-
-Description
-    Interpolate front velocity using bilinear interpolation.
-
-SourceFiles
-    bilinearFrontVelocityInterpolator.C
-
 Authors
     Tomislav Maric
     maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
@@ -37,54 +28,60 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef bilinearFrontVelocityInterpolator_H
-#define bilinearFrontVelocityInterpolator_H
+#include "frontMotionSolver.H"
+#include "dictionary.H"
 
-#include "frontVelocityCalculator.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
-namespace FrontTracking {
+namespace FrontTracking { 
 
-/*---------------------------------------------------------------------------*\
-                         Class bilinearFrontVelocityInterpolator Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(frontMotionSolver, 0); 
+    defineRunTimeSelectionTable(frontMotionSolver, Dictionary);
 
-class bilinearFrontVelocityInterpolator
-    :
-        public frontVelocityCalculator 
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+frontMotionSolver::frontMotionSolver(const dictionary& configDict)
+{}
+
+// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
+
+tmp<frontMotionSolver>
+frontMotionSolver::New(const dictionary& configDict)
 {
+    const word name = configDict.lookup("type"); 
 
-public:
+    DictionaryConstructorTable::iterator cstrIter =
+        DictionaryConstructorTablePtr_->find(name);
 
-    TypeName ("bilinearFrontVelocityInterpolator"); 
+    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    {
+        FatalErrorIn (
+            "frontMotionSolver::New(const word& name)"
+        )   << "Unknown frontMotionSolver type "
+            << name << nl << nl
+            << "Valid frontMotionSolvers are : " << endl
+            << DictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalError);
+    }
 
-    // Constructors
+    return tmp<frontMotionSolver> (cstrIter()(configDict));
+}
 
-        bilinearFrontVelocityInterpolator(const dictionary& configDict);
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-    // Destructor
-        virtual ~bilinearFrontVelocityInterpolator();
-
-    // Member Functions
-        
-        void calcFrontVelocity(
-            triSurfaceFrontVectorField& frontVelocity, 
-            const volVectorField& U 
-        ) const;  
-};
+frontMotionSolver::~frontMotionSolver()
+{}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

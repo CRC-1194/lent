@@ -22,13 +22,21 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::bilinearFrontVelocityInterpolator
+    Foam::frontMotionSolver
 
 Description
-    Interpolate front velocity using bilinear interpolation.
+    Interface for the front motion solution. 
+
+    The motion of the front is defined in a lagrangian way with 
+
+    \partial_t \x_v = \U(\x_v) 
+
+    The solution can be approximated with different (explicity) temporal 
+    discretization schemes implemented by classes in the frontMotionSolver
+    hierarchy. 
 
 SourceFiles
-    bilinearFrontVelocityInterpolator.C
+    frontMotionSolver.C
 
 Authors
     Tomislav Maric
@@ -37,10 +45,16 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef bilinearFrontVelocityInterpolator_H
-#define bilinearFrontVelocityInterpolator_H
+#ifndef frontMotionSolver_H
+#define frontMotionSolver_H
 
-#include "frontVelocityCalculator.H"
+#include "typeInfo.H"
+#include "autoPtr.H"
+#include "tmp.H"
+#include "refCount.H"
+#include "volFieldsFwd.H"
+#include "triSurfaceFront.H"
+#include "triSurfaceFrontFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -48,31 +62,45 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class bilinearFrontVelocityInterpolator Declaration
+                         Class frontMotionSolver Declaration
 \*---------------------------------------------------------------------------*/
 
-class bilinearFrontVelocityInterpolator
+class frontMotionSolver
     :
-        public frontVelocityCalculator 
+        public refCount
 {
 
 public:
 
-    TypeName ("bilinearFrontVelocityInterpolator"); 
+    TypeName ("frontMotionSolver"); 
+
+    declareRunTimeSelectionTable (
+        tmp,  
+        frontMotionSolver,  
+        Dictionary,  
+        (
+            const dictionary& configDict 
+        ),
+        (configDict) 
+    );
 
     // Constructors
 
-        bilinearFrontVelocityInterpolator(const dictionary& configDict);
+        frontMotionSolver(const dictionary& configDict);
+
+    // Selectors
+
+        static tmp<frontMotionSolver> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~bilinearFrontVelocityInterpolator();
+        virtual ~frontMotionSolver();
 
     // Member Functions
         
-        void calcFrontVelocity(
-            triSurfaceFrontVectorField& frontVelocity, 
-            const volVectorField& U 
-        ) const;  
+        virtual void evolveFront(
+            triSurfaceFront& front,    
+            const triSurfaceFrontVectorField& frontVelocity
+        ) const = 0;  
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
