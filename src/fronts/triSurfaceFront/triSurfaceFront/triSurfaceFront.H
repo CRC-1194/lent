@@ -92,7 +92,7 @@ public:
     // Constructors
 
     //- Construct read 
-    triSurfaceFront(const IOobject& io, word writeFormat="stl", label prependZeros=8);
+    triSurfaceFront(const IOobject& io, word writeFormat="vtk", label prependZeros=8);
 
     //- Destructor
     virtual ~triSurfaceFront() {};
