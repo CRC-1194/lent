@@ -94,6 +94,20 @@ fileName triSurfaceFront::zeroPaddedFileName(word extension) const
     return finalName; 
 }
 
+fileName triSurfaceFront::existingFrontFileName(const IOobject& io)
+{
+    fileName modifiedFileName = io.filePath();
+    
+    const Time& runTime = io.time(); 
+
+    if (runTime.timeIndex() > 0)
+    {
+        modifiedFileName = zeroPaddedFileName(writeFormat_);  
+    }
+
+    return modifiedFileName;
+} 
+
 void triSurfaceFront::forceConsistentNormalOrientation
 (
     //const isoSurface& reconstructedFront, 
@@ -151,11 +165,16 @@ triSurfaceFront::triSurfaceFront(
 )
 :
     regIOobject(io), 
-    triSurface(io.filePath()), 
+    //triSurface(io.filePath()), 
+    triSurface(), 
     meshCells_(), 
     writeFormat_(writeFormat),
     prependZeros_(prependZeros)
-{}
+{
+    fileName file = existingFrontFileName(io);
+
+    static_cast<triSurface>(*this) = triSurface(file);
+}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 

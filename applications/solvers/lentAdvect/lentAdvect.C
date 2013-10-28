@@ -46,9 +46,6 @@ Description
 
 #include "lentMethod.H"
 
-// TODO: switch to registered front fields.
-#include "DynamicField.H"
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
@@ -80,57 +77,72 @@ int main(int argc, char *argv[])
         )
     );
 
-    DynamicField<vector> frontVelocity(front.nPoints()); 
+    triSurfaceFrontGeoMesh frontMesh(front); 
+
+    triSurfaceFrontVectorField frontVelocity(
+        IOobject(
+            "frontVelocity", 
+            runTime.timeName(), 
+            runTime, 
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        front, 
+        dimensionedVector(
+            "zero",
+            dimLength / dimTime, 
+            vector(0,0,0)
+        )
+    ); 
 
     lentMethod lent(front, mesh); 
 
     lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
 
-    //Read the front from the runTime the front, or reconstruct it if it is not 
-    //there. 
+    //FIXME: Read the front using runTime, or reconstruct it if it is not 
     //front.reconstruct(signedDistance, pointSignedDistance); 
     
     heaviside.write(); 
 
-    while (runTime.run())
-    {
-        #include "readTimeControls.H"
+    //while (runTime.run())
+    //{
+        //#include "readTimeControls.H"
 
-        runTime++;
+        //runTime++;
 
-        #include "CourantNo.H"
-        #include "heavisideCourantNo.H"
-        #include "setDeltaT.H"
+        //#include "CourantNo.H"
+        //#include "heavisideCourantNo.H"
+        //#include "setDeltaT.H"
 
-        Info<< "Time = " << runTime.timeName() << nl << endl;
+        //Info<< "Time = " << runTime.timeName() << nl << endl;
         
-        twoPhaseProperties.correct();
+        //twoPhaseProperties.correct();
 
-        // Compute the velocity using the meshCells of the isoSurface reconstruction.
-        lent.calcFrontVelocity(frontVelocity, U); 
+        //// Compute the velocity using the meshCells of the isoSurface reconstruction.
+        //lent.calcFrontVelocity(frontVelocity, U); 
 
-        lent.evolveFront(frontVelocity); 
+        //lent.evolveFront(frontVelocity); 
         
-        // Compute the new signed distance field with the surfaceMesh octree search.  
-        lent.calcSignedDistances(
-            signedDistance, 
-            pointSignedDistance,
-            searchDistanceSqr,
-            pointSearchDistanceSqr, 
-            front
-        ); 
+        //// Compute the new signed distance field with the surfaceMesh octree search.  
+        //lent.calcSignedDistances(
+            //signedDistance, 
+            //pointSignedDistance,
+            //searchDistanceSqr,
+            //pointSearchDistanceSqr, 
+            //front
+        //); 
 
-        lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+        //lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
 
-        // FIXME: add reconstruction model (every N timesteps, coalescenceModel)..
-        front.reconstruct(signedDistance, pointSignedDistance); 
+        //// FIXME: add reconstruction model (every N timesteps, coalescenceModel)..
+        //front.reconstruct(signedDistance, pointSignedDistance); 
 
-        runTime.write();
+        //runTime.write();
 
-        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            << nl << endl;
-    }
+        //Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            //<< "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            //<< nl << endl;
+    //}
 
     Info<< "End\n" << endl;
 

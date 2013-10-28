@@ -19,6 +19,9 @@ frontReconstructionModels/timeStepFrontReconstructionModel/timeStepFrontReconstr
 frontReconstructors/frontReconstructor/frontReconstructor.C
 frontReconstructors/foamIsoSurfaceReconstructor/foamIsoSurfaceFrontReconstructor.C
 
+frontVelocityCalculators/frontVelocityCalculator/frontVelocityCalculator.C
+frontVelocityCalculators/bilinearFrontVelocityInterpolator/bilinearFrontVelocityInterpolator.C
+
 lentMethod/lentMethod.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent

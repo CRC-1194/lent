@@ -35,6 +35,24 @@
         mesh
     );
 
+    volScalarField searchDistanceSqr 
+    (
+        IOobject
+        (
+            "signedDistance",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh, 
+        dimensionedScalar(
+            "zero",
+            dimLength,
+            0
+        )
+    );
+
     pointMesh pmesh(mesh); 
 
     // Initialize the points-to-elements distance. 
@@ -47,6 +65,24 @@
             IOobject::NO_WRITE
         ),
         pmesh
+    );
+
+    pointScalarField pointSearchDistanceSqr
+    (
+        IOobject
+        (
+            "pointSearchDistanceSqr", 
+            runTime.timeName(), 
+            mesh, 
+            IOobject::NO_READ, 
+            IOobject::NO_WRITE
+        ),
+        pmesh,
+        dimensionedScalar(
+            "zero",
+            dimLength,
+            0
+        )
     );
 
     Info << "Reading the cell-centered Heaviside function field H\n" << endl;

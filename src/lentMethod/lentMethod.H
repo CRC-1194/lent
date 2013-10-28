@@ -50,7 +50,7 @@ Authors
 #include "lentDistanceFieldCalculator.H"
 #include "frontReconstructionModel.H"
 #include "frontReconstructor.H"
-#include "triSurfaceFrontFieldsFwd.H"
+#include "triSurfaceFrontFields.H"
 #include "frontVelocityCalculator.H"
 //#include "frontMotionSolver.H"
 #include "heavisideModel.H"

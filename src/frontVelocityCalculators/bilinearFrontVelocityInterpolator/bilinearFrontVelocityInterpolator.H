@@ -21,56 +21,74 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::bilinearFrontVelocityInterpolator
+
+Description
+    Interpolate front velocity using bilinear interpolation.
+
+SourceFiles
+    bilinearFrontVelocityInterpolator.C
+
+Authors
+    Tomislav Maric
+    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
+    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+
 \*---------------------------------------------------------------------------*/
 
-#include "bilinearFrontVelocityInterpolator.H"
-#include "addToRunTimeSelectionTable.H"
+#ifndef bilinearFrontVelocityInterpolator_H
+#define bilinearFrontVelocityInterpolator_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "frontVelocityCalculator.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
-namespace FrontTracking { 
+namespace FrontTracking {
 
-    defineTypeNameAndDebug(bilinearFrontVelocityInterpolator, 0); 
+/*---------------------------------------------------------------------------*\
+                         Class bilinearFrontVelocityInterpolator Declaration
+\*---------------------------------------------------------------------------*/
 
-    addToRunTimeSelectionTable(
-        frontVelocityCalculator,
-        bilinearFrontVelocityInterpolator,
-        Dictionary
-    );
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-bilinearFrontVelocityInterpolator::bilinearFrontVelocityInterpolator(const dictionary& configDict)
-:
-    frontVelocityCalculator(configDict)
-{}
-
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-
-bilinearFrontVelocityInterpolator::calcFrontVelocity(
-    triSurfaceFrontVelocityField& frontVelocity, 
-    const volVectorField& U
-)
+class bilinearFrontVelocityInterpolator
+    :
+        public frontVelocityCalculator 
 {
-}
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+public:
 
-bilinearFrontVelocityInterpolator::~bilinearFrontVelocityInterpolator()
-{}
+    TypeName ("bilinearFrontVelocityInterpolator"); 
+
+    // Constructors
+
+        bilinearFrontVelocityInterpolator(const dictionary& configDict);
+
+    // Selectors
+
+        static tmp<bilinearFrontVelocityInterpolator> New(const dictionary& configDict);
+
+    // Destructor
+        virtual ~bilinearFrontVelocityInterpolator();
+
+    // Member Functions
+        
+        void calcFrontVelocity(
+            triSurfaceFrontVectorField& frontVelocity, 
+            const volVectorField& U 
+        ) const;  
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //
