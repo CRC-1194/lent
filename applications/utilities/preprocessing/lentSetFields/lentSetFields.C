@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    setSignedDistnaceFields 
+    lentSetFields
 
 Authors
     Tomislav Maric
@@ -30,35 +30,24 @@ Authors
     tomislav<<dot>>maric<<at>>gmx<<dot>>com
 
 Description
-    Pre-processing application that sets two signed distance fields using a 
-    surface mesh in the STL format. Used as a pre-processing application for
-    the LENT algorithm. Expects to find constant/levelSetFrontDict with 
+    Pre-processing application that sets two signed distance fields and a 
+    heaviside marker field using an input surface mesh in the STL format. 
+    Used as a pre-processing application for the LENT algorithm. 
 
-    narroBandWidth N; 
-
-    defined to define the *square* of the narrow band search radius.
-
-        o cells-to-elements is the signed distance between the surface mesh
-          elements and the mesh cell centers
-
-        o points-to-elemetns is the signed distance between the surface mesh
-          elements and the mesh points
 
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "interfaceProperties.H"
+#include "incompressibleTwoPhaseMixture.H"
 
-#include "triSurfaceFront.H"
-#include "naiveNarrowBandPropagation.H"
-#include "TriSurfaceMeshCalculator.H"
+#include "lentMethod.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
 
 // Configure the Method
-typedef triSurfaceFront Front;
-typedef TriSurfaceMeshCalculator Calculator; 
 
 int main(int argc, char *argv[])
 {
@@ -71,52 +60,31 @@ int main(int argc, char *argv[])
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    Front front(
+    triSurfaceFront front(
         IOobject(
             "front.stl",
             "front",
             runTime, 
             IOobject::MUST_READ, 
-            IOobject::NO_WRITE
-        )
-    );
-
-    IOdictionary levelSetFrontDict
-    (
-        IOobject
-        (
-            "levelSetFrontDict", 
-            "constant", 
-            runTime, 
-            IOobject::MUST_READ_IF_MODIFIED,
             IOobject::AUTO_WRITE
         )
     );
 
-    label narrowBandWidth = 
-        levelSetFrontDict.lookupOrDefault<label>(
-            "narrowBandWidth", 4
-        );
+    lentMethod lent(front, mesh); 
 
-    Calculator calc (narrowBandWidth); 
+    lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
-    // Compute the new signed distance field. 
-    calc.calcCentresToElementsDistance(
+    lent.calcSignedDistances(
         signedDistance, 
-        front,
-        naiveNarrowBandPropagation()
-    ); 
-
-    signedDistance.write(); 
-
-    calc.calcPointsToElementsDistance(
         pointSignedDistance, 
-        front,
-        mesh, 
-        naiveNarrowBandPropagation()
+        searchDistanceSqr, 
+        pointSearchDistanceSqr,
+        front
     ); 
 
-    pointSignedDistance.write(); 
+    lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+    
+    runTime.writeNow(); 
 
     Info<< "End\n" << endl;
 

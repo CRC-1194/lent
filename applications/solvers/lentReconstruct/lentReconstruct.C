@@ -77,18 +77,12 @@ int main(int argc, char *argv[])
         front
     ); 
     
-    lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
-
     lent.reconstructFront(front, signedDistance, pointSignedDistance); 
-
-    runTime.writeNow();
 
     while (runTime.run()) {
         runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
-
-        lent.reconstructFront(front, signedDistance, pointSignedDistance); 
 
         twoPhaseProperties.correct();
 
@@ -101,6 +95,8 @@ int main(int argc, char *argv[])
         ); 
 
         lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+
+        lent.reconstructFront(front, signedDistance, pointSignedDistance); 
 
         runTime.write();
 
