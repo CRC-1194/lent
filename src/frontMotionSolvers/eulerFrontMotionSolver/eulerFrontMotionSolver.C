@@ -55,6 +55,14 @@ void eulerFrontMotionSolver::evolveFront(
     const triSurfaceFrontVectorField& frontVelocity
 ) const
 {
+    pointField& frontPoints = const_cast<pointField&> (front.points()); 
+
+    const Time& runTime = frontVelocity.time(); 
+
+    forAll (frontPoints, I)
+    {
+        frontPoints[I] += frontVelocity[I] * runTime.deltaT().value(); 
+    }
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
