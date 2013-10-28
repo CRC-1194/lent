@@ -21,6 +21,15 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::bilinearFrontVelocityInterpolator
+
+Description
+    Interpolate front velocity using bilinear interpolation.
+
+SourceFiles
+    bilinearFrontVelocityInterpolator.C
+
 Authors
     Tomislav Maric
     maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
@@ -28,54 +37,47 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#include "timeStepFrontReconstructionModel.H"
-#include "addToRunTimeSelectionTable.H"
-#include "volFields.H"
-#include "mathematicalConstants.H"
+#ifndef bilinearFrontVelocityInterpolator_H
+#define bilinearFrontVelocityInterpolator_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "frontVelocityCalculator.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
-namespace FrontTracking { 
-    
-    defineTypeNameAndDebug(timeStepFrontReconstructionModel, 0); 
-    addToRunTimeSelectionTable(frontReconstructionModel, timeStepFrontReconstructionModel, Dictionary);
+namespace FrontTracking {
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+/*---------------------------------------------------------------------------*\
+                         Class bilinearFrontVelocityInterpolator Declaration
+\*---------------------------------------------------------------------------*/
 
-timeStepFrontReconstructionModel::timeStepFrontReconstructionModel(const dictionary& configDict)
-:
-    frontReconstructionModel(configDict),
-    reconstructionInterval_(
-        readLabel(configDict.lookup("reconstructionInterval"))
-    )
-{}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-timeStepFrontReconstructionModel::~timeStepFrontReconstructionModel()
-{}
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-bool timeStepFrontReconstructionModel::reconstructionRequired(
-    const triSurfaceFront& front, 
-    const volScalarField& signedDistance
-) const
+class bilinearFrontVelocityInterpolator
+    :
+        public frontVelocityCalculator 
 {
-    const Time& runTime = signedDistance.time();
 
-    if (reconstructionInterval_ == 0)
-    {
-        return false; 
-    }
-    else if ((runTime.timeIndex() % reconstructionInterval_) == 0)
-    {
-        return true;
-    }
+public:
 
-    return false;
-}
+    TypeName ("bilinearFrontVelocityInterpolator"); 
+
+    // Constructors
+
+        bilinearFrontVelocityInterpolator(const dictionary& configDict);
+
+    // Selectors
+
+        static tmp<bilinearFrontVelocityInterpolator> New(const dictionary& configDict);
+
+    // Destructor
+        virtual ~bilinearFrontVelocityInterpolator();
+
+    // Member Functions
+        
+        void calcFrontVelocity(
+            triSurfaceFrontVectorField& frontVelocity, 
+            const volVectorField& U 
+        );  
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -87,5 +89,6 @@ bool timeStepFrontReconstructionModel::reconstructionRequired(
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// ************************************************************************* //
+#endif
 
+// ************************************************************************* //

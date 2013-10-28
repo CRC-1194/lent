@@ -94,7 +94,11 @@ lentMethod::lentMethod(
             lentControlDict_.subDict("frontReconstructor")
         )
      ), 
-     //frontVelocityCalculatorTmp_(), 
+     frontVelocityCalculatorTmp_(
+        frontVelocityCalculator::New(
+            lentControlDict_.subDict("frontVelocityCalculator")
+        )
+     ), 
      //frontMotionSolver_(), 
      heavisideModelTmp_(
          heavisideModel::New(
@@ -181,6 +185,18 @@ void lentMethod::reconstructFront(
         );
     }
 }
+
+void lentMethod::calcFrontVelocity(
+    triSurfaceFrontVectorField& frontVelocity, 
+    const volVectorField& U
+) 
+{
+    frontVelocityCalculatorTmp_->calcFrontVelocity(
+        frontVelocity, 
+        U
+    );
+}
+
 
 bool lentMethod::writeData(Ostream& os) const
 {

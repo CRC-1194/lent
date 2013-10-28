@@ -21,65 +21,57 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
-
 \*---------------------------------------------------------------------------*/
 
-#include "timeStepFrontReconstructionModel.H"
-#include "addToRunTimeSelectionTable.H"
-#include "volFields.H"
-#include "mathematicalConstants.H"
+#include "frontVelocityCalculator.H"
+#include "dictionary.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking { 
-    
-    defineTypeNameAndDebug(timeStepFrontReconstructionModel, 0); 
-    addToRunTimeSelectionTable(frontReconstructionModel, timeStepFrontReconstructionModel, Dictionary);
+
+    defineTypeNameAndDebug(frontVelocityCalculator, 0); 
+    defineRunTimeSelectionTable(frontVelocityCalculator, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-timeStepFrontReconstructionModel::timeStepFrontReconstructionModel(const dictionary& configDict)
-:
-    frontReconstructionModel(configDict),
-    reconstructionInterval_(
-        readLabel(configDict.lookup("reconstructionInterval"))
-    )
+frontVelocityCalculator::frontVelocityCalculator(const dictionary& configDict)
 {}
+
+// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
+
+tmp<frontVelocityCalculator>
+frontVelocityCalculator::New(const dictionary& configDict)
+{
+    const word name = configDict.lookup("type"); 
+
+    DictionaryConstructorTable::iterator cstrIter =
+        DictionaryConstructorTablePtr_->find(name);
+
+    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    {
+        FatalErrorIn (
+            "frontVelocityCalculator::New(const word& name)"
+        )   << "Unknown frontVelocityCalculator type "
+            << name << nl << nl
+            << "Valid frontVelocityCalculators are : " << endl
+            << DictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalError);
+    }
+
+    return tmp<frontVelocityCalculator> (cstrIter()(configDict));
+}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-timeStepFrontReconstructionModel::~timeStepFrontReconstructionModel()
+frontVelocityCalculator::~frontVelocityCalculator()
 {}
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-bool timeStepFrontReconstructionModel::reconstructionRequired(
-    const triSurfaceFront& front, 
-    const volScalarField& signedDistance
-) const
-{
-    const Time& runTime = signedDistance.time();
-
-    if (reconstructionInterval_ == 0)
-    {
-        return false; 
-    }
-    else if ((runTime.timeIndex() % reconstructionInterval_) == 0)
-    {
-        return true;
-    }
-
-    return false;
-}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -88,4 +80,3 @@ bool timeStepFrontReconstructionModel::reconstructionRequired(
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // ************************************************************************* //
-

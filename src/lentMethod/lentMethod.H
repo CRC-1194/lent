@@ -26,7 +26,8 @@ Class
 
 Description
     A facade class that simplifies the user interface for the LENT hybrid 
-    front-tracking level-set method. 
+    front-tracking level-set method by agglomerating a bunch of run-time 
+    selected small one-algorithm SRP classes. 
 
 SourceFiles
     lentMethod.C
@@ -49,7 +50,8 @@ Authors
 #include "lentDistanceFieldCalculator.H"
 #include "frontReconstructionModel.H"
 #include "frontReconstructor.H"
-//#include "frontVelocityCalculator.H"
+#include "triSurfaceFrontFieldsFwd.H"
+#include "frontVelocityCalculator.H"
 //#include "frontMotionSolver.H"
 #include "heavisideModel.H"
 
@@ -84,7 +86,7 @@ class lentMethod
     tmp<frontReconstructor> frontReconstructorTmp_; 
 
     // Velocity calculator. 
-    //tmp<frontVelocityCalculator> frontVelocityCalculatorTmp_; 
+    tmp<frontVelocityCalculator> frontVelocityCalculatorTmp_; 
 
     //// Front motion solver. 
     //tmp<frontMotionSolver> frontMotionSolver_; 
@@ -112,7 +114,7 @@ public:
     // Member Functions
     
         // Calculations
-        void calcSearchDistances(
+        virtual void calcSearchDistances(
             volScalarField& searchDistanceSqr, 
             pointScalarField& pointSearchDistanceSqr
         ); 
@@ -135,6 +137,11 @@ public:
             triSurfaceFront& front,
             const volScalarField& signedDistance,
             const pointScalarField& pointSignedDistance
+        ); 
+
+        void calcFrontVelocity(
+            triSurfaceFrontVectorField& frontVelocity, 
+            const volVectorField& U 
         ); 
 
         // Empty writer: regIOobject is used only for registry queries. 

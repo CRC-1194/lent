@@ -21,65 +21,51 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
-
 \*---------------------------------------------------------------------------*/
 
-#include "timeStepFrontReconstructionModel.H"
+#include "bilinearFrontVelocityInterpolator.H"
 #include "addToRunTimeSelectionTable.H"
-#include "volFields.H"
-#include "mathematicalConstants.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking { 
-    
-    defineTypeNameAndDebug(timeStepFrontReconstructionModel, 0); 
-    addToRunTimeSelectionTable(frontReconstructionModel, timeStepFrontReconstructionModel, Dictionary);
+
+    defineTypeNameAndDebug(bilinearFrontVelocityInterpolator, 0); 
+
+    addToRunTimeSelectionTable(
+        frontVelocityCalculator,
+        bilinearFrontVelocityInterpolator,
+        Dictionary
+    );
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-timeStepFrontReconstructionModel::timeStepFrontReconstructionModel(const dictionary& configDict)
+bilinearFrontVelocityInterpolator::bilinearFrontVelocityInterpolator(const dictionary& configDict)
 :
-    frontReconstructionModel(configDict),
-    reconstructionInterval_(
-        readLabel(configDict.lookup("reconstructionInterval"))
-    )
+    frontVelocityCalculator(configDict)
 {}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+
+bilinearFrontVelocityInterpolator::calcFrontVelocity(
+    triSurfaceFrontVelocityField& frontVelocity, 
+    const volVectorField& U
+)
+{
+}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-timeStepFrontReconstructionModel::~timeStepFrontReconstructionModel()
+bilinearFrontVelocityInterpolator::~bilinearFrontVelocityInterpolator()
 {}
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-bool timeStepFrontReconstructionModel::reconstructionRequired(
-    const triSurfaceFront& front, 
-    const volScalarField& signedDistance
-) const
-{
-    const Time& runTime = signedDistance.time();
-
-    if (reconstructionInterval_ == 0)
-    {
-        return false; 
-    }
-    else if ((runTime.timeIndex() % reconstructionInterval_) == 0)
-    {
-        return true;
-    }
-
-    return false;
-}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -88,4 +74,3 @@ bool timeStepFrontReconstructionModel::reconstructionRequired(
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // ************************************************************************* //
-
