@@ -47,6 +47,9 @@ namespace FrontTracking {
 lentMeshSearch::lentMeshSearch(const dictionary& configDict)
 {}
 
+lentMeshSearch::lentMeshSearch()
+{}
+
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 tmp<lentMeshSearch>
@@ -84,7 +87,7 @@ label lentMeshSearch::cellContainingPoint(
     const label seedCell 
 ) const
 {
-    if (pointInCellWithTolerance(p, seedCell, mesh))
+    if (pointIsInCell(p, seedCell, mesh))
     {
         return seedCell;  
     }
@@ -121,7 +124,7 @@ label lentMeshSearch::cellContainingPoint(
         Info << "minDistance = " << minDistance << endl;
 #endif
 
-        if (pointInCellWithTolerance(p, neighborCell, mesh)) 
+        if (pointIsInCell(p, neighborCell, mesh)) 
         {
             return neighborCell; 
         }
@@ -146,7 +149,7 @@ label lentMeshSearch::cellContainingPoint(
         }
     }
 
-    if (pointInCellWithTolerance(p, minDistanceCell, mesh)) 
+    if (pointIsInCell(p, minDistanceCell, mesh)) 
     {
         return minDistanceCell; 
     } else 
@@ -162,7 +165,7 @@ label lentMeshSearch::cellContainingPoint(
     return -1; 
 }
 
-bool lentMeshSearch::pointInCellWithTolerance(
+bool lentMeshSearch::pointIsInCell(
     const point p, 
     const label cellLabel, 
     const fvMesh& mesh, 

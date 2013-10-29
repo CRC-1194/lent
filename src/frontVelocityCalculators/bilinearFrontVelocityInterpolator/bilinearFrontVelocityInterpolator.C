@@ -79,7 +79,7 @@ void bilinearFrontVelocityInterpolator::calcFrontVelocity(
         {
             const point& vertex = vertices[element[vertexI]];  
 
-            if (!searchAlg.pointInCellWithTolerance(vertex, elementCells[elementI], mesh))
+            if (!searchAlg.pointIsInCell(vertex, elementCells[elementI], mesh))
             {
                 elementCells[elementI] = searchAlg.cellContainingPoint(
                     vertex, 

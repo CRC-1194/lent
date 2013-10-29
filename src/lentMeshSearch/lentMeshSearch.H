@@ -79,6 +79,8 @@ public:
     );
 
     // Constructors
+    
+        lentMeshSearch();
 
         lentMeshSearch(const dictionary& configDict);
 
@@ -91,7 +93,7 @@ public:
 
     // Member Functions
         
-        bool pointInCellWithTolerance(
+        bool pointIsInCell(
             const point p, 
             const label cellLabel, 
             const fvMesh& mesh, 
