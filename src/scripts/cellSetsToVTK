@@ -1,0 +1,43 @@
+#! /usr/bin/bash
+
+CELL_SET=$1
+
+if [ -z "$CELL_SET" ];
+then 
+    echo cellSet name prefix not provided as script argument 
+    exit 1
+fi
+
+SOURCE_FILES=$(ls 0*/$CELL_SET*) 
+
+if [ -n "$SOURCE_FILES" ];
+then
+    for file in $SOURCE_FILES; 
+    do 
+        echo $file
+    
+        cp $file constant/polyMesh/sets/${file##*/}; 
+    done
+fi
+
+COPIED_FILES=$(ls constant/polyMesh/sets/$CELL_SET*)
+
+if [ -n "$COPIED_FILES" ]; 
+then
+    for file in constant/polyMesh/sets/$CELL_SET*; 
+    do 
+        foamToVTK -cellSet ${file##*/}; 
+    done
+fi
+
+VTK_FILES=$(ls VTK/$CELL_SET*_0.vtk)
+
+echo $VTK_FILES
+
+if [ -n "$VTK_FILES" ]; 
+then
+    for file in $VTK_FILES; 
+    do 
+        mv $file ${file%\_*}.vtk; 
+    done
+fi
