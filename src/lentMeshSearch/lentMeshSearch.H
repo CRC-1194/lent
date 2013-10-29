@@ -22,13 +22,21 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::frontVelocityCalculator
+    Foam::lentMeshSearch
 
 Description
-    Interface for the front velocity calculation. 
+    Abstract base class for supplemental mesh search operations. 
+    fvMesh supports:
+    
+        * linear search (for each cell, check if ...)
+        * logarithmic search (uses octrees)
 
+    For now, the lentMeshSearch algorithm is to implement variants of the 
+    vicinity search algorithm that uses neighboring cell relationship to find a
+    point in the mesh.
+           
 SourceFiles
-    frontVelocityCalculator.C
+    lentMeshSearch.C
 
 Authors
     Tomislav Maric
@@ -37,17 +45,10 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef frontVelocityCalculator_H
-#define frontVelocityCalculator_H
+#ifndef lentMeshSearch_H
+#define lentMeshSearch_H
 
-#include "typeInfo.H"
-#include "autoPtr.H"
-#include "tmp.H"
-#include "refCount.H"
-#include "volFieldsFwd.H"
-#include "triSurfaceFront.H"
-#include "triSurfaceFrontFields.H"
-#include "lentMeshSearch.H"
+#include "fvMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -55,23 +56,21 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class frontVelocityCalculator Declaration
+                         Class lentMeshSearch Declaration
 \*---------------------------------------------------------------------------*/
 
-class frontVelocityCalculator
+class lentMeshSearch
     :
         public refCount
 {
 
-    tmp<lentMeshSearch> searchAlgTmp_; 
-
 public:
 
-    TypeName ("frontVelocityCalculator"); 
+    TypeName ("lentMeshSearch"); 
 
     declareRunTimeSelectionTable (
         tmp,  
-        frontVelocityCalculator,  
+        lentMeshSearch,  
         Dictionary,  
         (
             const dictionary& configDict 
@@ -81,27 +80,39 @@ public:
 
     // Constructors
 
-        frontVelocityCalculator(const dictionary& configDict);
+        lentMeshSearch(const dictionary& configDict);
 
     // Selectors
 
-        static tmp<frontVelocityCalculator> New(const dictionary& configDict);
+        static tmp<lentMeshSearch> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~frontVelocityCalculator();
+        virtual ~lentMeshSearch();
 
     // Member Functions
         
-        virtual void calcFrontVelocity(
-            triSurfaceFrontVectorField& frontVelocity, 
-            const volVectorField& U,
-            labelList& elementCells 
-        ) const = 0;  
+        bool pointInCellWithTolerance(
+            const point p, 
+            const label cellLabel, 
+            const fvMesh& mesh, 
+            scalar tolerance=SMALL
+        ) const; 
 
-        const lentMeshSearch& getSearchAlgorithm() const
-        {
-            return searchAlgTmp_(); 
-        }
+        virtual label cellContainingPoint(
+            const point& p, 
+            const fvMesh& mesh, 
+            const label seedCell = -1
+        ) const;  
+
+        labelList pointCellStencil(
+            label cellLabel, 
+            const fvMesh& mesh
+        ) const;
+
+    // Member Operators 
+    
+        void operator=(const lentMeshSearch& rhs); 
+
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

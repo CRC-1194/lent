@@ -1,8 +1,6 @@
 fronts/triSurfaceFront/triSurfaceFront/triSurfaceFront.C
 fronts/triSurfaceFront/triSurfaceFrontFields/triSurfaceFrontFields.C
 
-
-
 distanceFieldCalculators/lentDistanceFieldCalculator/lentDistanceFieldCalculator.C
 distanceFieldCalculators/triSurfaceMeshDistanceCalculator/triSurfaceMeshDistanceFieldCalculator.C
 
@@ -18,6 +16,8 @@ frontReconstructionModels/timeStepFrontReconstructionModel/timeStepFrontReconstr
 
 frontReconstructors/frontReconstructor/frontReconstructor.C
 frontReconstructors/foamIsoSurfaceReconstructor/foamIsoSurfaceFrontReconstructor.C
+
+lentMeshSearch/lentMeshSearch.C
 
 frontVelocityCalculators/frontVelocityCalculator/frontVelocityCalculator.C
 frontVelocityCalculators/bilinearFrontVelocityInterpolator/bilinearFrontVelocityInterpolator.C

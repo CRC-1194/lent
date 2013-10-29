@@ -96,10 +96,6 @@ public:
 
         bool distanceWithinNarrowBand(scalar distance, scalar narrowBandWidth) const; 
 
-    // Member Operators 
-    
-        void operator=(const heavisideModel& rhs); 
-
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

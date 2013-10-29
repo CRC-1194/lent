@@ -78,19 +78,6 @@ bool heavisideModel::distanceWithinNarrowBand(
     return mag(distance) < narrowBandWidth;  
 }
 
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-void heavisideModel::operator=(const heavisideModel& rhs)
-{
-    // Check for assignment to self
-    if (this == &rhs)
-    {
-        FatalErrorIn("heavisideModel::operator=(const heavisideModel&)")
-            << "Attempted assignment to self"
-            << abort(FatalError);
-    }
-}
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 

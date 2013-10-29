@@ -192,12 +192,14 @@ void lentMethod::reconstructFront(
 
 void lentMethod::calcFrontVelocity(
     triSurfaceFrontVectorField& frontVelocity, 
-    const volVectorField& U
+    const volVectorField& U,
+    labelList& elementCells
 ) 
 {
     frontVelocityCalculatorTmp_->calcFrontVelocity(
         frontVelocity, 
-        U
+        U,
+        elementCells
     );
 }
 

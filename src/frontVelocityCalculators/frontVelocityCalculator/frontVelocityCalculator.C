@@ -37,6 +37,8 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontVelocityCalculator::frontVelocityCalculator(const dictionary& configDict)
+:
+    searchAlgTmp_(lentMeshSearch::New(configDict.subDict("searchAlgorithm")))
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //

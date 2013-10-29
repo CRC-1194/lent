@@ -71,7 +71,8 @@ public:
         
         void calcFrontVelocity(
             triSurfaceFrontVectorField& frontVelocity, 
-            const volVectorField& U 
+            const volVectorField& U, 
+            labelList& elementCells 
         ) const;  
 };
 

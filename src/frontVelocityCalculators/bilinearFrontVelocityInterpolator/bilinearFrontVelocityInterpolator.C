@@ -25,6 +25,7 @@ License
 
 #include "bilinearFrontVelocityInterpolator.H"
 #include "addToRunTimeSelectionTable.H"
+#include "interpolationCellPoint.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -52,9 +53,48 @@ bilinearFrontVelocityInterpolator::bilinearFrontVelocityInterpolator(const dicti
 
 void bilinearFrontVelocityInterpolator::calcFrontVelocity(
     triSurfaceFrontVectorField& frontVelocity, 
-    const volVectorField& U
+    const volVectorField& U,
+    labelList& elementCells
 ) const
 {
+    const triSurfaceFront& front = frontVelocity.mesh(); 
+
+    frontVelocity.resize(front.nPoints()); 
+    frontVelocity = dimensionedVector("zero", dimLength/dimTime, vector(0,0,0));
+
+    interpolationCellPoint<vector> bilinear(U); 
+
+    const List<labelledTri>& elements = front.localFaces(); 
+    const pointField& vertices = front.points(); 
+
+    const fvMesh& mesh = U.mesh(); 
+
+    const lentMeshSearch& searchAlg = getSearchAlgorithm();  
+
+    forAll (elementCells, elementI)
+    {
+        const triFace& element = elements[elementI]; 
+
+        forAll (element, vertexI)
+        {
+            const point& vertex = vertices[element[vertexI]];  
+
+            if (!searchAlg.pointInCellWithTolerance(vertex, elementCells[elementI], mesh))
+            {
+                elementCells[elementI] = searchAlg.cellContainingPoint(
+                    vertex, 
+                    mesh,
+                    elementCells[elementI]
+                ); 
+            }
+
+            frontVelocity[element[vertexI]] = bilinear.interpolate(
+                vertices[element[vertexI]],  
+                elementCells[elementI]
+            );
+        }
+    }
+
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
