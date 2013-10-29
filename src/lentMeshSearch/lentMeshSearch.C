@@ -101,6 +101,25 @@ lentMeshSearch::New(const dictionary& configDict)
 lentMeshSearch::~lentMeshSearch()
 {}
 
+#ifdef FULLDEBUG
+// * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * * //
+void lentMeshSearch::appendLabelAndWriteCellSet(label cellLabel) const
+{
+    ++iterationCount_; 
+
+    visualizationCellSet_.insert(cellLabel); 
+
+    std::stringstream ss; 
+
+    ss << "lentMeshSearchCellSet" << "-" << std::setw(20) << std::setfill('0')
+        << iterationCount_;  
+
+    visualizationCellSet_.rename(ss.str()); 
+    visualizationCellSet_.write(); 
+}
+#endif
+
+
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 label lentMeshSearch::cellContainingPoint(
@@ -111,16 +130,7 @@ label lentMeshSearch::cellContainingPoint(
 {
 
 #if FULLDEBUG
-    ++iterationCount_; 
-
-    std::stringstream ss; 
-
-    ss << visualizationCellSet_.name() << "-" << std::setw(20) << std::setfill('0')
-        << iterationCount_;  
-
-    visualizationCellSet_.rename(ss.str()); 
-    visualizationCellSet_.write(); 
-
+    appendLabelAndWriteCellSet(seedCell); 
 #endif
 
     if (pointIsInCell(p, seedCell, mesh))
@@ -162,6 +172,10 @@ label lentMeshSearch::cellContainingPoint(
 
         if (pointIsInCell(p, neighborCell, mesh)) 
         {
+
+#if FULLDEBUG
+    appendLabelAndWriteCellSet(seedCell); 
+#endif
             return neighborCell; 
         }
 
@@ -187,6 +201,11 @@ label lentMeshSearch::cellContainingPoint(
 
     if (pointIsInCell(p, minDistanceCell, mesh)) 
     {
+
+#if FULLDEBUG
+    appendLabelAndWriteCellSet(seedCell); 
+#endif
+
         return minDistanceCell; 
     } else 
     {

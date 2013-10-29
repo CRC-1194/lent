@@ -10,6 +10,11 @@ fi
 
 SOURCE_FILES=$(ls 0*/$CELL_SET*) 
 
+if [ ! -d "constant/polyMesh/sets" ]; 
+then 
+    mkdir -p constant/polyMesh/sets
+fi
+
 if [ -n "$SOURCE_FILES" ];
 then
     for file in $SOURCE_FILES; 
@@ -31,8 +36,6 @@ then
 fi
 
 VTK_FILES=$(ls VTK/$CELL_SET*_0.vtk)
-
-echo $VTK_FILES
 
 if [ -n "$VTK_FILES" ]; 
 then

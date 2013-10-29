@@ -68,6 +68,7 @@ class lentMeshSearch
 #if FULLDEBUG
     mutable cellSet visualizationCellSet_; 
     mutable label iterationCount_;
+    void appendLabelAndWriteCellSet(label cellLabel) const; 
 #endif
 
 public:
