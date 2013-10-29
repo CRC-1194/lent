@@ -34,6 +34,11 @@ Authors
 #include "surfaceFields.H"
 #include <set>
 
+#if FULLDEBUG
+#include <sstream>
+#include <iomanip>
+#endif
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
@@ -44,11 +49,28 @@ namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
+
+#if FULLDEBUG
+lentMeshSearch::lentMeshSearch(const Time& runTime)
+:
+    visualizationCellSet_(
+        IOobject(
+            "lentMeshSearchCells", 
+            runTime.timeName(), 
+            runTime,
+            IOobject::NO_READ, 
+            IOobject::AUTO_WRITE
+        )
+    ), 
+    iterationCount_(0)
+{}
+#else 
 lentMeshSearch::lentMeshSearch(const dictionary& configDict)
 {}
 
 lentMeshSearch::lentMeshSearch()
 {}
+#endif 
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
@@ -87,6 +109,20 @@ label lentMeshSearch::cellContainingPoint(
     const label seedCell 
 ) const
 {
+
+#if FULLDEBUG
+    ++iterationCount_; 
+
+    std::stringstream ss; 
+
+    ss << visualizationCellSet_.name() << "-" << std::setw(20) << std::setfill('0')
+        << iterationCount_;  
+
+    visualizationCellSet_.rename(ss.str()); 
+    visualizationCellSet_.write(); 
+
+#endif
+
     if (pointIsInCell(p, seedCell, mesh))
     {
         return seedCell;  
@@ -96,7 +132,7 @@ label lentMeshSearch::cellContainingPoint(
     scalar minDistance = mag(C[seedCell] - p);
     label minDistanceCell = seedCell; 
 
-#if DEBUG
+#if FULLDEBUG
     Info << "minDistanceCell start = " << minDistanceCell << endl;
 #endif
 
@@ -112,7 +148,7 @@ label lentMeshSearch::cellContainingPoint(
         neighborCells = pointCellStencil(seedCell, mesh);  
     }
 
-#if DEBUG
+#if FULLDEBUG
     Info << "used stencil = " << neighborCells  << endl;
 #endif 
 
@@ -120,7 +156,7 @@ label lentMeshSearch::cellContainingPoint(
     {
         label neighborCell = neighborCells[I]; 
 
-#if DEBUG
+#if FULLDEBUG
         Info << "minDistance = " << minDistance << endl;
 #endif
 
@@ -129,12 +165,12 @@ label lentMeshSearch::cellContainingPoint(
             return neighborCell; 
         }
 
-#if DEBUG
+#if FULLDEBUG
         Info << "checking neighbor cell = " << neighborCell << endl;
 #endif
         scalar distance = mag(C[neighborCell] - p); 
 
-#if DEBUG
+#if FULLDEBUG
         Info << "distance = " << distance << endl;
 #endif 
 
@@ -143,7 +179,7 @@ label lentMeshSearch::cellContainingPoint(
         {
             minDistance = distance; 
             minDistanceCell = neighborCell; 
-#if DEBUG
+#if FULLDEBUG
             Info << "minDistanceCell = " << minDistanceCell << endl;
 #endif 
         }
@@ -155,12 +191,13 @@ label lentMeshSearch::cellContainingPoint(
     } else 
     {
 
-#if DEBUG
+#if FULLDEBUG
         Info << "skipping to cell " << minDistanceCell << endl;
 #endif
 
         return cellContainingPoint(p, mesh, minDistanceCell); 
     }
+
 
     return -1; 
 }
@@ -180,7 +217,7 @@ bool lentMeshSearch::pointIsInCell(
 
     bool pointIsInside = true;
 
-#if DEBUG
+#if FULLDEBUG
     Info << "point " << p << endl;
 #endif 
 
@@ -203,14 +240,14 @@ bool lentMeshSearch::pointIsInCell(
         if ((fp & faceNormal) > tolerance) 
         {
 
-#if DEBUG 
+#if FULLDEBUG 
             Info << "point outside face = " << (fp & faceNormal) << endl; 
 #endif
             pointIsInside = false;
             break;
         }
 
-#if DEBUG
+#if FULLDEBUG
         else
         {
             Info << "point inside face = " << (fp & faceNormal) << endl; 

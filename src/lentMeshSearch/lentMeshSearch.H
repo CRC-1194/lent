@@ -49,6 +49,7 @@ Authors
 #define lentMeshSearch_H
 
 #include "fvMesh.H"
+#include "cellSet.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -63,6 +64,11 @@ class lentMeshSearch
     :
         public refCount
 {
+
+#if FULLDEBUG
+    mutable cellSet visualizationCellSet_; 
+    mutable label iterationCount_;
+#endif
 
 public:
 
@@ -80,9 +86,13 @@ public:
 
     // Constructors
     
+#if FULLDEBUG
+        lentMeshSearch(const Time& runTime); 
+#else
         lentMeshSearch();
 
         lentMeshSearch(const dictionary& configDict);
+#endif 
 
     // Selectors
 

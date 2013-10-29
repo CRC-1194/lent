@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 
     label seedCell = mesh.findCell(seedPoint); 
 
-    lentMeshSearch ls; 
+    lentMeshSearch ls(runTime); 
 
     label foundCell = ls.cellContainingPoint(targetPoint, mesh, seedCell); 
 
