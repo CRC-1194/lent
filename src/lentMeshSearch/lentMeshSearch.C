@@ -135,6 +135,9 @@ label lentMeshSearch::cellContainingPoint(
 
     if (pointIsInCell(p, seedCell, mesh))
     {
+#if FULLDEBUG
+    appendLabelAndWriteCellSet(seedCell); 
+#endif
         return seedCell;  
     }
 
@@ -174,7 +177,7 @@ label lentMeshSearch::cellContainingPoint(
         {
 
 #if FULLDEBUG
-    appendLabelAndWriteCellSet(seedCell); 
+    appendLabelAndWriteCellSet(neighborCell); 
 #endif
             return neighborCell; 
         }
