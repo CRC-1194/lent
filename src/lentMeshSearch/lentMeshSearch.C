@@ -32,6 +32,7 @@ Authors
 #include "dictionary.H"
 #include "volFields.H"
 #include "surfaceFields.H"
+#include "addToRunTimeSelectionTable.H"
 #include <set>
 
 #if FULLDEBUG
@@ -46,6 +47,10 @@ namespace FrontTracking {
 
     defineTypeNameAndDebug(lentMeshSearch, 0); 
     defineRunTimeSelectionTable(lentMeshSearch, Dictionary);
+#if FULLDEBUG
+#else
+    addToRunTimeSelectionTable(lentMeshSearch, lentMeshSearch, Dictionary);
+#endif
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 

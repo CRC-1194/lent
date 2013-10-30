@@ -69,7 +69,7 @@ lentMethod::lentMethod(
             IOobject::NO_WRITE
         )
     ),
-    meshCells_(),
+    elementCells_(),
     lentControlDict_(
          IOobject(
             dictName, 
@@ -115,7 +115,7 @@ lentMethod::lentMethod(
 lentMethod::lentMethod(const lentMethod& copy)
 : 
     regIOobject(copy),
-    meshCells_(copy.meshCells_),
+    elementCells_(copy.elementCells_),
     lentControlDict_(copy.lentControlDict_),
     lentDistanceFieldCalculatorTmp_(copy.lentDistanceFieldCalculatorTmp_),
     frontReconstructorTmp_(copy.frontReconstructorTmp_),
@@ -182,7 +182,7 @@ void lentMethod::reconstructFront(
 {
     if (frontReconstructionModelTmp_->reconstructionRequired(front, signedDistance))
     {
-        meshCells_ = frontReconstructorTmp_->reconstructFront(
+        elementCells_ = frontReconstructorTmp_->reconstructFront(
             front,
             signedDistance, 
             pointSignedDistance
@@ -192,14 +192,13 @@ void lentMethod::reconstructFront(
 
 void lentMethod::calcFrontVelocity(
     triSurfaceFrontVectorField& frontVelocity, 
-    const volVectorField& U,
-    labelList& elementCells
+    const volVectorField& U
 ) 
 {
     frontVelocityCalculatorTmp_->calcFrontVelocity(
         frontVelocity, 
         U,
-        elementCells
+        elementCells_
     );
 }
 
@@ -236,7 +235,7 @@ void lentMethod::operator=(const lentMethod& rhs)
             << abort(FatalError);
     }
 
-    meshCells_ = rhs.meshCells_;
+    elementCells_ = rhs.elementCells_;
     lentControlDict_ = rhs.lentControlDict_; 
     lentDistanceFieldCalculatorTmp_ = rhs.lentDistanceFieldCalculatorTmp_; 
     frontReconstructorTmp_ = rhs.frontReconstructorTmp_;

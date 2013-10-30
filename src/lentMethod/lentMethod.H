@@ -71,7 +71,7 @@ class lentMethod
     public regIOobject
 {
     // Triangles-cells map.
-    DynamicList<label> meshCells_; 
+    DynamicList<label> elementCells_; 
 
     // Lent method configuration dictionary.
     IOdictionary lentControlDict_;  
@@ -141,8 +141,7 @@ public:
 
         void calcFrontVelocity(
             triSurfaceFrontVectorField& frontVelocity, 
-            const volVectorField& U,
-            labelList& elementCells
+            const volVectorField& U
         ); 
 
         void evolveFront(
