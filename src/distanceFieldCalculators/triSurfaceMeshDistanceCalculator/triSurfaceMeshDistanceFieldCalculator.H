@@ -79,7 +79,7 @@ public:
      
     // Constructors
     
-        triSurfaceMeshDistanceFieldCalculator(
+        explicit triSurfaceMeshDistanceFieldCalculator(
             const dictionary& config
         );
 

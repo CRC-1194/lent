@@ -70,8 +70,11 @@ int main(int argc, char *argv[])
 
     lentMethod lent(front, mesh); 
 
+    Info << "Calculating the search distance fields..."; 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
+    Info << "Done." << endl;
 
+    Info << "Calculating the signed distance fields..."; 
     lent.calcSignedDistances(
         signedDistance, 
         pointSignedDistance, 
@@ -79,8 +82,11 @@ int main(int argc, char *argv[])
         pointSearchDistanceSqr,
         front
     ); 
+    Info << "Done." << endl;
 
+    Info << "Calculating the heaviside field..."; 
     lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+    Info << "Done." << endl;
     
     runTime.writeNow(); 
 

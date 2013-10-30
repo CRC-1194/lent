@@ -91,9 +91,8 @@ public:
         lentMeshSearch(const Time& runTime); 
 #else
         lentMeshSearch();
-
         lentMeshSearch(const dictionary& configDict);
-#endif 
+#endif
 
     // Selectors
 

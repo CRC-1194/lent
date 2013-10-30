@@ -35,21 +35,57 @@
         mesh
     );
 
+    volScalarField searchDistanceSqr 
+    (
+        IOobject
+        (
+            "signedDistance",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh, 
+        dimensionedScalar(
+            "zero",
+            dimLength,
+            0
+        )
+    );
+
+    pointMesh pmesh(mesh); 
+
     // Initialize the points-to-elements distance. 
     pointScalarField pointSignedDistance(
         IOobject(
             "pointSignedDistance", 
             runTime.timeName(), 
             mesh, 
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        pmesh
+    );
+
+    pointScalarField pointSearchDistanceSqr
+    (
+        IOobject
+        (
+            "pointSearchDistanceSqr", 
+            runTime.timeName(), 
+            mesh, 
             IOobject::NO_READ, 
             IOobject::NO_WRITE
         ),
-        pointMesh(mesh), 
-        GREAT,
-        "zeroGradient"
+        pmesh,
+        dimensionedScalar(
+            "zero",
+            dimLength,
+            0
+        )
     );
 
-    Info << "Reading the cell-centered Heaviside field\n" << endl;
+    Info << "Reading the cell-centered Heaviside function field H\n" << endl;
     volScalarField heaviside(
         IOobject(
             "heaviside",
@@ -77,8 +113,7 @@
             "rho",
             runTime.timeName(),
             mesh,
-            IOobject::READ_IF_PRESENT, 
-            IOobject::AUTO_WRITE //TODO: remove 
+            IOobject::READ_IF_PRESENT
         ),
         heaviside*rho1 + (scalar(1) - heaviside)*rho2,
         heaviside.boundaryField().types()
@@ -149,8 +184,7 @@
     );
 
     if (p_rgh.needReference()) {
-        p += dimensionedScalar
-        (
+        p += dimensionedScalar(
             "p",
             p.dimensions(),
             pRefValue - getRefCellValue(p, pRefCell)

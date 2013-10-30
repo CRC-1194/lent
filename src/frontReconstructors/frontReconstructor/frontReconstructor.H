@@ -45,7 +45,8 @@ Authors
 #include "autoPtr.H"
 #include "tmp.H"
 #include "refCount.H"
-#include "volFieldsFwd.H"
+#include "pointFields.H"
+#include "volFields.H"
 #include "triSurfaceFront.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

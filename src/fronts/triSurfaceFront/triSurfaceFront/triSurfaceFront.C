@@ -47,31 +47,6 @@ namespace Foam
 namespace Foam {
     namespace FrontTracking {
 
-void triSurfaceFront::computeIsoSurface(
-    const volScalarField& cellsToElementsDist, 
-    const scalarField& pointsToElementsDist, 
-    const bool regularise, 
-    const scalar mergeTol
-)
-{
-    isoSurface reconstructedFront = isoSurface 
-    (
-        cellsToElementsDist, 
-        pointsToElementsDist, 
-        0, 
-        regularise,
-        mergeTol
-    );
-
-    meshCells_ = reconstructedFront.meshCells(); 
-    
-    // Copy the data to the front. 
-    *this = reconstructedFront; 
-
-    // FIXME: careful, BUG inside: normals are not consistent 
-    forceConsistentNormalOrientation(cellsToElementsDist);  
-}
-
 fileName triSurfaceFront::zeroPaddedFileName(word extension) const
 {
     // Separate the file name and the extension.
@@ -108,54 +83,6 @@ fileName triSurfaceFront::existingFrontFileName(const IOobject& io)
     return modifiedFileName;
 } 
 
-void triSurfaceFront::forceConsistentNormalOrientation
-(
-    //const isoSurface& reconstructedFront, 
-    const volScalarField& cellsToElementsDist
-)
-{
-    volVectorField distGrad = fvc::grad(cellsToElementsDist); 
-
-    // Get non-const access to elements.
-    List<labelledTri> & elements = storedFaces(); 
-
-    // Get the cells. 
-    const labelList& elementCells = meshCells(); 
-
-    // Get the element normals. 
-    // FIXME: isoSurface: faceNormals are not updated when an in-place flip of an element.
-    const vectorField& elementNormals = faceNormals();  
-
-    // For all faces 
-    forAll (elements, E)
-    {
-        // Normalize the distance gradient to get only the direction. 
-        // TODO: remove, debugging only
-        scalar gradMag = mag(distGrad[elementCells[E]]); 
-
-        // TODO: remove, debugging only
-        if (gradMag >= SMALL)
-        {
-            distGrad[elementCells[E]] /= gradMag; 
-            
-            // TODO: remove, debugging only
-            scalar normalMag = mag(elementNormals[E]); 
-
-            // TODO: remove, debugging only
-            if (normalMag > SMALL)
-            {
-                vector elementNormal = elementNormals[E] / mag(elementNormals[E]); 
-
-                // If the normal is oriented in the opposite way from the distance gradient. 
-                if ((elementNormal & distGrad[elementCells[E]]) < 0)
-                {
-                    elements[E].flip(); 
-                }
-            }
-        }
-    }
-};
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 triSurfaceFront::triSurfaceFront(
@@ -165,9 +92,7 @@ triSurfaceFront::triSurfaceFront(
 )
 :
     regIOobject(io), 
-    //triSurface(io.filePath()), 
     triSurface(), 
-    meshCells_(), 
     writeFormat_(writeFormat),
     prependZeros_(prependZeros)
 {
@@ -177,52 +102,6 @@ triSurfaceFront::triSurfaceFront(
 }
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-void triSurfaceFront::reconstruct(
-    const volScalarField& cellsToElementsDist, 
-    const scalarField& pointsToElementsDist, 
-    const bool regularise, 
-    const scalar mergeTol
-)
-{
-    computeIsoSurface (
-        cellsToElementsDist, 
-        pointsToElementsDist, 
-        regularise, mergeTol
-    );
-}
-
-void triSurfaceFront::reconstruct(
-    const volScalarField& cellsToElementsDist, 
-    const bool regularise, 
-    const scalar mergeTol
-)
-{
-    const fvMesh& mesh = cellsToElementsDist.mesh(); 
-    volPointInterpolation pInter (mesh);
-
-    tmp<pointScalarField> pointsToElementsDistTmp = pInter.interpolate (
-        cellsToElementsDist
-    );
-
-    const scalarField& pointsToElementsDist = pointsToElementsDistTmp();
-
-    computeIsoSurface (
-        cellsToElementsDist, 
-        pointsToElementsDist, 
-        regularise, mergeTol
-    );
-}
-
-void triSurfaceFront::move(vector deltaV)
-{
-    executeMovePoints(deltaV);
-}
-
-void triSurfaceFront::move(const vectorField& deltaV)
-{
-    executeMovePoints(deltaV);
-}
 
 bool triSurfaceFront::write() const
 {

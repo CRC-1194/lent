@@ -60,9 +60,6 @@ class triSurfaceFront
         public regIOobject, 
         public triSurface 
 {
-    // For each front element a cell to which it belongs.
-    List<label> meshCells_;  
-
     // Write format. 
     word writeFormat_;
 
@@ -98,34 +95,6 @@ public:
     virtual ~triSurfaceFront() {};
 
     // Member Functions
-    //- Edit
-    void reconstruct(
-        const volScalarField& cellsToElementsDist, 
-        const scalarField& pointsToElementsDist, 
-        const bool regularise=false, 
-        const scalar mergeTol=1e-06
-    );
-
-    void reconstruct(
-        const volScalarField& cellsToElementsDist, 
-        const bool regularise=false, 
-        const scalar mergeTol=1e-06
-    );
-
-    void forceConsistentNormalOrientation 
-    (
-        //const isoSurface& reconstructedFront, 
-        const volScalarField& cellsToElementsDist
-    ); 
-
-    // Move points with a spatially constant displacement vector.
-    void move(vector deltaV);
-
-    // Move points with a displacement vector field.
-    void move(const vectorField& deltaV);  
-
-    //- Write
-    
     bool write() const;  
 
     bool writeObject
@@ -137,17 +106,6 @@ public:
 
     bool writeData(Foam::Ostream& os) const; 
         
-    //- Access
-    const labelList& meshCells() const
-    {
-        return meshCells_; 
-    }
-
-    labelList& meshCells() 
-    {
-        return meshCells_; 
-    }
-
     // Member operators 
     void operator=(const triSurfaceFront& rhs);
     void operator=(const isoSurface& rhs);
@@ -161,8 +119,6 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-# include "triSurfaceFrontI.C"
 
 #endif
 

@@ -30,8 +30,7 @@ Authors
     tomislav<<dot>>maric<<at>>gmx<<dot>>com
 
 Description
-    A DNS two-phase flow solver employing a hybrid level-set / front-tracking
-    method.
+    Test application for the interface reconstruction algorithm of the LENT method.
 
 \*---------------------------------------------------------------------------*/
 
@@ -68,18 +67,13 @@ int main(int argc, char *argv[])
     lentMethod lent(front, mesh); 
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
-
-    lent.calcSignedDistances(
-        signedDistance, 
-        pointSignedDistance, 
-        searchDistanceSqr, 
-        pointSearchDistanceSqr,
-        front
-    ); 
     
     lent.reconstructFront(front, signedDistance, pointSignedDistance); 
 
+    front.write(); 
+
     while (runTime.run()) {
+
         runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;

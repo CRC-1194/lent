@@ -49,7 +49,7 @@ Authors
 
 #include "triSurfaceFront.H"
 #include "fvMesh.H"
-#include "pointFieldsFwd.H"
+#include "pointFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -84,7 +84,7 @@ public:
      
     // Constructors
     
-        lentDistanceFieldCalculator(
+        explicit lentDistanceFieldCalculator(
             const dictionary& configDict
         );
 
