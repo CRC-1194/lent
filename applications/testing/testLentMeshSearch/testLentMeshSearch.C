@@ -71,12 +71,28 @@ int main(int argc, char *argv[])
 
     label seedCell = mesh.findCell(seedPoint); 
 
+#ifdef FULLDEBUG
     lentMeshSearch ls(runTime); 
+#else
+    lentMeshSearch ls;
+#endif
 
     label foundCell = ls.cellContainingPoint(targetPoint, mesh, seedCell); 
 
+    label meshFoundCell = mesh.findCell(targetPoint);
+
     Info << "targetPoint = " << targetPoint << endl;
     Info << "foundCell = " << foundCell << endl;
+    Info << "meshFoundCell = " << meshFoundCell << endl;
+
+    if (meshFoundCell == foundCell)
+    {
+        Info << "PASS" << endl;
+    }
+    else
+    {
+        Info << "FAIL" << endl;
+    }
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

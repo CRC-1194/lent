@@ -231,8 +231,8 @@ bool lentMeshSearch::pointIsInCell(
     const cellList& cells = mesh.cells(); 
     const cell& cell = cells[cellLabel];
     const labelList& own = mesh.faceOwner(); 
-    const surfaceVectorField& Cf = mesh.Cf(); 
-    const surfaceVectorField& Sf = mesh.Sf(); 
+    const vectorField& Cf = mesh.faceCentres(); 
+    const vectorField& Sf = mesh.faceAreas(); 
 
     bool pointIsInside = true;
 
