@@ -59,7 +59,7 @@ class eulerFrontMotionSolver
 
 public:
 
-    TypeName ("eulerFrontMotionSolver"); 
+    TypeName ("Euler"); 
 
     // Constructors
 
