@@ -22,13 +22,13 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::bilinearFrontVelocityInterpolator
+    Foam::barycentricFrontVelocityInterpolator
 
 Description
-    Interpolate front velocity using bilinear interpolation.
+    Interpolate front velocity using barycentric interpolation.
 
 SourceFiles
-    bilinearFrontVelocityInterpolator.C
+    barycentricFrontVelocityInterpolator.C
 
 Authors
     Tomislav Maric
@@ -37,8 +37,8 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef bilinearFrontVelocityInterpolator_H
-#define bilinearFrontVelocityInterpolator_H
+#ifndef barycentricFrontVelocityInterpolator_H
+#define barycentricFrontVelocityInterpolator_H
 
 #include "frontVelocityCalculator.H"
 
@@ -48,24 +48,24 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class bilinearFrontVelocityInterpolator Declaration
+                         Class barycentricFrontVelocityInterpolator Declaration
 \*---------------------------------------------------------------------------*/
 
-class bilinearFrontVelocityInterpolator
+class barycentricFrontVelocityInterpolator
     :
         public frontVelocityCalculator 
 {
 
 public:
 
-    TypeName ("bilinearFrontVelocityInterpolator"); 
+    TypeName ("barycentric"); 
 
     // Constructors
 
-        bilinearFrontVelocityInterpolator(const dictionary& configDict);
+        barycentricFrontVelocityInterpolator(const dictionary& configDict);
 
     // Destructor
-        virtual ~bilinearFrontVelocityInterpolator();
+        virtual ~barycentricFrontVelocityInterpolator();
 
     // Member Functions
         

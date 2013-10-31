@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "bilinearFrontVelocityInterpolator.H"
+#include "barycentricFrontVelocityInterpolator.H"
 #include "addToRunTimeSelectionTable.H"
 #include "interpolationCellPoint.H"
 
@@ -32,17 +32,17 @@ License
 namespace Foam {
 namespace FrontTracking { 
 
-    defineTypeNameAndDebug(bilinearFrontVelocityInterpolator, 0); 
+    defineTypeNameAndDebug(barycentricFrontVelocityInterpolator, 0); 
 
     addToRunTimeSelectionTable(
         frontVelocityCalculator,
-        bilinearFrontVelocityInterpolator,
+        barycentricFrontVelocityInterpolator,
         Dictionary
     );
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-bilinearFrontVelocityInterpolator::bilinearFrontVelocityInterpolator(const dictionary& configDict)
+barycentricFrontVelocityInterpolator::barycentricFrontVelocityInterpolator(const dictionary& configDict)
 :
     frontVelocityCalculator(configDict)
 {}
@@ -51,7 +51,7 @@ bilinearFrontVelocityInterpolator::bilinearFrontVelocityInterpolator(const dicti
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 
-void bilinearFrontVelocityInterpolator::calcFrontVelocity(
+void barycentricFrontVelocityInterpolator::calcFrontVelocity(
     triSurfaceFrontVectorField& frontVelocity, 
     const volVectorField& U,
     labelList& elementCells
@@ -62,7 +62,7 @@ void bilinearFrontVelocityInterpolator::calcFrontVelocity(
     frontVelocity.resize(front.nPoints()); 
     frontVelocity = dimensionedVector("zero", dimLength/dimTime, vector(0,0,0));
 
-    interpolationCellPoint<vector> bilinear(U); 
+    interpolationCellPoint<vector> barycentric(U); 
 
     const List<labelledTri>& elements = front.localFaces(); 
     const pointField& vertices = front.points(); 
@@ -88,7 +88,7 @@ void bilinearFrontVelocityInterpolator::calcFrontVelocity(
                 ); 
             }
 
-            frontVelocity[element[vertexI]] = bilinear.interpolate(
+            frontVelocity[element[vertexI]] = barycentric.interpolate(
                 vertices[element[vertexI]],  
                 elementCells[elementI]
             );
@@ -99,7 +99,7 @@ void bilinearFrontVelocityInterpolator::calcFrontVelocity(
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-bilinearFrontVelocityInterpolator::~bilinearFrontVelocityInterpolator()
+barycentricFrontVelocityInterpolator::~barycentricFrontVelocityInterpolator()
 {}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
