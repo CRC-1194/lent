@@ -62,7 +62,7 @@ class foamIsoSurfaceFrontReconstructor
 
 public:
 
-    TypeName ("foamIsoSurfaceFrontReconstructor"); 
+    TypeName ("foamIsoSurface"); 
 
     // Constructors
 
