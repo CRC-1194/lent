@@ -71,7 +71,7 @@ class lentMeshSearch
     :
         public refCount
 {
-
+    mutable scalar lastDistance_; 
     //mutable cellSet visualizationCellSet_; 
     //mutable label iterationCount_;
     //void appendLabelAndWriteCellSet(label cellLabel) const; 
@@ -95,7 +95,7 @@ public:
         //lentMeshSearch(const Time& runTime); 
         
         lentMeshSearch();
-        lentMeshSearch(const dictionary& configDict);
+        explicit lentMeshSearch(const dictionary& configDict);
 
     // Selectors
 

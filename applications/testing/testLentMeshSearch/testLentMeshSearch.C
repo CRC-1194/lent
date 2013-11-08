@@ -71,11 +71,10 @@ int main(int argc, char *argv[])
 
     label seedCell = mesh.findCell(seedPoint); 
 
-#ifdef FULLDEBUG
-    lentMeshSearch ls(runTime); 
-#else
+    // Uncomment when lentMeshSearch debugging code is uncommented.
+    //lentMeshSearch ls(runTime); 
+    
     lentMeshSearch ls;
-#endif
 
     label foundCell = ls.cellContainingPoint(targetPoint, mesh, seedCell); 
 

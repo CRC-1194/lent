@@ -52,6 +52,7 @@ namespace FrontTracking {
 
 //lentMeshSearch::lentMeshSearch(const Time& runTime)
 //:
+    //lastSeedCell_(-1),
     //visualizationCellSet_(
         //IOobject(
             //"lentMeshSearchCells", 
@@ -61,13 +62,17 @@ namespace FrontTracking {
             //IOobject::AUTO_WRITE
         //)
     //), 
-    //iterationCount_(0)
+    //iterationCount_(0), 
 //{}
 
 lentMeshSearch::lentMeshSearch(const dictionary& configDict)
+:
+    lastDistance_(GREAT)
 {}
 
 lentMeshSearch::lentMeshSearch()
+:
+    lastDistance_(GREAT)
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -122,9 +127,8 @@ label lentMeshSearch::cellContainingPoint(
     const point& p, 
     const fvMesh& mesh, 
     const label seedCell 
-) const
+) const 
 {
-
     //appendLabelAndWriteCellSet(seedCell); 
 
     if (pointIsInCell(p, seedCell, mesh))
@@ -162,6 +166,7 @@ label lentMeshSearch::cellContainingPoint(
         if (pointIsInCell(p, neighborCell, mesh)) 
         {
             //appendLabelAndWriteCellSet(neighborCell); 
+            lastDistance_ = minDistance; 
             return neighborCell; 
         }
 
@@ -182,12 +187,20 @@ label lentMeshSearch::cellContainingPoint(
     if (pointIsInCell(p, minDistanceCell, mesh)) 
     {
         //appendLabelAndWriteCellSet(seedCell); 
-
+        lastDistance_ = minDistance; 
         return minDistanceCell; 
     } else 
     {
-        //Info << "skipping to cell " << minDistanceCell << endl;
-        return cellContainingPoint(p, mesh, minDistanceCell); 
+        if (mag(lastDistance_ - minDistance) < SMALL)
+        {
+            return -1;
+        }
+        else
+        {
+            //Info << "skipping to cell " << minDistanceCell << endl;
+            lastDistance_ = minDistance; 
+            return cellContainingPoint(p, mesh, minDistanceCell); 
+        }
     }
 
 

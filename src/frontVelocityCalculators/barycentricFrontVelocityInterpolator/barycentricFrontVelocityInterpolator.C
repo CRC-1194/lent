@@ -86,15 +86,22 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
                     //mesh,
                     //elementCells[elementI]
                 //); 
-                label cellContainingPoint = searchAlg.cellContainingPoint(
+
+                // Initial code that allows the outflow of a front from a domain, 
+                // which is important for parallelisation and inflow/outflow BCs.
+                // TODO: profiling, as this introduced additional branching into 
+                //       the part of the calculation called *very often*.  
+                //       I'm counting on the CPU branching manager here. 
+                
+                label foundCell  = searchAlg.cellContainingPoint(
                     vertex, 
                     mesh,
                     elementCells[elementI]
                 ); 
 
-                if (cellContainingPoint > 0)
+                if (foundCell > 0)
                 {
-                    elementCells[elementI] = cellContainingPoint; 
+                    elementCells[elementI] = foundCell; 
                 }
             }
 

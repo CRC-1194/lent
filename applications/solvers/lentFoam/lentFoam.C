@@ -158,9 +158,13 @@ int main(int argc, char *argv[])
 
         #include "UEqn.H"
 
+        Info << "Calculating front velocity..." << endl;
         lent.calcFrontVelocity(frontVelocity, U); 
+        Info << "Done." << endl;
 
+        Info << "Evolving the front..." << endl;
         lent.evolveFront(front, frontVelocity); 
+        Info << "Done." << endl;
         
         runTime.write();
 
