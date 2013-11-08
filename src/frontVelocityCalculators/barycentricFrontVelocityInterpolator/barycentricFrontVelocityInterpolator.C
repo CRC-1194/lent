@@ -81,11 +81,21 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
 
             if (!searchAlg.pointIsInCell(vertex, elementCells[elementI], mesh))
             {
-                elementCells[elementI] = searchAlg.cellContainingPoint(
+                //elementCells[elementI] = searchAlg.cellContainingPoint(
+                    //vertex, 
+                    //mesh,
+                    //elementCells[elementI]
+                //); 
+                label cellContainingPoint = searchAlg.cellContainingPoint(
                     vertex, 
                     mesh,
                     elementCells[elementI]
                 ); 
+
+                if (cellContainingPoint > 0)
+                {
+                    elementCells[elementI] = cellContainingPoint; 
+                }
             }
 
             frontVelocity[element[vertexI]] = barycentric.interpolate(

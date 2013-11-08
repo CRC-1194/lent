@@ -35,10 +35,8 @@ Authors
 #include "addToRunTimeSelectionTable.H"
 #include <set>
 
-#if FULLDEBUG
-#include <sstream>
-#include <iomanip>
-#endif
+//#include <sstream>
+//#include <iomanip>
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -47,35 +45,30 @@ namespace FrontTracking {
 
     defineTypeNameAndDebug(lentMeshSearch, 0); 
     defineRunTimeSelectionTable(lentMeshSearch, Dictionary);
-#if FULLDEBUG
-#else
     addToRunTimeSelectionTable(lentMeshSearch, lentMeshSearch, Dictionary);
-#endif
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 
-#if FULLDEBUG
-lentMeshSearch::lentMeshSearch(const Time& runTime)
-:
-    visualizationCellSet_(
-        IOobject(
-            "lentMeshSearchCells", 
-            runTime.timeName(), 
-            runTime,
-            IOobject::NO_READ, 
-            IOobject::AUTO_WRITE
-        )
-    ), 
-    iterationCount_(0)
-{}
-#else 
+//lentMeshSearch::lentMeshSearch(const Time& runTime)
+//:
+    //visualizationCellSet_(
+        //IOobject(
+            //"lentMeshSearchCells", 
+            //runTime.timeName(), 
+            //runTime,
+            //IOobject::NO_READ, 
+            //IOobject::AUTO_WRITE
+        //)
+    //), 
+    //iterationCount_(0)
+//{}
+
 lentMeshSearch::lentMeshSearch(const dictionary& configDict)
 {}
 
 lentMeshSearch::lentMeshSearch()
 {}
-#endif 
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
@@ -106,23 +99,21 @@ lentMeshSearch::New(const dictionary& configDict)
 lentMeshSearch::~lentMeshSearch()
 {}
 
-#ifdef FULLDEBUG
 // * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * * //
-void lentMeshSearch::appendLabelAndWriteCellSet(label cellLabel) const
-{
-    ++iterationCount_; 
+//void lentMeshSearch::appendLabelAndWriteCellSet(label cellLabel) const
+//{
+    //++iterationCount_; 
 
-    visualizationCellSet_.insert(cellLabel); 
+    //visualizationCellSet_.insert(cellLabel); 
 
-    std::stringstream ss; 
+    //std::stringstream ss; 
 
-    ss << "lentMeshSearchCellSet" << "-" << std::setw(20) << std::setfill('0')
-        << iterationCount_;  
+    //ss << "lentMeshSearchCellSet" << "-" << std::setw(20) << std::setfill('0')
+        //<< iterationCount_;  
 
-    visualizationCellSet_.rename(ss.str()); 
-    visualizationCellSet_.write(); 
-}
-#endif
+    //visualizationCellSet_.rename(ss.str()); 
+    //visualizationCellSet_.write(); 
+//}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -134,15 +125,11 @@ label lentMeshSearch::cellContainingPoint(
 ) const
 {
 
-#if FULLDEBUG
-    appendLabelAndWriteCellSet(seedCell); 
-#endif
+    //appendLabelAndWriteCellSet(seedCell); 
 
     if (pointIsInCell(p, seedCell, mesh))
     {
-#if FULLDEBUG
-    appendLabelAndWriteCellSet(seedCell); 
-#endif
+        //appendLabelAndWriteCellSet(seedCell); 
         return seedCell;  
     }
 
@@ -150,9 +137,7 @@ label lentMeshSearch::cellContainingPoint(
     scalar minDistance = mag(C[seedCell] - p);
     label minDistanceCell = seedCell; 
 
-#if FULLDEBUG
-    Info << "minDistanceCell start = " << minDistanceCell << endl;
-#endif
+    //Info << "minDistanceCell start = " << minDistanceCell << endl;
 
     // For all neighbour cells of the seed cell. 
     const labelListList& cellCells = mesh.cellCells(); 
@@ -166,62 +151,42 @@ label lentMeshSearch::cellContainingPoint(
         neighborCells = pointCellStencil(seedCell, mesh);  
     }
 
-#if FULLDEBUG
-    Info << "used stencil = " << neighborCells  << endl;
-#endif 
+    //Info << "used stencil = " << neighborCells  << endl;
 
     forAll (neighborCells, I) 
     {
         label neighborCell = neighborCells[I]; 
 
-#if FULLDEBUG
-        Info << "minDistance = " << minDistance << endl;
-#endif
+        //Info << "minDistance = " << minDistance << endl;
 
         if (pointIsInCell(p, neighborCell, mesh)) 
         {
-
-#if FULLDEBUG
-    appendLabelAndWriteCellSet(neighborCell); 
-#endif
+            //appendLabelAndWriteCellSet(neighborCell); 
             return neighborCell; 
         }
 
-#if FULLDEBUG
-        Info << "checking neighbor cell = " << neighborCell << endl;
-#endif
+        //Info << "checking neighbor cell = " << neighborCell << endl;
         scalar distance = mag(C[neighborCell] - p); 
 
-#if FULLDEBUG
-        Info << "distance = " << distance << endl;
-#endif 
+        //Info << "distance = " << distance << endl;
 
         // Set label of the cell with the minimal distance. 
         if (distance <= minDistance) 
         {
             minDistance = distance; 
             minDistanceCell = neighborCell; 
-#if FULLDEBUG
-            Info << "minDistanceCell = " << minDistanceCell << endl;
-#endif 
+            //Info << "minDistanceCell = " << minDistanceCell << endl;
         }
     }
 
     if (pointIsInCell(p, minDistanceCell, mesh)) 
     {
-
-#if FULLDEBUG
-    appendLabelAndWriteCellSet(seedCell); 
-#endif
+        //appendLabelAndWriteCellSet(seedCell); 
 
         return minDistanceCell; 
     } else 
     {
-
-#if FULLDEBUG
-        Info << "skipping to cell " << minDistanceCell << endl;
-#endif
-
+        //Info << "skipping to cell " << minDistanceCell << endl;
         return cellContainingPoint(p, mesh, minDistanceCell); 
     }
 
@@ -244,9 +209,7 @@ bool lentMeshSearch::pointIsInCell(
 
     bool pointIsInside = true;
 
-#if FULLDEBUG
-    Info << "point " << p << endl;
-#endif 
+    //Info << "point " << p << endl;
 
     // For all face labels of the cell.
     forAll (cell, I) 
@@ -267,19 +230,15 @@ bool lentMeshSearch::pointIsInCell(
         if ((fp & faceNormal) > tolerance) 
         {
 
-#if FULLDEBUG 
-            Info << "point outside face = " << (fp & faceNormal) << endl; 
-#endif
+            //Info << "point outside face = " << (fp & faceNormal) << endl; 
             pointIsInside = false;
             break;
         }
 
-#if FULLDEBUG
-        else
-        {
-            Info << "point inside face = " << (fp & faceNormal) << endl; 
-        }
-#endif 
+        //else
+        //{
+            //Info << "point inside face = " << (fp & faceNormal) << endl; 
+        //}
 
     }
 

@@ -34,6 +34,13 @@ Description
     For now, the lentMeshSearch algorithm is to implement variants of the 
     vicinity search algorithm that uses neighboring cell relationship to find a
     point in the mesh.
+
+    Important Note: the commented out code is used for debugging purposes, as the
+    class is extended with a cellset of found cells for debugging. The cell-set
+    is updated within a recursive member function, so I see no way to extend the
+    class for debugging using OOD principles. Let me know if a clean way of doing
+    this exists that allows me to avoid modification to the class as done here.
+    Tomislav
            
 SourceFiles
     lentMeshSearch.C
@@ -65,11 +72,9 @@ class lentMeshSearch
         public refCount
 {
 
-#if FULLDEBUG
-    mutable cellSet visualizationCellSet_; 
-    mutable label iterationCount_;
-    void appendLabelAndWriteCellSet(label cellLabel) const; 
-#endif
+    //mutable cellSet visualizationCellSet_; 
+    //mutable label iterationCount_;
+    //void appendLabelAndWriteCellSet(label cellLabel) const; 
 
 public:
 
@@ -87,12 +92,10 @@ public:
 
     // Constructors
     
-#if FULLDEBUG
-        lentMeshSearch(const Time& runTime); 
-#else
+        //lentMeshSearch(const Time& runTime); 
+        
         lentMeshSearch();
         lentMeshSearch(const dictionary& configDict);
-#endif
 
     // Selectors
 

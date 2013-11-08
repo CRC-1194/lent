@@ -39,17 +39,10 @@ namespace FrontTracking {
 
 frontVelocityCalculator::frontVelocityCalculator(const dictionary& configDict)
 :
-#if FULLDEBUG
-    searchAlgTmp_()
-#else
+    // Uncomment when the debugging code is uncommented in lentMeshSearch.
+    //searchAlgTmp_()
     searchAlgTmp_(new lentMeshSearch(configDict.subDict("searchAlgorithm")))
-#endif
-{
-#if FULLDEBUG
-    FatalErrorIn("frontVelocityCalculator::frontVelocityCalculator(const dictionary&))")
-       << "FULLDEBUG debugging information is not propagated from lentSearchMesh." << endl;
-#endif
-}
+{}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
