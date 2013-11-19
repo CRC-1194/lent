@@ -60,7 +60,7 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
     const triSurfaceFront& front = frontVelocity.mesh(); 
 
     frontVelocity.resize(front.nPoints()); 
-    frontVelocity = dimensionedVector("zero", dimLength/dimTime, vector(0,0,0));
+    //frontVelocity = dimensionedVector("zero", dimLength/dimTime, vector(0,0,0));
 
     interpolationCellPoint<vector> barycentric(U); 
 
@@ -79,6 +79,8 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
         {
             const point& vertex = vertices[element[vertexI]];  
 
+            label foundCell = -1; 
+
             if (!searchAlg.pointIsInCell(vertex, elementCells[elementI], mesh))
             {
                 //elementCells[elementI] = searchAlg.cellContainingPoint(
@@ -93,7 +95,7 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
                 //       the part of the calculation called *very often*.  
                 //       I'm counting on the CPU branching manager here. 
                 
-                label foundCell  = searchAlg.cellContainingPoint(
+                foundCell  = searchAlg.cellContainingPoint(
                     vertex, 
                     mesh,
                     elementCells[elementI]
@@ -105,10 +107,13 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
                 }
             }
 
-            frontVelocity[element[vertexI]] = barycentric.interpolate(
-                vertices[element[vertexI]],  
-                elementCells[elementI]
-            );
+            if (foundCell > 0)
+            {
+                frontVelocity[element[vertexI]] = barycentric.interpolate(
+                    vertices[element[vertexI]],  
+                    elementCells[elementI]
+                );
+            }
         }
     }
 

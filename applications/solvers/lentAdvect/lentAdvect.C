@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
             "front.stl",
             "front",
             runTime, 
-            IOobject::MUST_READ, 
+            IOobject::NO_READ, 
             IOobject::AUTO_WRITE
         )
     );
@@ -116,6 +116,7 @@ int main(int argc, char *argv[])
 
         twoPhaseProperties.correct();
 
+        Pout << "Signed distances..."; 
         lent.calcSignedDistances(
             signedDistance, 
             pointSignedDistance,
@@ -124,13 +125,25 @@ int main(int argc, char *argv[])
             front
         ); 
 
+        // TODO: remove, debugging
+        searchDistanceSqr.write();
+        Pout << "done." << endl;
+
+        Pout << "Heaviside ... "; 
         lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+        Pout << "done." << endl;
 
+        Pout << "Reconstruction ..."; 
         lent.reconstructFront(front, signedDistance, pointSignedDistance); 
+        Pout << "done." << endl;
 
+        Pout << "Velocity ..."; 
         lent.calcFrontVelocity(frontVelocity, U); 
+        Pout << "done." << endl;
 
+        Pout << "Evolution ...";
         lent.evolveFront(front, frontVelocity); 
+        Pout << "done." << endl;
         
         runTime.write();
 

@@ -133,9 +133,9 @@ void lentDistanceFieldCalculator::calcCellSearchDistance(
     }
 
     // Expand the distance by the bandwidth.
-    searchDistanceSqr *= (narrowBandWidth_ * narrowBandWidth_); 
-    searchDistanceSqr.boundaryField().evaluate(); 
+    searchDistanceSqr == searchDistanceSqr * narrowBandWidth_ * narrowBandWidth_; 
 
+    searchDistanceSqr.correctBoundaryConditions(); 
 }
 
 void lentDistanceFieldCalculator::calcPointSearchDistance(
@@ -146,7 +146,7 @@ void lentDistanceFieldCalculator::calcPointSearchDistance(
     const fvMesh& mesh = searchDistanceSqr.mesh();
 
     volPointInterpolation ip(mesh); 
-    ip.interpolate(searchDistanceSqr, pointSearchDistanceSqr); 
+    pointSearchDistanceSqr == ip.interpolate(searchDistanceSqr, "fixedValue", true); 
 }
 
 void lentDistanceFieldCalculator::calcPointSearchDistance(

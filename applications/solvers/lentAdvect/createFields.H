@@ -39,18 +39,21 @@
     (
         IOobject
         (
-            "signedDistance",
+            "searchDistanceSqr",
             runTime.timeName(),
             mesh,
             IOobject::NO_READ,
-            IOobject::NO_WRITE
+            // FIXME: remove, debugging 
+            //IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
         ),
         mesh, 
         dimensionedScalar(
             "zero",
             dimLength,
             0
-        )
+        ), 
+        "zeroGradient"
     );
 
     pointMesh pmesh(mesh); 
@@ -75,14 +78,17 @@
             runTime.timeName(), 
             mesh, 
             IOobject::NO_READ, 
-            IOobject::NO_WRITE
+            // FIXME: remove, debugging
+            //IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
         ),
         pmesh,
         dimensionedScalar(
             "zero",
             dimLength,
             0
-        )
+        ),
+        "fixedValue"
     );
 
     Info << "Reading the cell-centered Heaviside function field H\n" << endl;

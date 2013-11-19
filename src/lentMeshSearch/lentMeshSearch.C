@@ -193,7 +193,8 @@ label lentMeshSearch::cellContainingPoint(
     {
         if (mag(lastDistance_ - minDistance) < SMALL)
         {
-            return -1;
+            return minDistanceCell;
+            //return -1; 
         }
         else
         {

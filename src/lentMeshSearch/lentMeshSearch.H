@@ -80,7 +80,7 @@ public:
 
     TypeName ("lentMeshSearch"); 
 
-    declareRunTimeSelectionTable (
+    declareRunTimeSelectionTable(
         tmp,  
         lentMeshSearch,  
         Dictionary,  
