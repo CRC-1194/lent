@@ -43,8 +43,8 @@
             runTime.timeName(),
             mesh,
             IOobject::NO_READ,
-            // FIXME: remove, debugging 
-            //IOobject::NO_WRITE
+            // TODO: uncomment, used only for debugging
+            //IOobject::NO_WRITE,
             IOobject::AUTO_WRITE
         ),
         mesh, 
@@ -78,7 +78,6 @@
             runTime.timeName(), 
             mesh, 
             IOobject::NO_READ, 
-            // FIXME: remove, debugging
             //IOobject::NO_WRITE
             IOobject::AUTO_WRITE
         ),
