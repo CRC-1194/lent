@@ -48,9 +48,7 @@ using namespace FrontTracking;
 bool areFrontNormalsConsistent(const triSurfaceFront& front)
 {
     const labelListList& edgeFaces = front.edgeFaces(); 
-
     const vectorField& faceNormals = front.faceNormals(); 
-
     bool testStatus = true; 
 
     forAll (edgeFaces, I)
