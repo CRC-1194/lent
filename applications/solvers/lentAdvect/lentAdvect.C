@@ -124,9 +124,6 @@ int main(int argc, char *argv[])
             pointSearchDistanceSqr, 
             front
         ); 
-
-        // TODO: remove, debugging
-        searchDistanceSqr.write();
         Pout << "done." << endl;
 
         Pout << "Heaviside ... "; 
