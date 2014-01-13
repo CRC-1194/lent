@@ -72,11 +72,22 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
     const triSurfaceFront& front
 )
 {
-    signedDistance = dimensionedScalar(
-        "distance", 
-        dimLength, 
-        GREAT
-    );
+    if (front.size() > 0)
+    {
+        signedDistance = dimensionedScalar(
+            "-GREAT", 
+            dimLength, 
+            GREAT
+        );
+    } else
+    {
+        signedDistance = dimensionedScalar(
+            "-GREAT", 
+            dimLength, 
+            -GREAT
+        );
+
+    }
 
     const fvMesh& mesh = signedDistance.mesh();
     
@@ -130,7 +141,9 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
         }
     }
 
-    // TODO: GREAT --> controllable configuraton value
+    // TODO: for coupled / processor boundaries
+
+    // TODO: GREAT --> make it a controllable configuraton value
     narrowBandTmp_->ensureNarrowBand(signedDistance, GREAT); 
 }
 
@@ -140,7 +153,14 @@ void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
     const triSurfaceFront& front
 )
 {
-    pointSignedDistance = dimensionedScalar("GREAT", dimLength, GREAT);
+    if (front.size() > 0)
+    {
+        pointSignedDistance = dimensionedScalar("GREAT", dimLength, GREAT);
+    } else
+    {
+        pointSignedDistance = dimensionedScalar("-GREAT", dimLength, -GREAT);
+    }
+
     
     // Get the cell centres.  
     const pointMesh& pMesh = pointSignedDistance.mesh(); 
@@ -192,7 +212,7 @@ void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
         }
     }
     
-    // TODO: GREAT --> controllable configuraton value
+    // TODO: GREAT --> make it a controllable configuraton value
     narrowBandTmp_->ensureNarrowBand(pointSignedDistance, GREAT); 
 }
 
