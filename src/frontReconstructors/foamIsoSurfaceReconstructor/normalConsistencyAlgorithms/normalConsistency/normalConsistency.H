@@ -22,27 +22,33 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::foamIsoSurfaceFrontReconstructor
+    Foam::normalConsistency
 
 Description
-    Abstract base class for the heaviside function calculation from a signed 
-    distance field.
+    Class encapsulating the algorithm that makes the normals of the iso-surface
+    consistent by using the orientation provided by the signed distance field
+    gradient.
 
 SourceFiles
-    foamIsoSurfaceFrontReconstructor.C
+    normalConsistency.C
 
 Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
+    Mathematical Modeling and Analysis
+    Center of Smart Interfaces, TU Darmstadt
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef foamIsoSurfaceFrontReconstructor_H
-#define foamIsoSurfaceFrontReconstructor_H
+#ifndef normalConsistency_H
+#define normalConsistency_H
 
-#include "frontReconstructor.H"
-//#include "normalConsistency.H"
+#include "typeInfo.H"
+#include "autoPtr.H"
+#include "tmp.H"
+#include "refCount.H"
+#include "volFieldsFwd.H"
+#include "triSurfaceFront.H"
+#include "triSurfaceFrontFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -50,63 +56,45 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class foamIsoSurfaceFrontReconstructor Declaration
+                         Class normalConsistency Declaration
 \*---------------------------------------------------------------------------*/
 
-class foamIsoSurfaceFrontReconstructor
+class normalConsistency
     :
-        public frontReconstructor 
+        public refCount
 {
-
-    scalar mergeTolerance_; 
-    Switch regularize_; 
-
-    //tmp<normalConsistency> consistencyAlgorithmPtr_;  
 
 public:
 
-    TypeName ("foamIsoSurface"); 
+    TypeName ("gradient"); 
+
+    declareRunTimeSelectionTable (
+        tmp,  
+        normalConsistency,  
+        Dictionary,  
+        (
+            const dictionary& configDict 
+        ),
+        (configDict) 
+    );
 
     // Constructors
 
-        foamIsoSurfaceFrontReconstructor(const dictionary& configDict);
+        normalConsistency(const dictionary& configDict);
+
+    // Selectors
+
+        static tmp<normalConsistency> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~foamIsoSurfaceFrontReconstructor();
+        virtual ~normalConsistency();
 
     // Member Functions
         
-        labelList reconstructFront(
-            triSurfaceFront& front, 
-            const volScalarField& signedDistance,
-            const pointScalarField& pointSignedDistance
+        virtual void makeFrontNormalsConsistent(
+            triSurfaceFront& front,    
+            const volScalarField& signedDistance 
         ) const;  
-
-        virtual void forceConsistentNormalOrientation(
-            isoSurface& iso, 
-            const volScalarField& signedDistance
-        ) const;
-
-        scalar getMergeTolerance() const
-        {
-            return mergeTolerance_; 
-        }
-
-        void setMergeTolerance(scalar tol)
-        {
-            mergeTolerance_ = tol; 
-        }
-
-
-        Switch getRegularizationSwitch() const
-        {
-            return regularize_; 
-        }
-
-        void setRegularizationSwitch(Switch s)
-        {
-            regularize_ = s; 
-        }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
