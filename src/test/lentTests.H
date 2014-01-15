@@ -1,0 +1,84 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+Class
+    Foam::lentTests
+
+Description
+    Test functions for the LENT algorithm.
+
+SourceFiles
+
+\*---------------------------------------------------------------------------*/
+
+#ifndef lentTests_H
+#define lentTests_H
+
+#include "triSurface.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+namespace Foam { 
+    namespace FrontTracking { 
+        namespace Test {
+
+void testTriSurfaceNormalConsistency(const triSurfaceFront& front)
+{
+    const labelListList& edgeFaces = front.edgeFaces(); 
+    const vectorField& faceNormals = front.faceNormals(); 
+    bool testStatus = true; 
+
+    forAll (edgeFaces, I)
+    {
+        const vector& n0 = faceNormals[edgeFaces[I][0]]; 
+        const vector& n1 = faceNormals[edgeFaces[I][1]]; 
+
+        if ((n0 & n1) < 0)
+        {
+            testStatus = false; 
+        }
+    }
+
+    if (testStatus)
+    {
+        Info << "PASS: front normals consistency" << endl;
+    }
+    else
+    {
+        Info << "FAIL: front normals consistency" << endl;
+    }
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Test 
+
+} // End namespace FrontTracking 
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
+
+// ************************************************************************* //
