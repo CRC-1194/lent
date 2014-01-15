@@ -22,15 +22,20 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::normalConsistency
+    Foam::centerNormalConsistency
 
 Description
     Class encapsulating the algorithm that makes the normals of the iso-surface
-    consistent by using the orientation provided by the signed distance field
-    gradient.
+    consistent by using the signed distance values stored in cell centers. 
+
+    Using a barycentric tetrahedral decomposition results with a monotone signed
+    distance field within the cell.
+
+    (Not proved, its an intuitive conclusion: isosurface cannot cross one edge
+     twice and all edges span from the geometrical cell center. TM) 
 
 SourceFiles
-    normalConsistency.C
+    centerNormalConsistency.C
 
 Authors
     Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
@@ -39,16 +44,10 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef normalConsistency_H
-#define normalConsistency_H
+#ifndef centerNormalConsistency_H
+#define centerNormalConsistency_H
 
-#include "typeInfo.H"
-#include "autoPtr.H"
-#include "tmp.H"
-#include "refCount.H"
-#include "volFieldsFwd.H"
-#include "triSurfaceFront.H"
-#include "triSurfaceFrontFields.H"
+#include "normalConsistency.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -56,37 +55,27 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class normalConsistency Declaration
+                         Class centerNormalConsistency Declaration
 \*---------------------------------------------------------------------------*/
 
-class normalConsistency
+class centerNormalConsistency
     :
-        public refCount
+        public normalConsistency 
 {
 
 public:
 
-    TypeName ("distanceGradient"); 
-
-    declareRunTimeSelectionTable (
-        tmp,  
-        normalConsistency,  
-        Dictionary,  
-        (
-            const dictionary& configDict 
-        ),
-        (configDict) 
-    );
+    TypeName ("centerNormal"); 
 
     // Constructors
-        normalConsistency(const dictionary& configDict) {};
+        centerNormalConsistency(const dictionary& configDict); 
 
     // Selectors
 
-        static tmp<normalConsistency> New(const dictionary& configDict);
+        static tmp<centerNormalConsistency> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~normalConsistency() {};
+        virtual ~centerNormalConsistency() {};
 
     // Member Functions
         

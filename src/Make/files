@@ -18,6 +18,7 @@ frontReconstructors/frontReconstructor/frontReconstructor.C
 frontReconstructors/foamIsoSurfaceReconstructor/foamIsoSurfaceFrontReconstructor.C
 
 frontReconstructors/foamIsoSurfaceReconstructor/normalConsistencyAlgorithms/normalConsistency/normalConsistency.C
+frontReconstructors/foamIsoSurfaceReconstructor/normalConsistencyAlgorithms/centerNormalConsistency/centerNormalConsistency.C
 
 lentMeshSearch/lentMeshSearch.C
 
@@ -26,7 +27,6 @@ frontVelocityCalculators/barycentricFrontVelocityInterpolator/barycentricFrontVe
 
 frontMotionSolvers/frontMotionSolver/frontMotionSolver.C
 frontMotionSolvers/eulerFrontMotionSolver/eulerFrontMotionSolver.C
-
 
 lentMethod/lentMethod.C
 

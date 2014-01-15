@@ -21,17 +21,6 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::normalConsistency
-
-Description
-    Class encapsulating the algorithm that makes the normals of the iso-surface
-    consistent by using the orientation provided by the signed distance field
-    gradient.
-
-SourceFiles
-    normalConsistency.C
-
 Authors
     Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
     Mathematical Modeling and Analysis
@@ -39,74 +28,74 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef normalConsistency_H
-#define normalConsistency_H
+#include "centerNormalConsistency.H"
+#include "dictionary.H"
+#include "addToRunTimeSelectionTable.H"
+#include "fvcGrad.H" 
 
-#include "typeInfo.H"
-#include "autoPtr.H"
-#include "tmp.H"
-#include "refCount.H"
-#include "volFieldsFwd.H"
-#include "triSurfaceFront.H"
-#include "triSurfaceFrontFields.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
-namespace FrontTracking {
+namespace FrontTracking { 
 
-/*---------------------------------------------------------------------------*\
-                         Class normalConsistency Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(centerNormalConsistency, 0); 
+    addToRunTimeSelectionTable(normalConsistency, centerNormalConsistency, Dictionary);
 
-class normalConsistency
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+centerNormalConsistency::centerNormalConsistency(const dictionary& configDict)
     :
-        public refCount
+        normalConsistency(configDict)
+{}
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void centerNormalConsistency::makeFrontNormalsConsistent(
+    triSurface& front, 
+    const labelList& elementCells, 
+    const volScalarField& signedDistance
+) const
 {
+    // Gradient based centerNormal consistency algorithm.
+    volVectorField distGrad = fvc::grad(signedDistance); 
 
-public:
+    List<labelledTri>& elements = static_cast<List<labelledTri>& > (front);  
 
-    TypeName ("distanceGradient"); 
+    const vectorField& elementNormals = front.faceNormals();  
 
-    declareRunTimeSelectionTable (
-        tmp,  
-        normalConsistency,  
-        Dictionary,  
-        (
-            const dictionary& configDict 
-        ),
-        (configDict) 
-    );
+    // For all faces 
+    forAll (elements, E)
+    {
+        scalar gradMag = mag(distGrad[elementCells[E]]); 
 
-    // Constructors
-        normalConsistency(const dictionary& configDict) {};
+        if (gradMag >= SMALL)
+        {
+            distGrad[elementCells[E]] /= gradMag; 
+            
+            scalar centerNormalMag = mag(elementNormals[E]); 
 
-    // Selectors
+            if (centerNormalMag > SMALL)
+            {
+                vector elementNormal = elementNormals[E] / mag(elementNormals[E]); 
 
-        static tmp<normalConsistency> New(const dictionary& configDict);
-
-    // Destructor
-        virtual ~normalConsistency() {};
-
-    // Member Functions
-        
-        virtual void makeFrontNormalsConsistent(
-            triSurface& front,    
-            const labelList& elementCells, 
-            const volScalarField& signedDistance 
-        ) const;  
-};
+                if ((elementNormal & distGrad[elementCells[E]]) < 0)
+                {
+                    elements[E].flip(); 
+                }
+            }
+        }
+    }
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //
