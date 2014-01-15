@@ -81,7 +81,7 @@ public:
         
         virtual void makeFrontNormalsConsistent(
             triSurface& front,    
-            const labelList& elementCells, 
+            const labelList& triangleCells, 
             const volScalarField& signedDistance 
         ) const;  
 };

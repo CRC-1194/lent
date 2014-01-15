@@ -31,7 +31,6 @@ Authors
 #include "centerNormalConsistency.H"
 #include "dictionary.H"
 #include "addToRunTimeSelectionTable.H"
-#include "fvcGrad.H" 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -52,37 +51,31 @@ centerNormalConsistency::centerNormalConsistency(const dictionary& configDict)
 
 void centerNormalConsistency::makeFrontNormalsConsistent(
     triSurface& front, 
-    const labelList& elementCells, 
+    const labelList& triangleCells, 
     const volScalarField& signedDistance
 ) const
 {
-    // Gradient based centerNormal consistency algorithm.
-    volVectorField distGrad = fvc::grad(signedDistance); 
-
-    List<labelledTri>& elements = static_cast<List<labelledTri>& > (front);  
-
-    const vectorField& elementNormals = front.faceNormals();  
+    List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);  
+    const vectorField& triangleNormals = front.faceNormals();  
+    const pointField& frontPoints = front.points(); 
+    const fvMesh& mesh = signedDistance.mesh(); 
+    const pointField& cellCenters = mesh.C(); 
 
     // For all faces 
-    forAll (elements, E)
+    forAll (triangles, E)
     {
-        scalar gradMag = mag(distGrad[elementCells[E]]); 
+        point P = frontPoints[triangles[E][0]]; 
+        label cellI = triangleCells[E];
+        point C = cellCenters[cellI]; 
+        vector n = triangleNormals[E]; 
+        n /= mag(n); 
 
-        if (gradMag >= SMALL)
+        scalar normalCellDistance = (C - P) & n;  
+
+        if (((normalCellDistance < 0 && signedDistance[cellI] > 0)  || 
+            (normalCellDistance > 0 && signedDistance[cellI] < 0)))
         {
-            distGrad[elementCells[E]] /= gradMag; 
-            
-            scalar centerNormalMag = mag(elementNormals[E]); 
-
-            if (centerNormalMag > SMALL)
-            {
-                vector elementNormal = elementNormals[E] / mag(elementNormals[E]); 
-
-                if ((elementNormal & distGrad[elementCells[E]]) < 0)
-                {
-                    elements[E].flip(); 
-                }
-            }
+            triangles[E].flip(); 
         }
     }
 }
