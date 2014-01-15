@@ -61,13 +61,50 @@ void testTriSurfaceNormalConsistency(const triSurfaceFront& front)
 
     if (testStatus)
     {
-        Info << "PASS: front normals consistency" << endl;
+        Info << "TEST : triSurface normals consistency : PASS" << endl;
     }
     else
     {
-        Info << "FAIL: front normals consistency" << endl;
+        Info << "TEST : triSurface normals consistency : FAIL" << endl;
     }
 }
+
+class triSurfaceSizeChange 
+{
+    int lastSize_ = 0; 
+
+    const triSurface& t_; 
+
+    double allowedChange_; 
+
+    public: 
+
+        triSurfaceSizeChange(const triSurface& t, double allowedChange=0.2) 
+            : 
+                t_(t), 
+                allowedChange_(allowedChange)  
+        {}
+
+        void operator()()
+        {
+            label triSurfaceSize = t_.localFaces().size(); 
+
+            if (lastSize_ > 0)
+            {
+                if (((double(lastSize_) - triSurfaceSize) / lastSize_) > allowedChange_)
+                {
+                    Info << "TEST : triSurfaceSizeChange " << allowedChange_ * 100 
+                        << " % : FAIL " << endl;  
+                }
+                else
+                {
+                    Info << "TEST : triSurfaceSizeChange : PASS " << endl;  
+                }
+            }
+
+            lastSize_ = triSurfaceSize; 
+        }
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

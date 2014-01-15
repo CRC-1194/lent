@@ -49,6 +49,8 @@ Description
 
 using namespace FrontTracking;
 
+using namespace Test; 
+
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
@@ -100,9 +102,11 @@ int main(int argc, char *argv[])
 
     lent.reconstructFront(front, signedDistance, pointSignedDistance); 
 
-    Test::testTriSurfaceNormalConsistency(front); 
-    
+    testTriSurfaceNormalConsistency(front); 
+
     front.write(); 
+
+    triSurfaceSizeChange testTriSurfaceSizeChange(front); 
 
     while (runTime.run())
     {
@@ -136,7 +140,8 @@ int main(int argc, char *argv[])
         lent.reconstructFront(front, signedDistance, pointSignedDistance); 
         Pout << "done." << endl;
 
-        Test::testTriSurfaceNormalConsistency(front); 
+        testTriSurfaceNormalConsistency(front); 
+        testTriSurfaceSizeChange(); 
 
         Pout << "Velocity ..."; 
         lent.calcFrontVelocity(frontVelocity, U); 
