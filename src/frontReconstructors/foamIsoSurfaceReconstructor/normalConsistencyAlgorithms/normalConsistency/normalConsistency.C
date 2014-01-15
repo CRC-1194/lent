@@ -22,15 +22,16 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
+    Mathematical Modeling and Analysis
+    Center of Smart Interfaces, TU Darmstadt
 
 \*---------------------------------------------------------------------------*/
 
 #include "normalConsistency.H"
 #include "dictionary.H"
 #include "addToRunTimeSelectionTable.H"
+#include "fvcGrad.H" 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -40,22 +41,6 @@ namespace FrontTracking {
     defineTypeNameAndDebug(normalConsistency, 0); 
     defineRunTimeSelectionTable(normalConsistency, Dictionary);
     addToRunTimeSelectionTable(normalConsistency, normalConsistency, Dictionary);
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-normalConsistency::normalConsistency(const dictionary& configDict)
-{}
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-
-void normalConsistency::makeFrontNormalsConsistent(
-    triSurfaceFront& front, 
-    const volScalarField& signedDistance
-) const
-{
-    // Gradient based normal consistency algorithm.
-}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
@@ -81,10 +66,44 @@ normalConsistency::New(const dictionary& configDict)
     return tmp<normalConsistency> (cstrIter()(configDict));
 }
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-normalConsistency::~normalConsistency()
-{}
+void normalConsistency::makeFrontNormalsConsistent(
+    triSurface& front, 
+    const labelList& elementCells, 
+    const volScalarField& signedDistance
+) const
+{
+    // Gradient based normal consistency algorithm.
+    volVectorField distGrad = fvc::grad(signedDistance); 
+
+    List<labelledTri>& elements = static_cast<List<labelledTri>& > (front);  
+
+    const vectorField& elementNormals = front.faceNormals();  
+
+    // For all faces 
+    forAll (elements, E)
+    {
+        scalar gradMag = mag(distGrad[elementCells[E]]); 
+
+        if (gradMag >= SMALL)
+        {
+            distGrad[elementCells[E]] /= gradMag; 
+            
+            scalar normalMag = mag(elementNormals[E]); 
+
+            if (normalMag > SMALL)
+            {
+                vector elementNormal = elementNormals[E] / mag(elementNormals[E]); 
+
+                if ((elementNormal & distGrad[elementCells[E]]) < 0)
+                {
+                    elements[E].flip(); 
+                }
+            }
+        }
+    }
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -80,19 +80,20 @@ public:
 
     // Constructors
 
-        normalConsistency(const dictionary& configDict);
+        normalConsistency(const dictionary& configDict) {};
 
     // Selectors
 
         static tmp<normalConsistency> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~normalConsistency();
+        virtual ~normalConsistency() {};
 
     // Member Functions
         
         virtual void makeFrontNormalsConsistent(
-            triSurfaceFront& front,    
+            triSurface& front,    
+            const labelList& elementCells, 
             const volScalarField& signedDistance 
         ) const;  
 };

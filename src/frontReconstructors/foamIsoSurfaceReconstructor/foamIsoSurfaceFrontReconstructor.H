@@ -42,7 +42,7 @@ Authors
 #define foamIsoSurfaceFrontReconstructor_H
 
 #include "frontReconstructor.H"
-//#include "normalConsistency.H"
+#include "normalConsistency.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -61,7 +61,7 @@ class foamIsoSurfaceFrontReconstructor
     scalar mergeTolerance_; 
     Switch regularize_; 
 
-    //tmp<normalConsistency> consistencyAlgorithmPtr_;  
+    tmp<normalConsistency> consistencyAlgTmp_;  
 
 public:
 

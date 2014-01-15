@@ -44,8 +44,8 @@ foamIsoSurfaceFrontReconstructor::foamIsoSurfaceFrontReconstructor(
 :
     frontReconstructor(configDict), 
     mergeTolerance_(readScalar(configDict.lookup("mergeTolerance"))), 
-    regularize_(configDict.lookup("regularization"))
-    //consistencyAlgPtr_(normalConsistency::New(configDict)) 
+    regularize_(configDict.lookup("regularization")),
+    consistencyAlgTmp_(normalConsistency::New(configDict.subDict("normalConsistency"))) 
 {}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -69,7 +69,11 @@ labelList foamIsoSurfaceFrontReconstructor::reconstructFront(
         mergeTolerance_
     );
 
-    //forceConsistentNormalOrientation(iso, signedDistance);
+    consistencyAlgTmp_->makeFrontNormalsConsistent(
+        iso, 
+        iso.meshCells(), 
+        signedDistance
+    );
 
     front = iso; 
 
