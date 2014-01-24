@@ -42,11 +42,13 @@ namespace Foam {
     namespace FrontTracking { 
         namespace Test {
 
-void testTriSurfaceNormalConsistency(const triSurfaceFront& front)
+bool triSurfaceNormalsAreConsistent(const triSurface& front)
 {
     const labelListList& edgeFaces = front.edgeFaces(); 
     const vectorField& faceNormals = front.faceNormals(); 
-    bool testStatus = true; 
+
+    bool normalsAreConsistent = true; 
+
 
     forAll (edgeFaces, I)
     {
@@ -55,18 +57,10 @@ void testTriSurfaceNormalConsistency(const triSurfaceFront& front)
 
         if ((n0 & n1) < 0)
         {
-            testStatus = false; 
+            normalsAreConsistent = false; 
         }
     }
-
-    if (testStatus)
-    {
-        Info << "TEST : triSurface normals consistency : PASS" << endl;
-    }
-    else
-    {
-        Info << "TEST : triSurface normals consistency : FAIL" << endl;
-    }
+    return normalsAreConsistent;
 }
 
 class triSurfaceSizeChange 

@@ -32,6 +32,8 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include<boost/test/minimal.hpp>
+
 #include "fvCFD.H"
 #include "interfaceProperties.H"
 #include "incompressibleTwoPhaseMixture.H"
@@ -43,7 +45,7 @@ Description
 using namespace FrontTracking;
 
 
-int main(int argc, char *argv[])
+int test_main(int argc, char *argv[])
 {
     #include "setRootCase.H"
     #include "createTime.H"
@@ -91,7 +93,7 @@ int main(int argc, char *argv[])
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance); 
 
-        Test::testTriSurfaceNormalConsistency(front); 
+        BOOST_REQUIRE(Test::triSurfaceNormalsAreConsistent(front)); 
 
         runTime.write();
 

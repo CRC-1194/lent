@@ -72,8 +72,9 @@ void centerNormalConsistency::makeFrontNormalsConsistent(
 
         scalar normalCellDistance = (C - P) & n;  
 
-        if (((normalCellDistance < 0 && signedDistance[cellI] > 0)  || 
-            (normalCellDistance > 0 && signedDistance[cellI] < 0)))
+        //if (((normalCellDistance < 0 && signedDistance[cellI] > 0)  || 
+            //(normalCellDistance > 0 && signedDistance[cellI] < 0)))
+        if (normalCellDistance * signedDistance[cellI] <  0)  
         {
             triangles[E].flip(); 
         }

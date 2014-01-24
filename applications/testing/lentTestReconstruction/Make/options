@@ -25,4 +25,5 @@ EXE_LIBS = \
     -ltriSurface \
     -lsampling \
     -llent \
+    -lgtest
 
