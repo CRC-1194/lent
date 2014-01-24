@@ -35,12 +35,15 @@ SourceFiles
 #define lentTests_H
 
 #include "triSurface.H"
+#include <gtest/gtest.h>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 
 namespace Foam { 
     namespace FrontTracking { 
         namespace Test {
+
 
 bool triSurfaceNormalsAreConsistent(const triSurface& front)
 {
@@ -98,6 +101,18 @@ class triSurfaceSizeChange
 
             lastSize_ = triSurfaceSize; 
         }
+};
+
+// Google Test test classes for testing solvers.  
+
+class lentTests : public ::testing::Test 
+{
+    protected:
+      template<typename Front>
+      void TEST_NORMAL_CONSISTENCY(Front const & front) 
+      {
+          ASSERT_TRUE(triSurfaceNormalsAreConsistent(front));
+      }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

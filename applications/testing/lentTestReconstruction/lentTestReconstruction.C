@@ -22,17 +22,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    levelSetFrontFoam
+    testLentReconstruction 
 
 Authors
-    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de 
+    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
+    Mathematical Modeling and Analysis
+    Center of Smart Interfaces, TU Darmstadt
 
 Description
     Test application for the interface reconstruction algorithm of the LENT method.
 
 \*---------------------------------------------------------------------------*/
 
-#include<boost/test/minimal.hpp>
 
 #include "fvCFD.H"
 #include "interfaceProperties.H"
@@ -40,13 +41,21 @@ Description
 #include "lentMethod.H"
 #include "lentTests.H"
 
+#include <gtest/gtest.h>
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
+using namespace Test;
 
-
-int test_main(int argc, char *argv[])
+TEST_F(lentTests, lentReconstruction)
 {
+    extern int mainArgc; 
+    extern char** mainArgv; 
+
+    int argc = mainArgc; 
+    char** argv = mainArgv; 
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -93,9 +102,10 @@ int test_main(int argc, char *argv[])
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance); 
 
-        BOOST_REQUIRE(Test::triSurfaceNormalsAreConsistent(front)); 
+        TEST_NORMAL_CONSISTENCY(front); 
 
         runTime.write();
+
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
@@ -103,7 +113,20 @@ int test_main(int argc, char *argv[])
     }
 
     Info<< "End\n" << endl;
+}
 
+int mainArgc; 
+char** mainArgv; 
+
+int main(int argc, char **argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+
+    mainArgc = argc; 
+    mainArgv = argv;
+
+    return RUN_ALL_TESTS();
+    
     return 0;
 }
 
