@@ -24,5 +24,6 @@ EXE_LIBS = \
     -lfvOptions \
     -ltriSurface \
     -lsampling \
-    -llent
+    -llent \
+    -lgtest
 

@@ -103,16 +103,16 @@ class triSurfaceSizeChange
         }
 };
 
-// Google Test test classes for testing solvers.  
+// Classes for testing the application code.  
 
 class lentTests : public ::testing::Test 
 {
     protected:
-      template<typename Front>
-      void TEST_NORMAL_CONSISTENCY(Front const & front) 
-      {
-          ASSERT_TRUE(triSurfaceNormalsAreConsistent(front));
-      }
+        template<typename Front>
+        void TEST_NORMAL_CONSISTENCY(Front const & front) 
+        {
+            ASSERT_TRUE(triSurfaceNormalsAreConsistent(front));
+        }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

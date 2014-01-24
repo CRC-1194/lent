@@ -1,0 +1,3 @@
+lentTestAdvection.C
+
+EXE = $(FOAM_USER_APPBIN)/lentTestAdvection
