@@ -43,9 +43,9 @@ Description
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
 #include "lentMethod.H"
-#include "lentTests.H"
 
-#include <gtest/gtest.h>
+#include "lentTests.H"
+#include  "gtest.h" 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -35,7 +35,7 @@ SourceFiles
 #define lentTests_H
 
 #include "triSurface.H"
-#include <gtest/gtest.h>
+#include "gtest.h"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
