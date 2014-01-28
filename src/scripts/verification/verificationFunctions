@@ -92,10 +92,10 @@ clear_case() {
 
     pyFoamClearCase.py $CASE
     # Reseting 0 directory  
-    if [ -d $CASE/0.orig ]; 
+    if [ -d $CASE/0.org ]; 
     then 
         rm -rf $CASE/0
-        cp -rf $CASE/0.orig $CASE/0
+        cp -rf $CASE/0.org $CASE/0
     fi
     # Removing error files  
     rm -rf $CASE/*.dat
