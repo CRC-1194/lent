@@ -41,7 +41,6 @@ Description
 #include "lentMethod.H"
 
 #include "lentTests.H"
-#include "gtest/gtest.h"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
