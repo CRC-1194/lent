@@ -16,9 +16,6 @@ EXE_LIBS = \
     -ltwoPhaseMixture \
     -ltwoPhaseProperties \
     -lincompressibleTransportModels \
-    -lincompressibleTurbulenceModel \
-    -lincompressibleRASModels \
-    -lincompressibleLESModels \
     -lfiniteVolume \
     -lmeshTools \
     -lfvOptions \
