@@ -25,17 +25,16 @@ Application
     lentAdvect
 
 Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
+    Mathematical Modeling and Analysis
+    Center of Smart Interfaces, TU Darmstadt
 
 Description
-    Test application for the interface advection algorithm of the LENT method.  
+    Interface advection algorithm of the LENT method.  
 
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "MULES.H"
 #include "subCycle.H"
 #include "interfaceProperties.H"
 #include "incompressibleTwoPhaseMixture.H"
