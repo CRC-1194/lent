@@ -35,7 +35,9 @@ Description
 #include "incompressibleTwoPhaseMixture.H"
 #include "fvIOoptionList.H"
 
-#include "pointFields.H"
+#include "lentMethod.H"
+
+using namespace FrontTracking;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -49,16 +51,51 @@ int main(int argc, char *argv[])
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
 
+    triSurfaceFront front(
+        IOobject(
+            "front.stl",
+            "front",
+            runTime, 
+            IOobject::MUST_READ, 
+            IOobject::AUTO_WRITE
+        )
+    );
+
+    lentMethod lent(front, mesh); 
+
+    lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
+
+    front.write(); 
+
     while (runTime.run())
     {
         runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        // Do any mesh changes
+        Info << "SIZE = " <<  heaviside.size() << endl;
+        // Apply mesh changes
+
         mesh.update();
+        Info << "SIZE = " <<  heaviside.size() << endl;
 
         twoPhaseProperties.correct();
+
+        // Naive implementation. 
+        // The strategy for distance re-calculation based on a refinement map 
+        // needs to be added to the lentMethod class. TM Feb 07 14
+        lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
+
+        lent.calcSignedDistances(
+            signedDistance, 
+            pointSignedDistance,
+            searchDistanceSqr,
+            pointSearchDistanceSqr, 
+            front
+        ); 
+
+        lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+
 
         runTime.write();
 

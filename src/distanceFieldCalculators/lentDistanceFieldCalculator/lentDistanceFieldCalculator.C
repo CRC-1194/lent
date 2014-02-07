@@ -146,7 +146,11 @@ void lentDistanceFieldCalculator::calcPointSearchDistance(
     const fvMesh& mesh = searchDistanceSqr.mesh();
 
     volPointInterpolation ip(mesh); 
-    pointSearchDistanceSqr == ip.interpolate(searchDistanceSqr, "fixedValue", true); 
+
+    pointSearchDistanceSqr.resize(mesh.nPoints()); 
+
+    //pointSearchDistanceSqr = ip.interpolate(searchDistanceSqr, "fixedValue", true); 
+    ip.interpolate(searchDistanceSqr, pointSearchDistanceSqr); 
 }
 
 void lentDistanceFieldCalculator::calcPointSearchDistance(
