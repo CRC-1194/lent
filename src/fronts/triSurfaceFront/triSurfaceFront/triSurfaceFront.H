@@ -88,7 +88,6 @@ public:
 
     // Constructors
 
-    //- Construct read 
     triSurfaceFront(const IOobject& io, word writeFormat="vtk", label prependZeros=8);
 
     //- Destructor

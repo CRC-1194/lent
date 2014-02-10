@@ -100,7 +100,7 @@ triSurfaceFront::triSurfaceFront(
 
     static_cast<triSurface&>(*this) = triSurface(file);
 }
-
+         
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 bool triSurfaceFront::write() const

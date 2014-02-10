@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,20 +22,20 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    lentAdvect
+    lentAdvectRefined 
 
+Description
+    Interface advection with the LENT method coupled with local AMR in OpenFOAM. 
+    
 Authors
     Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
     Mathematical Modeling and Analysis
     Center of Smart Interfaces, TU Darmstadt
 
-Description
-    Interface advection algorithm of the LENT method.  
-
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "subCycle.H"
+#include "dynamicFvMesh.H"
 #include "interfaceProperties.H"
 #include "incompressibleTwoPhaseMixture.H"
 #include "turbulenceModel.H"
@@ -44,15 +44,15 @@ Description
 
 #include "lentMethod.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 using namespace FrontTracking;
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
     #include "createTime.H"
-    #include "createMesh.H"
+    #include "createDynamicFvMesh.H"
 
     #include "initContinuityErrs.H"
     #include "createFields.H"
@@ -60,9 +60,7 @@ int main(int argc, char *argv[])
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
-
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
     Info<< "\nStarting time loop\n" << endl;
 
     triSurfaceFront front(
@@ -70,7 +68,7 @@ int main(int argc, char *argv[])
             "front.stl",
             "front",
             runTime, 
-            IOobject::NO_READ, 
+            IOobject::MUST_READ, 
             IOobject::AUTO_WRITE
         )
     );
@@ -98,7 +96,7 @@ int main(int argc, char *argv[])
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
     lent.reconstructFront(front, signedDistance, pointSignedDistance); 
-    
+
     front.write(); 
 
     while (runTime.run())
@@ -113,7 +111,11 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
+        mesh.update();
+
         twoPhaseProperties.correct();
+
+        lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
         lent.calcSignedDistances(
             signedDistance, 
@@ -131,6 +133,9 @@ int main(int argc, char *argv[])
 
         lent.evolveFront(front, frontVelocity); 
         
+        runTime.write();
+
+
         runTime.write();
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"

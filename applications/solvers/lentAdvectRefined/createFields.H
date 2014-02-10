@@ -1,9 +1,7 @@
 
     Info<< "Reading field p_rgh\n" << endl;
-    volScalarField p_rgh
-    (
-        IOobject
-        (
+    volScalarField p_rgh(
+        IOobject(
             "p_rgh",
             runTime.timeName(),
             mesh,
@@ -14,10 +12,8 @@
     );
 
     Info<< "Reading field U\n" << endl;
-    volVectorField U
-    (
-        IOobject
-        (
+    volVectorField U(
+        IOobject(
             "U",
             runTime.timeName(),
             mesh,
@@ -27,11 +23,9 @@
         mesh
     );
 
-    Info << "Reading the cell distance field signedDistance\n" << endl;
-    volScalarField signedDistance
-    (
-        IOobject
-        (
+    Info << "Reading the cell-centered distance field signedDistance\n" << endl;
+    volScalarField signedDistance(
+        IOobject(
             "signedDistance",
             runTime.timeName(),
             mesh,
@@ -45,10 +39,12 @@
     (
         IOobject
         (
-            "searchDistance",
+            "searchDistanceSqr",
             runTime.timeName(),
             mesh,
             IOobject::NO_READ,
+            // TODO: uncomment, used only for debugging
+            //IOobject::NO_WRITE,
             IOobject::AUTO_WRITE
         ),
         mesh, 
@@ -56,17 +52,15 @@
             "zero",
             dimLength,
             0
-        )
+        ), 
+        "zeroGradient"
     );
 
     pointMesh pmesh(mesh); 
 
     // Initialize the points-to-elements distance. 
-    Info << "Reading the point distance field signedDistance\n" << endl;
-    pointScalarField pointSignedDistance 
-    (
-        IOobject
-        (
+    pointScalarField pointSignedDistance(
+        IOobject(
             "pointSignedDistance", 
             runTime.timeName(), 
             mesh, 
@@ -84,21 +78,21 @@
             runTime.timeName(), 
             mesh, 
             IOobject::NO_READ, 
-            IOobject::NO_WRITE
+            //IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
         ),
         pmesh,
         dimensionedScalar(
             "zero",
             dimLength,
             0
-        )
+        ),
+        "fixedValue"
     );
 
-    Info << "Reading the cell-centered Heaviside field heaviside\n" << endl;
-    volScalarField heaviside 
-    (
-        IOobject
-        (
+    Info << "Reading the cell-centered Heaviside function field H\n" << endl;
+    volScalarField heaviside(
+        IOobject(
             "heaviside",
             runTime.timeName(),
             mesh,
@@ -119,10 +113,8 @@
 
 
     // Need to store rho for ddt(rho, U)
-    volScalarField rho
-    (
-        IOobject
-        (
+    volScalarField rho(
+        IOobject(
             "rho",
             runTime.timeName(),
             mesh,
@@ -138,10 +130,8 @@
     // Mass flux
     // Initialisation does not matter because rhoPhi is reset after the
     // alpha1 solution before it is used in the U equation.
-    surfaceScalarField rhoPhi
-    (
-        IOobject
-        (
+    surfaceScalarField rhoPhi(
+        IOobject(
             "rho*phi",
             runTime.timeName(),
             mesh,
@@ -152,8 +142,14 @@
     );
 
 
-    // Construct interface from heaviside distribution
+    // Construct interface from alpha1 distribution
     interfaceProperties interface(heaviside, U, twoPhaseProperties);
+
+
+    // Construct incompressible turbulence model
+    autoPtr<incompressible::turbulenceModel> turbulence(
+        incompressible::turbulenceModel::New(U, phi, twoPhaseProperties)
+    );
 
     #include "readGravitationalAcceleration.H"
 
@@ -171,10 +167,8 @@
     volScalarField gh("gh", g & mesh.C());
     surfaceScalarField ghf("ghf", g & mesh.Cf());
 
-    volScalarField p
-    (
-        IOobject
-        (
+    volScalarField p(
+        IOobject(
             "p",
             runTime.timeName(),
             mesh,
@@ -186,8 +180,7 @@
 
     label pRefCell = 0;
     scalar pRefValue = 0.0;
-    setRefCell
-    (
+    setRefCell(
         p,
         p_rgh,
         mesh.solutionDict().subDict("PIMPLE"),
@@ -195,10 +188,8 @@
         pRefValue
     );
 
-    if (p_rgh.needReference())
-    {
-        p += dimensionedScalar
-        (
+    if (p_rgh.needReference()) {
+        p += dimensionedScalar(
             "p",
             p.dimensions(),
             pRefValue - getRefCellValue(p, pRefCell)

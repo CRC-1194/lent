@@ -27,6 +27,11 @@ Application
 Description
     Interface advection with the LENT method coupled with local AMR in OpenFOAM. 
 
+Authors
+    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
+    Mathematical Modeling and Analysis
+    Center of Smart Interfaces, TU Darmstadt
+
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
@@ -73,17 +78,10 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        Info << "SIZE = " <<  heaviside.size() << endl;
-        // Apply mesh changes
-
         mesh.update();
-        Info << "SIZE = " <<  heaviside.size() << endl;
 
         twoPhaseProperties.correct();
 
-        // Naive implementation. 
-        // The strategy for distance re-calculation based on a refinement map 
-        // needs to be added to the lentMethod class. TM Feb 07 14
         lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
         lent.calcSignedDistances(
@@ -95,7 +93,6 @@ int main(int argc, char *argv[])
         ); 
 
         lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
-
 
         runTime.write();
 

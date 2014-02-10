@@ -43,9 +43,7 @@
             runTime.timeName(),
             mesh,
             IOobject::NO_READ,
-            // TODO: uncomment, used only for debugging
-            //IOobject::NO_WRITE,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh, 
         dimensionedScalar(
