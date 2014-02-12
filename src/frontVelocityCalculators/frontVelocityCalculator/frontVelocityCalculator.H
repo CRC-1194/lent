@@ -91,6 +91,19 @@ public:
         virtual ~frontVelocityCalculator();
 
     // Member Functions
+
+        bool pointIsInCell(
+            const point p, 
+            const label cellLabel, 
+            const fvMesh& mesh, 
+            scalar tolerance=SMALL
+        ) const; 
+
+        label cellContainingPoint(
+            const point& p, 
+            const fvMesh& mesh, 
+            const label seedCell = -1
+        ) const;  
         
         virtual void calcFrontVelocity(
             triSurfaceFrontVectorField& frontVelocity, 
@@ -98,10 +111,7 @@ public:
             labelList& elementCells 
         ) const = 0;  
 
-        const lentMeshSearch& getSearchAlgorithm() const
-        {
-            return searchAlgTmp_(); 
-        }
+        
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

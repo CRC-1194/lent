@@ -69,7 +69,7 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
 
     const fvMesh& mesh = U.mesh(); 
 
-    const lentMeshSearch& searchAlg = getSearchAlgorithm();  
+    //const lentMeshSearch& searchAlg = getSearchAlgorithm();  
 
     forAll (elementCells, elementI)
     {
@@ -81,7 +81,7 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
 
             label foundCell = -1; 
 
-            if (!searchAlg.pointIsInCell(vertex, elementCells[elementI], mesh))
+            if (!pointIsInCell(vertex, elementCells[elementI], mesh))
             {
                 //elementCells[elementI] = searchAlg.cellContainingPoint(
                     //vertex, 
@@ -95,7 +95,7 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
                 //       the part of the calculation called *very often*.  
                 //       I'm counting on the CPU branching manager here. 
                 
-                foundCell  = searchAlg.cellContainingPoint(
+                foundCell  = cellContainingPoint(
                     vertex, 
                     mesh,
                     elementCells[elementI]

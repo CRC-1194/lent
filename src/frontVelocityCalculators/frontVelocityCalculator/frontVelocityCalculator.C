@@ -73,6 +73,28 @@ frontVelocityCalculator::New(const dictionary& configDict)
 frontVelocityCalculator::~frontVelocityCalculator()
 {}
 
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+bool frontVelocityCalculator::pointIsInCell(
+    const point p, 
+    const label cellLabel, 
+    const fvMesh& mesh, 
+    scalar tolerance
+) const
+{
+    return searchAlgTmp_->pointIsInCell(p, cellLabel, mesh, tolerance); 
+}
+
+label frontVelocityCalculator::cellContainingPoint(
+    const point& p, 
+    const fvMesh& mesh, 
+    const label seedCell 
+) const
+{
+    return searchAlgTmp_->cellContainingPoint(p, mesh, seedCell);  
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
