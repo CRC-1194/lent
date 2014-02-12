@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
-    using std::chrono::seconds;
+    using std::chrono::milliseconds;
     using std::chrono::duration_cast;
 
     typedef std::chrono::high_resolution_clock Clock;
@@ -121,14 +121,14 @@ int main(int argc, char *argv[])
         auto t1 = Clock::now();
         mesh.update();
         auto t2 = Clock::now();
-        auto diff = duration_cast<seconds>(t2 - t1); 
-        std::cout << "Mesh update : " << diff.count() / 1e06 << " \n";
+        auto diff = duration_cast<milliseconds>(t2 - t1); 
+        std::cout << "Mesh update : " << diff.count() / 1e03 << " \n";
 
         t1 = Clock::now(); 
         lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
         t2 = Clock::now(); 
-        diff = duration_cast<seconds>(t2 - t1); 
-        std::cout << "Search distance calculation : " << diff.count() << " \n";
+        diff = duration_cast<milliseconds>(t2 - t1); 
+        std::cout << "Search distance calculation : " << diff.count() / 1e03 << " \n";
 
         t1 = Clock::now(); 
         lent.calcSignedDistances(
@@ -139,44 +139,44 @@ int main(int argc, char *argv[])
             front
         ); 
         t2 = Clock::now(); 
-        diff = duration_cast<seconds>(t2 - t1); 
-        std::cout << "Signed distance calculation : " << diff.count() << " \n";
+        diff = duration_cast<milliseconds>(t2 - t1); 
+        std::cout << "Signed distance calculation : " << diff.count() / 1e03 << " \n";
 
         t1 = Clock::now(); 
         lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
         t2 = Clock::now(); 
-        diff = duration_cast<seconds>(t2 - t1); 
-        std::cout << "Heaviside calculation : " << diff.count() << " \n";
+        diff = duration_cast<milliseconds>(t2 - t1); 
+        std::cout << "Heaviside calculation : " << diff.count() / 1e03 << " \n";
 
         t1 = Clock::now(); 
         twoPhaseProperties.correct();
         t2 = Clock::now(); 
-        diff = duration_cast<seconds>(t2 - t1); 
-        std::cout << "Properties update : " << diff.count() << " \n";
+        diff = duration_cast<milliseconds>(t2 - t1); 
+        std::cout << "Properties update : " << diff.count() / 1e03 << " \n";
 
         t1 = Clock::now(); 
         lent.reconstructFront(front, signedDistance, pointSignedDistance); 
         t2 = Clock::now(); 
-        diff = duration_cast<seconds>(t2 - t1); 
-        std::cout << "Front reconstruction : " << diff.count() << " \n";
+        diff = duration_cast<milliseconds>(t2 - t1); 
+        std::cout << "Front reconstruction : " << diff.count() / 1e03 << " \n";
 
         t1 = Clock::now(); 
         lent.calcFrontVelocity(frontVelocity, U); 
         t2 = Clock::now(); 
-        diff = duration_cast<seconds>(t2 - t1); 
-        std::cout << "Front velocity calculation :" << diff.count() << " \n";
+        diff = duration_cast<milliseconds>(t2 - t1); 
+        std::cout << "Front velocity calculation :" << diff.count() / 1e03 << " \n";
 
         t1 = Clock::now(); 
         lent.evolveFront(front, frontVelocity); 
         t2 = Clock::now(); 
-        diff = duration_cast<seconds>(t2 - t1); 
-        std::cout << "Front advection :" << diff.count() << " \n";
+        diff = duration_cast<milliseconds>(t2 - t1); 
+        std::cout << "Front advection :" << diff.count() / 1e03 << " \n";
         
         t1 = Clock::now(); 
         runTime.write();
         t2 = Clock::now(); 
-        diff = duration_cast<seconds>(t2 - t1); 
-        std::cout << "Writing data:" << diff.count() << " \n";
+        diff = duration_cast<milliseconds>(t2 - t1); 
+        std::cout << "Writing data: " << diff.count() / 1e03 << " \n";
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
