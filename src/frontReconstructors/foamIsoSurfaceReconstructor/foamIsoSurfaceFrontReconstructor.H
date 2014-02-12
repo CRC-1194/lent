@@ -86,27 +86,6 @@ public:
             isoSurface& iso, 
             const volScalarField& signedDistance
         ) const;
-
-        scalar getMergeTolerance() const
-        {
-            return mergeTolerance_; 
-        }
-
-        void setMergeTolerance(scalar tol)
-        {
-            mergeTolerance_ = tol; 
-        }
-
-
-        Switch getRegularizationSwitch() const
-        {
-            return regularize_; 
-        }
-
-        void setRegularizationSwitch(Switch s)
-        {
-            regularize_ = s; 
-        }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

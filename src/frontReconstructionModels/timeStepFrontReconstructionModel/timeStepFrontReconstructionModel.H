@@ -77,17 +77,6 @@ public:
             const triSurfaceFront& front, 
             const volScalarField& signedDistance
         ) const;  
-
-        label reconstructionInterval() const
-        {
-            return reconstructionInterval_; 
-        }
-
-        void setReconstructionInterval(label newInterval)
-        {
-            reconstructionInterval_ = newInterval;
-        }
-
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
