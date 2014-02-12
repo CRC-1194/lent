@@ -113,8 +113,7 @@ int main(int argc, char *argv[])
 
         mesh.update();
 
-        
-        //twoPhaseProperties.correct();
+        twoPhaseProperties.correct();
 
         lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
@@ -134,9 +133,6 @@ int main(int argc, char *argv[])
 
         lent.evolveFront(front, frontVelocity); 
         
-        runTime.write();
-
-
         runTime.write();
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
