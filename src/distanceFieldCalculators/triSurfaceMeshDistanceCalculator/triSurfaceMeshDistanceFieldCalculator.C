@@ -75,7 +75,7 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
     if (front.size() > 0)
     {
         signedDistance = dimensionedScalar(
-            "-GREAT", 
+            "GREAT", 
             dimLength, 
             GREAT
         );
@@ -153,6 +153,8 @@ void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
     const triSurfaceFront& front
 )
 {
+    pointSignedDistance.resize(pointSearchDistanceSqr.size()); 
+
     if (front.size() > 0)
     {
         pointSignedDistance = dimensionedScalar("GREAT", dimLength, GREAT);
@@ -160,8 +162,6 @@ void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
     {
         pointSignedDistance = dimensionedScalar("-GREAT", dimLength, -GREAT);
     }
-
-    pointSignedDistance.resize(pointSearchDistanceSqr.size()); 
     
     // Get the cell centres.  
     const pointMesh& pMesh = pointSignedDistance.mesh(); 
