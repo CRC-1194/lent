@@ -43,12 +43,22 @@ Authors
 #include "fvIOoptionList.H"
 #include "lentMethod.H"
 
+// Time Measurements
 #include <iostream>
 #include <chrono>
+#include <fstream>
+#include <iomanip>
+
 
 using namespace FrontTracking;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+template<typename Stream, typename Time>
+void streamTime(Stream& s, Time const& t)
+{
+    s << std::setw(20) << std::setfill(' ') << t;  
+}
 
 int main(int argc, char *argv[])
 {
@@ -66,6 +76,11 @@ int main(int argc, char *argv[])
     using std::chrono::duration_cast;
 
     typedef std::chrono::high_resolution_clock Clock;
+
+    std::ofstream logFile;
+    logFile.open("measurements.dat"); 
+    logFile << "# Mesh Update | Search Distance | Signed Distance | Heaviside Model "
+        << "| Front Reconstruction | Front Velocity Calculation | Front Advection |  Data Writing \n";  
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
@@ -122,13 +137,15 @@ int main(int argc, char *argv[])
         mesh.update();
         auto t2 = Clock::now();
         auto diff = duration_cast<milliseconds>(t2 - t1); 
-        std::cout << "Mesh update : " << diff.count() / 1e03 << " \n";
+        //std::cout << "Mesh update : " << diff.count() / 1e03 << " \n";
+        logFile << diff.count() / 1e03 << " "; 
 
         t1 = Clock::now(); 
         lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
         t2 = Clock::now(); 
         diff = duration_cast<milliseconds>(t2 - t1); 
-        std::cout << "Search distance calculation : " << diff.count() / 1e03 << " \n";
+        //std::cout << "Search distance calculation : " << diff.count() / 1e03 << " \n";
+        logFile << diff.count() / 1e03 << " "; 
 
         t1 = Clock::now(); 
         lent.calcSignedDistances(
@@ -140,13 +157,15 @@ int main(int argc, char *argv[])
         ); 
         t2 = Clock::now(); 
         diff = duration_cast<milliseconds>(t2 - t1); 
-        std::cout << "Signed distance calculation : " << diff.count() / 1e03 << " \n";
+        //std::cout << "Signed distance calculation : " << diff.count() / 1e03 << " \n";
+        logFile << diff.count() / 1e03 << " "; 
 
         t1 = Clock::now(); 
         lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
         t2 = Clock::now(); 
         diff = duration_cast<milliseconds>(t2 - t1); 
-        std::cout << "Heaviside calculation : " << diff.count() / 1e03 << " \n";
+        //std::cout << "Heaviside calculation : " << diff.count() / 1e03 << " \n";
+        logFile << diff.count() / 1e03 << " "; 
 
         // FIXME: breaks in debug mode, see why
         //t1 = Clock::now(); 
@@ -159,30 +178,37 @@ int main(int argc, char *argv[])
         lent.reconstructFront(front, signedDistance, pointSignedDistance); 
         t2 = Clock::now(); 
         diff = duration_cast<milliseconds>(t2 - t1); 
-        std::cout << "Front reconstruction : " << diff.count() / 1e03 << " \n";
+        //std::cout << "Front reconstruction : " << diff.count() / 1e03 << " \n";
+        logFile << diff.count() / 1e03 << " "; 
+
 
         t1 = Clock::now(); 
         lent.calcFrontVelocity(frontVelocity, U); 
         t2 = Clock::now(); 
         diff = duration_cast<milliseconds>(t2 - t1); 
-        std::cout << "Front velocity calculation :" << diff.count() / 1e03 << " \n";
+        //std::cout << "Front velocity calculation :" << diff.count() / 1e03 << " \n";
+        logFile << diff.count() / 1e03 << " "; 
 
         t1 = Clock::now(); 
         lent.evolveFront(front, frontVelocity); 
         t2 = Clock::now(); 
         diff = duration_cast<milliseconds>(t2 - t1); 
-        std::cout << "Front advection :" << diff.count() / 1e03 << " \n";
+        //std::cout << "Front advection :" << diff.count() / 1e03 << " \n";
+        logFile << diff.count() / 1e03 << " "; 
         
         t1 = Clock::now(); 
         runTime.write();
         t2 = Clock::now(); 
         diff = duration_cast<milliseconds>(t2 - t1); 
-        std::cout << "Writing data: " << diff.count() / 1e03 << " \n";
+        //std::cout << "Writing data: " << diff.count() / 1e03 << " \n";
+        logFile << diff.count() / 1e03 << "\n"; 
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
             << nl << endl;
     }
+
+    logFile.close(); 
 
     Info<< "End\n" << endl;
 
