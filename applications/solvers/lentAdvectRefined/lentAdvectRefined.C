@@ -148,11 +148,12 @@ int main(int argc, char *argv[])
         diff = duration_cast<milliseconds>(t2 - t1); 
         std::cout << "Heaviside calculation : " << diff.count() / 1e03 << " \n";
 
-        t1 = Clock::now(); 
-        twoPhaseProperties.correct();
-        t2 = Clock::now(); 
-        diff = duration_cast<milliseconds>(t2 - t1); 
-        std::cout << "Properties update : " << diff.count() / 1e03 << " \n";
+        // FIXME: breaks in debug mode, see why
+        //t1 = Clock::now(); 
+        //twoPhaseProperties.correct();
+        //t2 = Clock::now(); 
+        //diff = duration_cast<milliseconds>(t2 - t1); 
+        //std::cout << "Properties update : " << diff.count() / 1e03 << " \n";
 
         t1 = Clock::now(); 
         lent.reconstructFront(front, signedDistance, pointSignedDistance); 

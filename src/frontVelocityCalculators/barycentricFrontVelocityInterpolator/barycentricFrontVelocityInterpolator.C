@@ -60,7 +60,6 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
     const triSurfaceFront& front = frontVelocity.mesh(); 
 
     frontVelocity.resize(front.nPoints()); 
-    //frontVelocity = dimensionedVector("zero", dimLength/dimTime, vector(0,0,0));
 
     interpolationCellPoint<vector> barycentric(U); 
 
@@ -68,8 +67,6 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
     const pointField& vertices = front.points(); 
 
     const fvMesh& mesh = U.mesh(); 
-
-    //const lentMeshSearch& searchAlg = getSearchAlgorithm();  
 
     forAll (elementCells, elementI)
     {
@@ -83,18 +80,6 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
 
             if (!pointIsInCell(vertex, elementCells[elementI], mesh))
             {
-                //elementCells[elementI] = searchAlg.cellContainingPoint(
-                    //vertex, 
-                    //mesh,
-                    //elementCells[elementI]
-                //); 
-
-                // Initial code that allows the outflow of a front from a domain, 
-                // which is important for parallelisation and inflow/outflow BCs.
-                // TODO: profiling, as this introduced additional branching into 
-                //       the part of the calculation called *very often*.  
-                //       I'm counting on the CPU branching manager here. 
-                
                 foundCell  = cellContainingPoint(
                     vertex, 
                     mesh,
