@@ -44,20 +44,139 @@ Authors
 #include "lentMethod.H"
 
 // Time Measurements
-#include <iostream>
 #include <chrono>
 #include <fstream>
-#include <iomanip>
-
+#include <algorithm>
+#include <vector>
+#include <unordered_map>
 
 using namespace FrontTracking;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template<typename Stream, typename Time>
-void streamTime(Stream& s, Time const& t)
+class timer 
 {
-    s << std::setw(20) << std::setfill(' ') << t;  
+    public: 
+
+
+        typedef std::list<double> TimesContainer; 
+        typedef std::map<std::string, TimesContainer> TimesMap;
+        typedef StringVectorMap::const_iterator const_iterator;
+        typedef std::list<std::string> NamesContainer;
+        typedef std::chrono::high_resolution_clock Clock;
+        typedef std::chrono::milliseconds milliseconds; 
+        
+        static const std::string totalTimeName() 
+        {
+            static std::string name ("Total Time"); 
+            return name;  
+        }
+
+        timer() = default;
+
+        timer(const std::initializer_list<std::string>& i)
+        {
+            for (const auto& name : i)
+            {
+                times_[name].push_back(0); 
+                names_.push_back(name); 
+            }
+
+            times_[totalTimeName()].push_back(0); 
+            names_.push_back(totalTimeName()); 
+        }
+
+        template<typename Ostream>
+        Ostream& writeHeader(Ostream& os) const
+        {
+            os << "|";
+            for (auto const & name : names_)
+            {
+                os << name << " | ";
+            }
+            return os; 
+        }
+
+        template<typename Ostream>
+        Ostream& writeTimes(Ostream& os) const 
+        {
+            for (auto const & name : namesTable_)
+            {
+                auto timesIt = times_.find(name); 
+
+                if (timesIt != times_.end())
+                {
+                    const auto& times = timesIt->second; 
+
+                    os << times.back() << " "; 
+                }
+            }
+            return os; 
+        }
+
+        void addName (const std::string& name) const
+        {
+            auto it = find(names_.begin(), names_.end(), name); 
+
+            if (it != names_.end())
+            {
+                map_[name].push_back(0); 
+                names_.push_back(name); 
+            }
+        }
+
+        void start(const std::string& name)
+        {
+            addName(name); 
+
+            firstTime_ = Clock::now(); 
+        }
+
+        void stop()
+        {
+            secondTime_ = Clock::now(); 
+
+            auto diff = std::chrono::duration_cast<milliseconds>(secondTime_ - firstTime_); 
+            auto diffSeconds = diff.count() / 1e03;
+
+            Info << name << " : " << diffSeconds << endl; 
+
+            auto& totalTimes = map_[totalTimeName()]; 
+            auto lastTotalTime = totalTimes.back(); 
+            totalTimes.push_back(lastTotalTime + diffSeconds); 
+
+            auto& times = map_[name]; 
+            times.push_back(diffSeconds); 
+        } 
+
+        const_iterator begin() const
+        {
+            return map_.begin(); 
+        }
+
+        const_iterator end() const
+        {
+            return map_.end(); 
+        }
+
+
+    private: 
+    
+        TimesMap map_;  
+        NamesContainer names_;
+
+        decltype(Clock::now()) firstTime_; 
+        decltype(Clock::now()) secondTime_; 
+};
+
+template<typename OStream>
+OStream& operator << (OStream& os, const timer& t)
+{
+    t.writeHeader(os); 
+    t.writeTimes(os); 
+    t.writeAverageTimes(os); 
+    os << "\n"; 
+    return os; 
 }
 
 int main(int argc, char *argv[])
@@ -72,15 +191,10 @@ int main(int argc, char *argv[])
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
-    using std::chrono::milliseconds;
-    using std::chrono::duration_cast;
+    timer timing; 
 
-    typedef std::chrono::high_resolution_clock Clock;
-
-    std::ofstream logFile;
-    logFile.open("measurements.dat"); 
-    logFile << "# Mesh Update | Search Distance | Signed Distance | Heaviside Model "
-        << "| Front Reconstruction | Front Velocity Calculation | Front Advection |  Data Writing \n";  
+    std::ofstream timingFile;
+    timingFile.open("timing.dat"); 
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
@@ -133,21 +247,15 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        auto t1 = Clock::now();
+        timing.start("Mesh Update"); 
         mesh.update();
-        auto t2 = Clock::now();
-        auto diff = duration_cast<milliseconds>(t2 - t1); 
-        //std::cout << "Mesh update : " << diff.count() / 1e03 << " \n";
-        logFile << diff.count() / 1e03 << " "; 
+        timing.stop();
 
-        t1 = Clock::now(); 
+        timing.start("Search Distance"); 
         lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
-        t2 = Clock::now(); 
-        diff = duration_cast<milliseconds>(t2 - t1); 
-        //std::cout << "Search distance calculation : " << diff.count() / 1e03 << " \n";
-        logFile << diff.count() / 1e03 << " "; 
+        timing.stop("Search Distance"); 
 
-        t1 = Clock::now(); 
+        timing.start("Signed Distance"); 
         lent.calcSignedDistances(
             signedDistance, 
             pointSignedDistance,
@@ -155,60 +263,38 @@ int main(int argc, char *argv[])
             pointSearchDistanceSqr, 
             front
         ); 
-        t2 = Clock::now(); 
-        diff = duration_cast<milliseconds>(t2 - t1); 
-        //std::cout << "Signed distance calculation : " << diff.count() / 1e03 << " \n";
-        logFile << diff.count() / 1e03 << " "; 
+        timing.stop("Signed Distance"); 
 
-        t1 = Clock::now(); 
+        timing.start("Heaviside"); 
         lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
-        t2 = Clock::now(); 
-        diff = duration_cast<milliseconds>(t2 - t1); 
-        //std::cout << "Heaviside calculation : " << diff.count() / 1e03 << " \n";
-        logFile << diff.count() / 1e03 << " "; 
+        timing.stop("Heaviside"); 
 
-        // FIXME: breaks in debug mode, see why
-        //t1 = Clock::now(); 
+        // FIXME: heisenbug in Debug mode TM, Mar 05 14
         //twoPhaseProperties.correct();
-        //t2 = Clock::now(); 
-        //diff = duration_cast<milliseconds>(t2 - t1); 
-        //std::cout << "Properties update : " << diff.count() / 1e03 << " \n";
 
-        t1 = Clock::now(); 
+        timing.start("Reconstruction"); 
         lent.reconstructFront(front, signedDistance, pointSignedDistance); 
-        t2 = Clock::now(); 
-        diff = duration_cast<milliseconds>(t2 - t1); 
-        //std::cout << "Front reconstruction : " << diff.count() / 1e03 << " \n";
-        logFile << diff.count() / 1e03 << " "; 
+        timing.stop("Reconstruction"); 
 
-
-        t1 = Clock::now(); 
+        timing.start("Velocity Calculation"); 
         lent.calcFrontVelocity(frontVelocity, U); 
-        t2 = Clock::now(); 
-        diff = duration_cast<milliseconds>(t2 - t1); 
-        //std::cout << "Front velocity calculation :" << diff.count() / 1e03 << " \n";
-        logFile << diff.count() / 1e03 << " "; 
+        timing.stop("Velocity Calculation"); 
 
-        t1 = Clock::now(); 
+        timing.start("Front Evolution"); 
         lent.evolveFront(front, frontVelocity); 
-        t2 = Clock::now(); 
-        diff = duration_cast<milliseconds>(t2 - t1); 
-        //std::cout << "Front advection :" << diff.count() / 1e03 << " \n";
-        logFile << diff.count() / 1e03 << " "; 
+        timing.stop("Front Evolution"); 
         
-        t1 = Clock::now(); 
+        timing.start("Writing"); 
         runTime.write();
-        t2 = Clock::now(); 
-        diff = duration_cast<milliseconds>(t2 - t1); 
-        //std::cout << "Writing data: " << diff.count() / 1e03 << " \n";
-        logFile << diff.count() / 1e03 << "\n"; 
+        timing.stop("Writing"); 
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
             << nl << endl;
+
     }
 
-    logFile.close(); 
+    timingFile << timer << endl; 
 
     Info<< "End\n" << endl;
 
