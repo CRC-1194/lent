@@ -48,6 +48,7 @@ Authors
 #include <fstream>
 #include <algorithm>
 #include <vector>
+#include <list>
 #include <unordered_map>
 
 using namespace FrontTracking;
@@ -60,8 +61,8 @@ class timer
 
 
         typedef std::list<double> TimesContainer; 
-        typedef std::map<std::string, TimesContainer> TimesMap;
-        typedef StringVectorMap::const_iterator const_iterator;
+        typedef std::unordered_map<std::string, TimesContainer> TimesMap;
+        typedef TimesMap::const_iterator const_iterator;
         typedef std::list<std::string> NamesContainer;
         typedef std::chrono::high_resolution_clock Clock;
         typedef std::chrono::milliseconds milliseconds; 
@@ -89,7 +90,7 @@ class timer
         template<typename Ostream>
         Ostream& writeHeader(Ostream& os) const
         {
-            os << "|";
+            os << "| ";
             for (auto const & name : names_)
             {
                 os << name << " | ";
@@ -100,7 +101,7 @@ class timer
         template<typename Ostream>
         Ostream& writeTimes(Ostream& os) const 
         {
-            for (auto const & name : namesTable_)
+            for (auto const & name : names_)
             {
                 auto timesIt = times_.find(name); 
 
@@ -114,13 +115,14 @@ class timer
             return os; 
         }
 
-        void addName (const std::string& name) const
+        void addName (const std::string& name)
         {
             auto it = find(names_.begin(), names_.end(), name); 
 
             if (it != names_.end())
             {
-                map_[name].push_back(0); 
+                auto& times = times_[name]; 
+                times.push_back(0); 
                 names_.push_back(name); 
             }
         }
@@ -132,37 +134,35 @@ class timer
             firstTime_ = Clock::now(); 
         }
 
-        void stop()
+        void stop(const std::string& name)
         {
             secondTime_ = Clock::now(); 
 
             auto diff = std::chrono::duration_cast<milliseconds>(secondTime_ - firstTime_); 
             auto diffSeconds = diff.count() / 1e03;
 
-            Info << name << " : " << diffSeconds << endl; 
-
-            auto& totalTimes = map_[totalTimeName()]; 
+            auto& totalTimes = times_[totalTimeName()]; 
             auto lastTotalTime = totalTimes.back(); 
             totalTimes.push_back(lastTotalTime + diffSeconds); 
 
-            auto& times = map_[name]; 
+            auto& times = times_[name]; 
             times.push_back(diffSeconds); 
         } 
 
         const_iterator begin() const
         {
-            return map_.begin(); 
+            return times_.begin(); 
         }
 
         const_iterator end() const
         {
-            return map_.end(); 
+            return times_.end(); 
         }
 
 
     private: 
     
-        TimesMap map_;  
+        TimesMap times_;  
         NamesContainer names_;
 
         decltype(Clock::now()) firstTime_; 
@@ -174,7 +174,6 @@ OStream& operator << (OStream& os, const timer& t)
 {
     t.writeHeader(os); 
     t.writeTimes(os); 
-    t.writeAverageTimes(os); 
     os << "\n"; 
     return os; 
 }
@@ -249,7 +248,7 @@ int main(int argc, char *argv[])
 
         timing.start("Mesh Update"); 
         mesh.update();
-        timing.stop();
+        timing.stop("Mesh Update");
 
         timing.start("Search Distance"); 
         lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
@@ -294,7 +293,7 @@ int main(int argc, char *argv[])
 
     }
 
-    timingFile << timer << endl; 
+    timingFile << timing << endl; 
 
     Info<< "End\n" << endl;
 
