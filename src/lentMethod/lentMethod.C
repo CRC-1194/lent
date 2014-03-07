@@ -52,6 +52,7 @@ namespace FrontTracking {
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 lentMethod::lentMethod(
@@ -70,6 +71,7 @@ lentMethod::lentMethod(
         )
     ),
     elementCells_(),
+    frontIsReconstructed_(false),
     lentControlDict_(
          IOobject(
             dictName, 
@@ -92,6 +94,11 @@ lentMethod::lentMethod(
      frontReconstructorTmp_(
         frontReconstructor::New(
             lentControlDict_.subDict("frontReconstructor")
+        )
+     ), 
+     searchAlgorithmTmp_(
+        lentMeshSearch::New(
+            lentControlDict_.subDict("searchAlgorithm")
         )
      ), 
      frontVelocityCalculatorTmp_(
@@ -187,6 +194,8 @@ void lentMethod::reconstructFront(
             signedDistance, 
             pointSignedDistance
         );
+
+        frontIsReconstructed_ = true; 
     }
 }
 
@@ -195,6 +204,15 @@ void lentMethod::calcFrontVelocity(
     const volVectorField& U
 ) 
 {
+    // TM Mar 07 14 : timing-01
+    if (! frontIsReconstructed_)
+    {
+        const triSurfaceFront& front = frontVelocity.mesh(); 
+        const fvMesh& mesh = U.mesh(); 
+        searchAlgorithmTmp_->updateElementCells(elementCells_, front, mesh); 
+
+    }
+        
     frontVelocityCalculatorTmp_->calcFrontVelocity(
         frontVelocity, 
         U,
@@ -211,6 +229,8 @@ void lentMethod::evolveFront(
         front, 
         frontVelocity 
     );
+
+    frontIsReconstructed_ = false; 
 } 
 
 

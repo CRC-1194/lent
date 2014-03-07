@@ -72,7 +72,10 @@ class timer
             return name;  
         }
 
-        timer() = default;
+        timer() 
+        {
+            addName(totalTimeName()); 
+        } 
 
         timer(const std::initializer_list<std::string>& i)
         {
@@ -137,16 +140,21 @@ class timer
                         TimesContainer::value_type(0)
                     ); 
 
-                    for (const auto & v : times) Info << v  << " "; 
-                    Info << endl; 
-                    Info << "result = " << result << endl; 
-                    Info << "size = " << int(times.size()) << endl;
-
                     result /= times.size(); 
 
                     averageTimes.push_back(result); 
                 }
             }
+
+            auto totalAveragedTime = std::accumulate(
+                std::next(averageTimes.begin()), 
+                averageTimes.end(), 
+                TimesContainer::value_type(0)
+            );
+
+            auto it = averageTimes.begin(); 
+
+            *it = totalAveragedTime; 
 
             for (const auto& time : averageTimes)
             {
@@ -162,8 +170,6 @@ class timer
 
             if (it == names_.end())
             {
-                auto& times = times_[name]; 
-                //times.push_back(0); 
                 names_.push_back(name); 
             }
         }

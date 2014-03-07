@@ -38,10 +38,6 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontVelocityCalculator::frontVelocityCalculator(const dictionary& configDict)
-:
-    // Uncomment when the debugging code is uncommented in lentMeshSearch.
-    //searchAlgTmp_()
-    searchAlgTmp_(new lentMeshSearch(configDict.subDict("searchAlgorithm")))
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -76,24 +72,46 @@ frontVelocityCalculator::~frontVelocityCalculator()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-bool frontVelocityCalculator::pointIsInCell(
-    const point p, 
-    const label cellLabel, 
-    const fvMesh& mesh, 
-    scalar tolerance
-) const
-{
-    return searchAlgTmp_->pointIsInCell(p, cellLabel, mesh, tolerance); 
-}
+//void frontVelocityCalculator::updateMeshCells(labelList& meshCells, const fvMesh& mesh)
+//{
+    //const triSurfaceFront& front = frontVelocity.mesh(); 
 
-label frontVelocityCalculator::cellContainingPoint(
-    const point& p, 
-    const fvMesh& mesh, 
-    const label seedCell 
-) const
-{
-    return searchAlgTmp_->cellContainingPoint(p, mesh, seedCell);  
-}
+    //frontVelocity.resize(front.nPoints()); 
+
+    //interpolationCellPoint<vector> barycentric(U); 
+
+    //const List<labelledTri>& elements = front.localFaces(); 
+    //const pointField& vertices = front.points(); 
+
+    //const fvMesh& mesh = U.mesh(); 
+
+    //forAll (elementCells, elementI)
+    //{
+        //const triFace& element = elements[elementI]; 
+
+        //forAll (element, vertexI)
+        //{
+            //const point& vertex = vertices[element[vertexI]];  
+
+            //label foundCell = -1; 
+
+            //if (!pointIsInCell(vertex, elementCells[elementI], mesh))
+            //{
+                //foundCell  = cellContainingPoint(
+                    //vertex, 
+                    //mesh,
+                    //elementCells[elementI]
+                //); 
+
+                //if (foundCell > 0)
+                //{
+                    //elementCells[elementI] = foundCell; 
+                //}
+            //}
+        //}
+    //}
+
+//}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -259,7 +259,6 @@ bool lentMeshSearch::pointIsInCell(
     return pointIsInside;
 }
 
-
 labelList lentMeshSearch::pointCellStencil(
     label cellLabel, 
     const fvMesh& mesh
@@ -283,6 +282,42 @@ labelList lentMeshSearch::pointCellStencil(
     }
 
     return labelList(newNeighborCells.begin(), newNeighborCells.end());  
+}
+
+void lentMeshSearch::updateElementCells(
+    DynamicList<label>& elementCells, 
+    const triSurfaceFront& front, 
+    const fvMesh& mesh
+) const
+{
+    const List<labelledTri>& elements = front.localFaces(); 
+    const pointField& vertices = front.points(); 
+
+    forAll (elementCells, elementI)
+    {
+        const triFace& element = elements[elementI]; 
+
+        forAll (element, vertexI)
+        {
+            label foundCell = -1; 
+
+            const point& vertex = vertices[element[vertexI]];  
+
+            if (!pointIsInCell(vertex, elementCells[elementI], mesh))
+            {
+                foundCell  = cellContainingPoint(
+                    vertex, 
+                    mesh,
+                    elementCells[elementI]
+                ); 
+
+                if (foundCell > 0)
+                {
+                    elementCells[elementI] = foundCell; 
+                }
+            }
+        }
+    }
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

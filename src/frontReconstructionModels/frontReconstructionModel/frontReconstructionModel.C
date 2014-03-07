@@ -36,8 +36,7 @@ namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-frontReconstructionModel::frontReconstructionModel(const dictionary& configDict)
-{}
+frontReconstructionModel::frontReconstructionModel(const dictionary& configDict) {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 

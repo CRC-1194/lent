@@ -79,7 +79,7 @@ public:
 
     // Constructors
 
-        frontReconstructionModel(const dictionary& configDict);
+        explicit frontReconstructionModel(const dictionary& configDict);
 
     // Selectors
 

@@ -73,6 +73,9 @@ class lentMethod
     // Triangles-cells map.
     DynamicList<label> elementCells_; 
 
+    // Front reconstruction flag. 
+    mutable bool frontIsReconstructed_; 
+
     // Lent method configuration dictionary.
     IOdictionary lentControlDict_;  
 
@@ -85,6 +88,9 @@ class lentMethod
     // Front reconstructor.
     tmp<frontReconstructor> frontReconstructorTmp_; 
 
+    // Search algorithm. 
+    tmp<lentMeshSearch> searchAlgorithmTmp_; 
+
     // Velocity calculator. 
     tmp<frontVelocityCalculator> frontVelocityCalculatorTmp_; 
 
@@ -93,7 +99,7 @@ class lentMethod
 
     // Heaviside model. 
     tmp<heavisideModel> heavisideModelTmp_; 
-    
+
 public:
 
     TypeName("lentMethod"); 
@@ -138,6 +144,11 @@ public:
             const volScalarField& signedDistance,
             const pointScalarField& pointSignedDistance
         ); 
+
+        bool isFrontReconstructed() const
+        {
+            return frontIsReconstructed_; 
+        }
 
         void calcFrontVelocity(
             triSurfaceFrontVectorField& frontVelocity, 

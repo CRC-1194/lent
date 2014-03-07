@@ -57,6 +57,7 @@ Authors
 
 #include "fvMesh.H"
 #include "cellSet.H"
+#include "triSurfaceFront.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -95,6 +96,7 @@ public:
         //lentMeshSearch(const Time& runTime); 
         
         lentMeshSearch();
+
         explicit lentMeshSearch(const dictionary& configDict);
 
     // Selectors
@@ -123,6 +125,19 @@ public:
             label cellLabel, 
             const fvMesh& mesh
         ) const;
+
+        // TM March 07 14
+        // Updates elementCells using previous elementCells values as seed cells.  
+       
+        // Works directly for a static mesh - the lentMethodDynamic is made 
+        // responsible for updating elementCells for topological changes of the
+        // volume mesh.
+
+        void updateElementCells(
+            DynamicList<label>& elementCells, 
+            const triSurfaceFront& front, 
+            const fvMesh& mesh
+        ) const; 
 
     // Member Operators 
     
