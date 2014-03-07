@@ -59,7 +59,6 @@ class timer
 {
     public: 
 
-
         typedef std::list<double> TimesContainer; 
         typedef std::unordered_map<std::string, TimesContainer> TimesMap;
         typedef TimesMap::const_iterator const_iterator;
@@ -90,11 +89,13 @@ class timer
         template<typename Ostream>
         Ostream& writeHeader(Ostream& os) const
         {
-            os << "| ";
+            os << "#| ";
             for (auto const & name : names_)
             {
                 os << name << " | ";
             }
+            os << "\n"; 
+
             return os; 
         }
 
@@ -112,17 +113,57 @@ class timer
                     os << times.back() << " "; 
                 }
             }
+            os << "\n"; 
+
             return os; 
+        }
+
+        template<typename Ostream>
+        Ostream& writeAveragedTimes(Ostream& os) const
+        {
+            TimesContainer averageTimes; 
+
+            for (const auto& name : names_)
+            {
+                auto timesIt = times_.find(name); 
+
+                if (timesIt != times_.end())
+                {
+                    const auto& times = timesIt->second;
+
+                    auto result = std::accumulate(
+                        times.begin(), 
+                        times.end(), 
+                        TimesContainer::value_type(0)
+                    ); 
+
+                    for (const auto & v : times) Info << v  << " "; 
+                    Info << endl; 
+                    Info << "result = " << result << endl; 
+                    Info << "size = " << int(times.size()) << endl;
+
+                    result /= times.size(); 
+
+                    averageTimes.push_back(result); 
+                }
+            }
+
+            for (const auto& time : averageTimes)
+            {
+                os << time << " "; 
+            }
+
+            return os;; 
         }
 
         void addName (const std::string& name)
         {
             auto it = find(names_.begin(), names_.end(), name); 
 
-            if (it != names_.end())
+            if (it == names_.end())
             {
                 auto& times = times_[name]; 
-                times.push_back(0); 
+                //times.push_back(0); 
                 names_.push_back(name); 
             }
         }
@@ -172,9 +213,7 @@ class timer
 template<typename OStream>
 OStream& operator << (OStream& os, const timer& t)
 {
-    t.writeHeader(os); 
     t.writeTimes(os); 
-    os << "\n"; 
     return os; 
 }
 
@@ -194,6 +233,9 @@ int main(int argc, char *argv[])
 
     std::ofstream timingFile;
     timingFile.open("timing.dat"); 
+
+    std::ofstream timingAveragedFile; 
+    timingAveragedFile.open("timingAveraged.dat"); 
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
@@ -268,7 +310,7 @@ int main(int argc, char *argv[])
         lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
         timing.stop("Heaviside"); 
 
-        // FIXME: heisenbug in Debug mode TM, Mar 05 14
+        // FIXME: heisenbug in Debug mode: field checking probably fails TM, Mar 05 14
         //twoPhaseProperties.correct();
 
         timing.start("Reconstruction"); 
@@ -287,13 +329,21 @@ int main(int argc, char *argv[])
         runTime.write();
         timing.stop("Writing"); 
 
+        if (runTime.timeIndex() == 1)
+        {
+            timing.writeHeader(timingFile); 
+        }
+
+        timing.writeTimes(timingFile); 
+
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
             << nl << endl;
 
     }
 
-    timingFile << timing << endl; 
+    timing.writeHeader(timingAveragedFile); 
+    timing.writeAveragedTimes(timingAveragedFile); 
 
     Info<< "End\n" << endl;
 
