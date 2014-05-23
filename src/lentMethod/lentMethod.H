@@ -53,7 +53,7 @@ Authors
 #include "triSurfaceFrontFields.H"
 #include "frontVelocityCalculator.H"
 #include "frontMotionSolver.H"
-#include "heavisideModel.H"
+#include "markerFieldModel.H"
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -97,8 +97,8 @@ class lentMethod
     //// Front motion solver. 
     tmp<frontMotionSolver> frontMotionSolverTmp_; 
 
-    // Heaviside model. 
-    tmp<heavisideModel> heavisideModelTmp_; 
+    // MarkerField model. 
+    tmp<markerFieldModel> markerFieldModelTmp_; 
 
 public:
 
@@ -133,8 +133,8 @@ public:
             const triSurfaceFront& front
         );
 
-        void calcHeaviside(
-            volScalarField& heaviside,
+        void calcMarkerField(
+            volScalarField& markerField,
             const volScalarField& signedDistance,
             const volScalarField& searchDistanceSqr
         ) const; 

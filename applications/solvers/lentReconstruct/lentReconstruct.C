@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
             front
         ); 
 
-        lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr); 
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance); 
 

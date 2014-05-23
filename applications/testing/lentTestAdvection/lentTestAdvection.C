@@ -119,7 +119,7 @@ TEST_F(lentTests, lentReconstruction)
         runTime++;
 
         #include "CourantNo.H"
-        #include "heavisideCourantNo.H"
+        #include "markerFieldCourantNo.H"
         #include "setDeltaT.H"
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
@@ -136,8 +136,8 @@ TEST_F(lentTests, lentReconstruction)
         ); 
         Pout << "done." << endl;
 
-        Pout << "Heaviside ... "; 
-        lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+        Pout << "MarkerField ... "; 
+        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr); 
         Pout << "done." << endl;
 
         Pout << "Reconstruction ..."; 

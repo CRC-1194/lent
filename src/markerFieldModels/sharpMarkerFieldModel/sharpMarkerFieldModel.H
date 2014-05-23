@@ -21,72 +21,76 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::sharpMarkerFieldModel
+
+Description
+    Abstract base class for the markerField function calculation from a signed 
+    distance field.
+
+SourceFiles
+    sharpMarkerFieldModel.C
+
+Authors
+    Tomislav Maric
+    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
+    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+
 \*---------------------------------------------------------------------------*/
 
-#include "heavisideModel.H"
-#include "dictionary.H"
+#ifndef sharpMarkerFieldModel_H
+#define sharpMarkerFieldModel_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "typeInfo.H"
+#include "autoPtr.H"
+#include "volFieldsFwd.H"
+#include "markerFieldModel.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
-namespace FrontTracking { 
+namespace FrontTracking {
 
-    defineTypeNameAndDebug(heavisideModel, 0); 
-    defineRunTimeSelectionTable(heavisideModel, Dictionary);
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+/*---------------------------------------------------------------------------*\
+                         Class sharpMarkerFieldModel Declaration
+\*---------------------------------------------------------------------------*/
 
-heavisideModel::heavisideModel(const dictionary& configDict)
-{}
-
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-
-tmp<heavisideModel>
-heavisideModel::New(const dictionary& configDict)
+class sharpMarkerFieldModel
+    :
+        public markerFieldModel
 {
-    const word name = configDict.lookup("type"); 
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+public:
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
-    {
-        FatalErrorIn (
-            "heavisideModel::New(const word& name)"
-        )   << "Unknown heavisideModel type "
-            << name << nl << nl
-            << "Valid heavisideModels are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
-    }
+    TypeName ("sharp"); 
 
-    return tmp<heavisideModel> (cstrIter()(configDict));
-}
+    // Constructors
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+        sharpMarkerFieldModel(const dictionary& configDict);
 
-heavisideModel::~heavisideModel()
-{}
+    //- Destructor
+    virtual ~sharpMarkerFieldModel();
 
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-bool heavisideModel::distanceWithinNarrowBand(
-    scalar distance, 
-    scalar narrowBandWidth
-) const
-{
-    return mag(distance) < narrowBandWidth;  
-}
+    // Member Functions
+    
+        virtual void calcMarkerField(
+            volScalarField& markerField, 
+            const volScalarField& signedDistance,
+            const volScalarField& searchDistanceSqr
+        ) const;  
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

@@ -22,36 +22,36 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Global
-    alphaCourantNo
+    markerFieldCourantNo
 
 Description
     Calculates and outputs the mean and maximum Courant Numbers.
 
 \*---------------------------------------------------------------------------*/
 
-scalar maxHeavisideCo 
+scalar maxMarkerFieldCo 
 (
-    readScalar(runTime.controlDict().lookup("maxHeavisideCo"))
+    readScalar(runTime.controlDict().lookup("maxMarkerFieldCo"))
 );
 
-scalar alphaCoNum = 0.0;
-scalar meanAlphaCoNum = 0.0;
+scalar markerFieldCoNum = 0.0;
+scalar meanMarkerFieldCoNum = 0.0;
 
 if (mesh.nInternalFaces())
 {
     scalarField sumPhi
     (
-        pos(heaviside - 0.01)*pos(0.99 - heaviside)
+        pos(markerField - 0.01)*pos(0.99 - markerField)
        *fvc::surfaceSum(mag(phi))().internalField()
     );
 
-    alphaCoNum = 0.5*gMax(sumPhi/mesh.V().field())*runTime.deltaTValue();
+    markerFieldCoNum = 0.5*gMax(sumPhi/mesh.V().field())*runTime.deltaTValue();
 
-    meanAlphaCoNum =
+    meanMarkerFieldCoNum =
         0.5*(gSum(sumPhi)/gSum(mesh.V().field()))*runTime.deltaTValue();
 }
 
-Info<< "Interface Courant Number mean: " << meanAlphaCoNum
-    << " max: " << alphaCoNum << endl;
+Info<< "Interface Courant Number mean: " << meanMarkerFieldCoNum
+    << " max: " << markerFieldCoNum << endl;
 
 // ************************************************************************* //

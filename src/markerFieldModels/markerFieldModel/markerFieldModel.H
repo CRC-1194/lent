@@ -22,14 +22,14 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::heavisideModel
+    Foam::markerFieldModel
 
 Description
-    Abstract base class for the heaviside function calculation from a signed 
+    Abstract base class for the markerField function calculation from a signed 
     distance field.
 
 SourceFiles
-    heavisideModel.C
+    markerFieldModel.C
 
 Authors
     Tomislav Maric
@@ -38,8 +38,8 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef heavisideModel_H
-#define heavisideModel_H
+#ifndef markerFieldModel_H
+#define markerFieldModel_H
 
 #include "typeInfo.H"
 #include "autoPtr.H"
@@ -53,21 +53,21 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class heavisideModel Declaration
+                         Class markerFieldModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class heavisideModel
+class markerFieldModel
     :
         public refCount
 {
 
 public:
 
-    TypeName ("heavisideModel"); 
+    TypeName ("markerFieldModel"); 
 
     declareRunTimeSelectionTable (
         tmp,  
-        heavisideModel,  
+        markerFieldModel,  
         Dictionary,  
         (
             const dictionary& configDict 
@@ -77,19 +77,19 @@ public:
 
     // Constructors
 
-        heavisideModel(const dictionary& configDict);
+        markerFieldModel(const dictionary& configDict);
 
     // Selectors
 
-        static tmp<heavisideModel> New(const dictionary& configDict);
+        static tmp<markerFieldModel> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~heavisideModel();
+        virtual ~markerFieldModel();
 
     // Member Functions
         
-        virtual void calcHeaviside(
-            volScalarField& heaviside, 
+        virtual void calcMarkerField(
+            volScalarField& markerField, 
             const volScalarField& signedDistance, 
             const volScalarField& searchDistanceSqr
         ) const = 0;  

@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     {
         #include "readTimeControls.H"
         #include "CourantNo.H"
-        #include "heavisideCourantNo.H"
+        #include "markerFieldCourantNo.H"
         #include "setDeltaT.H"
 
         runTime++;
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
         twoPhaseProperties.correct();
 
         interface.correct(); 
-        rho == heaviside*rho1 + (scalar(1) - heaviside)*rho2;
+        rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
         lent.calcSignedDistances(
             signedDistance, 
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
             front
         ); 
 
-        lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr); 
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance); 
 

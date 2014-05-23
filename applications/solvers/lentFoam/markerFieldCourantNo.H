@@ -22,36 +22,33 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Global
-    heavisideCourantNo
+    markerFieldCourantNo
 
 Description
     Calculates and outputs the mean and maximum Courant Numbers.
 
 \*---------------------------------------------------------------------------*/
 
-scalar maxHeavisideCo 
-(
-    readScalar(runTime.controlDict().lookup("maxHeavisideCo"))
+scalar maxMarkerFieldCo(
+    readScalar(runTime.controlDict().lookup("maxMarkerFieldCo"))
 );
 
-scalar heavisideCoNum = 0.0;
-scalar meanHeavisideCoNum = 0.0;
+scalar markerFieldCoNum = 0.0;
+scalar meanMarkerFieldCoNum = 0.0;
 
-if (mesh.nInternalFaces())
-{
-    scalarField sumPhi
-    (
-        pos(heaviside - 0.01)*pos(0.99 - heaviside)
+if (mesh.nInternalFaces()) {
+    scalarField sumPhi(
+        pos(markerField - 0.01)*pos(0.99 - markerField)
        *fvc::surfaceSum(mag(phi))().internalField()
     );
 
-    heavisideCoNum = 0.5*gMax(sumPhi/mesh.V().field())*runTime.deltaTValue();
+    markerFieldCoNum = 0.5*gMax(sumPhi/mesh.V().field())*runTime.deltaTValue();
 
-    meanHeavisideCoNum =
+    meanMarkerFieldCoNum =
         0.5*(gSum(sumPhi)/gSum(mesh.V().field()))*runTime.deltaTValue();
 }
 
-Info<< "Interface Courant Number mean: " << meanHeavisideCoNum
-    << " max: " << heavisideCoNum << endl;
+Info<< "Interface Courant Number mean: " << meanMarkerFieldCoNum
+    << " max: " << markerFieldCoNum << endl;
 
 // ************************************************************************* //

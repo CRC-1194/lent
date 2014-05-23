@@ -28,7 +28,7 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#include "sharpHeavisideModel.H"
+#include "sharpMarkerFieldModel.H"
 #include "addToRunTimeSelectionTable.H"
 #include "volFields.H"
 #include "mathematicalConstants.H"
@@ -38,46 +38,46 @@ Authors
 namespace Foam {
 namespace FrontTracking { 
     
-    defineTypeNameAndDebug(sharpHeavisideModel, 0); 
-    addToRunTimeSelectionTable(heavisideModel, sharpHeavisideModel, Dictionary);
+    defineTypeNameAndDebug(sharpMarkerFieldModel, 0); 
+    addToRunTimeSelectionTable(markerFieldModel, sharpMarkerFieldModel, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-sharpHeavisideModel::sharpHeavisideModel(const dictionary& configDict)
+sharpMarkerFieldModel::sharpMarkerFieldModel(const dictionary& configDict)
 :
-    heavisideModel(configDict)
+    markerFieldModel(configDict)
 {}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-sharpHeavisideModel::~sharpHeavisideModel()
+sharpMarkerFieldModel::~sharpMarkerFieldModel()
 {}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void sharpHeavisideModel::calcHeaviside(
-    volScalarField& heaviside, 
+void sharpMarkerFieldModel::calcMarkerField(
+    volScalarField& markerField, 
     const volScalarField& signedDistance,
     const volScalarField& searchDistanceSqr
 ) const
 {
-    forAll (heaviside, cellI)
+    forAll (markerField, cellI)
     {
         scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
 
         if (mag(signedDistance[cellI]) < searchDistance)
         {
-            heaviside[cellI] = 0.5;
+            markerField[cellI] = 0.5;
         } 
         else
         {
             if (signedDistance[cellI] > 0)
             {
-                heaviside[cellI] = 1; 
+                markerField[cellI] = 1; 
             }
             if (signedDistance[cellI] < 0)
             {
-                heaviside[cellI] = 0;
+                markerField[cellI] = 0;
             }
         }
     }

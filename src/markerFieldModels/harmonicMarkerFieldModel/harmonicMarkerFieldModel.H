@@ -22,14 +22,14 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::harmonicHeavisideModel
+    Foam::harmonicMarkerFieldModel
 
 Description
-    Abstract base class for the heaviside function calculation from a signed 
+    Abstract base class for the markerField function calculation from a signed 
     distance field.
 
 SourceFiles
-    harmonicHeavisideModel.C
+    harmonicMarkerFieldModel.C
 
 Authors
     Tomislav Maric
@@ -38,13 +38,13 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef harmonicHeavisideModel_H
-#define harmonicHeavisideModel_H
+#ifndef harmonicMarkerFieldModel_H
+#define harmonicMarkerFieldModel_H
 
 #include "typeInfo.H"
 #include "autoPtr.H"
 #include "volFieldsFwd.H"
-#include "heavisideModel.H"
+#include "markerFieldModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -53,12 +53,12 @@ namespace FrontTracking {
 
 
 /*---------------------------------------------------------------------------*\
-                         Class harmonicHeavisideModel Declaration
+                         Class harmonicMarkerFieldModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class harmonicHeavisideModel
+class harmonicMarkerFieldModel
     :
-        public heavisideModel
+        public markerFieldModel
 {
 
 public:
@@ -67,15 +67,15 @@ public:
 
     // Constructors
 
-        harmonicHeavisideModel(const dictionary& configDict);
+        harmonicMarkerFieldModel(const dictionary& configDict);
 
     //- Destructor
-    virtual ~harmonicHeavisideModel();
+    virtual ~harmonicMarkerFieldModel();
 
     // Member Functions
     
-        virtual void calcHeaviside(
-            volScalarField& heaviside, 
+        virtual void calcMarkerField(
+            volScalarField& markerField, 
             const volScalarField& signedDistance, 
             const volScalarField& searchDistanceSqr
         ) const;  

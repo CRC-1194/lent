@@ -25,7 +25,7 @@
             fvc::reconstruct
             (
                 (
-                    fvc::interpolate(interface.sigmaK())*fvc::snGrad(heaviside)
+                    fvc::interpolate(interface.sigmaK())*fvc::snGrad(markerField)
                   - ghf*fvc::snGrad(rho)
                   - fvc::snGrad(p_rgh)
                 ) * mesh.magSf()

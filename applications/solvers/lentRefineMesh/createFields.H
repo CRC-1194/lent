@@ -88,10 +88,10 @@
         "fixedValue"
     );
 
-    Info << "Reading the cell-centered Heaviside function field H\n" << endl;
-    volScalarField heaviside(
+    Info << "Reading the cell-centered MarkerField function field H\n" << endl;
+    volScalarField markerField(
         IOobject(
-            "heaviside",
+            "markerField",
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ, 
@@ -104,7 +104,7 @@
 
 
     Info<< "Reading transportProperties\n" << endl;
-    incompressibleTwoPhaseMixture twoPhaseProperties(U, phi, "heaviside");
+    incompressibleTwoPhaseMixture twoPhaseProperties(U, phi, "markerField");
 
     const dimensionedScalar& rho1 = twoPhaseProperties.rho1();
     const dimensionedScalar& rho2 = twoPhaseProperties.rho2();
@@ -118,8 +118,8 @@
             mesh,
             IOobject::READ_IF_PRESENT
         ),
-        heaviside*rho1 + (scalar(1) - heaviside)*rho2,
-        heaviside.boundaryField().types()
+        markerField*rho1 + (scalar(1) - markerField)*rho2,
+        markerField.boundaryField().types()
     );
 
     rho.oldTime();
@@ -141,4 +141,4 @@
 
 
     // Construct interface from alpha1 distribution
-    interfaceProperties interface(heaviside, U, twoPhaseProperties);
+    interfaceProperties interface(markerField, U, twoPhaseProperties);

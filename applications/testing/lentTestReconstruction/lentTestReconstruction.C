@@ -97,7 +97,7 @@ TEST_F(lentTests, lentReconstruction)
             front
         ); 
 
-        lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr); 
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance); 
 

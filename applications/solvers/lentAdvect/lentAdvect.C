@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
         runTime++;
 
         #include "CourantNo.H"
-        #include "heavisideCourantNo.H"
+        #include "markerFieldCourantNo.H"
         #include "setDeltaT.H"
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
             front
         ); 
 
-        lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr); 
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance); 
 

@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
         runTime++;
 
         #include "CourantNo.H"
-        #include "heavisideCourantNo.H"
+        #include "markerFieldCourantNo.H"
         #include "setDeltaT.H"
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
@@ -312,9 +312,9 @@ int main(int argc, char *argv[])
         ); 
         timing.stop("Signed Distance"); 
 
-        timing.start("Heaviside"); 
-        lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
-        timing.stop("Heaviside"); 
+        timing.start("MarkerField"); 
+        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr); 
+        timing.stop("MarkerField"); 
 
         // FIXME: heisenbug in Debug mode: field checking probably fails TM, Mar 05 14
         //twoPhaseProperties.correct();

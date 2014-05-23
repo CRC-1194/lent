@@ -21,16 +21,6 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::sharpHeavisideModel
-
-Description
-    Abstract base class for the heaviside function calculation from a signed 
-    distance field.
-
-SourceFiles
-    sharpHeavisideModel.C
-
 Authors
     Tomislav Maric
     maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
@@ -38,48 +28,66 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef sharpHeavisideModel_H
-#define sharpHeavisideModel_H
+#include "harmonicMarkerFieldModel.H"
+#include "addToRunTimeSelectionTable.H"
+#include "volFields.H"
+#include "mathematicalConstants.H"
 
-#include "typeInfo.H"
-#include "autoPtr.H"
-#include "volFieldsFwd.H"
-#include "heavisideModel.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
-namespace FrontTracking {
-
-
-/*---------------------------------------------------------------------------*\
-                         Class sharpHeavisideModel Declaration
-\*---------------------------------------------------------------------------*/
-
-class sharpHeavisideModel
-    :
-        public heavisideModel
-{
-
-public:
-
-    TypeName ("sharp"); 
-
-    // Constructors
-
-        sharpHeavisideModel(const dictionary& configDict);
-
-    //- Destructor
-    virtual ~sharpHeavisideModel();
-
-    // Member Functions
+namespace FrontTracking { 
     
-        virtual void calcHeaviside(
-            volScalarField& heaviside, 
-            const volScalarField& signedDistance,
-            const volScalarField& searchDistanceSqr
-        ) const;  
-};
+    defineTypeNameAndDebug(harmonicMarkerFieldModel, 0); 
+    addToRunTimeSelectionTable(markerFieldModel, harmonicMarkerFieldModel, Dictionary);
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+harmonicMarkerFieldModel::harmonicMarkerFieldModel(const dictionary& configDict)
+:
+    markerFieldModel(configDict)
+{
+}
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+harmonicMarkerFieldModel::~harmonicMarkerFieldModel()
+{}
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+void harmonicMarkerFieldModel::calcMarkerField(
+    volScalarField& markerField, 
+    const volScalarField& signedDistance,
+    const volScalarField& searchDistanceSqr
+) const
+{
+    scalar pi = constant::mathematical::pi; 
+
+    forAll (markerField, cellI)
+    {
+        scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
+
+        if (mag(signedDistance[cellI]) < searchDistance)
+        {
+            markerField[cellI] = 0.5 * (
+                1 + signedDistance[cellI] / searchDistance + 1/pi * 
+                sin((pi * signedDistance[cellI]) / searchDistance)
+            );
+        } 
+        else
+        {
+            if (signedDistance[cellI] > 0)
+            {
+                markerField[cellI] = 1; 
+            }
+            if (signedDistance[cellI] < 0)
+            {
+                markerField[cellI] = 0;
+            }
+        }
+    }
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -91,6 +99,5 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#endif
-
 // ************************************************************************* //
+

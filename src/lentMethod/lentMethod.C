@@ -111,9 +111,9 @@ lentMethod::lentMethod(
             lentControlDict_.subDict("frontMotionSolver")
         )
      ), 
-     heavisideModelTmp_(
-         heavisideModel::New(
-            lentControlDict_.subDict("heavisideModel")
+     markerFieldModelTmp_(
+         markerFieldModel::New(
+            lentControlDict_.subDict("markerFieldModel")
          )
      ) 
 {
@@ -126,7 +126,7 @@ lentMethod::lentMethod(const lentMethod& copy)
     lentControlDict_(copy.lentControlDict_),
     distanceFieldCalculatorTmp_(copy.distanceFieldCalculatorTmp_),
     frontReconstructorTmp_(copy.frontReconstructorTmp_),
-    heavisideModelTmp_(copy.heavisideModelTmp_)
+    markerFieldModelTmp_(copy.markerFieldModelTmp_)
 {}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -168,14 +168,14 @@ void lentMethod::calcSignedDistances(
     ); 
 }
 
-void lentMethod::calcHeaviside(
-   volScalarField& heaviside,
+void lentMethod::calcMarkerField(
+   volScalarField& markerField,
    const volScalarField& signedDistance,
    const volScalarField& searchDistanceSqr
 ) const
 {
-    heavisideModelTmp_->calcHeaviside(
-        heaviside, 
+    markerFieldModelTmp_->calcMarkerField(
+        markerField, 
         signedDistance,
         searchDistanceSqr
     ); 
@@ -259,7 +259,7 @@ void lentMethod::operator=(const lentMethod& rhs)
     lentControlDict_ = rhs.lentControlDict_; 
     distanceFieldCalculatorTmp_ = rhs.distanceFieldCalculatorTmp_; 
     frontReconstructorTmp_ = rhs.frontReconstructorTmp_;
-    heavisideModelTmp_ = rhs.heavisideModelTmp_; 
+    markerFieldModelTmp_ = rhs.markerFieldModelTmp_; 
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

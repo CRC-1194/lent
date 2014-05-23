@@ -21,77 +21,67 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
-
 \*---------------------------------------------------------------------------*/
 
-#include "harmonicHeavisideModel.H"
-#include "addToRunTimeSelectionTable.H"
-#include "volFields.H"
-#include "mathematicalConstants.H"
+#include "markerFieldModel.H"
+#include "dictionary.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking { 
-    
-    defineTypeNameAndDebug(harmonicHeavisideModel, 0); 
-    addToRunTimeSelectionTable(heavisideModel, harmonicHeavisideModel, Dictionary);
+
+    defineTypeNameAndDebug(markerFieldModel, 0); 
+    defineRunTimeSelectionTable(markerFieldModel, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-harmonicHeavisideModel::harmonicHeavisideModel(const dictionary& configDict)
-:
-    heavisideModel(configDict)
+markerFieldModel::markerFieldModel(const dictionary& configDict)
+{}
+
+// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
+
+tmp<markerFieldModel>
+markerFieldModel::New(const dictionary& configDict)
 {
+    const word name = configDict.lookup("type"); 
+
+    DictionaryConstructorTable::iterator cstrIter =
+        DictionaryConstructorTablePtr_->find(name);
+
+    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    {
+        FatalErrorIn (
+            "markerFieldModel::New(const word& name)"
+        )   << "Unknown markerFieldModel type "
+            << name << nl << nl
+            << "Valid markerFieldModels are : " << endl
+            << DictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalError);
+    }
+
+    return tmp<markerFieldModel> (cstrIter()(configDict));
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-harmonicHeavisideModel::~harmonicHeavisideModel()
+markerFieldModel::~markerFieldModel()
 {}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void harmonicHeavisideModel::calcHeaviside(
-    volScalarField& heaviside, 
-    const volScalarField& signedDistance,
-    const volScalarField& searchDistanceSqr
+bool markerFieldModel::distanceWithinNarrowBand(
+    scalar distance, 
+    scalar narrowBandWidth
 ) const
 {
-    scalar pi = constant::mathematical::pi; 
-
-    forAll (heaviside, cellI)
-    {
-        scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
-
-        if (mag(signedDistance[cellI]) < searchDistance)
-        {
-            heaviside[cellI] = 0.5 * (
-                1 + signedDistance[cellI] / searchDistance + 1/pi * 
-                sin((pi * signedDistance[cellI]) / searchDistance)
-            );
-        } 
-        else
-        {
-            if (signedDistance[cellI] > 0)
-            {
-                heaviside[cellI] = 1; 
-            }
-            if (signedDistance[cellI] < 0)
-            {
-                heaviside[cellI] = 0;
-            }
-        }
-    }
+    return mag(distance) < narrowBandWidth;  
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -100,4 +90,3 @@ void harmonicHeavisideModel::calcHeaviside(
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // ************************************************************************* //
-

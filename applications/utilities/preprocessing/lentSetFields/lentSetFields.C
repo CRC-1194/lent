@@ -31,7 +31,7 @@ Authors
 
 Description
     Pre-processing application that sets two signed distance fields and a 
-    heaviside marker field using an input surface mesh in the STL format. 
+    markerField marker field using an input surface mesh in the STL format. 
     Used as a pre-processing application for the LENT algorithm. 
 
 
@@ -84,8 +84,8 @@ int main(int argc, char *argv[])
     ); 
     Info << "Done." << endl;
 
-    Info << "Calculating the heaviside field..."; 
-    lent.calcHeaviside(heaviside, signedDistance, searchDistanceSqr); 
+    Info << "Calculating the markerField field..."; 
+    lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr); 
     Info << "Done." << endl;
     
     runTime.writeNow(); 
