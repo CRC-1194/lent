@@ -27,12 +27,12 @@ Application
 Description
     Test application that starts in a cell at seedPoint (found by fvMesh), 
     and tries to find the cell containing the targetPoint (found by the 
-    lentMeshSearch algorithm).
+    frontMeshSearch algorithm).
 
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "lentMeshSearch.H"
+#include "frontMeshSearch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Main program:
@@ -71,10 +71,10 @@ int main(int argc, char *argv[])
 
     label seedCell = mesh.findCell(seedPoint); 
 
-    // Uncomment when lentMeshSearch debugging code is uncommented.
-    //lentMeshSearch ls(runTime); 
+    // Uncomment when frontMeshSearch debugging code is uncommented.
+    //frontMeshSearch ls(runTime); 
     
-    lentMeshSearch ls;
+    frontMeshSearch ls;
 
     label foundCell = ls.cellContainingPoint(targetPoint, mesh, seedCell); 
 
