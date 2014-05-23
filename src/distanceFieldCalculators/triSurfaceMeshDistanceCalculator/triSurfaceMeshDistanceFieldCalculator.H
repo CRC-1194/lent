@@ -46,7 +46,7 @@ Authors
 #include "refCount.H"
 #include "triSurfaceMesh.H"
 
-#include "lentDistanceFieldCalculator.H"
+#include "distanceFieldCalculator.H"
 #include "narrowBandPropagation.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -61,7 +61,7 @@ namespace FrontTracking {
 
 class triSurfaceMeshDistanceFieldCalculator
     :
-        public lentDistanceFieldCalculator
+        public distanceFieldCalculator
 {
 
     //- List of indices to the nearest elements to cells.

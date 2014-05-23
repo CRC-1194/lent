@@ -47,7 +47,7 @@ Authors
 #include "triSurfaceFront.H"
 #include "fvMesh.H"
 
-#include "lentDistanceFieldCalculator.H"
+#include "distanceFieldCalculator.H"
 #include "frontReconstructionModel.H"
 #include "frontReconstructor.H"
 #include "triSurfaceFrontFields.H"
@@ -80,7 +80,7 @@ class lentMethod
     IOdictionary lentControlDict_;  
 
     // Field calculator
-    tmp<lentDistanceFieldCalculator> lentDistanceFieldCalculatorTmp_; 
+    tmp<distanceFieldCalculator> distanceFieldCalculatorTmp_; 
 
     // Front reconstruction model. 
     tmp<frontReconstructionModel> frontReconstructionModelTmp_;  
@@ -89,7 +89,7 @@ class lentMethod
     tmp<frontReconstructor> frontReconstructorTmp_; 
 
     // Search algorithm. 
-    tmp<lentMeshSearch> searchAlgorithmTmp_; 
+    tmp<frontMeshSearch> searchAlgorithmTmp_; 
 
     // Velocity calculator. 
     tmp<frontVelocityCalculator> frontVelocityCalculatorTmp_; 

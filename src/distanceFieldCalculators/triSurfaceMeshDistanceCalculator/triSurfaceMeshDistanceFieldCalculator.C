@@ -38,7 +38,7 @@ namespace FrontTracking {
 
     defineTypeNameAndDebug(triSurfaceMeshDistanceFieldCalculator, 0);
     addToRunTimeSelectionTable(
-       lentDistanceFieldCalculator, 
+       distanceFieldCalculator, 
        triSurfaceMeshDistanceFieldCalculator, 
        Dictionary
     );
@@ -51,7 +51,7 @@ triSurfaceMeshDistanceFieldCalculator::triSurfaceMeshDistanceFieldCalculator(
     const dictionary& config
 )
 :
-    lentDistanceFieldCalculator(config),
+    distanceFieldCalculator(config),
     cellsElementNearest_(), 
     pointsElementNearest_(), 
     narrowBandTmp_( 

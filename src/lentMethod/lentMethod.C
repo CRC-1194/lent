@@ -81,8 +81,8 @@ lentMethod::lentMethod(
             IOobject::AUTO_WRITE
          )
      ),
-     lentDistanceFieldCalculatorTmp_(
-        lentDistanceFieldCalculator::New(
+     distanceFieldCalculatorTmp_(
+        distanceFieldCalculator::New(
             lentControlDict_.subDict("distanceCalculator")
         )
      ),
@@ -97,7 +97,7 @@ lentMethod::lentMethod(
         )
      ), 
      searchAlgorithmTmp_(
-        lentMeshSearch::New(
+        frontMeshSearch::New(
             lentControlDict_.subDict("searchAlgorithm")
         )
      ), 
@@ -124,7 +124,7 @@ lentMethod::lentMethod(const lentMethod& copy)
     regIOobject(copy),
     elementCells_(copy.elementCells_),
     lentControlDict_(copy.lentControlDict_),
-    lentDistanceFieldCalculatorTmp_(copy.lentDistanceFieldCalculatorTmp_),
+    distanceFieldCalculatorTmp_(copy.distanceFieldCalculatorTmp_),
     frontReconstructorTmp_(copy.frontReconstructorTmp_),
     heavisideModelTmp_(copy.heavisideModelTmp_)
 {}
@@ -141,7 +141,7 @@ void lentMethod::calcSearchDistances(
     pointScalarField& pointSearchDistanceSqr
 ) 
 {
-    lentDistanceFieldCalculator& distanceCalc = lentDistanceFieldCalculatorTmp_(); 
+    distanceFieldCalculator& distanceCalc = distanceFieldCalculatorTmp_(); 
 
     distanceCalc.calcCellSearchDistance(searchDistanceSqr); 
     distanceCalc.calcPointSearchDistance(pointSearchDistanceSqr, searchDistanceSqr); 
@@ -155,13 +155,13 @@ void lentMethod::calcSignedDistances(
     const triSurfaceFront& front
 ) 
 {
-    lentDistanceFieldCalculatorTmp_->calcCellsToFrontDistance(
+    distanceFieldCalculatorTmp_->calcCellsToFrontDistance(
         signedDistance, 
         searchDistanceSqr,
         front
     ); 
 
-    lentDistanceFieldCalculatorTmp_->calcPointsToFrontDistance(
+    distanceFieldCalculatorTmp_->calcPointsToFrontDistance(
         pointSignedDistance, 
         pointSearchDistanceSqr,
         front
@@ -257,7 +257,7 @@ void lentMethod::operator=(const lentMethod& rhs)
 
     elementCells_ = rhs.elementCells_;
     lentControlDict_ = rhs.lentControlDict_; 
-    lentDistanceFieldCalculatorTmp_ = rhs.lentDistanceFieldCalculatorTmp_; 
+    distanceFieldCalculatorTmp_ = rhs.distanceFieldCalculatorTmp_; 
     frontReconstructorTmp_ = rhs.frontReconstructorTmp_;
     heavisideModelTmp_ = rhs.heavisideModelTmp_; 
 }

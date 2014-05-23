@@ -28,7 +28,7 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#include "lentMeshSearch.H"
+#include "frontMeshSearch.H"
 #include "dictionary.H"
 #include "volFields.H"
 #include "surfaceFields.H"
@@ -43,19 +43,19 @@ Authors
 namespace Foam {
 namespace FrontTracking { 
 
-    defineTypeNameAndDebug(lentMeshSearch, 0); 
-    defineRunTimeSelectionTable(lentMeshSearch, Dictionary);
-    addToRunTimeSelectionTable(lentMeshSearch, lentMeshSearch, Dictionary);
+    defineTypeNameAndDebug(frontMeshSearch, 0); 
+    defineRunTimeSelectionTable(frontMeshSearch, Dictionary);
+    addToRunTimeSelectionTable(frontMeshSearch, frontMeshSearch, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 
-//lentMeshSearch::lentMeshSearch(const Time& runTime)
+//frontMeshSearch::frontMeshSearch(const Time& runTime)
 //:
     //lastSeedCell_(-1),
     //visualizationCellSet_(
         //IOobject(
-            //"lentMeshSearchCells", 
+            //"frontMeshSearchCells", 
             //runTime.timeName(), 
             //runTime,
             //IOobject::NO_READ, 
@@ -65,20 +65,20 @@ namespace FrontTracking {
     //iterationCount_(0), 
 //{}
 
-lentMeshSearch::lentMeshSearch(const dictionary& configDict)
+frontMeshSearch::frontMeshSearch(const dictionary& configDict)
 :
     lastDistance_(GREAT)
 {}
 
-lentMeshSearch::lentMeshSearch()
+frontMeshSearch::frontMeshSearch()
 :
     lastDistance_(GREAT)
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
-tmp<lentMeshSearch>
-lentMeshSearch::New(const dictionary& configDict)
+tmp<frontMeshSearch>
+frontMeshSearch::New(const dictionary& configDict)
 {
     const word name = configDict.lookup("type"); 
 
@@ -88,24 +88,24 @@ lentMeshSearch::New(const dictionary& configDict)
     if (cstrIter == DictionaryConstructorTablePtr_->end())
     {
         FatalErrorIn (
-            "lentMeshSearch::New(const word& name)"
-        )   << "Unknown lentMeshSearch type "
+            "frontMeshSearch::New(const word& name)"
+        )   << "Unknown frontMeshSearch type "
             << name << nl << nl
-            << "Valid lentMeshSearchs are : " << endl
+            << "Valid frontMeshSearchs are : " << endl
             << DictionaryConstructorTablePtr_->sortedToc()
             << exit(FatalError);
     }
 
-    return tmp<lentMeshSearch> (cstrIter()(configDict));
+    return tmp<frontMeshSearch> (cstrIter()(configDict));
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-lentMeshSearch::~lentMeshSearch()
+frontMeshSearch::~frontMeshSearch()
 {}
 
 // * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * * //
-//void lentMeshSearch::appendLabelAndWriteCellSet(label cellLabel) const
+//void frontMeshSearch::appendLabelAndWriteCellSet(label cellLabel) const
 //{
     //++iterationCount_; 
 
@@ -113,7 +113,7 @@ lentMeshSearch::~lentMeshSearch()
 
     //std::stringstream ss; 
 
-    //ss << "lentMeshSearchCellSet" << "-" << std::setw(20) << std::setfill('0')
+    //ss << "frontMeshSearchCellSet" << "-" << std::setw(20) << std::setfill('0')
         //<< iterationCount_;  
 
     //visualizationCellSet_.rename(ss.str()); 
@@ -123,7 +123,7 @@ lentMeshSearch::~lentMeshSearch()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-label lentMeshSearch::cellContainingPoint(
+label frontMeshSearch::cellContainingPoint(
     const point& p, 
     const fvMesh& mesh, 
     const label seedCell 
@@ -208,7 +208,7 @@ label lentMeshSearch::cellContainingPoint(
     return -1; 
 }
 
-bool lentMeshSearch::pointIsInCell(
+bool frontMeshSearch::pointIsInCell(
     const point p, 
     const label cellLabel, 
     const fvMesh& mesh, 
@@ -259,7 +259,7 @@ bool lentMeshSearch::pointIsInCell(
     return pointIsInside;
 }
 
-labelList lentMeshSearch::pointCellStencil(
+labelList frontMeshSearch::pointCellStencil(
     label cellLabel, 
     const fvMesh& mesh
 ) const
@@ -284,7 +284,7 @@ labelList lentMeshSearch::pointCellStencil(
     return labelList(newNeighborCells.begin(), newNeighborCells.end());  
 }
 
-void lentMeshSearch::updateElementCells(
+void frontMeshSearch::updateElementCells(
     DynamicList<label>& elementCells, 
     const triSurfaceFront& front, 
     const fvMesh& mesh

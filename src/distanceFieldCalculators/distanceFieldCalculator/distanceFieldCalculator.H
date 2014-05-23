@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::lentDistanceFieldCalculator
+    Foam::distanceFieldCalculator
 
 Description
 
@@ -32,7 +32,7 @@ Description
     a volume mesh (cells and points) and an immersed surface mesh (elements).
 
 SourceFiles
-    lentDistanceFieldCalculator.H
+    distanceFieldCalculator.H
 
 Authors
     Tomislav Maric
@@ -41,8 +41,8 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentDistanceFieldCalculator_H
-#define lentDistanceFieldCalculator_H
+#ifndef distanceFieldCalculator_H
+#define distanceFieldCalculator_H
 
 #include "typeInfo.H"
 #include "refCount.H"
@@ -58,10 +58,10 @@ namespace FrontTracking {
 
 
 /*---------------------------------------------------------------------------*\
-                         Class lentDistanceFieldCalculator Declaration
+                         Class distanceFieldCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class lentDistanceFieldCalculator
+class distanceFieldCalculator
     :
         public refCount
 {
@@ -70,11 +70,11 @@ class lentDistanceFieldCalculator
 
 public:
 
-    TypeName("lentDistanceFieldCalculator"); 
+    TypeName("distanceFieldCalculator"); 
 
     declareRunTimeSelectionTable (
         tmp,  
-        lentDistanceFieldCalculator,  
+        distanceFieldCalculator,  
         Dictionary,  
         (
             const dictionary& configDict
@@ -84,17 +84,17 @@ public:
      
     // Constructors
     
-        explicit lentDistanceFieldCalculator(
+        explicit distanceFieldCalculator(
             const dictionary& configDict
         );
 
     // Destructor
     
-        virtual ~lentDistanceFieldCalculator();
+        virtual ~distanceFieldCalculator();
 
     // Selector
     
-        static tmp<lentDistanceFieldCalculator> New(
+        static tmp<distanceFieldCalculator> New(
             const dictionary& configDict
         );
 

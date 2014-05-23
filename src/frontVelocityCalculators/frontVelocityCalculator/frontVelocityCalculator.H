@@ -47,7 +47,7 @@ Authors
 #include "volFieldsFwd.H"
 #include "triSurfaceFront.H"
 #include "triSurfaceFrontFields.H"
-#include "lentMeshSearch.H"
+#include "frontMeshSearch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -63,7 +63,7 @@ class frontVelocityCalculator
         public refCount
 {
 
-    //tmp<lentMeshSearch> searchAlgTmp_; 
+    //tmp<frontMeshSearch> searchAlgTmp_; 
 
 public:
 

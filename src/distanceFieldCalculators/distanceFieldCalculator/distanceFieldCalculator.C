@@ -29,21 +29,21 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#include "lentDistanceFieldCalculator.H"
+#include "distanceFieldCalculator.H"
 #include "volPointInterpolation.H"
 #include "error.H"
 
 namespace Foam {
 namespace FrontTracking { 
 
-    defineTypeNameAndDebug(lentDistanceFieldCalculator, 0);
-    defineRunTimeSelectionTable(lentDistanceFieldCalculator, Dictionary);
+    defineTypeNameAndDebug(distanceFieldCalculator, 0);
+    defineRunTimeSelectionTable(distanceFieldCalculator, Dictionary);
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-lentDistanceFieldCalculator::lentDistanceFieldCalculator(
+distanceFieldCalculator::distanceFieldCalculator(
     const dictionary& configDict
 )
 :
@@ -55,8 +55,8 @@ lentDistanceFieldCalculator::lentDistanceFieldCalculator(
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 
-tmp<lentDistanceFieldCalculator>
-lentDistanceFieldCalculator::New(
+tmp<distanceFieldCalculator>
+distanceFieldCalculator::New(
    const dictionary& configDict
 )
 {
@@ -70,26 +70,26 @@ lentDistanceFieldCalculator::New(
     if (cstrIter == DictionaryConstructorTablePtr_->end())
     {
         FatalErrorIn (
-            "lentDistanceFieldCalculator::New(const word& name)"
-        )   << "Unknown lentDistanceFieldCalculator type "
+            "distanceFieldCalculator::New(const word& name)"
+        )   << "Unknown distanceFieldCalculator type "
             << name << nl << nl
-            << "Valid lentDistanceFieldCalculators are : " << endl
+            << "Valid distanceFieldCalculators are : " << endl
             << DictionaryConstructorTablePtr_->sortedToc()
             << exit(FatalError);
     }
 
     // Construct the model and return the autoPtr to the object. 
-    return tmp<lentDistanceFieldCalculator> (cstrIter()(configDict));
+    return tmp<distanceFieldCalculator> (cstrIter()(configDict));
 } 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-lentDistanceFieldCalculator::~lentDistanceFieldCalculator()
+distanceFieldCalculator::~distanceFieldCalculator()
 {}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void lentDistanceFieldCalculator::calcCellSearchDistance(
+void distanceFieldCalculator::calcCellSearchDistance(
     volScalarField& searchDistanceSqr
 ) 
 {
@@ -138,7 +138,7 @@ void lentDistanceFieldCalculator::calcCellSearchDistance(
     searchDistanceSqr.correctBoundaryConditions(); 
 }
 
-void lentDistanceFieldCalculator::calcPointSearchDistance(
+void distanceFieldCalculator::calcPointSearchDistance(
     pointScalarField& pointSearchDistanceSqr,
     const volScalarField& searchDistanceSqr
 ) 
@@ -153,11 +153,11 @@ void lentDistanceFieldCalculator::calcPointSearchDistance(
     ip.interpolate(searchDistanceSqr, pointSearchDistanceSqr); 
 }
 
-void lentDistanceFieldCalculator::calcPointSearchDistance(
+void distanceFieldCalculator::calcPointSearchDistance(
     pointScalarField& pointSearchDistanceSqr
 ) 
 {
-    notImplemented("lentDistanceFieldCalculator::calcPointSearchDistance(pointScalarField&"); 
+    notImplemented("distanceFieldCalculator::calcPointSearchDistance(pointScalarField&"); 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

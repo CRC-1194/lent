@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::lentMeshSearch
+    Foam::frontMeshSearch
 
 Description
     Abstract base class for supplemental mesh search operations. 
@@ -31,7 +31,7 @@ Description
         * linear search (for each cell, check if ...)
         * logarithmic search (uses octrees)
 
-    For now, the lentMeshSearch algorithm is to implement variants of the 
+    For now, the frontMeshSearch algorithm is to implement variants of the 
     vicinity search algorithm that uses neighboring cell relationship to find a
     point in the mesh.
 
@@ -43,7 +43,7 @@ Description
     Tomislav
            
 SourceFiles
-    lentMeshSearch.C
+    frontMeshSearch.C
 
 Authors
     Tomislav Maric
@@ -52,8 +52,8 @@ Authors
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentMeshSearch_H
-#define lentMeshSearch_H
+#ifndef frontMeshSearch_H
+#define frontMeshSearch_H
 
 #include "fvMesh.H"
 #include "cellSet.H"
@@ -65,10 +65,10 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class lentMeshSearch Declaration
+                         Class frontMeshSearch Declaration
 \*---------------------------------------------------------------------------*/
 
-class lentMeshSearch
+class frontMeshSearch
     :
         public refCount
 {
@@ -79,11 +79,11 @@ class lentMeshSearch
 
 public:
 
-    TypeName ("lentMeshSearch"); 
+    TypeName ("frontMeshSearch"); 
 
     declareRunTimeSelectionTable(
         tmp,  
-        lentMeshSearch,  
+        frontMeshSearch,  
         Dictionary,  
         (
             const dictionary& configDict 
@@ -93,18 +93,18 @@ public:
 
     // Constructors
     
-        //lentMeshSearch(const Time& runTime); 
+        //frontMeshSearch(const Time& runTime); 
         
-        lentMeshSearch();
+        frontMeshSearch();
 
-        explicit lentMeshSearch(const dictionary& configDict);
+        explicit frontMeshSearch(const dictionary& configDict);
 
     // Selectors
 
-        static tmp<lentMeshSearch> New(const dictionary& configDict);
+        static tmp<frontMeshSearch> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~lentMeshSearch();
+        virtual ~frontMeshSearch();
 
     // Member Functions
         
@@ -141,7 +141,7 @@ public:
 
     // Member Operators 
     
-        void operator=(const lentMeshSearch& rhs); 
+        void operator=(const frontMeshSearch& rhs); 
 
 };
 
