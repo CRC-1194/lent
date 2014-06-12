@@ -31,7 +31,7 @@ Description
     Provides the interface for calculating the signed distance field between
     a volume mesh (cells and points) and an immersed surface mesh (elements).
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

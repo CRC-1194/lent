@@ -27,7 +27,7 @@ Class
 Description
     Interpolate front velocity using barycentric interpolation.
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

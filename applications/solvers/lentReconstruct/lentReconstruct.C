@@ -24,13 +24,11 @@ License
 Application
     levelSetFrontFoam
 
-Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
-
 Description
     Test application for the interface reconstruction algorithm of the LENT method.
+
+Author
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

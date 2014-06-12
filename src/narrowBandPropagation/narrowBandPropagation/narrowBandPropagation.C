@@ -27,7 +27,7 @@ Class
 Description
     Class for propagating the switch in the sign of the sign distance field.
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

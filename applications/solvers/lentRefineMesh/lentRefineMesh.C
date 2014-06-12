@@ -27,10 +27,8 @@ Application
 Description
     Interface advection with the LENT method coupled with local AMR in OpenFOAM. 
 
-Authors
-    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
-    Mathematical Modeling and Analysis
-    Center of Smart Interfaces, TU Darmstadt
+Author
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

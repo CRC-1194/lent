@@ -29,7 +29,7 @@ Description
 
     Similar to the volGeoMesh used for the Finite Volume discretization.
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

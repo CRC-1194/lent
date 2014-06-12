@@ -28,7 +28,7 @@ Description
     Abstract base class for the heaviside function calculation from a signed 
     distance field.
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

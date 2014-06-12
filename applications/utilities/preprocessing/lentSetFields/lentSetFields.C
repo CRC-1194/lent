@@ -24,16 +24,13 @@ License
 Application
     lentSetFields
 
-Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
-
 Description
     Pre-processing application that sets two signed distance fields and a 
     markerField marker field using an input surface mesh in the STL format. 
     Used as a pre-processing application for the LENT algorithm. 
 
+Author
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

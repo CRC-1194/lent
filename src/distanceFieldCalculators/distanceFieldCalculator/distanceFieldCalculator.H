@@ -34,7 +34,7 @@ Description
 SourceFiles
     distanceFieldCalculator.H
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

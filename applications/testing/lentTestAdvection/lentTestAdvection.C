@@ -24,13 +24,11 @@ License
 Application
     lentTestAdvection
 
-Authors
-    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
-    Mathematical Modeling and Analysis
-    Center of Smart Interfaces, TU Darmstadt
-
 Description
     Test application for the interface advection algorithm of the LENT method.  
+
+Author
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

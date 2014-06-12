@@ -28,14 +28,8 @@ Description
     Prototyping (test driven development) for the connectivity between the 
     front and the mesh.
 
-Author
-    Tomislav Maric
-    maric@csi.tu-darmstadt.de
-    Mathematical Modelling and Analysis Group 
-    Center of Smart Interfaces
-    TU Darmstadt
-    Germany
-
+Authors
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

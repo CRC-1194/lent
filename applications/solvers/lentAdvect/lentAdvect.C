@@ -24,13 +24,11 @@ License
 Application
     lentAdvect
 
-Authors
-    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
-    Mathematical Modeling and Analysis
-    Center of Smart Interfaces, TU Darmstadt
-
 Description
     Interface advection algorithm of the LENT method.  
+
+Author
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

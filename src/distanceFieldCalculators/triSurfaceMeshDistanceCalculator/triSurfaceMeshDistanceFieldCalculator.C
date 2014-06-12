@@ -29,7 +29,7 @@ Description
     Computes signed distance fields between the volume mesh and the immersed
     surface mesh using octree searches implemented in the triSurfaceMesh class.
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

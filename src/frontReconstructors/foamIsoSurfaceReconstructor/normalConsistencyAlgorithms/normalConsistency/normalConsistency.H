@@ -32,7 +32,7 @@ Description
 SourceFiles
     normalConsistency.C
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
     Mathematical Modeling and Analysis
     Center of Smart Interfaces, TU Darmstadt

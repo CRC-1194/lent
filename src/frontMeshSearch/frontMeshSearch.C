@@ -42,7 +42,7 @@ Description
     this exists that allows me to avoid modification to the class as done here.
     Tomislav
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

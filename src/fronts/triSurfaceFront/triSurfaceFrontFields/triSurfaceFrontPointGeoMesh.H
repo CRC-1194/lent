@@ -30,7 +30,7 @@ Description
     Similar to the volMesh used for the Finite Volume discretization.
 
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

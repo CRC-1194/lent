@@ -28,7 +28,7 @@ Description
     Evolve the front using the first order accurate Euler temporal discretization
     scheme. 
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

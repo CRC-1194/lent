@@ -31,7 +31,7 @@ Description
 SourceFiles
     markerFieldModel.C
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

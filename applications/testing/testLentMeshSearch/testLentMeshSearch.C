@@ -29,6 +29,9 @@ Description
     and tries to find the cell containing the targetPoint (found by the 
     frontMeshSearch algorithm).
 
+Author
+    Tomislav Maric maric@csi.tu-darmstadt.de
+
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"

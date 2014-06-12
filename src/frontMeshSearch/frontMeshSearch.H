@@ -45,7 +45,7 @@ Description
 SourceFiles
     frontMeshSearch.C
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

@@ -31,7 +31,7 @@ Description
 SourceFiles
     harmonicMarkerFieldModel.C
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

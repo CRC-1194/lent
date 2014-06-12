@@ -29,7 +29,7 @@ Description
     front-tracking level-set method by agglomerating a bunch of run-time 
     selected small one-algorithm SRP classes. 
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

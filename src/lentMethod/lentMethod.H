@@ -32,7 +32,7 @@ Description
 SourceFiles
     lentMethod.C
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

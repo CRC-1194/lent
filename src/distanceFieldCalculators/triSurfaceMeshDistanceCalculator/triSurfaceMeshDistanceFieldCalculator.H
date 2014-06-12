@@ -32,7 +32,7 @@ Description
 SourceFiles
     triSurfaceMeshDistanceFieldCalculator.H
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/

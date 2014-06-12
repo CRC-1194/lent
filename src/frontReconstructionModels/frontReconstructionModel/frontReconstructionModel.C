@@ -29,7 +29,7 @@ Description
     only when topological changes are happening and / or the quality of the front
     has decreased. How and when exactly is what this class hierarchy decides on.
 
-Authors
+Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
