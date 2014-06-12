@@ -22,15 +22,8 @@ License
     along with OpenFOAM; if not, write to the Free Software Foundation,
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-Class
-    Foam::diffuseInterfaceProperties
-
-SourceFiles
-    diffuseInterfaceProperties.C
-
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
-\*---------------------------------------------------------------------------*/
 
 Description
     

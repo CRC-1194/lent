@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+   \\    /   O peration     | Version:  2.2.x                               
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    OpenFOAM is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.
 
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -19,18 +19,37 @@ License
     for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
-
-Application
-    lentTestAdvection
-
-Description
-    Test application for the interface advection algorithm of the LENT method.  
+    along with OpenFOAM; if not, write to the Free Software Foundation,
+    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
+Description
+    Test application for the interface advection algorithm of the LENT method.
+
+    You may refer to this software as :
+    //- full bibliographic data to be provided
+
+    This code has been developed by :
+        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
+    under the project supervision of :
+        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
+    
+    Method Development and Intellectual Property :
+    	Tomislav Maric maric@csi.tu-darmstadt.de
+    	Holger Marschall <marschall@csi.tu-darmstadt.de>
+    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
+
+        Mathematical Modeling and Analysis
+        Center of Smart Interfaces
+        Technische Universitaet Darmstadt
+       
+    If you use this software for your scientific work or your publications,
+    please don't forget to acknowledge explicitly the use of it.
+
 \*---------------------------------------------------------------------------*/
+
 
 #include "fvCFD.H"
 #include "MULES.H"
@@ -47,15 +66,15 @@ Author
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
-using namespace Test; 
+using namespace Test;
 
 TEST_F(lentTests, lentReconstruction)
 {
-    extern int mainArgc; 
-    extern char** mainArgv; 
+    extern int mainArgc;
+    extern char** mainArgv;
 
-    int argc = mainArgc; 
-    char** argv = mainArgv; 
+    int argc = mainArgc;
+    char** argv = mainArgv;
 
     #include "setRootCase.H"
     #include "createTime.H"
@@ -67,7 +86,6 @@ TEST_F(lentTests, lentReconstruction)
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
-
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< "\nStarting time loop\n" << endl;
@@ -76,39 +94,39 @@ TEST_F(lentTests, lentReconstruction)
         IOobject(
             "front.stl",
             "front",
-            runTime, 
-            IOobject::NO_READ, 
+            runTime,
+            IOobject::NO_READ,
             IOobject::AUTO_WRITE
         )
     );
 
-    triSurfaceFrontGeoMesh frontMesh(front); 
+    triSurfaceFrontGeoMesh frontMesh(front);
 
     triSurfaceFrontVectorField frontVelocity(
         IOobject(
-            "frontVelocity", 
-            runTime.timeName(), 
-            runTime, 
+            "frontVelocity",
+            runTime.timeName(),
+            runTime,
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        front, 
+        front,
         dimensionedVector(
             "zero",
-            dimLength / dimTime, 
+            dimLength / dimTime,
             vector(0,0,0)
         )
-    ); 
+    );
 
-    lentMethod lent(front, mesh); 
+    lentMethod lent(front, mesh);
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
-    lent.reconstructFront(front, signedDistance, pointSignedDistance); 
+    lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
-    TEST_NORMAL_CONSISTENCY(front); 
+    TEST_NORMAL_CONSISTENCY(front);
 
-    front.write(); 
+    front.write();
 
     while (runTime.run())
     {
@@ -124,34 +142,34 @@ TEST_F(lentTests, lentReconstruction)
 
         twoPhaseProperties.correct();
 
-        Pout << "Signed distances..."; 
+        Pout << "Signed distances...";
         lent.calcSignedDistances(
-            signedDistance, 
+            signedDistance,
             pointSignedDistance,
             searchDistanceSqr,
-            pointSearchDistanceSqr, 
+            pointSearchDistanceSqr,
             front
-        ); 
+        );
         Pout << "done." << endl;
 
-        Pout << "MarkerField ... "; 
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr); 
+        Pout << "MarkerField ... ";
+        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
         Pout << "done." << endl;
 
-        Pout << "Reconstruction ..."; 
-        lent.reconstructFront(front, signedDistance, pointSignedDistance); 
+        Pout << "Reconstruction ...";
+        lent.reconstructFront(front, signedDistance, pointSignedDistance);
         Pout << "done." << endl;
 
-        TEST_NORMAL_CONSISTENCY(front); 
+        TEST_NORMAL_CONSISTENCY(front);
 
-        Pout << "Velocity ..."; 
-        lent.calcFrontVelocity(frontVelocity, U); 
+        Pout << "Velocity ...";
+        lent.calcFrontVelocity(frontVelocity, U);
         Pout << "done." << endl;
 
         Pout << "Evolution ...";
-        lent.evolveFront(front, frontVelocity); 
+        lent.evolveFront(front, frontVelocity);
         Pout << "done." << endl;
-        
+
         runTime.write();
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
@@ -162,18 +180,17 @@ TEST_F(lentTests, lentReconstruction)
     Info<< "End\n" << endl;
 }
 
-int mainArgc; 
-char** mainArgv; 
+int mainArgc;
+char** mainArgv;
 
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
 
-    mainArgc = argc; 
+    mainArgc = argc;
     mainArgv = argv;
 
     return RUN_ALL_TESTS();
 }
-
 
 // ************************************************************************* //

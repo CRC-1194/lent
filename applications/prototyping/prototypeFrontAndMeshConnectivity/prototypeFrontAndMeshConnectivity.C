@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+   \\    /   O peration     | Version:  2.2.x                               
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    OpenFOAM is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.
 
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -19,19 +19,38 @@ License
     for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
-
-Application
-    protFrontAndMeshConnectivity
-
-Description
-    Prototyping (test driven development) for the connectivity between the 
-    front and the mesh.
+    along with OpenFOAM; if not, write to the Free Software Foundation,
+    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Authors
     Tomislav Maric maric@csi.tu-darmstadt.de
 
+Description
+    Prototyping (test driven development) for the connectivity between the
+    front and the mesh.
+
+    You may refer to this software as :
+    //- full bibliographic data to be provided
+
+    This code has been developed by :
+        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
+    under the project supervision of :
+        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
+    
+    Method Development and Intellectual Property :
+    	Tomislav Maric maric@csi.tu-darmstadt.de
+    	Holger Marschall <marschall@csi.tu-darmstadt.de>
+    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
+
+        Mathematical Modeling and Analysis
+        Center of Smart Interfaces
+        Technische Universitaet Darmstadt
+       
+    If you use this software for your scientific work or your publications,
+    please don't forget to acknowledge explicitly the use of it.
+
 \*---------------------------------------------------------------------------*/
+
 
 #include "fvCFD.H"
 
@@ -45,14 +64,14 @@ template<class Mesh, class Front>
 class ConnectivityListDLList
 {
     // Private data
-    List<DLList<label> > elementsToCells_; 
+    List<DLList<label> > elementsToCells_;
     List<DLList<label> > pointsToElements_;
 
-    public: 
+    public:
 
         ConnectivityListDLList(const Mesh& mesh, const Front& front)
             :
-                elementsToCells_ (front.size()), 
+                elementsToCells_ (front.size()),
                 pointsToElements_(mesh.points().size())
         {
 
@@ -92,15 +111,15 @@ class ConnectivityMultiMap
         }
 };
 
-template<class Mesh, class Front, template <typename Mesh, 
-         typename Front> class ConnectivityData> 
+template<class Mesh, class Front, template <typename Mesh,
+         typename Front> class ConnectivityData>
 class FrontAndMeshConnectivity
 :
-    public MeshObject<Mesh, 
+    public MeshObject<Mesh,
         FrontAndMeshConnectivity<Mesh, Front, ConnectivityData> >
 {
         // Private data
-            //- Connectivity maps 
+            //- Connectivity maps
         ConnectivityData<Mesh, Front> connectivity_;
 
     public:
@@ -120,55 +139,55 @@ class FrontAndMeshConnectivity
 template <class Mesh, class Front, template <typename Mesh, typename Front> class ConnectivityData>
 class FrontAndMeshDistance
 {
-    public: 
+    public:
 
         template<class MeshCellField>
         Foam::tmp<MeshCellField> cellToElementDistance(const Mesh& mesh, const Front& front)
         {
-            // Get the connectivity between the front and mesh 
-            FrontAndMeshConnectivity<Mesh, Front, ConnectivityData> frontAndMesh = 
+            // Get the connectivity between the front and mesh
+            FrontAndMeshConnectivity<Mesh, Front, ConnectivityData> frontAndMesh =
                 FrontAndMeshConnectivity<Mesh,Front, ConnectivityData>::New(mesh, front);
-            
+
             // Initialize the minimal distance cell field
 
             // Get the elements to cells connectivity
-            
-            // For all elements to cells 
+
+            // For all elements to cells
                 // Compute the distance between each cell centre and front element
-                // If the computed distance is smaller than current (minimal) 
+                // If the computed distance is smaller than current (minimal)
                     // Store the computed distance to the minimal distance field
-             
+
             // Return the distance field
         }
 
         template<class MeshPointField>
         Foam::tmp<MeshPointField> pointToElementDistance(const Mesh& mesh, const Front& front)
         {
-            // Get the connectivity between the front and mesh 
-            FrontAndMeshConnectivity<Mesh, Front, ConnectivityData> frontAndMesh = 
+            // Get the connectivity between the front and mesh
+            FrontAndMeshConnectivity<Mesh, Front, ConnectivityData> frontAndMesh =
                 FrontAndMeshConnectivity<Mesh,Front, ConnectivityData>::New(mesh, front);
 
-            // Initialize the minimal distance point field 
+            // Initialize the minimal distance point field
 
             // VERSION 0
-            
+
             // Get points to cells connectivity
-            
+
             // Get cells to elements connectivity
-            
+
             // For all mesh points
 
                 // Get the cell list
                 // For all cells
                     // Get the list of elements
                         // For all elements
-                            // Compute the distance between the point 
+                            // Compute the distance between the point
                             // and the element
                             // If distance is smaller than minimal
                                 // Set minimal distance
 
             // END VERSION 0
-            
+
             // VERSION 1
 
             // Get the points to elements connectivity
@@ -178,17 +197,15 @@ class FrontAndMeshDistance
 
                 // For all elements of a point
                     // Compute the distance between the point and the element
-                    // If distance is less than minimal 
+                    // If distance is less than minimal
                         // Update the minimal point to element distance
-            
+
             // END VERSION 1
 
-
             // Return the pointField
-            
+
 
         }
-
 
 };
 
@@ -197,14 +214,14 @@ class FrontAndMeshDistance
 //template <class Mesh, class Front>
 //class FrontAndMeshInterpolation
 //{
-    //public: 
+    //public:
 
         //// Interpolate from the front to the mesh
         //template<class FrontField, class MeshField>
         //void interpolate (MeshField& mf, const FrontField& ff)
         //{
-            //// Get the connectivity between the front and mesh 
-            //FrontAndMeshConnectivity<Mesh, Front> frontAndMesh = 
+            //// Get the connectivity between the front and mesh
+            //FrontAndMeshConnectivity<Mesh, Front> frontAndMesh =
                 //FrontAndMeshConnectivity<Mesh,Front>::New(mf.mesh(), ff.mesh());
 
         //}
@@ -213,8 +230,8 @@ class FrontAndMeshDistance
         //template<class FrontField, class MeshField>
         //void interpolate (FrontField& ff, const MeshField& mf)
         //{
-            //// Get the connectivity between the front and mesh 
-            //FrontAndMeshConnectivity<Mesh, Front> frontAndMesh = 
+            //// Get the connectivity between the front and mesh
+            //FrontAndMeshConnectivity<Mesh, Front> frontAndMesh =
                 //FrontAndMeshConnectivity<Mesh,Front>::New(mf.mesh(), ff.mesh());
         //}
 //};
@@ -240,43 +257,42 @@ int main(int argc, char *argv[])
         IOobject
         (
             "vDisplacement",
-            runTime.timeName(), 
-            runTime, 
+            runTime.timeName(),
+            runTime,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
-        ), 
-        front, 
+        ),
+        front,
         dimensionedVector
         (
-            "zero", 
-            dimLength, 
+            "zero",
+            dimLength,
             pTraits<vector>::zero
         )
     );
 
-    volVectorField U 
+    volVectorField U
     (
         IOobject
         (
             "U",
-            runTime.timeName(), 
-            mesh, 
+            runTime.timeName(),
+            mesh,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
-        ), 
-        mesh, 
+        ),
+        mesh,
         dimensionedVector
         (
-            "zero", 
-            dimLength, 
+            "zero",
+            dimLength,
             vector(1,0,0)
         )
     );
-                                  
+
 
     Info<< "\nEnd\n" << endl;
     return 0;
 }
-
 
 // ************************************************************************* //
