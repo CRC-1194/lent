@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+   \\    /   O peration     | Version:  2.2.x                               
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    OpenFOAM is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.
 
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -19,20 +19,11 @@ License
     for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+    along with OpenFOAM; if not, write to the Free Software Foundation,
+    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
     Foam::centerNormalConsistency
-
-Description
-    Class encapsulating the algorithm that makes the normals of the iso-surface
-    consistent by using the signed distance values stored in cell centers. 
-
-    Using a barycentric tetrahedral decomposition results with a monotone signed
-    distance field within the cell.
-
-    (Not proved, its an intuitive conclusion: isosurface cannot cross one edge
-     twice and all edges span from the geometrical cell center. TM) 
 
 SourceFiles
     centerNormalConsistency.C
@@ -42,7 +33,32 @@ Author
     Mathematical Modeling and Analysis
     Center of Smart Interfaces, TU Darmstadt
 
+Description
+    Class encapsulating the algorithm that makes the normals of the iso-surface
+    consistent by using the signed distance values stored in cell centers.
+
+    You may refer to this software as :
+    //- full bibliographic data to be provided
+
+    This code has been developed by :
+        Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de (main developer)
+    under the project supervision of :
+        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
+    
+    Method Development and Intellectual Property :
+    	Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
+    	Holger Marschall <marschall@csi.tu-darmstadt.de>
+    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
+
+        Mathematical Modeling and Analysis
+        Center of Smart Interfaces
+        Technische Universitaet Darmstadt
+       
+    If you use this software for your scientific work or your publications,
+    please don't forget to acknowledge explicitly the use of it.
+
 \*---------------------------------------------------------------------------*/
+
 
 #ifndef centerNormalConsistency_H
 #define centerNormalConsistency_H
@@ -60,15 +76,15 @@ namespace FrontTracking {
 
 class centerNormalConsistency
     :
-        public normalConsistency 
+        public normalConsistency
 {
 
 public:
 
-    TypeName ("centerNormal"); 
+    TypeName ("centerNormal");
 
     // Constructors
-        centerNormalConsistency(const dictionary& configDict); 
+        centerNormalConsistency(const dictionary& configDict);
 
     // Selectors
 
@@ -78,17 +94,17 @@ public:
         virtual ~centerNormalConsistency() {};
 
     // Member Functions
-        
+
         virtual void makeFrontNormalsConsistent(
-            triSurface& front,    
-            const labelList& triangleCells, 
-            const volScalarField& signedDistance 
-        ) const;  
+            triSurface& front,
+            const labelList& triangleCells,
+            const volScalarField& signedDistance
+        ) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace FrontTracking 
+} // End namespace FrontTracking
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

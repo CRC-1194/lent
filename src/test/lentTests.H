@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+   \\    /   O peration     | Version:  2.2.x                               
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    OpenFOAM is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.
 
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -19,21 +19,42 @@ License
     for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+    along with OpenFOAM; if not, write to the Free Software Foundation,
+    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
     Foam::lentTests
 
-Description
-    Test functions for the LENT algorithm.
-
 SourceFiles
-
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
+Description
+    Test functions for the LENT algorithm.
+
+    You may refer to this software as :
+    //- full bibliographic data to be provided
+
+    This code has been developed by :
+        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
+    under the project supervision of :
+        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
+    
+    Method Development and Intellectual Property :
+    	Tomislav Maric maric@csi.tu-darmstadt.de
+    	Holger Marschall <marschall@csi.tu-darmstadt.de>
+    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
+
+        Mathematical Modeling and Analysis
+        Center of Smart Interfaces
+        Technische Universitaet Darmstadt
+       
+    If you use this software for your scientific work or your publications,
+    please don't forget to acknowledge explicitly the use of it.
+
 \*---------------------------------------------------------------------------*/
+
 
 #ifndef lentTests_H
 #define lentTests_H
@@ -43,77 +64,74 @@ Author
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-
-namespace Foam { 
-    namespace FrontTracking { 
+namespace Foam {
+    namespace FrontTracking {
         namespace Test {
-
 
 bool triSurfaceNormalsAreConsistent(const triSurface& front)
 {
-    const labelListList& edgeFaces = front.edgeFaces(); 
-    const vectorField& faceNormals = front.faceNormals(); 
+    const labelListList& edgeFaces = front.edgeFaces();
+    const vectorField& faceNormals = front.faceNormals();
 
-    bool normalsAreConsistent = true; 
-
+    bool normalsAreConsistent = true;
 
     forAll (edgeFaces, I)
     {
-        const vector& n0 = faceNormals[edgeFaces[I][0]]; 
-        const vector& n1 = faceNormals[edgeFaces[I][1]]; 
+        const vector& n0 = faceNormals[edgeFaces[I][0]];
+        const vector& n1 = faceNormals[edgeFaces[I][1]];
 
         if ((n0 & n1) < 0)
         {
-            normalsAreConsistent = false; 
+            normalsAreConsistent = false;
         }
     }
     return normalsAreConsistent;
 }
 
-class triSurfaceSizeChange 
+class triSurfaceSizeChange
 {
-    int lastSize_ = 0; 
+    int lastSize_ = 0;
 
-    const triSurface& t_; 
+    const triSurface& t_;
 
-    double allowedChange_; 
+    double allowedChange_;
 
-    public: 
+    public:
 
-        triSurfaceSizeChange(const triSurface& t, double allowedChange=0.2) 
-            : 
-                t_(t), 
-                allowedChange_(allowedChange)  
+        triSurfaceSizeChange(const triSurface& t, double allowedChange=0.2)
+            :
+                t_(t),
+                allowedChange_(allowedChange)
         {}
 
         void operator()()
         {
-            label triSurfaceSize = t_.localFaces().size(); 
+            label triSurfaceSize = t_.localFaces().size();
 
             if (lastSize_ > 0)
             {
                 if (((double(lastSize_) - triSurfaceSize) / lastSize_) > allowedChange_)
                 {
-                    Info << "TEST : triSurfaceSizeChange " << allowedChange_ * 100 
-                        << " % : FAIL " << endl;  
+                    Info << "TEST : triSurfaceSizeChange " << allowedChange_ * 100
+                        << " % : FAIL " << endl;
                 }
                 else
                 {
-                    Info << "TEST : triSurfaceSizeChange : PASS " << endl;  
+                    Info << "TEST : triSurfaceSizeChange : PASS " << endl;
                 }
             }
 
-            lastSize_ = triSurfaceSize; 
+            lastSize_ = triSurfaceSize;
         }
 };
 
-// Classes for testing the application code.  
+// Classes for testing the application code.
 
-class lentTests : public ::testing::Test 
+class lentTests : public ::testing::Test
 {
     protected:
         template<typename Front>
-        void TEST_NORMAL_CONSISTENCY(Front const & front) 
+        void TEST_NORMAL_CONSISTENCY(Front const & front)
         {
             ASSERT_TRUE(triSurfaceNormalsAreConsistent(front));
         }
@@ -121,9 +139,9 @@ class lentTests : public ::testing::Test
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace Test 
+} // End namespace Test
 
-} // End namespace FrontTracking 
+} // End namespace FrontTracking
 
 } // End namespace Foam
 

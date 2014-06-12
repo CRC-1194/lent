@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+   \\    /   O peration     | Version:  2.2.x                               
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    OpenFOAM is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.
 
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -19,32 +19,55 @@ License
     for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
-
+    along with OpenFOAM; if not, write to the Free Software Foundation,
+    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
     Foam::triSurfaceMeshDistanceFieldCalculator
+
+SourceFiles
+    diffuseInterfaceProperties.C
+
+Author
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
     Computes signed distance fields between the volume mesh and the immersed
     surface mesh using octree searches implemented in the triSurfaceMesh class.
 
-Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    You may refer to this software as :
+    //- full bibliographic data to be provided
+
+    This code has been developed by :
+        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
+    under the project supervision of :
+        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
+    
+    Method Development and Intellectual Property :
+    	Tomislav Maric maric@csi.tu-darmstadt.de
+    	Holger Marschall <marschall@csi.tu-darmstadt.de>
+    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
+
+        Mathematical Modeling and Analysis
+        Center of Smart Interfaces
+        Technische Universitaet Darmstadt
+       
+    If you use this software for your scientific work or your publications,
+    please don't forget to acknowledge explicitly the use of it.
 
 \*---------------------------------------------------------------------------*/
+
 
 #include "triSurfaceMeshDistanceFieldCalculator.H"
 #include "addToRunTimeSelectionTable.H"
 
-
 namespace Foam {
-namespace FrontTracking { 
+namespace FrontTracking {
 
     defineTypeNameAndDebug(triSurfaceMeshDistanceFieldCalculator, 0);
     addToRunTimeSelectionTable(
-       distanceFieldCalculator, 
-       triSurfaceMeshDistanceFieldCalculator, 
+       distanceFieldCalculator,
+       triSurfaceMeshDistanceFieldCalculator,
        Dictionary
     );
 
@@ -57,11 +80,11 @@ triSurfaceMeshDistanceFieldCalculator::triSurfaceMeshDistanceFieldCalculator(
 )
 :
     distanceFieldCalculator(config),
-    cellsElementNearest_(), 
-    pointsElementNearest_(), 
-    narrowBandTmp_( 
+    cellsElementNearest_(),
+    pointsElementNearest_(),
+    narrowBandTmp_(
        narrowBandPropagation::New(config.subDict("narrowBandPropagation"))
-    ) 
+    )
 {}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -72,73 +95,73 @@ triSurfaceMeshDistanceFieldCalculator::~triSurfaceMeshDistanceFieldCalculator()
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
-    volScalarField& signedDistance, 
-    const volScalarField& searchDistanceSqr, 
+    volScalarField& signedDistance,
+    const volScalarField& searchDistanceSqr,
     const triSurfaceFront& front
 )
 {
     if (front.size() > 0)
     {
         signedDistance = dimensionedScalar(
-            "GREAT", 
-            dimLength, 
+            "GREAT",
+            dimLength,
             GREAT
         );
     } else
     {
         signedDistance = dimensionedScalar(
-            "-GREAT", 
-            dimLength, 
+            "-GREAT",
+            dimLength,
             -GREAT
         );
 
     }
 
     const fvMesh& mesh = signedDistance.mesh();
-    
+
     triSurfaceMesh frontMesh(
         IOobject(
-            "triSurfaceMesh", 
-            "frontMesh", 
-            mesh, 
-            IOobject::NO_READ, 
+            "triSurfaceMesh",
+            "frontMesh",
+            mesh,
+            IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        front 
+        front
     );
 
-    // Get the cell centres.  
-    const volVectorField& C = mesh.C(); 
+    // Get the cell centres.
+    const volVectorField& C = mesh.C();
 
     frontMesh.findNearest(
-        C, 
-        searchDistanceSqr, 
+        C,
+        searchDistanceSqr,
         cellsElementNearest_
     );
 
     // Create a list of the volume types: based on the cell centre, the
     List<searchableSurface::volumeType> volType;
-    // Fill the list of the volume types. 
+    // Fill the list of the volume types.
     frontMesh.getVolumeType(C, volType);
 
-    // For all volume types. 
-    forAll(volType, I) 
+    // For all volume types.
+    forAll(volType, I)
     {
         // Get the volume type.
         searchableSurface::volumeType vT = volType[I];
 
-        const pointIndexHit& h = cellsElementNearest_[I]; 
+        const pointIndexHit& h = cellsElementNearest_[I];
 
-        if (h.hit()) 
+        if (h.hit())
         {
             // If the volume is OUTSIDE.
-            if (vT == searchableSurface::OUTSIDE) 
+            if (vT == searchableSurface::OUTSIDE)
             {
                 // Set the positive distance.
                 signedDistance[I] = Foam::mag(C[I] - h.hitPoint());
             }
             // If the volume is inside.
-            else if (vT == searchableSurface::INSIDE) 
+            else if (vT == searchableSurface::INSIDE)
             {
                 // Set the negative distance.
                 signedDistance[I] = -Foam::mag(C[I] - h.hitPoint());
@@ -149,16 +172,16 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
     // TODO: for coupled / processor boundaries
 
     // TODO: GREAT --> make it a controllable configuraton value
-    narrowBandTmp_->ensureNarrowBand(signedDistance, GREAT); 
+    narrowBandTmp_->ensureNarrowBand(signedDistance, GREAT);
 }
 
 void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
-    pointScalarField& pointSignedDistance, 
-    const pointScalarField& pointSearchDistanceSqr, 
+    pointScalarField& pointSignedDistance,
+    const pointScalarField& pointSearchDistanceSqr,
     const triSurfaceFront& front
 )
 {
-    pointSignedDistance.resize(pointSearchDistanceSqr.size()); 
+    pointSignedDistance.resize(pointSearchDistanceSqr.size());
 
     if (front.size() > 0)
     {
@@ -167,39 +190,39 @@ void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
     {
         pointSignedDistance = dimensionedScalar("-GREAT", dimLength, -GREAT);
     }
-    
-    // Get the cell centres.  
-    const pointMesh& pMesh = pointSignedDistance.mesh(); 
 
-    const pointField& points = pMesh().points(); 
+    // Get the cell centres.
+    const pointMesh& pMesh = pointSignedDistance.mesh();
+
+    const pointField& points = pMesh().points();
 
     triSurfaceMesh frontMesh(
         IOobject(
-            "triSurfaceMesh", 
-            "frontMesh", 
-            pointSignedDistance.mesh().thisDb(), 
-            IOobject::NO_READ, 
+            "triSurfaceMesh",
+            "frontMesh",
+            pointSignedDistance.mesh().thisDb(),
+            IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        front 
+        front
     );
 
     frontMesh.findNearest(
-        points, 
-        pointSearchDistanceSqr, 
+        points,
+        pointSearchDistanceSqr,
         pointsElementNearest_
     );
 
     List<searchableSurface::volumeType> volType;
     frontMesh.getVolumeType(points, volType);
 
-    // For all volume types. 
+    // For all volume types.
     forAll(volType, I)
     {
         // Get the volume type.
         searchableSurface::volumeType vT = volType[I];
 
-        const pointIndexHit& h = pointsElementNearest_[I]; 
+        const pointIndexHit& h = pointsElementNearest_[I];
 
         if (h.hit())
         {
@@ -217,20 +240,19 @@ void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
             }
         }
     }
-    
+
     // TODO: GREAT --> make it a controllable configuraton value
-    narrowBandTmp_->ensureNarrowBand(pointSignedDistance, GREAT); 
+    narrowBandTmp_->ensureNarrowBand(pointSignedDistance, GREAT);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace FrontTracking 
+} // End namespace FrontTracking
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 
 // ************************************************************************* //

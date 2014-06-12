@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+   \\    /   O peration     | Version:  2.2.x                               
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    OpenFOAM is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.
 
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -19,36 +19,44 @@ License
     for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+    along with OpenFOAM; if not, write to the Free Software Foundation,
+    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
     Foam::frontMeshSearch
 
-Description
-    Abstract base class for supplemental mesh search operations. 
-    fvMesh supports:
-    
-        * linear search (for each cell, check if ...)
-        * logarithmic search (uses octrees)
-
-    For now, the frontMeshSearch algorithm is to implement variants of the 
-    vicinity search algorithm that uses neighboring cell relationship to find a
-    point in the mesh.
-
-    Important Note: the commented out code is used for debugging purposes, as the
-    class is extended with a cellset of found cells for debugging. The cell-set
-    is updated within a recursive member function, so I see no way to extend the
-    class for debugging using OOD principles. Let me know if a clean way of doing
-    this exists that allows me to avoid modification to the class as done here.
-    Tomislav
-           
 SourceFiles
     frontMeshSearch.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
+Description
+    Abstract base class for supplemental mesh search operations.
+    fvMesh supports:
+
+    You may refer to this software as :
+    //- full bibliographic data to be provided
+
+    This code has been developed by :
+        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
+    under the project supervision of :
+        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
+    
+    Method Development and Intellectual Property :
+    	Tomislav Maric maric@csi.tu-darmstadt.de
+    	Holger Marschall <marschall@csi.tu-darmstadt.de>
+    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
+
+        Mathematical Modeling and Analysis
+        Center of Smart Interfaces
+        Technische Universitaet Darmstadt
+       
+    If you use this software for your scientific work or your publications,
+    please don't forget to acknowledge explicitly the use of it.
+
 \*---------------------------------------------------------------------------*/
+
 
 #ifndef frontMeshSearch_H
 #define frontMeshSearch_H
@@ -70,29 +78,29 @@ class frontMeshSearch
     :
         public refCount
 {
-    mutable scalar lastDistance_; 
-    //mutable cellSet visualizationCellSet_; 
+    mutable scalar lastDistance_;
+    //mutable cellSet visualizationCellSet_;
     //mutable label iterationCount_;
-    //void appendLabelAndWriteCellSet(label cellLabel) const; 
+    //void appendLabelAndWriteCellSet(label cellLabel) const;
 
 public:
 
-    TypeName ("frontMeshSearch"); 
+    TypeName ("frontMeshSearch");
 
     declareRunTimeSelectionTable(
-        tmp,  
-        frontMeshSearch,  
-        Dictionary,  
+        tmp,
+        frontMeshSearch,
+        Dictionary,
         (
-            const dictionary& configDict 
+            const dictionary& configDict
         ),
-        (configDict) 
+        (configDict)
     );
 
     // Constructors
-    
-        //frontMeshSearch(const Time& runTime); 
-        
+
+        //frontMeshSearch(const Time& runTime);
+
         frontMeshSearch();
 
         explicit frontMeshSearch(const dictionary& configDict);
@@ -105,47 +113,47 @@ public:
         virtual ~frontMeshSearch();
 
     // Member Functions
-        
+
         bool pointIsInCell(
-            const point p, 
-            const label cellLabel, 
-            const fvMesh& mesh, 
+            const point p,
+            const label cellLabel,
+            const fvMesh& mesh,
             scalar tolerance=SMALL
-        ) const; 
+        ) const;
 
         virtual label cellContainingPoint(
-            const point& p, 
-            const fvMesh& mesh, 
+            const point& p,
+            const fvMesh& mesh,
             const label seedCell = -1
-        ) const;  
+        ) const;
 
         labelList pointCellStencil(
-            label cellLabel, 
+            label cellLabel,
             const fvMesh& mesh
         ) const;
 
         // TM March 07 14
-        // Updates elementCells using previous elementCells values as seed cells.  
-       
-        // Works directly for a static mesh - the lentMethodDynamic is made 
+        // Updates elementCells using previous elementCells values as seed cells.
+
+        // Works directly for a static mesh - the lentMethodDynamic is made
         // responsible for updating elementCells for topological changes of the
         // volume mesh.
 
         void updateElementCells(
-            DynamicList<label>& elementCells, 
-            const triSurfaceFront& front, 
+            DynamicList<label>& elementCells,
+            const triSurfaceFront& front,
             const fvMesh& mesh
-        ) const; 
+        ) const;
 
-    // Member Operators 
-    
-        void operator=(const frontMeshSearch& rhs); 
+    // Member Operators
+
+        void operator=(const frontMeshSearch& rhs);
 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace FrontTracking 
+} // End namespace FrontTracking
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
