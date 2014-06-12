@@ -60,7 +60,7 @@ should output the location of the `bashrc` OpenFOAM configuration file for your 
 
 *Note* : the following installation instructions do not compile the testing applications: if Google Test has not been built alongside LENT as described above, testing applications will fail to compile. 
 
-* Source the *bashrc* configuration scripti from within the top directory:
+* Source the *bashrc* configuration script from within the top directory:
 
     . etc/bashrc
 
