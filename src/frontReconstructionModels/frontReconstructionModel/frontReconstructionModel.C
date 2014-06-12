@@ -21,6 +21,17 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::frontReconstructionModel
+
+Description
+    Interface for the reconstruction test: LENT reconstruction is to be performed
+    only when topological changes are happening and / or the quality of the front
+    has decreased. How and when exactly is what this class hierarchy decides on.
+
+Authors
+    Tomislav Maric maric@csi.tu-darmstadt.de
+
 \*---------------------------------------------------------------------------*/
 
 #include "frontReconstructionModel.H"

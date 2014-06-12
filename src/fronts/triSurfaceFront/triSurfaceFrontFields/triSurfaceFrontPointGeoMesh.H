@@ -29,6 +29,10 @@ Description
 
     Similar to the volMesh used for the Finite Volume discretization.
 
+
+Authors
+    Tomislav Maric maric@csi.tu-darmstadt.de
+
 \*---------------------------------------------------------------------------*/
 
 #ifndef triSurfaceFrontPointGeoMesh_H

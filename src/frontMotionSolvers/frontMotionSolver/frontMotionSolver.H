@@ -39,9 +39,7 @@ SourceFiles
     frontMotionSolver.C
 
 Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

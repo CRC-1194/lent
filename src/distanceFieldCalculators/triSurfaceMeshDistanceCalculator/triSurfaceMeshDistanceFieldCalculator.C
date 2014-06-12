@@ -22,10 +22,15 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 
+Class
+    Foam::triSurfaceMeshDistanceFieldCalculator
+
+Description
+    Computes signed distance fields between the volume mesh and the immersed
+    surface mesh using octree searches implemented in the triSurfaceMesh class.
+
 Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

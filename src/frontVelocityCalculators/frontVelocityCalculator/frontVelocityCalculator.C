@@ -21,6 +21,18 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::frontVelocityCalculator
+
+Description
+    Interface for the front velocity calculation. 
+
+SourceFiles
+    frontVelocityCalculator.C
+
+Authors
+    Tomislav Maric maric@csi.tu-darmstadt.de
+
 \*---------------------------------------------------------------------------*/
 
 #include "frontVelocityCalculator.H"

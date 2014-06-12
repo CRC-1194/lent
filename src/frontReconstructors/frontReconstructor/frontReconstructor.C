@@ -21,6 +21,16 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::frontReconstructor
+
+Description
+    Abstract base class for the heaviside function calculation from a signed 
+    distance field.
+
+Authors
+    Tomislav Maric maric@csi.tu-darmstadt.de
+
 \*---------------------------------------------------------------------------*/
 
 #include "frontReconstructor.H"

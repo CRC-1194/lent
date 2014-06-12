@@ -21,11 +21,18 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::distanceFieldCalculator
+
+Description
+
+    Interface class for the distance field calculator. 
+
+    Provides the interface for calculating the signed distance field between
+    a volume mesh (cells and points) and an immersed surface mesh (elements).
 
 Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

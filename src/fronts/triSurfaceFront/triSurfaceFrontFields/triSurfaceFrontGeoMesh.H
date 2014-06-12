@@ -29,6 +29,9 @@ Description
 
     Similar to the volGeoMesh used for the Finite Volume discretization.
 
+Authors
+    Tomislav Maric maric@csi.tu-darmstadt.de
+
 \*---------------------------------------------------------------------------*/
 
 #ifndef triSurfaceFrontGeoMesh_H

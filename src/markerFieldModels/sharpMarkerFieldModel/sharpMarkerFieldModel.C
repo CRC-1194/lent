@@ -21,10 +21,15 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::sharpMarkerFieldModel
+
+Description
+    Abstract base class for the markerField function calculation from a signed 
+    distance field.
+
 Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

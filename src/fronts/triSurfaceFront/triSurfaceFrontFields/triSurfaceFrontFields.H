@@ -30,6 +30,9 @@ Description
 SourceFiles
     triSurfaceFrontFields.C
 
+Authors
+    Tomislav Maric maric@csi.tu-darmstadt.de
+
 \*---------------------------------------------------------------------------*/
 
 #ifndef triSurfaceFrontFields_H

@@ -27,9 +27,10 @@ Class
 Description
 
 SourceFiles
-    naiveNarrowBandPropagationI.H
     naiveNarrowBandPropagation.C
-    naiveNarrowBandPropagationIO.C
+
+Authors
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

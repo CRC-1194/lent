@@ -21,10 +21,25 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::frontMotionSolver
+
+Description
+    Interface for the front motion solution. 
+
+    The motion of the front is defined in a lagrangian way with 
+
+    \partial_t \x_v = \U(\x_v) 
+
+    The solution can be approximated with different (explicity) temporal 
+    discretization schemes implemented by classes in the frontMotionSolver
+    hierarchy. 
+
+SourceFiles
+    frontMotionSolver.C
+
 Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

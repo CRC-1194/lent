@@ -24,15 +24,13 @@ License
 Class
     Foam::triSurfaceFront
 
-Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
-
 Description
 
 SourceFiles
     triSurfaceFront.C
+
+Authors
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

@@ -29,6 +29,10 @@ Description
 
 SourceFiles
 
+
+Authors
+    Tomislav Maric maric@csi.tu-darmstadt.de
+
 \*---------------------------------------------------------------------------*/
 
 #ifndef lentTests_H

@@ -21,10 +21,16 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::lentMethod 
+
+Description
+    A facade class that simplifies the user interface for the LENT hybrid 
+    front-tracking level-set method by agglomerating a bunch of run-time 
+    selected small one-algorithm SRP classes. 
+
 Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

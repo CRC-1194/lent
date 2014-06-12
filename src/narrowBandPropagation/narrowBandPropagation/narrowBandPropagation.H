@@ -25,11 +25,13 @@ Class
     Foam::narrowBandPropagation
 
 Description
+    Class for propagating the switch in the sign of the sign distance field.
 
 SourceFiles
-    narrowBandPropagationI.H
     narrowBandPropagation.C
-    narrowBandPropagationIO.C
+
+Authors
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 

@@ -21,10 +21,29 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::frontMeshSearch
+
+Description
+    Abstract base class for supplemental mesh search operations. 
+    fvMesh supports:
+    
+        * linear search (for each cell, check if ...)
+        * logarithmic search (uses octrees)
+
+    For now, the frontMeshSearch algorithm is to implement variants of the 
+    vicinity search algorithm that uses neighboring cell relationship to find a
+    point in the mesh.
+
+    Important Note: the commented out code is used for debugging purposes, as the
+    class is extended with a cellset of found cells for debugging. The cell-set
+    is updated within a recursive member function, so I see no way to extend the
+    class for debugging using OOD principles. Let me know if a clean way of doing
+    this exists that allows me to avoid modification to the class as done here.
+    Tomislav
+
 Authors
-    Tomislav Maric
-    maric<<at>>csi<<dot>>tu<<minus>>darmstadt<<dot>>de
-    tomislav<<dot>>maric<<at>>gmx<<dot>>com
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
 
