@@ -29,7 +29,7 @@ SourceFiles
     diffuseInterfaceProperties.C
 
 Author
-    Holger Marschall <marschall@csi.tu-darmstadt.de>
+    Tomislav Maric <maric@csi.tu-darmstadt.de>
     All rights reserved.
 
 Description
@@ -39,7 +39,7 @@ Description
     //- full bibliographic data to be provided
 
     This code has been developed by :
-        Holger Marschall <marschall@csi.tu-darmstadt.de> (main developer)
+        Tomislav Maric<maric@csi.tu-darmstadt.de> (main developer)
     under the project supervision of :
         Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
     

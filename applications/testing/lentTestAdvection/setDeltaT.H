@@ -29,8 +29,7 @@ SourceFiles
     diffuseInterfaceProperties.C
 
 Author
-    Holger Marschall <marschall@csi.tu-darmstadt.de>
-    All rights reserved.
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
     Reset the timestep to maintain a constant maximum courant Number.
@@ -41,7 +40,7 @@ Description
     //- full bibliographic data to be provided
 
     This code has been developed by :
-        Holger Marschall <marschall@csi.tu-darmstadt.de> (main developer)
+        Tomislav Maric <maric@csi.tu-darmstadt.de> (main developer)
     under the project supervision of :
         Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
     
