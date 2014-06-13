@@ -22,15 +22,8 @@ License
     along with OpenFOAM; if not, write to the Free Software Foundation,
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-Class
-    Foam::diffuseInterfaceProperties
-
-SourceFiles
-    diffuseInterfaceProperties.C
-
 Author
-    Holger Marschall <marschall@csi.tu-darmstadt.de>
-    All rights reserved.
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
     Reset the timestep to maintain a constant maximum courant Number.
@@ -41,7 +34,7 @@ Description
     //- full bibliographic data to be provided
 
     This code has been developed by :
-        Holger Marschall <marschall@csi.tu-darmstadt.de> (main developer)
+        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
     under the project supervision of :
         Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
     
