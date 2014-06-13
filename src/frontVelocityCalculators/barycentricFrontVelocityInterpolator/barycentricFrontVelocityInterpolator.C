@@ -98,7 +98,7 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
     const List<labelledTri>& elements = front.localFaces();
     const pointField& vertices = front.points();
 
-    //const fvMesh& mesh = U.mesh();
+    const fvMesh& mesh = U.mesh();
 
     forAll (elementCells, elementI)
     {
@@ -106,32 +106,32 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
 
         forAll (element, vertexI)
         {
+            label foundCell = -1;
 
-            //label foundCell = -1;
+            const point& vertex = vertices[element[vertexI]]; 
 
-            //if (!pointIsInCell(vertex, elementCells[elementI], mesh))
-            //{
-                //foundCell  = cellContainingPoint(
-                    //vertex,
-                    //mesh,
-                    //elementCells[elementI]
-                //);
+            if (!pointIsInCell(vertex, elementCells[elementI], mesh))
+            {
+                foundCell  = cellContainingPoint(
+                    vertex,
+                    mesh,
+                    elementCells[elementI]
+                );
 
-                //if (foundCell > 0)
-                //{
-                    //elementCells[elementI] = foundCell;
-                //}
-            //}
-            //const point& vertex = vertices[element[vertexI]];
+                if (foundCell > 0)
+                {
+                    elementCells[elementI] = foundCell;
+                }
+            }
 
-            //if (foundCell > 0)
-            //{
+            if (foundCell > 0)
+            {
                 // Barycentric interpolation happens here, separate the rest of the code!
-            frontVelocity[element[vertexI]] = barycentric.interpolate(
-                vertices[element[vertexI]],
-                elementCells[elementI]
-            );
-            //}
+                frontVelocity[element[vertexI]] = barycentric.interpolate(
+                    vertices[element[vertexI]],
+                    elementCells[elementI]
+                );
+            }
         }
     }
 

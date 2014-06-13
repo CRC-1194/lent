@@ -72,6 +72,8 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontVelocityCalculator::frontVelocityCalculator(const dictionary& configDict)
+    :
+        searchAlgTmp_(frontMeshSearch::New(configDict.subDict("searchAlgorithm")))
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -102,49 +104,6 @@ frontVelocityCalculator::New(const dictionary& configDict)
 
 frontVelocityCalculator::~frontVelocityCalculator()
 {}
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-//void frontVelocityCalculator::updateMeshCells(labelList& meshCells, const fvMesh& mesh)
-//{
-    //const triSurfaceFront& front = frontVelocity.mesh();
-
-    //frontVelocity.resize(front.nPoints());
-
-    //interpolationCellPoint<vector> barycentric(U);
-
-    //const List<labelledTri>& elements = front.localFaces();
-    //const pointField& vertices = front.points();
-
-    //const fvMesh& mesh = U.mesh();
-
-    //forAll (elementCells, elementI)
-    //{
-        //const triFace& element = elements[elementI];
-
-        //forAll (element, vertexI)
-        //{
-            //const point& vertex = vertices[element[vertexI]];
-
-            //label foundCell = -1;
-
-            //if (!pointIsInCell(vertex, elementCells[elementI], mesh))
-            //{
-                //foundCell  = cellContainingPoint(
-                    //vertex,
-                    //mesh,
-                    //elementCells[elementI]
-                //);
-
-                //if (foundCell > 0)
-                //{
-                    //elementCells[elementI] = foundCell;
-                //}
-            //}
-        //}
-    //}
-
-//}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

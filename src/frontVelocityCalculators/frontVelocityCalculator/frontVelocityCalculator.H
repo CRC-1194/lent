@@ -83,7 +83,7 @@ class frontVelocityCalculator
         public refCount
 {
 
-    //tmp<frontMeshSearch> searchAlgTmp_;
+    tmp<frontMeshSearch> searchAlgTmp_;
 
 public:
 
@@ -112,30 +112,24 @@ public:
 
     // Member Functions
 
-        //bool pointIsInCell(
-            //const point p,
-            //const label cellLabel,
-            //const fvMesh& mesh,
-            //scalar tolerance=SMALL
-        //) const
-        //{
-            //return searchAlgTmp_->pointIsInCell(p, cellLabel, mesh, tolerance);
-        //}
+        bool pointIsInCell(
+            const point p,
+            const label cellLabel,
+            const fvMesh& mesh,
+            scalar tolerance=SMALL
+        ) const
+        {
+            return searchAlgTmp_->pointIsInCell(p, cellLabel, mesh, tolerance);
+        }
 
-        //label cellContainingPoint(
-            //const point& p,
-            //const fvMesh& mesh,
-            //const label seedCell = -1
-        //) const
-        //{
-            //return searchAlgTmp_->cellContainingPoint(p, mesh, seedCell);
-        //}
-
-        //virtual void updateMeshCells(
-            //labelList& meshCells,
-            //const triSurfaceFront& front,
-            //const fvMesh& mesh
-        //);
+        label cellContainingPoint(
+            const point& p,
+            const fvMesh& mesh,
+            const label seedCell = -1
+        ) const
+        {
+            return searchAlgTmp_->cellContainingPoint(p, mesh, seedCell);
+        }
 
         virtual void calcFrontVelocity(
             triSurfaceFrontVectorField& frontVelocity,

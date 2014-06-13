@@ -230,13 +230,13 @@ void lentMethod::calcFrontVelocity(
 )
 {
     // TM Mar 07 14 : timing-01
-    if (! frontIsReconstructed_)
-    {
-        const triSurfaceFront& front = frontVelocity.mesh();
-        const fvMesh& mesh = U.mesh();
-        searchAlgorithmTmp_->updateElementCells(elementCells_, front, mesh);
+    //if (! frontIsReconstructed_)
+    //{
+        //const triSurfaceFront& front = frontVelocity.mesh();
+        //const fvMesh& mesh = U.mesh();
+        //searchAlgorithmTmp_->updateElementCells(elementCells_, front, mesh);
 
-    }
+    //}
 
     frontVelocityCalculatorTmp_->calcFrontVelocity(
         frontVelocity,
