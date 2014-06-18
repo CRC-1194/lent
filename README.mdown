@@ -72,3 +72,43 @@ For permanent configuration of the environmental variables, source the *bashrc* 
 
     source path/to/lent/etc/bashrc
 
+
+## Usage
+
+There are two important utilities that are distributed with the LENT repository which are used to prepare the simulation case:  
+
+* `lentClearCasesRecursive` - `pyFoam` based script that cleans the LENT cases recursively
+* `lentSetFields` - pre-processing application that sets the signed distance and cell search fields required by the LENT method
+
+for the lent solvers:
+
+* `lentReconstruct` - solver application used to *reconstruct* the LENT front 
+* `lentAdvect` - solver application used to *advect* the LENT front with a *prescribed velocity field*
+* `lentFoam` - solver application used to execute two-phase Direct Numerical Simulations with the LENT method
+
+Other testing and utility applications are available in the `applications` folder with the appropriate descriptions placed in the implementation file headers. 
+
+### Utilities information 
+
+#### `lentClearCasesRecursive` 
+
+* Expects to find `0.org` directory with the original fields in the simulation case directory. The LENT method modifies the initial `0` time-step directory, as it requires the signed and search distance fields to be computed before the start of the simulation. 
+* Is used mostly for validation cases of the `lent-validation-cases` repository. 
+* Even if `0.org` doesn't exist, it will clean up the `front/front-000*.vtk` files written from the last run. 
+
+#### `lentSetFields` 
+
+* Requires a file named `front.stl` in the folder `front` of the LENT simulation case. 
+* It uses the surface mesh stored in the `front.stl` file to pre-process the signed and search distance fields. 
+
+
+### Running cases
+
+This is the standard workflow: 
+
+    lentClearCasesRecursive
+    lentSetFields
+    lentFoam 
+
+`lentFoam` can be replaced by another solver application (`lentReconstruct` or `lentAdvect`).
+
