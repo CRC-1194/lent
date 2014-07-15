@@ -72,6 +72,9 @@ For permanent configuration of the environmental variables, source the *bashrc* 
 
     source path/to/lent/etc/bashrc
 
+### Installing PyFoam 
+
+PyFoam scripts are used directly by some LENT utilities, so PyFoam needs to be installed on the system. Information on PyFoam installation can be found on the [OpenFOAM Wiki](http://openfoamwiki.net/index.php/Contrib/PyFoam). 
 
 ## Usage
 
