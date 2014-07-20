@@ -130,7 +130,7 @@ _Note_: this HowTo has been tested with FreeCAD v0.15 and ParaView 3.12.0.
 #### Steps in FreeCAD
 
 * Create a new file: `File --> New`
-* Open the dropdown menu in the menu bar and switch to `Part`.
+* Open the `Start` dropdown menu in the menu bar and switch to `Part`.
 * Below the dropdown menu click the button `Creation of parametrized
   geometric primitives`.
 * At the tabs on the left hand side switch from `Model` to `Tasks`. Below in
