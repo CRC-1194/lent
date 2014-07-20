@@ -12,9 +12,8 @@ Center of Smart Interfaces, TU Darmstadt
 
 ### Prerequisites
 
-* Compile OpenFOAM with support for C++11
-* Supported OpenFOAM version: 2.2.x  
-* LENT relies on C++11 and has been successfully compiled with gcc-4.8.2
+* OpenFOAM versions: 2.2.x  
+* Compilers: gcc-4.8.2 and gcc-4.9.0
 * `subversion` and `cmake` for compiling Google Test 
 
 ### Compiling Google Test
