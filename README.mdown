@@ -115,7 +115,7 @@ This is the standard workflow:
 
 `lentFoam` can be replaced by another solver application (`lentReconstruct` or `lentAdvect`).
 
-## HowTo: Generation of front.stl using FreeCAD and ParaView
+### HowTo: Generation of the front.stl file using FreeCAD and ParaView
 
 To simulate a case using the LENT method an initial interface is
 needed. The interface geometry is described the file "front/front.stl"
@@ -128,7 +128,7 @@ respectively.
 
 _Note_: this HowTo has been tested with FreeCAD v0.15 and ParaView 3.12.0.
 
-### Steps in FreeCAD
+#### Steps in FreeCAD
 
 * Create a new file: `File --> New`
 * Open the dropdown menu in the menu bar and switch to `Part`.
@@ -157,7 +157,7 @@ _Note_: this HowTo has been tested with FreeCAD v0.15 and ParaView 3.12.0.
 * As `Files of type` select `Mesh formats`.
 * Enter "front.stl" and click `Save`.
 
-### Steps in ParaView
+#### Steps in ParaView
 
 FreeCAD is only able to save STL files in binary format. With ParaView
 it can be converted into ASCII format.
@@ -169,7 +169,7 @@ it can be converted into ASCII format.
 * A dialog box opens. Choose ASCII format in the dropdown menu and click
   `OK`.
 
-### A note on units
+#### A note on units
 
 _ Section incomplete _
 
