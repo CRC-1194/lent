@@ -95,7 +95,7 @@ void sharpMarkerFieldModel::calcMarkerField(
     {
         scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
 
-        if (mag(signedDistance[cellI]) < searchDistance)
+        if (mag(signedDistance[cellI]) < 0.5 * searchDistance)
         {
             markerField[cellI] = 0.5;
         }
