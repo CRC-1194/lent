@@ -1,6 +1,6 @@
-# LEvel-set / froNT tracking (LENT) algorithm 
+# LENT - a hybrid LEvel-set / froNT tracking (LENT) method in OpenFOAM 
 
-This is the library and application toolbox that implements the LENT algorithm for DNS simulations of two-phase flows. 
+This is the library and application toolbox that implements the LENT method for DNS simulations of two-phase flows. 
 
 Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
 
