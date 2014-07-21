@@ -63,6 +63,12 @@ using namespace FrontTracking;
 
 int main(int argc, char *argv[])
 {
+    argList::addBoolOption 
+    (
+        "once", 
+        "Execute reconstruction only once."
+    );  
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -88,6 +94,13 @@ int main(int argc, char *argv[])
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
     front.write();
+
+    const bool once = args.optionFound("once");
+
+    if (once)
+    {
+        return 0;
+    }
 
     while (runTime.run()) {
 
