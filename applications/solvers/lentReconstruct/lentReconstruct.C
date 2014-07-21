@@ -97,11 +97,6 @@ int main(int argc, char *argv[])
 
     const bool once = args.optionFound("once");
 
-    if (once)
-    {
-        return 0;
-    }
-
     while (runTime.run()) {
 
         runTime++;
@@ -127,6 +122,11 @@ int main(int argc, char *argv[])
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
             << nl << endl;
+
+        if (once)
+        {
+            return 0;
+        }
     }
 
     Info<< "End\n" << endl;
