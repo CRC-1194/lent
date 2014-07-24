@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMesh.H"
 
-    surfaceScalarField faceCurvature  
+    surfaceScalarField faceCurvatureExact  
     (
         IOobject
         (
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
         ) 
     );
 
-    volScalarField cellCurvature  
+    volScalarField cellCurvatureExact  
     (
         IOobject
         (
@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
+
         mesh, 
         dimensionedScalar(
             "zero", 
@@ -92,12 +93,12 @@ int main(int argc, char *argv[])
     const volVectorField& cellCenters = mesh.C(); 
     const surfaceVectorField& faceCenters = mesh.Cf(); 
 
-    vector circleCenter (0.5, 0.5, 0); 
+    vector circleCenter (0.5, 0.5, 0);
 
     // Set internal face centered curvature field.
     forAll(faceCurvature, I)
     {
-        faceCurvature[I] = circle_curvature(faceCenters[I], circleCenter);  
+        faceCurvature[I] = circle_curvature(faceCenters[I], circleCenter);
     }
 
     // TODO: set the boundary face centered curvature field
@@ -106,7 +107,7 @@ int main(int argc, char *argv[])
     // Set internal cell centered curvature field.
     forAll(cellCurvature, I)
     {
-        cellCurvature[I] = circle_curvature(cellCenters[I], circleCenter);  
+        cellCurvature[I] = circle_curvature(cellCenters[I], circleCenter);
     }
 
     // TODO: set the boundary cell centered curvature field
