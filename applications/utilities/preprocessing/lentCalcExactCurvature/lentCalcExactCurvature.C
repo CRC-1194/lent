@@ -38,10 +38,48 @@ Authors
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "timeSelector.H"
 
 scalar circle_curvature(const point& p, const point& circleCenter)
 {
-    return 0;
+    vector distance = circleCenter - p;
+
+    // Since the circle is used in 2D test cases, project the vector
+    // on the x-y plane
+    distance.z() = 0;
+
+    double radius = Foam::sqrt(distance & distance);
+    double curvature = 0;
+
+    // To avoid divide y zero in case the circle center and the point
+    // coincide, check distance and limit the curvature value
+    //
+    // TODO: think of reasonable limits for the minimal radius and
+    // maximum curvature. Maybe the value for minimal radius can be based
+    // on the edge length of the cells.
+    if (radius > 1.0e-10) curvature = 1 / radius;
+    else                  curvature = 1.0e10;
+
+    return curvature;
+}
+
+scalar sphere_curvature(const point& p, const point& sphereCenter)
+{
+    vector distance = sphereCenter - p;
+
+    double radius = Foam::sqrt(distance & distance);
+    double curvature = 0;
+
+    // To avoid divide y zero in case the sphere center and the point
+    // coincide, check distance and limit the curvature value
+    //
+    // TODO: think of reasonable limits for the minimal radius and
+    // maximum curvature. Maybe the value for minimal radius can be based
+    // on the edge length of the cells.
+    if (radius > 1.0e-10) curvature = 2 / radius;
+    else                  curvature = 2.0e10;
+
+    return curvature;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -49,72 +87,172 @@ scalar circle_curvature(const point& p, const point& circleCenter)
 
 int main(int argc, char *argv[])
 {
+    // Add necessary options and check if they have been set by the user
+    argList::addOption
+    (
+        "shape",
+        "Shape for which analytic curvature is to be set"
+    );
+
+    argList::addOption
+    (
+        "x",
+        "x-coordinate of the shape center"
+    );   
+
+    argList::addOption
+    (
+        "y",
+        "y-coordinate of the shape center"
+    );
+
+    argList::addOption
+    (
+        "z",
+        "z-coordinate of the shape center"
+    );   
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
 
-    surfaceScalarField faceCurvatureExact  
-    (
-        IOobject
-        (
-            "faceCurvature",
-            runTime.timeName(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh, 
-        dimensionedScalar(
-            "zero", 
-            pow(dimLength, -1), 
-            0
-        ) 
-    );
-
-    volScalarField cellCurvatureExact  
-    (
-        IOobject
-        (
-            "cellCurvature",
-            runTime.timeName(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-
-        mesh, 
-        dimensionedScalar(
-            "zero", 
-            pow(dimLength, -1), 
-            0
-        ) 
-    );
-
-    const volVectorField& cellCenters = mesh.C(); 
-    const surfaceVectorField& faceCenters = mesh.Cf(); 
-
-    vector circleCenter (0.5, 0.5, 0);
-
-    // Set internal face centered curvature field.
-    forAll(faceCurvature, I)
+    if (!args.optionFound("shape"))
     {
-        faceCurvature[I] = circle_curvature(faceCenters[I], circleCenter);
+        FatalErrorIn
+        (
+            "main()"
+        )   << "Please use option '-shape' to select the shape for which the "
+            << "exact is to be calculated." << endl << exit(FatalError);
     }
 
-    // TODO: set the boundary face centered curvature field
+    if (!args.optionFound("x"))
+    {
+        FatalErrorIn
+        (
+            "main()"
+        )   << "Please use option '-x' to specify the x-coordinate of the"
+            << " shape center." << endl << exit(FatalError);
+    }
 
+    if (!args.optionFound("y"))
+    {
+        FatalErrorIn
+        (
+            "main()"
+        )   << "Please use option '-y' to specify the y-coordinate of the"
+            << " shape center." << endl << exit(FatalError);
+    }
+
+    if (!args.optionFound("z"))
+    {
+        FatalErrorIn
+        (
+            "main()"
+        )   << "Please use option '-z' to specify the z-coordinate of the"
+            << " shape center." << endl << exit(FatalError);
+    }
+
+    const word shapeName = args.optionRead<word>("shape");
+    const double x_center = args.optionRead<double>("x");
+    const double y_center = args.optionRead<double>("y");
+    const double z_center = args.optionRead<double>("z");
+
+    vector circleCenter (x_center, y_center, z_center);
+
+    // Get the time directories from the simulation folder using time selector
+    Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
+
+    forAll(timeDirs, timeI)
+    {
+        // Set the time to the current time directory and set the time index
+        // to timeI
+        runTime.setTime(timeDirs[timeI], timeI);
+
+        // Initialize the field objects for curvature
+        surfaceScalarField faceCurvatureExact  
+        (
+            IOobject
+            (
+                "faceCurvatureExact",
+                runTime.timeName(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            mesh, 
+            dimensionedScalar(
+                "zero", 
+                pow(dimLength, -1), 
+                0
+            ) 
+        );
+
+        volScalarField cellCurvatureExact  
+        (
+            IOobject
+            (
+                "cellCurvatureExact",
+                runTime.timeName(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+
+            mesh, 
+            dimensionedScalar(
+                "zero", 
+                pow(dimLength, -1), 
+                0
+            ) 
+        );
+
+        const volVectorField& cellCenters = mesh.C(); 
+        const surfaceVectorField& faceCenters = mesh.Cf(); 
+
+        // Set internal face centered curvature field.
+        forAll(faceCurvatureExact, I)
+        {
+            faceCurvatureExact[I] = circle_curvature(faceCenters[I],
+                                                     circleCenter);
+        }
+
+        // TODO: set the boundary face centered curvature field
+        // In this loop something is rotten. Probably the inner loop takes
+        // the wrong face center coordinates
+        forAll(faceCurvatureExact.boundaryField(), I)
+        {
+            scalarField& bScalarField = faceCurvatureExact.boundaryField()[I];
+
+            forAll(bScalarField, I)
+            {
+                bScalarField[I] = circle_curvature(faceCenters[I],
+                                                   circleCenter);
+            }
+        }
     
-    // Set internal cell centered curvature field.
-    forAll(cellCurvature, I)
-    {
-        cellCurvature[I] = circle_curvature(cellCenters[I], circleCenter);
+        // Set internal cell centered curvature field.
+        forAll(cellCurvatureExact, I)
+        {
+            cellCurvatureExact[I] = circle_curvature(cellCenters[I],
+                                                     circleCenter);
+        }
+
+        // Set the boundary cell centered curvature field
+        forAll(cellCurvatureExact.boundaryField(), I)
+        {
+            scalarField& bScalarField = cellCurvatureExact.boundaryField()[I];
+
+            forAll(bScalarField, I)
+            {
+                bScalarField[I] = circle_curvature(cellCenters[I],
+                                                   circleCenter);
+            }
+        }
+
+        // Write the fields. 
+        faceCurvatureExact.write(); 
+        cellCurvatureExact.write();
     }
-
-    // TODO: set the boundary cell centered curvature field
-
-    // Write the fields. 
-    faceCurvature.write(); 
-    cellCurvature.write();
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
