@@ -187,6 +187,25 @@ int main(int argc, char *argv[])
             ) 
         );
 
+        // Debugging/Testing: write coordinates of face centers to a field
+        surfaceVectorField faceCenterCoordinates
+        (
+            IOobject
+            (
+                "faceCenterCoordinates",
+                runTime.timeName(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            mesh,
+            dimensionedVector(
+                "zero", 
+                dimensionSet(1,0,0,0,0,0,0),
+                Foam::vector(0,0,0)
+            ) 
+        );
+
         volScalarField cellCurvatureExact  
         (
             IOobject
@@ -214,6 +233,8 @@ int main(int argc, char *argv[])
         {
             faceCurvatureExact[I] = circle_curvature(faceCenters[I],
                                                      circleCenter);
+            // Debugging
+            faceCenterCoordinates[I] = faceCenters[I];
         }
 
         // TODO: set the boundary face centered curvature field
@@ -223,11 +244,32 @@ int main(int argc, char *argv[])
         {
             scalarField& bScalarField = faceCurvatureExact.boundaryField()[I];
 
-            forAll(bScalarField, I)
-            {
-                bScalarField[I] = circle_curvature(faceCenters[I],
+            // Debugging
+            vectorField& bVectorField = faceCenterCoordinates.boundaryField()[I];
+
+            forAll(bScalarField, K)
+            {  
+                bScalarField[K] = circle_curvature(faceCenters[K],
                                                    circleCenter);
+                // Debugging
+                bVectorField[K] = faceCenters[K];
             }
+
+            /*
+            // Another approach, yields a compile-time error when executing
+            // wmake
+            
+            const fvMesh& mesh = bScalarField.mesh();
+            const surfaceVectorField& boundaryFaceCenters = mesh.Cf();
+            
+            forAll(bScalarField, K)
+            {
+                bScalarField[K] = circle_curvature(boundaryFaceCenters[K],
+                                                   circleCenter);
+                // Debugging
+                bVectorField[K] = boundaryFaceCenters[K];
+            }
+            */
         }
     
         // Set internal cell centered curvature field.
@@ -252,6 +294,9 @@ int main(int argc, char *argv[])
         // Write the fields. 
         faceCurvatureExact.write(); 
         cellCurvatureExact.write();
+
+        // Debugging
+        faceCenterCoordinates.write();
     }
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
