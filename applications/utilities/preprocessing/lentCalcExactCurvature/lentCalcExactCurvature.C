@@ -40,6 +40,8 @@ Authors
 #include "fvCFD.H"
 #include "timeSelector.H"
 
+// TODO: exactCurvatureModel class hierarchy with RTS. 
+
 scalar circle_curvature(const point& p, const point& center)
 {
     scalar curvature = 0;
@@ -165,8 +167,7 @@ int main(int argc, char *argv[])
 
     forAll(timeDirs, timeI)
     {
-        // Set the time to the current time directory and set the time index to
-        // timeI.
+        // Set the time to the current time directory and update time index.
         runTime.setTime(timeDirs[timeI], timeI);
 
         // Set internal face centered curvature field.
@@ -175,6 +176,7 @@ int main(int argc, char *argv[])
             faceCurvature[I] = circle_curvature(Cf[I], center);
         }
 
+        // Set boundary face centered curvature field.
         forAll(faceCurvature.boundaryField(), I)
         {
             fvsPatchScalarField& faceCurvatureBoundary = faceCurvature.boundaryField()[I];
@@ -183,8 +185,6 @@ int main(int argc, char *argv[])
 
             forAll(faceCurvatureBoundary, J)
             {  
-                // FIXME: this was a bug, you have to address the CfBoundary
-                //bScalarField[K] = circle_curvature(Cf[K], center);
                 faceCurvatureBoundary[J] = circle_curvature(CfBoundary[J], center);
             }
         }
