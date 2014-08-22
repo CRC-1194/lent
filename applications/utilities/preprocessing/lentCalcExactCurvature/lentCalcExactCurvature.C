@@ -42,23 +42,21 @@ Authors
 
 scalar circle_curvature(const point& p, const point& circleCenter)
 {
-    vector distance = circleCenter - p;
+    // Enable NRVO optimization.
+    scalar curvature = 0;
 
-    // Since the circle is used in 2D test cases, project the vector
-    // on the x-y plane
-    distance.z() = 0;
+    // Use Foam::mag for the vector magnitude. 
+    scalar radius = mag(circleCenter - p); 
 
-    double radius = Foam::sqrt(distance & distance);
-    double curvature = 0;
-
-    // To avoid divide y zero in case the circle center and the point
-    // coincide, check distance and limit the curvature value
-    //
-    // TODO: think of reasonable limits for the minimal radius and
-    // maximum curvature. Maybe the value for minimal radius can be based
-    // on the edge length of the cells.
-    if (radius > 1.0e-10) curvature = 1 / radius;
-    else                  curvature = 1.0e10;
+    // Use SMALL/GREAT typedefs for ~0 and inf (large) values.
+    if (radius > SMALL) 
+    {
+        curvature = 1 / radius; 
+    }
+    else
+    {
+        curvature = GREAT; 
+    }
 
     return curvature;
 }
