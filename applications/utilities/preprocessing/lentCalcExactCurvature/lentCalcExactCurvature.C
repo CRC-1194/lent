@@ -40,15 +40,12 @@ Authors
 #include "fvCFD.H"
 #include "timeSelector.H"
 
-scalar circle_curvature(const point& p, const point& circleCenter)
+scalar circle_curvature(const point& p, const point& center)
 {
-    // Enable NRVO optimization.
     scalar curvature = 0;
 
-    // Use Foam::mag for the vector magnitude. 
-    scalar radius = mag(circleCenter - p); 
+    scalar radius = mag(center - p); 
 
-    // Use SMALL/GREAT typedefs for ~0 and inf (large) values.
     if (radius > SMALL) 
     {
         curvature = 1 / radius; 
@@ -94,21 +91,10 @@ int main(int argc, char *argv[])
 
     argList::addOption
     (
-        "x",
-        "x-coordinate of the shape center"
+        "center",
+        "Shape center position."
     );   
 
-    argList::addOption
-    (
-        "y",
-        "y-coordinate of the shape center"
-    );
-
-    argList::addOption
-    (
-        "z",
-        "z-coordinate of the shape center"
-    );   
 
     #include "setRootCase.H"
     #include "createTime.H"
@@ -116,185 +102,114 @@ int main(int argc, char *argv[])
 
     if (!args.optionFound("shape"))
     {
-        FatalErrorIn
-        (
-            "main()"
-        )   << "Please use option '-shape' to select the shape for which the "
+        FatalErrorIn("main()")   
+            << "Please use option '-shape' to select the shape for which the "
             << "exact is to be calculated." << endl << exit(FatalError);
     }
 
-    if (!args.optionFound("x"))
+    if (!args.optionFound("center"))
     {
-        FatalErrorIn
-        (
-            "main()"
-        )   << "Please use option '-x' to specify the x-coordinate of the"
-            << " shape center." << endl << exit(FatalError);
-    }
-
-    if (!args.optionFound("y"))
-    {
-        FatalErrorIn
-        (
-            "main()"
-        )   << "Please use option '-y' to specify the y-coordinate of the"
-            << " shape center." << endl << exit(FatalError);
-    }
-
-    if (!args.optionFound("z"))
-    {
-        FatalErrorIn
-        (
-            "main()"
-        )   << "Please use option '-z' to specify the z-coordinate of the"
-            << " shape center." << endl << exit(FatalError);
+        FatalErrorIn("main()")  
+            << "Please use option '-center' to specify the shape center." 
+            << endl << exit(FatalError);
     }
 
     const word shapeName = args.optionRead<word>("shape");
-    const double x_center = args.optionRead<double>("x");
-    const double y_center = args.optionRead<double>("y");
-    const double z_center = args.optionRead<double>("z");
 
-    vector circleCenter (x_center, y_center, z_center);
-
+    vector center = args.optionRead<vector>("center"); 
+    
     // Get the time directories from the simulation folder using time selector
     Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
 
+    const volVectorField& C = mesh.C(); 
+    const surfaceVectorField& Cf = mesh.Cf(); 
+
+    // Initialize the face centered curvature field.
+    surfaceScalarField faceCurvature  
+    (
+        IOobject
+        (
+            "faceCurvatureExact",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh, 
+        dimensionedScalar(
+            "zero", 
+            pow(dimLength, -1), 
+            0
+        ) 
+    );
+
+    // Initialize the cell centered curvature field.
+    volScalarField cellCurvature  
+    (
+        IOobject
+        (
+            "cellCurvatureExact",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+
+        mesh, 
+        dimensionedScalar(
+            "zero", 
+            pow(dimLength, -1), 
+            0
+        ) 
+    );
+
     forAll(timeDirs, timeI)
     {
-        // Set the time to the current time directory and set the time index
-        // to timeI
+        // Set the time to the current time directory and set the time index to
+        // timeI.
         runTime.setTime(timeDirs[timeI], timeI);
 
-        // Initialize the field objects for curvature
-        surfaceScalarField faceCurvatureExact  
-        (
-            IOobject
-            (
-                "faceCurvatureExact",
-                runTime.timeName(),
-                mesh,
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE
-            ),
-            mesh, 
-            dimensionedScalar(
-                "zero", 
-                pow(dimLength, -1), 
-                0
-            ) 
-        );
-
-        // Debugging/Testing: write coordinates of face centers to a field
-        surfaceVectorField faceCenterCoordinates
-        (
-            IOobject
-            (
-                "faceCenterCoordinates",
-                runTime.timeName(),
-                mesh,
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE
-            ),
-            mesh,
-            dimensionedVector(
-                "zero", 
-                dimensionSet(1,0,0,0,0,0,0),
-                Foam::vector(0,0,0)
-            ) 
-        );
-
-        volScalarField cellCurvatureExact  
-        (
-            IOobject
-            (
-                "cellCurvatureExact",
-                runTime.timeName(),
-                mesh,
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE
-            ),
-
-            mesh, 
-            dimensionedScalar(
-                "zero", 
-                pow(dimLength, -1), 
-                0
-            ) 
-        );
-
-        const volVectorField& cellCenters = mesh.C(); 
-        const surfaceVectorField& faceCenters = mesh.Cf(); 
-
         // Set internal face centered curvature field.
-        forAll(faceCurvatureExact, I)
+        forAll(faceCurvature, I)
         {
-            faceCurvatureExact[I] = circle_curvature(faceCenters[I],
-                                                     circleCenter);
-            // Debugging
-            faceCenterCoordinates[I] = faceCenters[I];
+            faceCurvature[I] = circle_curvature(Cf[I], center);
         }
 
-        // TODO: set the boundary face centered curvature field
-        // In this loop something is rotten. Probably the inner loop takes
-        // the wrong face center coordinates
-        forAll(faceCurvatureExact.boundaryField(), I)
+        forAll(faceCurvature.boundaryField(), I)
         {
-            scalarField& bScalarField = faceCurvatureExact.boundaryField()[I];
+            fvsPatchScalarField& faceCurvatureBoundary = faceCurvature.boundaryField()[I];
 
-            // Debugging
-            vectorField& bVectorField = faceCenterCoordinates.boundaryField()[I];
+            const fvsPatchVectorField& CfBoundary = Cf.boundaryField()[I];
 
-            forAll(bScalarField, K)
+            forAll(faceCurvatureBoundary, J)
             {  
-                bScalarField[K] = circle_curvature(faceCenters[K],
-                                                   circleCenter);
-                // Debugging
-                bVectorField[K] = faceCenters[K];
+                // FIXME: this was a bug, you have to address the CfBoundary
+                //bScalarField[K] = circle_curvature(Cf[K], center);
+                faceCurvatureBoundary[J] = circle_curvature(CfBoundary[J], center);
             }
-
-            /*
-            // Another approach, yields a compile-time error when executing
-            // wmake
-            
-            const fvMesh& mesh = bScalarField.mesh();
-            const surfaceVectorField& boundaryFaceCenters = mesh.Cf();
-            
-            forAll(bScalarField, K)
-            {
-                bScalarField[K] = circle_curvature(boundaryFaceCenters[K],
-                                                   circleCenter);
-                // Debugging
-                bVectorField[K] = boundaryFaceCenters[K];
-            }
-            */
         }
     
         // Set internal cell centered curvature field.
-        forAll(cellCurvatureExact, I)
+        forAll(cellCurvature, I)
         {
-            cellCurvatureExact[I] = circle_curvature(cellCenters[I],
-                                                     circleCenter);
+            cellCurvature[I] = circle_curvature(C[I], center);
         }
 
         // Set the boundary cell centered curvature field
-        forAll(cellCurvatureExact.boundaryField(), I)
+        forAll(cellCurvature.boundaryField(), I)
         {
-            scalarField& bScalarField = cellCurvatureExact.boundaryField()[I];
+            fvPatchScalarField& cellCurvatureBoundary = cellCurvature.boundaryField()[I];
+            const fvsPatchVectorField& CfBoundary = Cf.boundaryField()[I];
 
-            forAll(bScalarField, I)
+            forAll(cellCurvatureBoundary, J)
             {
-                bScalarField[I] = circle_curvature(cellCenters[I],
-                                                   circleCenter);
+                cellCurvatureBoundary[J] = circle_curvature(CfBoundary[J], center);
             }
         }
 
         // Write the fields. 
-        faceCurvatureExact.write(); 
-        cellCurvatureExact.write();
-
-        // Debugging
-        faceCenterCoordinates.write();
+        faceCurvature.write(); 
+        cellCurvature.write();
     }
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
