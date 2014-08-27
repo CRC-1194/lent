@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
     {
         FatalErrorIn("main()")   
             << "Please use option '-shape' to select the shape for which the "
-            << "exact is to be calculated." << endl << exit(FatalError);
+            << "exact curvature is to be calculated." << endl << exit(FatalError);
     }
 
     if (!args.optionFound("center"))
