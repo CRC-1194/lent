@@ -25,11 +25,11 @@ Application
     calcExactCurvature 
 
 Description
-    Calculates exact curvature for a circle. 
+    Calculates exact curvature for a circle or a sphere. 
 
-    TODO:  
-        * sphere, ellipsoid
-        * run-time selection of shapes
+    Note: for calculating the curvature of a circle for a 2D OpenFOAM case, 
+    make sure that the circle center coordinate in the direction of the 2D
+    mesh layer height is set to half the height value.  
 
 Authors
     Tobias Tolle tobias.tolle@stud.tu-darmstadt.de  
@@ -40,7 +40,6 @@ Authors
 #include "fvCFD.H"
 #include "timeSelector.H"
 
-// TODO: exactCurvatureModel class hierarchy with RTS. 
 
 scalar circle_curvature(const point& p, const point& center)
 {
@@ -60,21 +59,20 @@ scalar circle_curvature(const point& p, const point& center)
     return curvature;
 }
 
-scalar sphere_curvature(const point& p, const point& sphereCenter)
+scalar sphere_curvature(const point& p, const point& center)
 {
-    vector distance = sphereCenter - p;
+    scalar curvature = 0;
 
-    double radius = Foam::sqrt(distance & distance);
-    double curvature = 0;
+    scalar radius = mag(center - p); 
 
-    // To avoid divide y zero in case the sphere center and the point
-    // coincide, check distance and limit the curvature value
-    //
-    // TODO: think of reasonable limits for the minimal radius and
-    // maximum curvature. Maybe the value for minimal radius can be based
-    // on the edge length of the cells.
-    if (radius > 1.0e-10) curvature = 2 / radius;
-    else                  curvature = 2.0e10;
+    if (radius > SMALL) 
+    {
+        curvature = 2 / radius; 
+    }
+    else
+    {
+        curvature = GREAT; 
+    }
 
     return curvature;
 }
@@ -88,7 +86,7 @@ int main(int argc, char *argv[])
     argList::addOption
     (
         "shape",
-        "Shape for which analytic curvature is to be set"
+        "Shape for which analytic curvature is to be set- circle or sphere." 
     );
 
     argList::addOption
