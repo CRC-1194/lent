@@ -121,7 +121,7 @@ public:
         virtual ~frontCurvatureModel();
 
     // Member Functions
-        virtual tmp<surfaceScalarField> faceCurvature() const; 
+        virtual tmp<volScalarField> cellCurvature() const; 
 
         //virtual tmp<surfaceScalarField> faceCurvature() const;
 

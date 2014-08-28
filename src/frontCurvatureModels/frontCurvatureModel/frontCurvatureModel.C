@@ -115,12 +115,12 @@ frontCurvatureModel::~frontCurvatureModel()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-tmp<surfaceScalarField> frontCurvatureModel::faceCurvature() const
+tmp<volScalarField> frontCurvatureModel::cellCurvature() const
 {
-    tmp<surfaceScalarField> curvatureTmp(
-        surfaceScalarField(
+    tmp<volScalarField> curvatureTmp(
+        new volScalarField(
             IOobject(
-                "kappa_f", 
+                "cellCurvature", 
                 runTime_.timeName(), 
                 mesh_, 
                 IOobject::NO_READ,
@@ -136,11 +136,17 @@ tmp<surfaceScalarField> frontCurvatureModel::faceCurvature() const
         )
     );
 
-    surfaceScalarField& curvature  = curvatureTmp();  
+    volScalarField& curvature  = curvatureTmp();  
 
     tmp<volVectorField> cellGrad = fvc::grad(inputField_); 
 
-    curvature = fvc::interpolate(fvc::div(cellGrad / (mag(cellGrad) + delta_)));
+    surfaceVectorField faceGrad = fvc::interpolate(cellGrad); 
+
+    surfaceVectorField faceGradNorm = (faceGrad / (mag(faceGrad) + delta_));
+
+    tmp<surfaceScalarField> scalarFaceGradNormTmp = faceGradNorm & mesh_.Sf(); 
+
+    curvature = -fvc::div(scalarFaceGradNormTmp()); 
 
     return curvatureTmp; 
 }
