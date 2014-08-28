@@ -73,8 +73,7 @@ int main(int argc, char *argv[])
         #include "createCurvatureFields.H"
 
         // Compute the numerical curvature with the model. 
-        //tmp<volScalarField> cellCurvature = curvatureModel.cellCurvature(); 
-        //tmp<surfaceScalarField> faceCurvature = curvatureModel.faceCurvature(); 
+        tmp<surfaceScalarField> faceCurvature = curvatureModel->faceCurvature(); 
 
         // Compute the curvature error fields: see literature. 
 

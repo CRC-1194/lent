@@ -59,6 +59,9 @@ Description
 
 #include "frontCurvatureModel.H"
 #include "dictionary.H"
+#include "fvcGrad.H" 
+#include "fvcDiv.H"
+#include "surfaceInterpolate.H" 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -74,7 +77,10 @@ frontCurvatureModel::frontCurvatureModel(const dictionary& configDict, const Tim
     :
         runTime_(runTime), 
         meshName_(configDict.lookupOrDefault("meshName", word("mesh"))),
-        mesh_(runTime_.lookupObject<fvMesh>(meshName_))
+        mesh_(runTime_.lookupObject<fvMesh>(meshName_)),
+        inputFieldName_(configDict.lookup("inputFieldName")), 
+        inputField_(runTime_.lookupObject<volScalarField>(inputFieldName_)),
+        delta_(readScalar(configDict.lookup("delta"))) 
 {
 }
 
@@ -109,12 +115,12 @@ frontCurvatureModel::~frontCurvatureModel()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-tmp<volScalarField> frontCurvatureModel::cellCurvature() const
+tmp<surfaceScalarField> frontCurvatureModel::faceCurvature() const
 {
-    tmp<volScalarField> cellCurvatureTmp(
-        volScalarField(
+    tmp<surfaceScalarField> curvatureTmp(
+        surfaceScalarField(
             IOobject(
-                "cellCurvature", 
+                "kappa_f", 
                 runTime_.timeName(), 
                 mesh_, 
                 IOobject::NO_READ,
@@ -130,7 +136,13 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature() const
         )
     );
 
-    return cellCurvatureTmp; 
+    surfaceScalarField& curvature  = curvatureTmp();  
+
+    tmp<volVectorField> cellGrad = fvc::grad(inputField_); 
+
+    curvature = fvc::interpolate(fvc::div(cellGrad / (mag(cellGrad) + delta_)));
+
+    return curvatureTmp; 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

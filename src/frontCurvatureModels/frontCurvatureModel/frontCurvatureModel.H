@@ -81,12 +81,22 @@ class frontCurvatureModel
 {
 
     const Time& runTime_; 
+
     const word meshName_; 
     const fvMesh& mesh_; 
 
+    const word inputFieldName_; 
+    const volScalarField& inputField_; 
+
+    // Stabilizator value for the gradient to avoid division with zero.
+    const scalar delta_; 
+
+    frontCurvatureModel(const frontCurvatureModel&); 
+    void operator=(const frontCurvatureModel&);
+
 public:
 
-    TypeName ("frontCurvatureModel");
+    TypeName ("base");
 
     declareRunTimeSelectionTable (
         tmp,
@@ -111,7 +121,7 @@ public:
         virtual ~frontCurvatureModel();
 
     // Member Functions
-        virtual tmp<volScalarField> cellCurvature() const; 
+        virtual tmp<surfaceScalarField> faceCurvature() const; 
 
         //virtual tmp<surfaceScalarField> faceCurvature() const;
 
