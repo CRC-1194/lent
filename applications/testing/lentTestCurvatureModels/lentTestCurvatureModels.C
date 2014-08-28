@@ -36,34 +36,31 @@ Authors
 #include "fvCFD.H"
 #include "timeSelector.H"
 
+#include "frontCurvatureModel.H"
+
+using namespace FrontTracking;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Main program:
 
 int main(int argc, char *argv[])
 {
-    // Add necessary options and check if they have been set by the user
-    argList::addOption
-    (
-        "curvatureModel",
-        "LENT curvature model."
-    );
-
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
 
-    if (!args.optionFound("curvatureModel"))
-    {
-        FatalErrorIn("main()")   
-            << "Please use option '-curvatureModel' to select the LENT curvature model."
-            << endl << exit(FatalError);
-    }
+    IOdictionary lentMethodDict
+    (
+        IOobject(
+            "lentMethod",
+            runTime,  
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        )
+    );
 
-    const word modelName = args.optionRead<word>("curvatureModel");
-
-    // Select the curvature model based on the name and construct it from lentSolution
-    // dictionary. 
+    tmp<frontCurvatureModel> curvatureModel = 
+        frontCurvatureModel::New(lentMethodDict.subDict("curvatureModel"), runTime); 
 
     // Get the time directories from the simulation folder using time selector
     Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
@@ -76,7 +73,8 @@ int main(int argc, char *argv[])
         #include "createCurvatureFields.H"
 
         // Compute the numerical curvature with the model. 
-
+        //tmp<volScalarField> cellCurvature = curvatureModel.cellCurvature(); 
+        //tmp<surfaceScalarField> faceCurvature = curvatureModel.faceCurvature(); 
 
         // Compute the curvature error fields: see literature. 
 

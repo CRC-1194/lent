@@ -28,6 +28,8 @@ frontVelocityCalculators/barycentricFrontVelocityInterpolator/barycentricFrontVe
 frontMotionSolvers/frontMotionSolver/frontMotionSolver.C
 frontMotionSolvers/eulerFrontMotionSolver/eulerFrontMotionSolver.C
 
+frontCurvatureModels/frontCurvatureModel/frontCurvatureModel.C
+
 lentMethod/lentMethod.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent
