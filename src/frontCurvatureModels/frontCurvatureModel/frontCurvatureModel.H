@@ -89,7 +89,7 @@ class frontCurvatureModel
     const volScalarField& inputField_; 
 
     // Stabilizator value for the gradient to avoid division with zero.
-    const scalar delta_; 
+    const dimensionedScalar delta_; 
 
     frontCurvatureModel(const frontCurvatureModel&); 
     void operator=(const frontCurvatureModel&);

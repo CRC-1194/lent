@@ -38,6 +38,8 @@ Authors
 
 #include "frontCurvatureModel.H"
 
+#include <fstream>
+
 using namespace FrontTracking;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -45,43 +47,96 @@ using namespace FrontTracking;
 
 int main(int argc, char *argv[])
 {
+    argList::addOption
+    (
+        "errorFile",
+        "Path to the error file to which the application appends the results for later analysis." 
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
 
+    if (!args.optionFound("errorFile"))
+    {
+        FatalErrorIn("main()")   
+            << "Please use option '-errorFile' to name the output file."
+            << endl << exit(FatalError);
+    }
+
+    const std::string errorFileName = args.optionRead<fileName>("errorFile"); 
+
+    const char* errorFileNamePtr = errorFileName.c_str(); 
+
+    std::ofstream errorFile; 
+
+    errorFile.open(errorFileNamePtr, std::ios_base::app);
+
     IOdictionary lentMethodDict
     (
         IOobject(
-            "lentMethod",
-            runTime,  
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
+            "lentSolution",
+            "system", 
+            runTime,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
         )
     );
 
-    tmp<frontCurvatureModel> curvatureModel = 
-        frontCurvatureModel::New(lentMethodDict.subDict("curvatureModel"), runTime); 
+    const dictionary& curvatureDict = lentMethodDict.subDict("frontCurvatureModel"); 
+    const word inputFieldName = curvatureDict.lookup("inputFieldName"); 
 
-    // Get the time directories from the simulation folder using time selector
-    Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
+    const volScalarField inputField
+    (
+        IOobject(
+            inputFieldName, 
+            runTime.timeName(), 
+            mesh, 
+            IOobject::MUST_READ, 
+            IOobject::NO_WRITE 
+        ),
+        mesh
+    );
 
-    forAll(timeDirs, timeI)
-    {
-        // Set the time to the current time directory and update time index.
-        runTime.setTime(timeDirs[timeI], timeI);
+    tmp<frontCurvatureModel> curvatureModel = frontCurvatureModel::New(curvatureDict, runTime); 
 
-        #include "createCurvatureFields.H"
+    volScalarField cellCurvatureExact
+    (
+        IOobject
+        (
+            "cellCurvatureExact",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh 
+    );
+       
+    surfaceScalarField faceCurvatureExact
+    (
+        IOobject
+        (
+            "faceCurvatureExact",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh 
+    );
 
-        // Compute the numerical curvature with the model. 
-        tmp<surfaceScalarField> faceCurvature = curvatureModel->faceCurvature(); 
+    // Compute the numerical curvature with the model. 
+    tmp<volScalarField> cellCurvatureTmp = curvatureModel->cellCurvature(); 
 
-        // Compute the curvature error fields: see literature. 
+    // Compute the curvature error fields: see literature. 
+    const volScalarField& cellCurvature = cellCurvatureTmp(); 
 
-        // Compute the curvature diagram data. 
-        
-        // Store the curvature error fields for visualization. 
+    cellCurvatureTmp->write(); 
 
-    }
+    dimensionedScalar L_inf = max(mag(cellCurvature - cellCurvatureExact)); 
+
+    errorFile << mesh.nCells() << " " << L_inf.value() << std::endl;
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

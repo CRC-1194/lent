@@ -62,6 +62,7 @@ Description
 #include "fvcGrad.H" 
 #include "fvcDiv.H"
 #include "surfaceInterpolate.H" 
+#include "addToRunTimeSelectionTable.H" 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -70,17 +71,22 @@ namespace FrontTracking {
 
     defineTypeNameAndDebug(frontCurvatureModel, 0);
     defineRunTimeSelectionTable(frontCurvatureModel, Dictionary);
+    addToRunTimeSelectionTable(frontCurvatureModel, frontCurvatureModel, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontCurvatureModel::frontCurvatureModel(const dictionary& configDict, const Time& runTime)
     :
         runTime_(runTime), 
-        meshName_(configDict.lookupOrDefault("meshName", word("mesh"))),
+        meshName_(configDict.lookupOrDefault("meshName", word("region0"))),
         mesh_(runTime_.lookupObject<fvMesh>(meshName_)),
         inputFieldName_(configDict.lookup("inputFieldName")), 
-        inputField_(runTime_.lookupObject<volScalarField>(inputFieldName_)),
-        delta_(readScalar(configDict.lookup("delta"))) 
+        inputField_(mesh_.lookupObject<volScalarField>(inputFieldName_)),
+        delta_(
+            "delta",
+            pow(dimLength, -1), 
+            configDict.lookupOrDefault<scalar>("delta", SMALL) 
+        )
 {
 }
 
@@ -130,7 +136,7 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature() const
             dimensionedScalar
             (
                 "zero", 
-                dimless, 
+                pow(dimLength, -1), 
                 0
             )
         )
@@ -142,7 +148,7 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature() const
 
     surfaceVectorField faceGrad = fvc::interpolate(cellGrad); 
 
-    surfaceVectorField faceGradNorm = (faceGrad / (mag(faceGrad) + delta_));
+    surfaceVectorField faceGradNorm = faceGrad / (mag(faceGrad) + delta_);
 
     tmp<surfaceScalarField> scalarFaceGradNormTmp = faceGradNorm & mesh_.Sf(); 
 
