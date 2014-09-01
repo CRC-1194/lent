@@ -30,12 +30,14 @@ Description
         - one norm
         - two norm
         - maximum norm
+    These norms can be calculated for the cell centered velocities as
+    well as for the face centered velocites.
+
     For testcases of the "stationary droplet"-group these norms also 
     represent a measure for the error in velocity.
 
     TODO:
-        * output
-        * face centered velocity errors
+        * check for correctness
 
 Authors
     Tobias Tolle tobias.tolle@stud.tu-darmstadt.de
@@ -70,24 +72,91 @@ dimensionedScalar calc_maximum_norm_cc(const volVectorField& U)
     return maximum_norm;
 }
 
+// Function for generating the face centered velocities
+void calc_fc_velocities(surfaceScalarField& Uf, surfaceScalarField& phi,
+                        const surfaceVectorField& Sf)
+{
+    Uf = mag(phi) / mag(Sf);
+}
+
 // Functions calculating norms using face centered velocities
+dimensionedScalar calc_one_norm_fc(const surfaceScalarField& Uf)
+{
+    dimensionedScalar one_norm = sum(mag(Uf)) / Uf.size();
+
+    return one_norm;
+}
+
+dimensionedScalar calc_two_norm_fc(const surfaceScalarField& Uf)
+{
+    dimensionedScalar two_norm = sqrt(sum(magSqr(Uf))) / sqrt(dimensionedScalar(Uf.size()));
+
+    return two_norm;
+}
+
+dimensionedScalar calc_maximum_norm_fc(const surfaceScalarField& Uf)
+{
+    dimensionedScalar maximum_norm = max(mag(Uf));
+
+    return maximum_norm;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Main program:
 
 int main(int argc, char *argv[])
 {
+    // Add necessary options and check if they have been set by the user
+    argList::addOption
+    (
+        "errorFile",
+        "Path to the error file to which the application appends the results for further analysis."
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
 
+    if (!args.optionFound("errorFile"))
+    {
+        FatalErrorIn("main()")
+            << "Please use option '-errorFile' to name the output file."
+            << endl << exit(FatalError);
+    }
+
+    const std::string errorFileName = args.optionRead<fileName>("errorFile");
+
     // Open file to write results to
-    std::ofstream output("velocityError.dat", ios_base::out);
-    output <<
+    std::fstream errorFile;
+    errorFile.open(errorFileName, std::ios_base::app);
+    errorFile <<
         "#step\ttime [s]\tone-norm [m/s]\ttwo-norm [m/s]\tmax-norm [m/s]\n";
 
     // Get the time directories from the simulation folder using time selector
     Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
+
+    // Initialize the field for face centered velocities
+    surfaceScalarField Uf
+    (
+        IOobject
+        (
+            "Uf",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh,
+        dimensionedScalar
+        (
+            "zero",
+            dimLength / dimTime,
+            0
+        )
+    );
+
+    // Initialize Sf field
+    const surfaceVectorField& Sf = mesh.Sf();
 
     forAll(timeDirs, timeI)
     {
@@ -105,20 +174,44 @@ int main(int argc, char *argv[])
                 IOobject::MUST_READ,
                 IOobject::NO_WRITE
             ),
-
             mesh
         );
 
-        dimensionedScalar maximum_norm = calc_maximum_norm_cc(U);
-        dimensionedScalar one_norm = calc_one_norm_cc(U);
-        dimensionedScalar two_norm = calc_two_norm_cc(U);
+        dimensionedScalar one_norm_cc = calc_one_norm_cc(U);
+        dimensionedScalar two_norm_cc = calc_two_norm_cc(U);
+        dimensionedScalar maximum_norm_cc = calc_maximum_norm_cc(U);
 
-//        output << timeI << "\t\t" << runTime.timeName() << "\t\t"
-//               << maximum_norm << '\n';
+        // Calculate current face centered velocities und calculate norms
+        surfaceScalarField phi
+        (
+            IOobject
+            (
+                "phi",
+                runTime.timeName(),
+                mesh,
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE
+            ),
+            mesh
+        );
+
+        calc_fc_velocities(Uf, phi, Sf); 
+
+        dimensionedScalar one_norm_fc = calc_one_norm_fc(Uf);
+        dimensionedScalar two_norm_fc = calc_two_norm_fc(Uf);
+        dimensionedScalar maximum_norm_fc = calc_maximum_norm_fc(Uf);
+
+        output << timeI << "\t\t" << runTime.timeName() << "\t\t"
+               << one_norm_cc << '\t'<< two_norm_cc << '\t'
+               << maximum_norm_cc << '\n';
+
+        output << timeI << "\t\t" << runTime.timeName() << "\t\t"
+               << one_norm_gc << '\t'<< two_norm_gc << '\t'
+               << maximum_norm_gc << "\n\n";
     }
 
     // Close and write file
-    output.close();
+    errorFile.close();
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
