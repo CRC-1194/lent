@@ -36,9 +36,6 @@ Description
     For testcases of the "stationary droplet"-group these norms also 
     represent a measure for the error in velocity.
 
-    TODO:
-        * check for correctness
-
 Authors
     Tobias Tolle tobias.tolle@stud.tu-darmstadt.de
 
@@ -125,10 +122,14 @@ int main(int argc, char *argv[])
     }
 
     const std::string errorFileName = args.optionRead<fileName>("errorFile");
+    // Uncomment if C++11 is used
+    const char* errorFileNamePtr = errorFileName.c_str();
 
     // Open file to write results to
     std::fstream errorFile;
-    errorFile.open(errorFileName, std::ios_base::app);
+    // C++11 version
+    //errorFile.open(errorFileName, std::ios_base::app);
+    errorFile.open(errorFileNamePtr, std::ios_base::app);
     errorFile <<
         "#step\ttime [s]\tone-norm [m/s]\ttwo-norm [m/s]\tmax-norm [m/s]\n";
 
@@ -201,13 +202,13 @@ int main(int argc, char *argv[])
         dimensionedScalar two_norm_fc = calc_two_norm_fc(Uf);
         dimensionedScalar maximum_norm_fc = calc_maximum_norm_fc(Uf);
 
-        output << timeI << "\t\t" << runTime.timeName() << "\t\t"
-               << one_norm_cc << '\t'<< two_norm_cc << '\t'
-               << maximum_norm_cc << '\n';
+        errorFile << timeI << "\t\t" << runTime.timeName() << "\t\t"
+                  << one_norm_cc.value() << "\t\t"<< two_norm_cc.value()
+                  << "\t\t" << maximum_norm_cc.value() << '\n';
 
-        output << timeI << "\t\t" << runTime.timeName() << "\t\t"
-               << one_norm_gc << '\t'<< two_norm_gc << '\t'
-               << maximum_norm_gc << "\n\n";
+        errorFile << timeI << "\t\t" << runTime.timeName() << "\t\t"
+                  << one_norm_fc.value() << "\t\t"<< two_norm_fc.value()
+                  << "\t\t" << maximum_norm_fc.value() << "\n\n";
     }
 
     // Close and write file
