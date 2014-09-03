@@ -146,13 +146,15 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature() const
 
     tmp<volVectorField> cellGrad = fvc::grad(inputField_); 
 
-    surfaceVectorField faceGrad = fvc::interpolate(cellGrad); 
+    //surfaceVectorField faceGrad = fvc::interpolate(cellGrad); 
 
-    surfaceVectorField faceGradNorm = faceGrad / (mag(faceGrad) + delta_);
+    //surfaceVectorField faceGradNorm = faceGrad / (mag(faceGrad) + delta_);
 
-    tmp<surfaceScalarField> scalarFaceGradNormTmp = faceGradNorm & mesh_.Sf(); 
+    //tmp<surfaceScalarField> scalarFaceGradNormTmp = faceGradNorm & mesh_.Sf(); 
 
-    curvature = -fvc::div(scalarFaceGradNormTmp()); 
+    //curvature = -fvc::div(scalarFaceGradNormTmp()); 
+
+    curvature = -fvc::div((cellGrad() / (mag(cellGrad()) + delta_)));
 
     return curvatureTmp; 
 }

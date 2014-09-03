@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh 
     );
@@ -134,9 +134,15 @@ int main(int argc, char *argv[])
 
     cellCurvatureTmp->write(); 
 
-    dimensionedScalar L_inf = max(mag(cellCurvature - cellCurvatureExact)); 
+    volScalarField LinfField ("LinfCurvatureErr", mag(cellCurvature - cellCurvatureExact)); 
 
-    errorFile << mesh.nCells() << " " << L_inf.value() << std::endl;
+    LinfField.write();  
+
+    dimensionedScalar Linf = max(mag(cellCurvature - cellCurvatureExact)); 
+
+    dimensionedScalar h = min(fvc::average(mag(mesh.delta()))); 
+
+    errorFile << h.value() << " " << Linf.value() << std::endl;
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
