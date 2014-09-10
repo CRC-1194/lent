@@ -38,6 +38,10 @@ Authors
 
 #include "frontCurvatureModel.H"
 
+// Testing OF curvature
+#include "interfaceProperties.H"
+#include "incompressibleTwoPhaseMixture.H" 
+
 #include <fstream>
 
 using namespace FrontTracking;
@@ -56,6 +60,8 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
+
+#include "createFields.H"
 
     if (!args.optionFound("errorFile"))
     {
@@ -86,7 +92,7 @@ int main(int argc, char *argv[])
     const dictionary& curvatureDict = lentMethodDict.subDict("frontCurvatureModel"); 
     const word inputFieldName = curvatureDict.lookup("inputFieldName"); 
 
-    const volScalarField inputField
+    volScalarField inputField
     (
         IOobject(
             inputFieldName, 
@@ -112,7 +118,7 @@ int main(int argc, char *argv[])
         ),
         mesh 
     );
-       
+
     surfaceScalarField faceCurvatureExact
     (
         IOobject
@@ -126,23 +132,50 @@ int main(int argc, char *argv[])
         mesh 
     );
 
+    // Compute the dirac delta approximation (CSF, Brackbill et al)
+    volScalarField delta(
+        "delta", mag(
+            fvc::grad(inputField) / 
+            (mag(fvc::grad(inputField)) + dimensionedScalar("z", pow(dimLength, -1), SMALL))
+        )
+    );
+
+    delta.write(); 
+
     // Compute the numerical curvature with the model. 
-    tmp<volScalarField> cellCurvatureTmp = curvatureModel->cellCurvature(); 
+    volScalarField cellCurvature("cellCurvature", curvatureModel->cellCurvature()); 
+    cellCurvature.write(); 
 
-    // Compute the curvature error fields: see literature. 
-    const volScalarField& cellCurvature = cellCurvatureTmp(); 
+    volScalarField LinfField (
+            "LinfCurvatureErr", 
+            mag(cellCurvature - cellCurvatureExact) 
+    ); 
 
-    cellCurvatureTmp->write(); 
-
-    volScalarField LinfField ("LinfCurvatureErr", mag(cellCurvature - cellCurvatureExact)); 
+    LinfField *= delta; 
 
     LinfField.write();  
 
-    dimensionedScalar Linf = max(mag(cellCurvature - cellCurvatureExact)); 
+    // Compute and test the numerical curvature using OpenFOAM interfaceProperties 
+    volScalarField cellCurvatureInterface("cellCurvatureInterface", interface.K()); 
+    cellCurvatureInterface.write(); 
+   
+    volScalarField LinfInterfaceField (
+            "LinfInterfaceCurvatureErr", 
+            mag(cellCurvatureInterface - cellCurvatureExact) 
+    ); 
+
+    LinfInterfaceField *= delta;
+
+    LinfInterfaceField.write();  
+
+    dimensionedScalar Linf = max(LinfField);
+
+    dimensionedScalar LinfInterface = max(LinfInterfaceField);
 
     dimensionedScalar h = min(fvc::average(mag(mesh.delta()))); 
 
-    errorFile << h.value() << " " << Linf.value() << std::endl;
+    // TODO: overwrite the first line with the header information.
+    errorFile << h.value() << " " << Linf.value() << " " << LinfInterface.value() << std::endl;
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

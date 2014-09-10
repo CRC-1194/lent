@@ -61,6 +61,7 @@ Description
 #include "dictionary.H"
 #include "fvcGrad.H" 
 #include "fvcDiv.H"
+#include "fvcLaplacian.H"
 #include "surfaceInterpolate.H" 
 #include "addToRunTimeSelectionTable.H" 
 
@@ -123,40 +124,17 @@ frontCurvatureModel::~frontCurvatureModel()
 
 tmp<volScalarField> frontCurvatureModel::cellCurvature() const
 {
-    tmp<volScalarField> curvatureTmp(
-        new volScalarField(
-            IOobject(
-                "cellCurvature", 
-                runTime_.timeName(), 
-                mesh_, 
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE
-            ),
-            mesh_, 
-            dimensionedScalar
-            (
-                "zero", 
-                pow(dimLength, -1), 
-                0
-            )
-        )
-    );
+    volVectorField cellGrad = fvc::grad(inputField_); 
 
-    volScalarField& curvature  = curvatureTmp();  
-
-    tmp<volVectorField> cellGrad = fvc::grad(inputField_); 
+    cellGrad /= (mag(cellGrad) + delta_); 
 
     //surfaceVectorField faceGrad = fvc::interpolate(cellGrad); 
 
     //surfaceVectorField faceGradNorm = faceGrad / (mag(faceGrad) + delta_);
 
-    //tmp<surfaceScalarField> scalarFaceGradNormTmp = faceGradNorm & mesh_.Sf(); 
+    //surfaceScalarField faceGradFlux = mag(faceGradNorm & mesh_.Sf()); 
 
-    //curvature = -fvc::div(scalarFaceGradNormTmp()); 
-
-    curvature = -fvc::div((cellGrad() / (mag(cellGrad()) + delta_)));
-
-    return curvatureTmp; 
+    return -1*fvc::div(cellGrad);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
