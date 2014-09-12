@@ -23,10 +23,10 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontCurvatureModel
+    Foam::frontAveragingCurvatureModel
 
 SourceFiles
-    frontCurvatureModel.C
+    frontAveragingCurvatureModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
@@ -56,91 +56,58 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include "frontAveragingCurvatureModel.H"
+#include "addToRunTimeSelectionTable.H"
+#include "fvcAverage.H"
+#include "fvcDiv.H"
+#include "fvcGrad.H"
 
-#ifndef frontCurvatureModel_H
-#define frontCurvatureModel_H
-
-#include "typeInfo.H"
-#include "tmp.H"
-#include "refCount.H"
-#include "volFieldsFwd.H"
-#include "triSurfaceFront.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class frontCurvatureModel Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(frontAveragingCurvatureModel, 0);
+    addToRunTimeSelectionTable(frontCurvatureModel, frontAveragingCurvatureModel, Dictionary);
 
-class frontCurvatureModel
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+frontAveragingCurvatureModel::frontAveragingCurvatureModel(const dictionary& configDict, const Time& runTime)
     :
-        public refCount
+        frontCurvatureModel(configDict, runTime),
+        averagingIterations_(
+            configDict.lookupOrDefault<scalar>("averagingIterations", SMALL) 
+        )
+{}
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+ 
+frontAveragingCurvatureModel::~frontAveragingCurvatureModel() {} 
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+
+tmp<volScalarField> frontAveragingCurvatureModel::cellCurvature() const
 {
+    // Compute the curvature using the CSF model and an averaged field.
+    volScalarField inputFieldSmooth("smoothMarkerField", inputField()); 
 
-    const Time& runTime_; 
+    for (label I = 0; I < averagingIterations_; ++I)
+    {
+        inputFieldSmooth == fvc::average(inputFieldSmooth);
+    }
 
-    const word meshName_; 
-    const fvMesh& mesh_; 
+    // Testing
+    inputFieldSmooth.write(); 
 
-    const word inputFieldName_; 
-    const volScalarField& inputField_; 
+    volVectorField cellGradSmooth = fvc::grad(inputFieldSmooth); 
+    cellGradSmooth /= (mag(cellGradSmooth) + epsilon()); 
 
-    const word cellSignedDistFieldName_; 
-    const volScalarField& cellSignedDistField_; 
+    // Testing
+    cellGradSmooth.write(); 
 
-    const word cellSearchDistFieldName_; 
-    const volScalarField& cellSearchDistField_; 
-
-    // Stabilizator value for the gradient to avoid division with zero.
-    const dimensionedScalar epsilon_; 
-
-    frontCurvatureModel(const frontCurvatureModel&); 
-    void operator=(const frontCurvatureModel&);
-
-public:
-
-    TypeName ("base");
-
-    declareRunTimeSelectionTable (
-        tmp,
-        frontCurvatureModel,
-        Dictionary,
-        (
-            const dictionary& configDict, 
-            const Time& runTime
-        ),
-        (configDict, runTime)
-    );
-
-    // Constructors
-
-        frontCurvatureModel(const dictionary& configDict, const Time& runTime);
-
-    // Selectors
-
-        static tmp<frontCurvatureModel> New(const dictionary& configDict, const Time& runTime);
-
-    // Destructor
-        virtual ~frontCurvatureModel();
-
-    // Member Functions
-        virtual tmp<volScalarField> delta() const; 
-
-        virtual tmp<volScalarField> cellCurvature() const; 
-
-        dimensionedScalar epsilon() const
-        {
-            return epsilon_; 
-        }
-
-        const volScalarField& inputField() const
-        {
-            return inputField_; 
-        }
-};
+    return fvc::div(-1*cellGradSmooth);
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -151,7 +118,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

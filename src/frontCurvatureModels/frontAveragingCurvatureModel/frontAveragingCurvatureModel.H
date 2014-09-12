@@ -23,16 +23,18 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontCurvatureModel
+    Foam::frontAveragingCurvatureModel
 
 SourceFiles
-    frontCurvatureModel.C
+    frontAveragingCurvatureModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+
+    Curvature model that averages the input field and computes the curvature
+    using the divergence of the normal field.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,14 +59,10 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef frontCurvatureModel_H
-#define frontCurvatureModel_H
+#ifndef frontAveragingCurvatureModel_H
+#define frontAveragingCurvatureModel_H
 
-#include "typeInfo.H"
-#include "tmp.H"
-#include "refCount.H"
-#include "volFieldsFwd.H"
-#include "triSurfaceFront.H"
+#include "frontCurvatureModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -72,74 +70,27 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class frontCurvatureModel Declaration
+                         Class frontAveragingCurvatureModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class frontCurvatureModel
+class frontAveragingCurvatureModel
     :
-        public refCount
+        public frontCurvatureModel 
 {
-
-    const Time& runTime_; 
-
-    const word meshName_; 
-    const fvMesh& mesh_; 
-
-    const word inputFieldName_; 
-    const volScalarField& inputField_; 
-
-    const word cellSignedDistFieldName_; 
-    const volScalarField& cellSignedDistField_; 
-
-    const word cellSearchDistFieldName_; 
-    const volScalarField& cellSearchDistField_; 
-
-    // Stabilizator value for the gradient to avoid division with zero.
-    const dimensionedScalar epsilon_; 
-
-    frontCurvatureModel(const frontCurvatureModel&); 
-    void operator=(const frontCurvatureModel&);
+    label averagingIterations_;  
 
 public:
 
-    TypeName ("base");
-
-    declareRunTimeSelectionTable (
-        tmp,
-        frontCurvatureModel,
-        Dictionary,
-        (
-            const dictionary& configDict, 
-            const Time& runTime
-        ),
-        (configDict, runTime)
-    );
+    TypeName ("averaging");
 
     // Constructors
+        frontAveragingCurvatureModel(const dictionary& configDict, const Time& runTime);
 
-        frontCurvatureModel(const dictionary& configDict, const Time& runTime);
+        virtual ~frontAveragingCurvatureModel(); 
 
-    // Selectors
-
-        static tmp<frontCurvatureModel> New(const dictionary& configDict, const Time& runTime);
-
-    // Destructor
-        virtual ~frontCurvatureModel();
-
-    // Member Functions
-        virtual tmp<volScalarField> delta() const; 
-
+    // Member functions
         virtual tmp<volScalarField> cellCurvature() const; 
 
-        dimensionedScalar epsilon() const
-        {
-            return epsilon_; 
-        }
-
-        const volScalarField& inputField() const
-        {
-            return inputField_; 
-        }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

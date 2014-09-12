@@ -86,10 +86,10 @@ frontCurvatureModel::frontCurvatureModel(const dictionary& configDict, const Tim
         cellSignedDistField_(mesh_.lookupObject<volScalarField>(cellSignedDistFieldName_)),
         cellSearchDistFieldName_(configDict.lookup("cellSearchDistField")), 
         cellSearchDistField_(mesh_.lookupObject<volScalarField>(cellSearchDistFieldName_)),
-        delta_(
+        epsilon_(
             "delta",
             pow(dimLength, -1), 
-            configDict.lookupOrDefault<scalar>("delta", SMALL) 
+            configDict.lookupOrDefault<scalar>("epsilon", SMALL) 
         )
 {
 }
@@ -157,36 +157,11 @@ tmp<volScalarField> frontCurvatureModel::delta() const
 
 tmp<volScalarField> frontCurvatureModel::cellCurvature() const
 {
-    // Compute the curvature using the CSF model.
-    volScalarField inputFieldSmooth("smoothMarkerField",inputField_); 
+    volVectorField cellGrad = fvc::grad(inputField_); 
 
-    for (label I = 0; I < 50; ++I)
-    {
-        inputFieldSmooth == fvc::average(inputFieldSmooth);
-    }
+    cellGrad /= (mag(cellGrad) + epsilon_); 
 
-    inputFieldSmooth.write(); 
-
-    volVectorField cellGradSmooth = fvc::grad(inputFieldSmooth); 
-    cellGradSmooth /= (mag(cellGradSmooth) + delta_); 
-    //FIXME: remove
-    cellGradSmooth.write(); 
-
-    // Compute the curvature as the divergence of the normal field approximated
-    // by the gradient of the smooth marker field.
-    //tmp<volScalarField> curvatureTmp = fvc::div(-1*cellGradSmooth); 
-
-    //volScalarField& curvature = curvatureTmp(); 
-
-    // Filter the curvature using the narrow band delta.
-    //tmp<volScalarField> deltaTmp = delta(); 
-
-    //const volScalarField& delta = deltaTmp(); 
-
-    //curvature *= delta; 
-
-    //return curvatureTmp; 
-    return fvc::div(-1*cellGradSmooth);
+    return fvc::div(-1*cellGrad);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
