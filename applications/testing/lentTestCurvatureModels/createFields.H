@@ -11,10 +11,37 @@
         mesh
     );
 
-    Info << "Reading the cell-centered MarkerField function field H\n" << endl;
+    // TODO: initialize the fields based on lentSolution inputs.
+
+    Info << "Reading the cell-centered search distance field\n" << endl;
+    volScalarField cellSearchDistance(
+        IOobject(
+            "searchDistanceSqr",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ, 
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+
+    Info << "Reading the cell-centered marker field\n" << endl;
     volScalarField markerField(
         IOobject(
             "markerField",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ, 
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    Info << "Reading the cell-centered signed distance field\n" << endl;
+    volScalarField cellSignedDistance(
+        IOobject(
+            "signedDistance",
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ, 

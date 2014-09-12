@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     );
 
     const dictionary& curvatureDict = lentMethodDict.subDict("frontCurvatureModel"); 
-    const word inputFieldName = curvatureDict.lookup("inputFieldName"); 
+    const word inputFieldName = curvatureDict.lookup("inputField"); 
 
     volScalarField inputField
     (
@@ -106,6 +106,13 @@ int main(int argc, char *argv[])
 
     tmp<frontCurvatureModel> curvatureModel = frontCurvatureModel::New(curvatureDict, runTime); 
 
+    //tmp<volScalarField> deltaTmp = curvatureModel->delta(); 
+    //const volScalarField& delta = deltaTmp(); 
+
+    mag(fvc::grad(inputField))->write(); 
+    
+    volScalarField delta = mag(fvc::grad(inputField)); 
+
     volScalarField cellCurvatureExact
     (
         IOobject
@@ -118,6 +125,9 @@ int main(int argc, char *argv[])
         ),
         mesh 
     );
+
+    cellCurvatureExact *= delta;
+    cellCurvatureExact.write();
 
     surfaceScalarField faceCurvatureExact
     (
@@ -132,18 +142,9 @@ int main(int argc, char *argv[])
         mesh 
     );
 
-    // Compute the dirac delta approximation (CSF, Brackbill et al)
-    volScalarField delta(
-        "delta", mag(
-            fvc::grad(inputField) / 
-            (mag(fvc::grad(inputField)) + dimensionedScalar("z", pow(dimLength, -1), SMALL))
-        )
-    );
-
-    delta.write(); 
-
     // Compute the numerical curvature with the model. 
     volScalarField cellCurvature("cellCurvature", curvatureModel->cellCurvature()); 
+    cellCurvature *= delta; 
     cellCurvature.write(); 
 
     volScalarField LinfField (
@@ -151,20 +152,17 @@ int main(int argc, char *argv[])
             mag(cellCurvature - cellCurvatureExact) 
     ); 
 
-    LinfField *= delta; 
-
     LinfField.write();  
 
     // Compute and test the numerical curvature using OpenFOAM interfaceProperties 
     volScalarField cellCurvatureInterface("cellCurvatureInterface", interface.K()); 
+    cellCurvatureInterface *= delta;
     cellCurvatureInterface.write(); 
    
     volScalarField LinfInterfaceField (
             "LinfInterfaceCurvatureErr", 
             mag(cellCurvatureInterface - cellCurvatureExact) 
     ); 
-
-    LinfInterfaceField *= delta;
 
     LinfInterfaceField.write();  
 

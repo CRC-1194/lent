@@ -88,6 +88,12 @@ class frontCurvatureModel
     const word inputFieldName_; 
     const volScalarField& inputField_; 
 
+    const word cellSignedDistFieldName_; 
+    const volScalarField& cellSignedDistField_; 
+
+    const word cellSearchDistFieldName_; 
+    const volScalarField& cellSearchDistField_; 
+
     // Stabilizator value for the gradient to avoid division with zero.
     const dimensionedScalar delta_; 
 
@@ -121,10 +127,9 @@ public:
         virtual ~frontCurvatureModel();
 
     // Member Functions
+        virtual tmp<volScalarField> delta() const; 
+
         virtual tmp<volScalarField> cellCurvature() const; 
-
-        //virtual tmp<surfaceScalarField> faceCurvature() const;
-
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
