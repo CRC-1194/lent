@@ -31,6 +31,7 @@ Description
     TODO:
         * Way to distinguish between circle and sphere without user input
           --> based on presence of empty patches?
+          For now an user argument is used
 
 Author
     Tobias Tolle tobias.tolle@stud.tu-darmstadt.de
@@ -172,6 +173,12 @@ int main(int argc, char *argv[])
         "Vector to the center of the circle/sphere"
     );
 
+    argList::addOption
+    (
+        "shape",
+        "Specify if circle or sphere"
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -203,6 +210,15 @@ int main(int argc, char *argv[])
             << "center." << endl << exit(FatalError);
     }
 
+    if (!args.optionFound("shape"))
+    {
+        FatalErrorIn
+        (
+            "main()"
+        )   << "Pleasue use option '-shape' to specify if calculation is done"
+            << " for a circle or a sphere" << endl << exit(FatalError);
+    }
+
     // Open errorFile in append mode
     const std::string errorFileName = args.optionRead<fileName>("errorFile");
     const char* errorFileNamePtr = errorFileName.c_str();
@@ -217,6 +233,7 @@ int main(int argc, char *argv[])
 
     const scalar radius = args.optionRead<scalar>("radius");
     const vector center = args.optionRead<vector>("center");
+    const word shape = args.optionRead<word>("shape");
     const volVectorField& C = mesh.C();
     
     // Read surface tension coefficient to calculate exact pressure jump
@@ -232,7 +249,22 @@ int main(int argc, char *argv[])
         )
     );
     const dimensionedScalar sigma(transportPropertiesDict.lookup("sigma"));
-    const scalar deltaP_exact = sigma.value() / radius;
+    scalar deltaP_exact = 0;
+
+    // Set pressure jump according to selected shape
+    if (shape == "circle")
+    {
+        deltaP_exact = sigma.value() / radius;
+    }
+    else if (shape == "sphere")
+    {
+        deltaP_exact = sigma.value() * 2 / radius;
+    }
+    else
+    {
+        Info << "Shape " << shape << "unknown, assuming circle\n" << endl;
+        deltaP_exact = sigma.value() / radius;
+    }
 
     // Get the time directories from the simulation folder using time selector
     Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
