@@ -87,8 +87,6 @@ frontCurvatureModel::frontCurvatureModel(const dictionary& configDict, const Tim
         cellSearchDistFieldName_(configDict.lookup("cellSearchDistField")), 
         cellSearchDistField_(mesh_.lookupObject<volScalarField>(cellSearchDistFieldName_)),
         epsilon_(
-            "delta",
-            pow(dimLength, -1), 
             configDict.lookupOrDefault<scalar>("epsilon", SMALL) 
         )
 {
@@ -155,11 +153,19 @@ tmp<volScalarField> frontCurvatureModel::delta() const
     return deltaTmp; 
 }
 
+void frontCurvatureModel::normalizeVectorField(volVectorField& vf) const
+{
+    vf /= (
+            mag(vf) + 
+            dimensionedScalar("epsilon", vf.dimensions(), epsilon_)
+    );
+}
+
 tmp<volScalarField> frontCurvatureModel::cellCurvature() const
 {
     volVectorField cellGrad = fvc::grad(inputField_); 
 
-    cellGrad /= (mag(cellGrad) + epsilon_); 
+    normalizeVectorField(cellGrad);  
 
     return fvc::div(-1*cellGrad);
 }

@@ -105,11 +105,6 @@ int main(int argc, char *argv[])
     );
 
     tmp<frontCurvatureModel> curvatureModel = frontCurvatureModel::New(curvatureDict, runTime); 
-
-    //tmp<volScalarField> deltaTmp = curvatureModel->delta(); 
-    //const volScalarField& delta = deltaTmp(); 
-
-    mag(fvc::grad(inputField))->write(); 
     
     volScalarField delta = mag(fvc::grad(inputField)); 
 
@@ -172,7 +167,7 @@ int main(int argc, char *argv[])
 
     dimensionedScalar h = min(fvc::average(mag(mesh.delta()))); 
 
-    // TODO: overwrite the first line with the header information.
+    // TODO: overwrite the first line of the file with the appropriate header information.
     errorFile << h.value() << " " << Linf.value() << " " << LinfInterface.value() << std::endl;
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

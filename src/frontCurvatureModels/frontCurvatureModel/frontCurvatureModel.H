@@ -95,7 +95,7 @@ class frontCurvatureModel
     const volScalarField& cellSearchDistField_; 
 
     // Stabilizator value for the gradient to avoid division with zero.
-    const dimensionedScalar epsilon_; 
+    const scalar epsilon_; 
 
     frontCurvatureModel(const frontCurvatureModel&); 
     void operator=(const frontCurvatureModel&);
@@ -131,7 +131,7 @@ public:
 
         virtual tmp<volScalarField> cellCurvature() const; 
 
-        dimensionedScalar epsilon() const
+        scalar epsilon() const
         {
             return epsilon_; 
         }
@@ -140,6 +140,8 @@ public:
         {
             return inputField_; 
         }
+
+        virtual void normalizeVectorField(volVectorField& vf) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

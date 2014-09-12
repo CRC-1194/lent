@@ -101,7 +101,8 @@ tmp<volScalarField> frontAveragingCurvatureModel::cellCurvature() const
     inputFieldSmooth.write(); 
 
     volVectorField cellGradSmooth = fvc::grad(inputFieldSmooth); 
-    cellGradSmooth /= (mag(cellGradSmooth) + epsilon()); 
+
+    normalizeVectorField(cellGradSmooth);
 
     // Testing
     cellGradSmooth.write(); 
