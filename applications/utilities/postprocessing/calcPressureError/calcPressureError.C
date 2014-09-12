@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+   \\    /   O peration     | Version:  2.2.x
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,18 +25,257 @@ Application
     calcPressureError
 
 Description
+    Calculate three pressure errors as defined in the paper of Francois
+    (see http://dx.doi.org/10.1016/j.jcp.2005.08.004) for every time step
+
+    TODO:
+        * Way to distinguish between circle and sphere without user input
+          --> based on presence of empty patches?
+
+Author
+    Tobias Tolle tobias.tolle@stud.tu-darmstadt.de
 
 \*---------------------------------------------------------------------------*/
+#include <fstream>
+#include <string>
 
 #include "fvCFD.H"
+#include "timeSelector.H"
+
+// Calculate difference of mean pressure inside and outside of the drop
+scalar calc_deltaP_total(volScalarField& P, const volVectorField& cellCenters,
+                         const scalar& radius, const vector& center)
+{
+    scalar deltaP_total = 0;
+
+    scalar P_in = 0;
+    scalar P_out = 0;
+    scalar n_drop_cells = 0;
+    vector distance (0, 0, 0);
+
+    // Sum up pressure for averaging, distinguish between drop and
+    // background fluid
+    forAll(P, I)
+    {
+        distance = center - cellCenters[I];
+
+        if (mag(distance) > radius)
+        {
+            P_out += P[I];
+        }
+        else
+        {
+            P_in += P[I];
+            n_drop_cells++;
+        }
+    }
+
+    forAll(P.boundaryField(), I)
+    {
+        scalarField& PBoundaryField = P.boundaryField()[I];
+
+        forAll(PBoundaryField, J)
+        {
+            P_out += PBoundaryField[J];
+        }
+    }
+
+    P_in /= n_drop_cells;
+    P_out = P_out / (P.size() - n_drop_cells);
+
+    deltaP_total = P_in - P_out;
+
+    return deltaP_total;
+}
+
+// Calculate difference of mean pressure inside and outside of the drop
+// without the transition zone around the interface
+scalar calc_deltaP_partial(volScalarField& P, const volVectorField& cellCenters,
+                           const scalar& radius, const vector& center)
+{
+    scalar deltaP_partial = 0;
+
+    scalar P_in = 0;
+    scalar P_out = 0;
+    scalar n_drop_cells = 0;
+    scalar n_trans_cells = 0;
+    vector distance (0, 0, 0);
+
+    // Sum up pressure for averaging, distinguish between drop and background
+    // fluid. Cells in the transition region are not considered in this case
+    forAll(P, I)
+    {
+        distance = center - cellCenters[I];
+
+        if (mag(distance) <= 0.5*radius)
+        {
+            P_in += P[I];
+            n_drop_cells++;
+        }
+        else if (mag(distance) >= 1.5*radius)
+        {
+            P_out += P[I];
+        }
+        else
+        {
+            n_trans_cells++;
+        }
+    }
+
+    forAll(P.boundaryField(), I)
+    {
+        scalarField& PBoundaryField = P.boundaryField()[I];
+
+        forAll(PBoundaryField, J)
+        {
+            P_out += PBoundaryField[J];
+        }
+    }
+
+    P_in /= n_drop_cells;
+    P_out = P_out / (P.size() - n_drop_cells - n_trans_cells);
+
+    deltaP_partial = P_in - P_out;
+
+    return deltaP_partial;
+}
+
+// Calculate maximum pressure difference
+scalar calc_deltaP_max(volScalarField& P)
+{
+    dimensionedScalar deltaP_max = max(P) - min(P);
+
+    return deltaP_max.value();
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Main program:
 
 int main(int argc, char *argv[])
 {
+    // Add necessary options and check if they have been set by the user
+    argList::addOption
+    (
+        "errorFile",
+        "Path and name of the file to write the output to"
+    );
+
+    argList::addOption
+    (
+        "radius",
+        "Radius of the circle/sphere used in your testcase"
+    );
+
+    argList::addOption
+    (
+        "center",
+        "Vector to the center of the circle/sphere"
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
+    #include "createMesh.H"
+
+    if (!args.optionFound("errorFile"))
+    {
+        FatalErrorIn
+        (
+            "main()"
+        )   << "Please use option '-errorFile' to set the path and file for "
+            << "output." << endl << exit(FatalError);
+    }
+
+    if (!args.optionFound("radius"))
+    {
+        FatalErrorIn
+        (
+            "main()"
+        )   << "Please use option '-radius' to specify the radius of your "
+            << "testcase." << endl << exit(FatalError);
+    }
+
+    if (!args.optionFound("center"))
+    {
+        FatalErrorIn
+        (
+            "main()"
+        )   << "Please use option '-center' to specify the circle/sphere "
+            << "center." << endl << exit(FatalError);
+    }
+
+    // Open errorFile in append mode
+    const std::string errorFileName = args.optionRead<fileName>("errorFile");
+    const char* errorFileNamePtr = errorFileName.c_str();
+
+    std::fstream errorFile;
+    errorFile.open(errorFileNamePtr, std::ios_base::app);
+    errorFile.precision(4);
+
+    // Write header
+    errorFile << "# step\ttime[s]\terror p_total\terror p_partial\t"
+              << "error p_max\n"; 
+
+    const scalar radius = args.optionRead<scalar>("radius");
+    const vector center = args.optionRead<vector>("center");
+    const volVectorField& C = mesh.C();
+    
+    // Read surface tension coefficient to calculate exact pressure jump
+    IOdictionary transportPropertiesDict
+    (
+        IOobject
+        (
+            "transportProperties",
+            "constant",
+            runTime,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    );
+    const dimensionedScalar sigma(transportPropertiesDict.lookup("sigma"));
+    const scalar deltaP_exact = sigma.value() / radius;
+
+    // Get the time directories from the simulation folder using time selector
+    Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
+
+    forAll(timeDirs, timeI)
+    {
+        runTime.setTime(timeDirs[timeI], timeI);
+
+        // Read pressure field of current time step
+        volScalarField P
+        (
+            IOobject
+            (
+                "p",
+                runTime.timeName(),
+                mesh,
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE
+            ),
+            mesh
+        );
+
+        // Calculate numeric pressure differences and errors
+        scalar deltaP_total = calc_deltaP_total(P, C, radius, center);
+        scalar deltaP_partial = calc_deltaP_partial(P, C, radius, center);
+        scalar deltaP_max = calc_deltaP_max(P);
+
+        scalar error_total = mag(mag(deltaP_total) - mag(deltaP_exact)) / mag(deltaP_exact);
+        scalar error_partial = mag(mag(deltaP_partial) - mag(deltaP_exact)) / mag(deltaP_exact);
+        scalar error_max = mag(mag(deltaP_max) - mag(deltaP_exact)) / mag(deltaP_exact);
+
+        // Write errors to file, ignore initial condition
+        if (timeI > 0)
+        {
+            errorFile << timeI << "\t\t" << runTime.timeName() << "\t"
+                      << error_total << "\t\t\t" << error_partial << "\t\t\t"
+                      << error_max << "\n";
+        }
+
+    }
+
+    // Close errorFile
+    errorFile.close();
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
