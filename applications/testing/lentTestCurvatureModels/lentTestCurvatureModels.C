@@ -74,9 +74,14 @@ int main(int argc, char *argv[])
 
     const char* errorFileNamePtr = errorFileName.c_str(); 
 
-    std::ofstream errorFile; 
+    std::fstream errorFile; 
 
     errorFile.open(errorFileNamePtr, std::ios_base::app);
+
+    //if (errorFile.peek() == std::ifstream::traits_type::eof())
+    //{
+        //errorFile << "#h        Linf        LinfInterface" << std::endl; 
+    //}
 
     IOdictionary lentMethodDict
     (
@@ -165,9 +170,8 @@ int main(int argc, char *argv[])
 
     dimensionedScalar LinfInterface = max(LinfInterfaceField);
 
-    dimensionedScalar h = min(fvc::average(mag(mesh.delta()))); 
+    dimensionedScalar h = max(mag(mesh.delta())); 
 
-    // TODO: overwrite the first line of the file with the appropriate header information.
     errorFile << h.value() << " " << Linf.value() << " " << LinfInterface.value() << std::endl;
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
