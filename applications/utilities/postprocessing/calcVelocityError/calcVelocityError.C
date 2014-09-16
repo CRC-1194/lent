@@ -121,17 +121,31 @@ int main(int argc, char *argv[])
             << endl << exit(FatalError);
     }
 
-    const std::string errorFileName = args.optionRead<fileName>("errorFile");
+    // Use two separate files for face-centered and cell-centered velocities
+    std::string errorFileNameCC = args.optionRead<fileName>("errorFile");
+    std::string errorFileNameFC = args.optionRead<fileName>("errorFile");
+    errorFileNameCC.append("_cc.dat");
+    errorFileNameFC.append("_fc.dat");
+
     // Uncomment if C++11 is used
-    const char* errorFileNamePtr = errorFileName.c_str();
+    const char* errorFileNameCCPtr = errorFileNameCC.c_str();
+    const char* errorFileNameFCPtr = errorFileNameFC.c_str();
 
     // Open file to write results to
-    std::fstream errorFile;
+    std::fstream errorFileCC;
+    std::fstream errorFileFC;
+
+    std::string header = "# h [m]\ttime [s]\tone-norm [m/s]\ttwo-norm [m/s]\tmax-norm [m/s]";
     // C++11 version
     //errorFile.open(errorFileName, std::ios_base::app);
-    errorFile.open(errorFileNamePtr, std::ios_base::app);
-    errorFile <<
-        "#step\ttime [s]\tone-norm [m/s]\ttwo-norm [m/s]\tmax-norm [m/s]\n";
+    errorFileCC.open(errorFileNameCCPtr, std::ios_base::app);
+    errorFileCC << "# Cell centered velocities\n"
+                << header
+                << std::endl;
+    errorFileFC.open(errorFileNameFCPtr, std::ios_base::app);
+    errorFileFC << "# Face centered velocities\n"
+                << header
+                << std::endl;
 
     // Get the time directories from the simulation folder using time selector
     Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
@@ -158,6 +172,9 @@ int main(int argc, char *argv[])
 
     // Initialize Sf field
     const surfaceVectorField& Sf = mesh.Sf();
+
+    // Calculate mesh spacing 
+    dimensionedScalar h = min(fvc::average(mag(mesh.delta())));
 
     forAll(timeDirs, timeI)
     {
@@ -202,17 +219,21 @@ int main(int argc, char *argv[])
         dimensionedScalar two_norm_fc = calc_two_norm_fc(Uf);
         dimensionedScalar maximum_norm_fc = calc_maximum_norm_fc(Uf);
 
-        errorFile << timeI << "\t\t" << runTime.timeName() << "\t\t"
-                  << one_norm_cc.value() << "\t\t"<< two_norm_cc.value()
-                  << "\t\t" << maximum_norm_cc.value() << '\n';
+        if (timeI > 0)
+        {
+            errorFileCC << h.value() << "\t" << runTime.timeName() << "\t\t"
+                        << one_norm_cc.value() << "\t\t"<< two_norm_cc.value()
+                        << "\t\t" << maximum_norm_cc.value() << std::endl;
 
-        errorFile << timeI << "\t\t" << runTime.timeName() << "\t\t"
-                  << one_norm_fc.value() << "\t\t"<< two_norm_fc.value()
-                  << "\t\t" << maximum_norm_fc.value() << "\n\n";
+            errorFileFC << h.value() << "\t" << runTime.timeName() << "\t\t"
+                        << one_norm_fc.value() << "\t\t"<< two_norm_fc.value()
+                        << "\t\t" << maximum_norm_fc.value() << "\n";
+        }
     }
 
     // Close and write file
-    errorFile.close();
+    errorFileCC.close();
+    errorFileFC.close();
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
