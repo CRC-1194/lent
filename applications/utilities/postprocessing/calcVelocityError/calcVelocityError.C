@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
     const surfaceVectorField& Sf = mesh.Sf();
 
     // Calculate mesh spacing 
-    dimensionedScalar h = min(fvc::average(mag(mesh.delta())));
+    dimensionedScalar h = max((mag(mesh.delta())));
 
     forAll(timeDirs, timeI)
     {
