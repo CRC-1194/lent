@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
     errorFile.precision(4);
 
     // Write header
-    errorFile << "# step\ttime[s]\terror p_total\terror p_partial\t"
+    errorFile << "# h [m]\ttime[s]\terror p_total\terror p_partial\t"
               << "error p_max\n"; 
 
     const scalar radius = args.optionRead<scalar>("radius");
@@ -269,6 +269,9 @@ int main(int argc, char *argv[])
     // Get the time directories from the simulation folder using time selector
     Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
 
+    // Calculate mesh spacing
+    dimensionedScalar h = max(mag(mesh.delta()));
+
     forAll(timeDirs, timeI)
     {
         runTime.setTime(timeDirs[timeI], timeI);
@@ -299,7 +302,7 @@ int main(int argc, char *argv[])
         // Write errors to file, ignore initial condition
         if (timeI > 0)
         {
-            errorFile << timeI << "\t\t" << runTime.timeName() << "\t"
+            errorFile << h.value() << "\t\t" << runTime.timeName() << "\t"
                       << error_total << "\t\t\t" << error_partial << "\t\t\t"
                       << error_max << "\n";
         }
