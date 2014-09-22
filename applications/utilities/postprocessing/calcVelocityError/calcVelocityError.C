@@ -127,7 +127,6 @@ int main(int argc, char *argv[])
     errorFileNameCC.append("_cc.dat");
     errorFileNameFC.append("_fc.dat");
 
-    // Uncomment if C++11 is used
     const char* errorFileNameCCPtr = errorFileNameCC.c_str();
     const char* errorFileNameFCPtr = errorFileNameFC.c_str();
 
@@ -136,8 +135,6 @@ int main(int argc, char *argv[])
     std::fstream errorFileFC;
 
     std::string header = "# h [m]\ttime [s]\tone-norm [m/s]\ttwo-norm [m/s]\tmax-norm [m/s]";
-    // C++11 version
-    //errorFile.open(errorFileName, std::ios_base::app);
     errorFileCC.open(errorFileNameCCPtr, std::ios_base::app);
     errorFileCC << "# Cell centered velocities\n"
                 << header
