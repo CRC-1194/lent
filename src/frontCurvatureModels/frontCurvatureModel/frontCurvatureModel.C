@@ -143,7 +143,7 @@ tmp<volScalarField> frontCurvatureModel::delta() const
 
     forAll(delta, I)
     {
-        // FIXME : read narrowBandWidth_ from the frontDict or pass it as ctor arg.
+        // FIXME : read narrowBandWidth_ from the frontDict or pass it as ctor arg. TM
         if ((sqr(cellSignedDistField_[I]) * 4) <= cellSearchDistField_[I])
         {
             delta[I] = 1;
@@ -156,8 +156,8 @@ tmp<volScalarField> frontCurvatureModel::delta() const
 void frontCurvatureModel::normalizeVectorField(volVectorField& vf) const
 {
     vf /= (
-            mag(vf) + 
-            dimensionedScalar("epsilon", vf.dimensions(), epsilon_)
+        mag(vf) + 
+        dimensionedScalar("epsilon", vf.dimensions(), epsilon_)
     );
 }
 

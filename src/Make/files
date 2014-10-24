@@ -30,6 +30,7 @@ frontMotionSolvers/eulerFrontMotionSolver/eulerFrontMotionSolver.C
 
 frontCurvatureModels/frontCurvatureModel/frontCurvatureModel.C
 frontCurvatureModels/frontAveragingCurvatureModel/frontAveragingCurvatureModel.C
+frontCurvatureModels/frontExactCurvatureModel/frontExactCurvatureModel.C
 
 lentMethod/lentMethod.C
 

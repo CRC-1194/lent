@@ -136,6 +136,16 @@ public:
             return epsilon_; 
         }
 
+        const Time& time() const
+        {
+            return runTime_; 
+        }
+
+        const fvMesh& mesh() const
+        {
+            return mesh_; 
+        }
+
         const volScalarField& inputField() const
         {
             return inputField_; 

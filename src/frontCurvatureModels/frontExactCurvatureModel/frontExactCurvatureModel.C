@@ -90,8 +90,8 @@ frontExactCurvatureModel::~frontExactCurvatureModel() {}
 tmp<volScalarField> frontExactCurvatureModel::cellCurvature() const
 {
     // Read the exact curvature field and forward it to the call site.
-    tmp<volScalarField> exactCurvature(
-        new volScalarField(
+    tmp<volScalarField> exactCurvature( 
+        volScalarField(
             IOobject(
                 exactCurvatureFieldName_, 
                 time().timeName(), 
@@ -99,7 +99,7 @@ tmp<volScalarField> frontExactCurvatureModel::cellCurvature() const
                 IOobject::MUST_READ, 
                 IOobject::NO_WRITE
             ),
-            mesh
+            mesh()
         )
     );
 

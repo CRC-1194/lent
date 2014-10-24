@@ -74,6 +74,7 @@ Description
 #include "frontVelocityCalculator.H"
 #include "frontMotionSolver.H"
 #include "markerFieldModel.H"
+#include "frontCurvatureModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -117,6 +118,9 @@ class lentMethod
 
     // MarkerField model.
     tmp<markerFieldModel> markerFieldModelTmp_;
+
+    // Curvature model.
+    tmp<frontCurvatureModel> curvatureModelTmp_;
 
 public:
 
@@ -177,6 +181,11 @@ public:
             triSurfaceFront& front,
             const triSurfaceFrontVectorField& frontVelocity
         ) const;
+
+        tmp<volScalarField> cellCurvature() const
+        {
+            return curvatureModelTmp_->cellCurvature(); 
+        }
 
         // Empty writer: regIOobject is used only for registry queries.
         bool writeData(Ostream& os) const;

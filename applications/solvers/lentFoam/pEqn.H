@@ -17,7 +17,9 @@
     surfaceScalarField phig
     (
         (
-            fvc::interpolate(interface.sigmaK())*fvc::snGrad(markerField)
+            // TODO: remove once the solver has been tested. TM.
+            //fvc::interpolate(interface.sigmaK())*fvc::snGrad(markerField)
+            fvc::interpolate(interface.sigma()*lent.cellCurvature())*fvc::snGrad(markerField)
           - ghf*fvc::snGrad(rho)
         )*rAUf*mesh.magSf()
     );
@@ -39,8 +41,10 @@
         {
             phi = phiHbyA - p_rghEqn.flux();
 
-            U = HbyA + rAU*fvc::reconstruct((phig - p_rghEqn.flux())/rAUf);
-            U.correctBoundaryConditions();
+            // Skip the reconstruction of the velocity field from the fluxes, 
+            // the momentum equationw is solved with the new pressure field. TM
+            //U = HbyA + rAU*fvc::reconstruct((phig - p_rghEqn.flux())/rAUf);
+            //U.correctBoundaryConditions();
         }
     }
 

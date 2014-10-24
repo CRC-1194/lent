@@ -26,7 +26,7 @@ Class
     Foam::lentMethod
 
 SourceFiles
-    diffuseInterfaceProperties.C
+    lentMethod.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
@@ -67,16 +67,6 @@ namespace Foam  {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(lentMethod, 0);
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-//const dataType lentMethod::staticData();
-
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -139,6 +129,11 @@ lentMethod::lentMethod(
      markerFieldModelTmp_(
          markerFieldModel::New(
             lentControlDict_.subDict("markerFieldModel")
+         )
+     ),
+     curvatureModelTmp_(
+         frontCurvatureModel::New(
+            lentControlDict_.subDict("frontCurvatureModel"), mesh.time()
          )
      )
 {
