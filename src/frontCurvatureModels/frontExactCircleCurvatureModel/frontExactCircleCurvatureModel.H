@@ -36,7 +36,8 @@ Description
     Computes the exact curvature used for testing the pressure-velocity
     coupling against parasitic currents.
 
-    Computes the curvature of a circle. 
+    Computes the curvature of a circle: make sure that the circle center lies
+    on the appropriate height of the single cell layer 2D OpenFOAM mesh. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
