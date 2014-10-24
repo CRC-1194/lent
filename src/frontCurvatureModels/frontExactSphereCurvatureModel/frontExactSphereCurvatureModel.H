@@ -23,18 +23,18 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontExactCurvatureModel
+    Foam::frontExactSphereCurvatureModel
 
 SourceFiles
-    frontExactCurvatureModel.C
+    frontExactSphereCurvatureModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
 
-    Curvature model used for validating the pressure-velocity coupling algorithm. 
-    It reads an exact curvature field.
+    Computes the exact curvature used for testing the pressure-velocity
+    coupling against parasitic currents.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,49 +58,48 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#include "frontExactCurvatureModel.H"
-#include "addToRunTimeSelectionTable.H"
-#include "fvcAverage.H"
-#include "fvcDiv.H"
-#include "fvcGrad.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#ifndef frontExactSphereCurvatureModel_H
+#define frontExactSphereCurvatureModel_H
+
+#include "frontCurvatureModel.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(frontExactCurvatureModel, 0);
-    addToRunTimeSelectionTable(frontCurvatureModel, frontExactCurvatureModel, Dictionary);
+/*---------------------------------------------------------------------------*\
+                         Class frontExactSphereCurvatureModel Declaration
+\*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-frontExactCurvatureModel::frontExactCurvatureModel(const dictionary& configDict, const Time& runTime)
+class frontExactSphereCurvatureModel
     :
-        frontCurvatureModel(configDict, runTime), 
-        exactCurvatureFieldName_(configDict.lookup("exactCurvatureField")),
-        exactCurvatureField_( 
-            IOobject(
-                exactCurvatureFieldName_, 
-                time().timeName(), 
-                mesh(),
-                IOobject::MUST_READ, 
-                IOobject::AUTO_WRITE
-            ),
-            mesh()
-        )
-{}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
- 
-frontExactCurvatureModel::~frontExactCurvatureModel() {} 
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-
-tmp<volScalarField> frontExactCurvatureModel::cellCurvature() const
+        public frontCurvatureModel 
 {
-    return exactCurvatureField_;
-}
+    const vector center_; 
+    Switch write_; 
+
+public:
+
+    TypeName ("exactSphereCurvature");
+
+    // Constructors
+        frontExactSphereCurvatureModel(const dictionary& configDict, const Time& runTime);
+
+        virtual ~frontExactSphereCurvatureModel(); 
+
+    // Member functions
+        
+        const vector& center()
+        {
+            return center_; 
+        }
+        
+        virtual scalar calcCurvature(const point& p, const point& curvatureCenter) const; 
+
+        virtual tmp<volScalarField> cellCurvature() const; 
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -111,5 +110,7 @@ tmp<volScalarField> frontExactCurvatureModel::cellCurvature() const
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //
