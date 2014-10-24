@@ -65,7 +65,7 @@ Description
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(frontExactCurvatureModel, 0);
+    //defineTypeNameAndDebug(frontExactCurvatureModel, 0);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -73,11 +73,7 @@ frontExactCurvatureModel::frontExactCurvatureModel(const dictionary& configDict,
     :
         frontCurvatureModel(configDict, runTime), 
         write_(configDict.lookupOrDefault<Switch>("writeExactCurvature", "no"))
-{
-    // Calculate cell curvature to write the field out in case write_ is set for the 
-    // first time-step. TM.
-    cellCurvature(); 
-}
+{}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
  

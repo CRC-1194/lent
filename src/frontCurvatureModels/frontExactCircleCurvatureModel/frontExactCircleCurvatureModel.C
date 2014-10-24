@@ -80,7 +80,8 @@ frontExactCircleCurvatureModel::frontExactCircleCurvatureModel(
     :
         frontExactCurvatureModel(configDict, runTime), 
         center_(configDict.lookup("center"))
-{}
+{
+}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 

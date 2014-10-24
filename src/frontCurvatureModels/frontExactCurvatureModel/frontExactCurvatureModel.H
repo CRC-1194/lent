@@ -81,7 +81,7 @@ class frontExactCurvatureModel
 
 public:
 
-    TypeName ("exactCurvature");
+    //TypeName ("exactCurvature");
 
     // Constructors
         frontExactCurvatureModel(const dictionary& configDict, const Time& runTime);
