@@ -39,6 +39,12 @@ Description
     Computes the curvature of a circle: make sure that the circle center lies
     on the appropriate height of the single cell layer 2D OpenFOAM mesh. 
 
+    Usage parameters:
+
+        type            circleCurvature;
+        writeExactCurvature yes;
+        center          ( 4 4 0.1 );
+
     You may refer to this software as :
     //- full bibliographic data to be provided
 
