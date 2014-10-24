@@ -77,7 +77,17 @@ namespace FrontTracking {
 frontExactCurvatureModel::frontExactCurvatureModel(const dictionary& configDict, const Time& runTime)
     :
         frontCurvatureModel(configDict, runTime), 
-        exactCurvatureFieldName_(configDict.lookup("exactCurvatureField"))
+        exactCurvatureFieldName_(configDict.lookup("exactCurvatureField")),
+        exactCurvatureField_( 
+            IOobject(
+                exactCurvatureFieldName_, 
+                time().timeName(), 
+                mesh(),
+                IOobject::MUST_READ, 
+                IOobject::AUTO_WRITE
+            ),
+            mesh()
+        )
 {}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -89,21 +99,7 @@ frontExactCurvatureModel::~frontExactCurvatureModel() {}
 
 tmp<volScalarField> frontExactCurvatureModel::cellCurvature() const
 {
-    // Read the exact curvature field and forward it to the call site.
-    tmp<volScalarField> exactCurvature( 
-        volScalarField(
-            IOobject(
-                exactCurvatureFieldName_, 
-                time().timeName(), 
-                mesh(),
-                IOobject::MUST_READ, 
-                IOobject::NO_WRITE
-            ),
-            mesh()
-        )
-    );
-
-    return exactCurvature;
+    return exactCurvatureField_;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

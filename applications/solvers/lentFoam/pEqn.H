@@ -17,7 +17,7 @@
     surfaceScalarField phig
     (
         (
-            // TODO: remove once the solver has been tested. TM.
+            // TODO: remove line below once the solver has been tested. TM.
             //fvc::interpolate(interface.sigmaK())*fvc::snGrad(markerField)
             fvc::interpolate(interface.sigma()*lent.cellCurvature())*fvc::snGrad(markerField)
           - ghf*fvc::snGrad(rho)

@@ -39,7 +39,7 @@
     (
         IOobject
         (
-            "signedDistance",
+            "searchDistanceSqr",
             runTime.timeName(),
             mesh,
             IOobject::NO_READ,

@@ -34,7 +34,15 @@ Author
 Description
 
     Curvature model used for validating the pressure-velocity coupling algorithm. 
-    It reads an exact curvature field.
+
+    It reads a pre-processed exact curvature field.
+
+    TODO: make the exact curvature models take the parameters for the exact shape: 
+        * circle
+        * sphere
+        * ellipse (2,3D)
+        * function
+    TM
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -79,6 +87,7 @@ class frontExactCurvatureModel
 {
 
     const word exactCurvatureFieldName_; 
+    volScalarField exactCurvatureField_;
 
 public:
 
