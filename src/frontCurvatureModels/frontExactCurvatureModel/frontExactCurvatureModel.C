@@ -23,18 +23,15 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontExactSphereCurvatureModel
+    Foam::frontExactCurvatureModel
 
 SourceFiles
-    frontExactSphereCurvatureModel.C
+    frontExactCurvatureModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-
-    Computes the exact curvature used for testing the pressure-velocity
-    coupling against parasitic currents.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,48 +55,86 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include "frontExactCurvatureModel.H"
+#include "fvcAverage.H"
+#include "fvcDiv.H"
+#include "fvcGrad.H"
 
-#ifndef frontExactSphereCurvatureModel_H
-#define frontExactSphereCurvatureModel_H
-
-#include "frontCurvatureModel.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class frontExactSphereCurvatureModel Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(frontExactCurvatureModel, 0);
 
-class frontExactSphereCurvatureModel
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+frontExactCurvatureModel::frontExactCurvatureModel(const dictionary& configDict, const Time& runTime)
     :
-        public frontCurvatureModel 
+        frontCurvatureModel(configDict, runTime), 
+        write_(configDict.lookupOrDefault<Switch>("writeExactCurvature", "no"))
 {
-    const vector center_; 
-    Switch write_; 
+    // Calculate cell curvature to write the field out in case write_ is set for the 
+    // first time-step. TM.
+    cellCurvature(); 
+}
 
-public:
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+ 
+frontExactCurvatureModel::~frontExactCurvatureModel() {} 
 
-    TypeName ("exactSphereCurvature");
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-    // Constructors
-        frontExactSphereCurvatureModel(const dictionary& configDict, const Time& runTime);
+tmp<volScalarField> frontExactCurvatureModel::cellCurvature() const
+{
+    tmp<volScalarField> cellCurvatureTmp( 
+        new volScalarField(
+            IOobject(
+                "cellCurvatureExact", 
+                time().timeName(), 
+                mesh(),
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            mesh(),
+            dimensionedScalar(
+                "zero", 
+                pow(dimLength, -1), 
+                0
+            ) 
+        )
+    );
 
-        virtual ~frontExactSphereCurvatureModel(); 
+    volScalarField& cellCurvature = cellCurvatureTmp(); 
 
-    // Member functions
-        
-        const vector& center()
+    const volVectorField& C = mesh().C(); 
+    const surfaceVectorField& Cf = mesh().Cf(); 
+
+    // Set internal cell centered curvature field.
+    forAll(cellCurvature, I)
+    {
+        cellCurvature[I] = calcCurvature(C[I]);
+    }
+
+    // Set the boundary cell centered curvature field
+    forAll(cellCurvature.boundaryField(), I)
+    {
+        fvPatchScalarField& cellCurvatureBoundary = cellCurvature.boundaryField()[I];
+        const fvsPatchVectorField& CfBoundary = Cf.boundaryField()[I];
+
+        forAll(cellCurvatureBoundary, J)
         {
-            return center_; 
+            cellCurvatureBoundary[J] = calcCurvature(CfBoundary[J]);
         }
-        
-        virtual scalar calcCurvature(const point& p, const point& curvatureCenter) const; 
+    }
 
-        virtual tmp<volScalarField> cellCurvature() const; 
-};
+    if (write_)
+    {
+        cellCurvature.write(); 
+    }
+
+    return cellCurvatureTmp;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -110,7 +145,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

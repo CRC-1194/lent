@@ -23,18 +23,20 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontExactSphereCurvatureModel
+    Foam::frontExactCircleCurvatureModel
 
 SourceFiles
-    frontExactSphereCurvatureModel.C
+    frontExactCircleCurvatureModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
 
-    Curvature model used for validating the pressure-velocity coupling algorithm. 
-    It reads an exact curvature field.
+    Computes the exact curvature used for testing the pressure-velocity
+    coupling against parasitic currents.
+
+    Computes the curvature of a circle. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,43 +60,31 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#include "frontExactSphereCurvatureModel.H"
+#include "frontExactCircleCurvatureModel.H"
 #include "addToRunTimeSelectionTable.H"
-#include "fvcAverage.H"
-#include "fvcDiv.H"
-#include "fvcGrad.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(frontExactSphereCurvatureModel, 0);
-    addToRunTimeSelectionTable(frontCurvatureModel, frontExactSphereCurvatureModel, Dictionary);
+    defineTypeNameAndDebug(frontExactCircleCurvatureModel, 0);
+    addToRunTimeSelectionTable(frontCurvatureModel, frontExactCircleCurvatureModel, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-frontExactSphereCurvatureModel::frontExactSphereCurvatureModel(const dictionary& configDict, const Time& runTime)
+frontExactCircleCurvatureModel::frontExactCircleCurvatureModel(
+    const dictionary& configDict, 
+    const Time& runTime
+)
     :
-        frontCurvatureModel(configDict, runTime), 
-        center_(configDict.lookup("center")),
-        write_(configDict.lookupOrDefault<Switch>("writeExactCurvature", "no"))
-{
-    // Calculate cell curvature to write the field out in case write_ is set for the 
-    // first time-step. TM.
-    cellCurvature(); 
-}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
- 
-frontExactSphereCurvatureModel::~frontExactSphereCurvatureModel() {} 
+        frontExactCurvatureModel(configDict, runTime), 
+        center_(configDict.lookup("center"))
+{}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-scalar frontExactSphereCurvatureModel::calcCurvature(
-    const point& p, 
-    const point& center 
-) const
+scalar frontExactCircleCurvatureModel::calcCurvature(const point& p) const
 {
     scalar curvature = 0;
 
@@ -110,57 +100,6 @@ scalar frontExactSphereCurvatureModel::calcCurvature(
     }
 
     return curvature;
-}
-
-tmp<volScalarField> frontExactSphereCurvatureModel::cellCurvature() const
-{
-    tmp<volScalarField> cellCurvatureTmp( 
-        new volScalarField(
-            IOobject(
-                "cellCurvatureExact", 
-                time().timeName(), 
-                mesh(),
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE
-            ),
-            mesh(),
-            dimensionedScalar(
-                "zero", 
-                pow(dimLength, -1), 
-                0
-            ) 
-        )
-    );
-
-    volScalarField& cellCurvature = cellCurvatureTmp(); 
-
-    const volVectorField& C = mesh().C(); 
-    const surfaceVectorField& Cf = mesh().Cf(); 
-
-    // Set internal cell centered curvature field.
-    forAll(cellCurvature, I)
-    {
-        cellCurvature[I] = calcCurvature(C[I], center_);
-    }
-
-    // Set the boundary cell centered curvature field
-    forAll(cellCurvature.boundaryField(), I)
-    {
-        fvPatchScalarField& cellCurvatureBoundary = cellCurvature.boundaryField()[I];
-        const fvsPatchVectorField& CfBoundary = Cf.boundaryField()[I];
-
-        forAll(cellCurvatureBoundary, J)
-        {
-            cellCurvatureBoundary[J] = calcCurvature(CfBoundary[J], center_);
-        }
-    }
-
-    if (write_)
-    {
-        cellCurvature.write(); 
-    }
-
-    return cellCurvatureTmp;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
