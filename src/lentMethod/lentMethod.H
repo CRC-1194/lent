@@ -187,6 +187,11 @@ public:
             return curvatureModelTmp_->cellCurvature(); 
         }
 
+        tmp<surfaceScalarField> faceCurvature() const
+        {
+            return curvatureModelTmp_->faceCurvature(); 
+        }
+
         // Empty writer: regIOobject is used only for registry queries.
         bool writeData(Ostream& os) const;
 
