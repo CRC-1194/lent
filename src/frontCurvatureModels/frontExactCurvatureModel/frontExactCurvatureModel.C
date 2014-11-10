@@ -70,7 +70,7 @@ namespace FrontTracking {
 frontExactCurvatureModel::frontExactCurvatureModel(const dictionary& configDict, const Time& runTime)
     :
         frontCurvatureModel(configDict, runTime), 
-        write_(configDict.lookupOrDefault<Switch>("writeExactCurvature", "no"))
+        write_(configDict.lookupOrDefault<Switch>("write", "off"))
 {}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
