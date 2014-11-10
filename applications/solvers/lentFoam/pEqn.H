@@ -17,9 +17,10 @@
     surfaceScalarField phig
     (
         (
-            // TODO: remove line below once the solver has been tested. TM.
+            //TODO: This may require further encapsulation, if it proves to be useful at all. TM
             //fvc::interpolate(interface.sigmaK())*fvc::snGrad(markerField)
-            fvc::interpolate(interface.sigma()*lent.cellCurvature())*fvc::snGrad(markerField)
+            //fvc::interpolate(interface.sigma()*lent.cellCurvature())*fvc::snGrad(markerField)
+            interface.sigma()*lent.faceCurvature()*fvc::snGrad(markerField)
           - ghf*fvc::snGrad(rho)
         )*rAUf*mesh.magSf()
     );
