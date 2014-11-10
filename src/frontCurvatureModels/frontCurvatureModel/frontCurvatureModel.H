@@ -130,6 +130,7 @@ public:
         virtual tmp<volScalarField> delta() const; 
 
         virtual tmp<volScalarField> cellCurvature() const; 
+        virtual tmp<surfaceScalarField> faceCurvature() const; 
 
         scalar epsilon() const
         {

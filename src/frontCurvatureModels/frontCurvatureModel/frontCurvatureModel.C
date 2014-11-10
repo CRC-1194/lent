@@ -62,6 +62,7 @@ Description
 #include "fvcGrad.H" 
 #include "fvcDiv.H"
 #include "fvcAverage.H" 
+#include "surfaceInterpolate.H" 
 #include "addToRunTimeSelectionTable.H" 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -168,6 +169,11 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature() const
     normalizeVectorField(cellGrad);  
 
     return fvc::div(-1*cellGrad);
+}
+
+tmp<surfaceScalarField> frontCurvatureModel::faceCurvature() const
+{
+    return fvc::interpolate(cellCurvature());
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
