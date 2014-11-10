@@ -65,8 +65,6 @@ Description
 namespace Foam {
 namespace FrontTracking {
 
-    //defineTypeNameAndDebug(frontExactCurvatureModel, 0);
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontExactCurvatureModel::frontExactCurvatureModel(const dictionary& configDict, const Time& runTime)
