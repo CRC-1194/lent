@@ -93,6 +93,7 @@ public:
         virtual scalar calcCurvature(const point& p) const = 0; 
 
         virtual tmp<volScalarField> cellCurvature() const; 
+        virtual tmp<surfaceScalarField> faceCurvature() const; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

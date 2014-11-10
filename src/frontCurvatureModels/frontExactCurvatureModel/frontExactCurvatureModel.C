@@ -132,6 +132,56 @@ tmp<volScalarField> frontExactCurvatureModel::cellCurvature() const
     return cellCurvatureTmp;
 }
 
+tmp<surfaceScalarField> frontExactCurvatureModel::faceCurvature() const
+{
+    tmp<surfaceScalarField> surfaceCurvatureTmp( 
+        new surfaceScalarField(
+            IOobject(
+                "surfaceCurvatureExact", 
+                time().timeName(), 
+                mesh(),
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            mesh(),
+            dimensionedScalar(
+                "zero", 
+                pow(dimLength, -1), 
+                0
+            ) 
+        )
+    );
+
+    surfaceScalarField& surfaceCurvature = surfaceCurvatureTmp(); 
+
+    const surfaceVectorField& Cf = mesh().Cf(); 
+
+    // Set internal surface centered curvature field.
+    forAll(surfaceCurvature, I)
+    {
+        surfaceCurvature[I] = calcCurvature(Cf[I]);
+    }
+
+    // Set the boundary surface centered curvature field
+    forAll(surfaceCurvature.boundaryField(), I)
+    {
+        fvsPatchScalarField& surfaceCurvatureBoundary = surfaceCurvature.boundaryField()[I];
+        const fvsPatchVectorField& CfBoundary = Cf.boundaryField()[I];
+
+        forAll(surfaceCurvatureBoundary, J)
+        {
+            surfaceCurvatureBoundary[J] = calcCurvature(CfBoundary[J]);
+        }
+    }
+
+    if (write_)
+    {
+        surfaceCurvature.write(); 
+    }
+
+    return surfaceCurvatureTmp;
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
