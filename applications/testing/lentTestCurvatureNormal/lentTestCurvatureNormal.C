@@ -50,40 +50,58 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-
 #include "fvCFD.H"
+#include "triSurfaceFields.H"
+
 #include "interfaceProperties.H"
 #include "incompressibleTwoPhaseMixture.H"
 #include "lentMethod.H"
 
-#include "lentTests.H"
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-using namespace FrontTracking;
-using namespace Test;
+//using namespace FrontTracking;
+//using namespace Test;
 
 void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
 {
-    cn = 0;
+    cn = dimensionedVector("zero",
+                            dimless/dimLength,
+                            vector(0,0,0)
+                          );
 
     // Get label list of all mesh vertices
     // Taken from file "PrimitivePatch.H", ll.347
     const labelList& vertices = front.meshPoints();
+
+    // Following line should yield a list of labelLists, which
+    // contains the mapping between a vertex and a face (triangle)
+    const labelListList& adjacentFaces = front.pointFaces();
 
     forAll(vertices, V)
     {
         scalar Amix = 0;
 
         // Get all triangles adjacent to V
-        // Idea: iterate over all triangles of the front. Use 'which' of
-        // "face.H" to check if T belongs to V. If true execute all operations
-        // mentioned in Meyer's paper
+        const labelList& oneRingNeighborhood = adjacentFaces[V];
+
+        // Sum up mixed area and contributions to mean curvature normal
+        forAll(oneRingNeighborhood, T)
+        {
+            // Get other two vertices of T
+            // --> Kann so nicht funktionieren, da T vom Typ 'label' ist.
+            // Müsste wenn dann so aussehen:
+            // label bla = faces[T].nextLabel(V);
+            label R = T.nextLabel(V);
+            label Q = T.prevLabel(V);
+
+        }
+
 
     }
 
 }
 
+/*
 TEST_F(lentTests, lentReconstruction)
 {
     extern int mainArgc;
@@ -92,23 +110,9 @@ TEST_F(lentTests, lentReconstruction)
     int argc = mainArgc;
     char** argv = mainArgv;
 
-    #include "setRootCase.H"
-    #include "createTime.H"
-    #include "createMesh.H"
-
-    #include "createFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    triSurfaceFront front(
-        IOobject(
-            "front.stl",
-            "front",
-            runTime,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        )
-    );
 
     lentMethod lent(front, mesh);
 
@@ -124,22 +128,6 @@ TEST_F(lentTests, lentReconstruction)
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        twoPhaseProperties.correct();
-
-        lent.calcSignedDistances(
-            signedDistance,
-            pointSignedDistance,
-            searchDistanceSqr,
-            pointSearchDistanceSqr,
-            front
-        );
-
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
-
-        lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-        TEST_NORMAL_CONSISTENCY(front);
-
         runTime.write();
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
@@ -149,18 +137,47 @@ TEST_F(lentTests, lentReconstruction)
 
     Info<< "End\n" << endl;
 }
+*/
 
-int mainArgc;
-char** mainArgv;
-
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
-    ::testing::InitGoogleTest(&argc, argv);
+    #include "setRootCase.H"
+    #include "createTime.H"
+    #include "createMesh.H"
 
-    mainArgc = argc;
-    mainArgv = argv;
+    #include "createFields.H"
+    
+    // Read and intialize front 
+    triSurface front(
+        IOobject(
+            "front.stl",
+            "front",
+            runTime,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        )
+    );
 
-    return RUN_ALL_TESTS();
+    // Initialize field for curvature normals
+    triSurfaceVectorField curvatureNormals
+    (
+        IOobject
+        (
+            "curvatureNormals",
+            "curvatureNormals",
+            front,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        front,
+        dimensionedScalar
+        (
+            "zero,"
+            pow(dimLength, -1),
+            0
+        );
+    );
+
 
     return 0;
 }
