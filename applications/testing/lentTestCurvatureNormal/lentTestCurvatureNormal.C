@@ -91,8 +91,10 @@ void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
             // --> Kann so nicht funktionieren, da T vom Typ 'label' ist.
             // Müsste wenn dann so aussehen:
             // label bla = faces[T].nextLabel(V);
+            /*
             label R = T.nextLabel(V);
             label Q = T.prevLabel(V);
+            */
 
         }
 
@@ -149,6 +151,7 @@ int main(int argc, char *argv[])
     
     // Read and intialize front 
     triSurface front(
+        /*
         IOobject(
             "front.stl",
             "front",
@@ -156,6 +159,8 @@ int main(int argc, char *argv[])
             IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         )
+        */
+        "front/front.stl"
     );
 
     // Initialize field for curvature normals
