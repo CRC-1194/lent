@@ -77,30 +77,40 @@ void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
     // contains the mapping between a vertex and a face (triangle)
     const labelListList& adjacentFaces = front.pointFaces();
 
-    forAll(vertices, V)
+    // List of global point references
+    const pointField& globalPoints = front.points();
+    
+    // Needed: List of global face references
+    const List<labelledTri>& globalFaces = front.localFaces();
+
+    // V (the actual vertex) and Vl (its label) are used synonymously
+    // in the following comments
+    forAll(vertices, Vl)
     {
         scalar Amix = 0;
 
         // Get all triangles adjacent to V
-        const labelList& oneRingNeighborhood = adjacentFaces[V];
+        const labelList& oneRingNeighborhood = adjacentFaces[Vl];
 
         // Sum up mixed area and contributions to mean curvature normal
         forAll(oneRingNeighborhood, T)
         {
-            // Get other two vertices of T
-            // --> Kann so nicht funktionieren, da T vom Typ 'label' ist.
-            // Müsste wenn dann so aussehen:
-            // label bla = faces[T].nextLabel(V);
-            /*
-            label R = T.nextLabel(V);
-            label Q = T.prevLabel(V);
-            */
+            // === Get other two vertices of T ===
+            // First, resolve label T to get the actual face
+            labelledTri currentTri = globalFaces[T];
 
+            // Get labels of the two other vertices
+            label Ql = currentTri.fcIndex(V);
+            label Rl = currentTri.rcIndex(V);
+
+            // Resolve labels to actuals points
+            V = globalPoints[Vl];
+            Q = globalPoints[Ql];
+            R = globalPoints[Rl];
         }
-
-
     }
 
+    Info << "Avarage distance from center: " << distance / counter << endl;
 }
 
 /*
@@ -151,37 +161,31 @@ int main(int argc, char *argv[])
     
     // Read and intialize front 
     triSurface front(
-        /*
-        IOobject(
-            "front.stl",
-            "front",
-            runTime,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        )
-        */
         "front/front.stl"
     );
 
     // Initialize field for curvature normals
-    triSurfaceVectorField curvatureNormals
+    triSurfaceVectorField cn
     (
         IOobject
         (
             "curvatureNormals",
-            "curvatureNormals",
-            front,
+            runTime.timeName(),
+            runTime,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
         front,
-        dimensionedScalar
+        dimensionedVector
         (
-            "zero,"
+            "zero",
             pow(dimLength, -1),
-            0
-        );
+            vector(0,0,0)
+        )
     );
+
+    // Finally call the function
+    curvatureNormals(cn, front);
 
 
     return 0;
