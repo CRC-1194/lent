@@ -52,42 +52,59 @@ Description
 
 #include "fvCFD.H"
 #include "triSurfaceFields.H"
-
 #include "interfaceProperties.H"
 #include "incompressibleTwoPhaseMixture.H"
 #include "lentMethod.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//using namespace FrontTracking;
-//using namespace Test;
+// Aux functions
 
-// Aux function for angle calculation
-scalar getAngle(vector a, vector b)
+// Calculate angle between two vectors
+scalar getAngle(vector& a, vector& b)
 {
     return Foam::acos((a & b) / (mag(a) * mag(b)));
 }
 
+// Cotangent function to resemble algorihm notion from paper
 scalar cot(scalar angle)
 {
     return 1/Foam::tan(angle);
 }
 
+// Triangle area functions
+// Use heron's formula
+scalar areaHeron(vector& A, vector& B, vector& C)
+{
+    scalar a = mag(A);
+    scalar b = mag(B);
+    scalar c = mag(C);
+    scalar s = 0.5 * (a + b + c);
+                
+    return Foam::sqrt(s*(s-a)*(s-b)*(s-c));
+}
+
+// Use cross product property
+scalar areaCross(vector& a, vector& b)
+{
+    return 0.5*mag(a ^ b);
+}
+
 void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
 {
-    scalar pi = 52163 / 16604;
+    scalar pi = 3.141592653589793238; 
 
     cn = dimensionedVector("zero",
                             dimless/dimLength,
                             vector(0,0,0)
                           );
 
+    // All of the following functions are taken from
+    // "PrimitivePatch.H"
     // Get label list of all mesh vertices
-    // Taken from file "PrimitivePatch.H", ll.347
     const labelList& vertices = front.meshPoints();
 
-    // Following line should yield a list of labelLists, which
-    // contains the mapping between a vertex and a face (triangle)
+    // Get assignment point --> faces
     const labelListList& adjacentFaces = front.pointFaces();
 
     // List of global point references
@@ -122,52 +139,42 @@ void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
             point R = globalPoints[Rl];
 
             // Edge vectors
-            vector QV = V - Q;
-            vector RV = V - R;
+            vector VQ = Q - V;
+            vector VR = R - V;
             vector QR = R - Q;
 
             // Get angles
-            scalar Va = getAngle(QV, RV);
-            scalar Qa = getAngle(QV, QR);
-            scalar Ra = pi - (Va + Qa);
+            scalar Va = getAngle(VQ, VR);
+            scalar Ra = getAngle(VR, QR);
+            scalar Qa = pi - (Va + Ra);
 
-            // Check if obtuse in order to use the correct area metric
+            // Check if non-obtuse in order to use the correct area metric
             if (Va < pi/2 && Qa < pi/2 && Ra < pi/2)
             {
                 // Use Voronoi-area
                 // Cotangent function 'cot' has to be defined locally since
                 // it is not offered by OpenFOAM
-                Amix += 1/8*(magSqr(RV)*cot(Qa) + magSqr(QV)*cot(Ra));    
+                Amix += 0.125*(magSqr(VR)*cot(Qa) + magSqr(VQ)*cot(Ra));    
             }
             else if (Va >= pi/2)
             {
                 // Obtuse angle at V, use half area
-                Amix += 0.5*mag(QV ^ RV);
+                // Use Heron's formula for now until problem
+                // with vector approach is solved
+                Amix += 0.5 * areaHeron(VQ, VR, QR);
             }
             else
             {
-                Amix += 0.25*mag(QV ^ RV);
+                // Obtuse angle not at V, use quarter area
+                // Use Heron's formula for now until problem
+                // with vector approach is solved
+                Amix += 0.25 * areaHeron(VQ, VR, QR);
             }
 
-            if (Va < 0.01 || Qa < 0.01 || Ra < 0.01)
-            {
-                Info << "Angle smaller than 0.01rad\n" << endl;
-            }  
-
             // Compute mean curvature normal contributions
-            cn[Vl] = cot(Qa)*RV + cot(Ra)*QV;
+            cn[Vl] += cot(Qa)*VR + cot(Ra)*VQ;
         }
-
-        // Compute mean curvature normal for vertex V
-        // This should not be necessary...
-        if (Amix < SMALL)
-        {
-            cn[Vl] = cn[Vl]/(2*SMALL);
-        }
-        else
-        {
-            cn[Vl] = cn[Vl]/(2*Amix);
-        }
+        cn[Vl] = cn[Vl]/(2*Amix);
     }
 }
 
@@ -208,23 +215,28 @@ int main(int argc, char *argv[])
     curvatureNormals(cn, front);
 
     // Check for plausability and debugging...
-    scalar counter,radius = 0;
+    scalar counter, curvature = 0;
+    scalar minCur = 1000;
+    scalar maxCur = 0;
+
+    scalar tmp = 0;
+
     forAll(cn, V)
     {
-        if (mag(cn[V]) < 1000)
-        {
-            radius += mag(cn[V]);
-            counter++;
-        }
-        else
-        {
-            Info << "Mean curvature is: " << mag(cn[V]) << endl;
-        }
+        tmp = mag(cn[V]);        
+        curvature += tmp;
+
+        minCur = tmp < minCur ? tmp : minCur;
+        maxCur = tmp > maxCur ? tmp : maxCur;
+
+        counter++;
     }
 
-    radius = radius / counter;
+    scalar radius = counter / curvature;
 
-    Info << "Average radius is : " << radius << endl;
+    Info << "Average radius is: " << radius << endl;
+    Info << "Minimum radius is: " << 1.0/maxCur << endl;
+    Info << "Maximum radius is: " << 1.0/minCur << endl; 
 
     return 0;
 }
