@@ -90,6 +90,64 @@ scalar areaCross(vector& a, vector& b)
     return 0.5*mag(a ^ b);
 }
 
+// Quality metric in order to get to the core of the problem
+// of completely wrong curvtures
+bool badQuality(point& A, point& B, point& C)
+{
+    bool isBad = false;
+
+    scalar pi = 3.141592653589793238; 
+
+    // Edges
+    vector a = C - B;
+    vector b = C - A;
+    vector c = B - A;
+
+    // Angles
+    scalar alpha = getAngle(b, c);
+    scalar gamma = getAngle(a, b);
+    scalar beta = pi - (alpha + gamma);
+
+    // Area
+    scalar area = areaHeron(a, b, c);
+
+    // Actual quality check, hardcoded for now
+    scalar minAngle = 0.17453;  // 10 degree
+    scalar maxAngle = 2.4435;   // 140 degree
+
+    scalar maxRatio = 5.0; // maximum ratio of edge lengths
+
+    scalar minArea = 1e-5; // Should be smaller than the value computed by checkSTL
+    scalar maxArea = 1e-1; // Should be bigger than value computed by checkSTL
+
+    // Angle check
+    if (alpha < minAngle || beta < minAngle || gamma < minAngle)
+    {
+        isBad = true;
+    }
+
+    if (alpha > maxAngle || beta > maxAngle || gamma > maxAngle)
+    {
+        isBad = true;
+    }
+
+    // Edge ratio check
+    scalar minLength = mag(a);
+    scalar maxLength = mag(b);
+
+    minLength = mag(c) < minLength ? mag(c) : minLength;
+    minLength = mag(b) < minLength ? mag(b) : minLength;
+    maxLength = mag(c) > maxLength ? mag(c) : maxLength;
+    maxLength = mag(a) > maxLength ? mag(a) : maxLength;
+
+    isBad = maxRatio > maxLength/minLength ? false : true;
+
+    // Area check
+    if (area < minArea || area > maxArea) {isBad = true;}
+
+    return isBad;
+}
+
 void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
 {
     scalar pi = 3.141592653589793238; 
@@ -147,6 +205,16 @@ void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
             scalar Va = getAngle(VQ, VR);
             scalar Ra = getAngle(VR, QR);
             scalar Qa = pi - (Va + Ra);
+
+            if (badQuality(V, Q, R))
+            {
+                Info << "Bad triangle detected:\n"
+                     << "Label: l = " << T << "\n"
+                     << "Points: V(" << V << ") Q(" << Q << ") R(" << R
+                     << ") \n"
+                     << "Angles: v = " << Va*57.3 << ", q = " << Qa*57.3
+                     << ", r = " << Ra*57.3 << "\n" << endl;
+            }
 
             // Check if non-obtuse in order to use the correct area metric
             if (Va < pi/2 && Qa < pi/2 && Ra < pi/2)
