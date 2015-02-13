@@ -69,7 +69,7 @@ scalar getAngle(vector& a, vector& b)
 // Cotangent function to resemble algorihm notion from paper
 scalar cot(scalar angle)
 {
-    return 1/Foam::tan(angle);
+    return 1.0/Foam::tan(angle);
 }
 
 // Triangle area functions
@@ -91,7 +91,7 @@ scalar areaCross(vector& a, vector& b)
 }
 
 // Quality metric in order to get to the core of the problem
-// of completely wrong curvtures
+// of completely wrong curvatures
 bool badQuality(point& A, point& B, point& C)
 {
     bool isBad = false;
@@ -157,6 +157,9 @@ void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
                             vector(0,0,0)
                           );
 
+    // TODO: modify so that mutliple patches, e.g. in the case of
+    // bubble breakup, are supported
+
     // All of the following functions are taken from
     // "PrimitivePatch.H"
     // Get label list of all mesh vertices
@@ -165,11 +168,11 @@ void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
     // Get assignment point --> faces
     const labelListList& adjacentFaces = front.pointFaces();
 
-    // List of global point references
-    const pointField& globalPoints = front.points();
+    // List of local point references for current patch
+    const pointField& localPoints = front.localPoints();
     
-    // Needed: List of global face references
-    const List<labelledTri>& globalFaces = front.localFaces();
+    // Needed: List of local face references
+    const List<labelledTri>& localFaces = front.localFaces();
 
     // V (the actual vertex) and Vl (its label) are used synonymously
     // in the following comments
@@ -185,16 +188,37 @@ void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
         {
             // Compute area contributions
             // First, resolve label T to get the actual face
-            labelledTri currentTri = globalFaces[T];
+            label triLabel = oneRingNeighborhood[T];
+            labelledTri currentTri = localFaces[triLabel];
 
-            // Get labels of the two other vertices
-            label Ql = currentTri.fcIndex(Vl);
-            label Rl = currentTri.rcIndex(Vl);
+            // Read point labels from triangle and determine which
+            // one matches Vl to resolve point coordinates correctly
+            label tri0 = currentTri[0];
+            label tri1 = currentTri[1];
+            label tri2 = currentTri[2];
 
-            // Resolve labels to actuals points
-            point V = globalPoints[Vl];
-            point Q = globalPoints[Ql];
-            point R = globalPoints[Rl];
+            point V;
+            point Q;
+            point R;
+
+            if (tri0 == Vl)
+            {
+                V = localPoints[Vl];
+                Q = localPoints[tri1];
+                R = localPoints[tri2];
+            }
+            else if (tri1 == Vl)
+            {
+                V = localPoints[Vl];
+                Q = localPoints[tri0];
+                R = localPoints[tri2];
+            }
+            else
+            {
+                V = localPoints[Vl];
+                Q = localPoints[tri0];
+                R = localPoints[tri1];
+            }
 
             // Edge vectors
             vector VQ = Q - V;
@@ -206,15 +230,17 @@ void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
             scalar Ra = getAngle(VR, QR);
             scalar Qa = pi - (Va + Ra);
 
+            /*
             if (badQuality(V, Q, R))
             {
                 Info << "Bad triangle detected:\n"
-                     << "Label: l = " << T << "\n"
-                     << "Points: V(" << V << ") Q(" << Q << ") R(" << R
-                     << ") \n"
+                     << "Label: l = " << oneRingNeighborhood[T] << "\n"
+                     << "Points:\nV" << V << "\nQ" << Q << "\nR" << R
+                     << " \n"
                      << "Angles: v = " << Va*57.3 << ", q = " << Qa*57.3
                      << ", r = " << Ra*57.3 << "\n" << endl;
             }
+            */
 
             // Check if non-obtuse in order to use the correct area metric
             if (Va < pi/2 && Qa < pi/2 && Ra < pi/2)
@@ -300,11 +326,11 @@ int main(int argc, char *argv[])
         counter++;
     }
 
-    scalar radius = counter / curvature;
+    curvature = curvature / counter;
 
-    Info << "Average radius is: " << radius << endl;
-    Info << "Minimum radius is: " << 1.0/maxCur << endl;
-    Info << "Maximum radius is: " << 1.0/minCur << endl; 
+    Info << "Average curvature is: " << curvature<< endl;
+    Info << "Maximum curvature is: " << maxCur<< endl;
+    Info << "Minimum curvature is: " << minCur << endl; 
 
     return 0;
 }
