@@ -148,7 +148,7 @@ bool badQuality(point& A, point& B, point& C)
     return isBad;
 }
 
-void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
+void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
 {
     scalar pi = 3.141592653589793238; 
 
@@ -268,18 +268,12 @@ void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
             // Compute mean curvature normal contributions
             cn[Vl] += cot(Qa)*VR + cot(Ra)*VQ;
         }
-        // Do not use factor of 0.5 mentioned in Meyer et al since
-        // we need twice the mean curvature for computation of
-        // surface tension
-        cn[Vl] = cn[Vl] / Amix;
+        cn[Vl] = cn[Vl] / (2.0 * Amix);
     }
 }
 
-// TODO: implement function that computes front vertices' deviation from
-// sphere, e.g. compare radius with actual distance from center
-
 // Compare exact curvature with numerical curvature
-void checkCurvature(const triSurfaceVectorField& cn, scalar radius)
+void checkCurvature(const triSurfacePointVectorField& cn, scalar radius)
 {
     scalar curvatureExact = 2.0 / radius;
 
@@ -320,11 +314,11 @@ void checkCurvature(const triSurfaceVectorField& cn, scalar radius)
 
     averageCurvature = averageCurvature / counter;
     linearDeviation = linearDeviation / counter;
-    quadDeviation = quadDeviation / counter;
+    quadDeviation = Foam::sqrt(quadDeviation / counter);
 
     // Convert deviations to percent for better readability
-    linearDeviation = mag(linearDeviation - curvatureExact) * 100;
-    quadDeviation = mag(quadDeviation - curvatureExact) * 100;
+    linearDeviation = linearDeviation * 100;
+    quadDeviation = quadDeviation * 100;
 
     // Print results
     Info << "\n=== Curvature results ===" << endl;
@@ -337,7 +331,7 @@ void checkCurvature(const triSurfaceVectorField& cn, scalar radius)
 }
 
 // Compare exact front normal with numerical normal
-void checkNormal(const triSurfaceVectorField& cn, const triSurface& front,
+void checkNormal(const triSurfacePointVectorField& cn, const triSurface& front,
                  vector center)
 {
     scalar maxDeviation = 0;
@@ -379,13 +373,44 @@ void checkNormal(const triSurfaceVectorField& cn, const triSurface& front,
     }
 
     linearDeviation = linearDeviation / counter;
-    quadDeviation = quadDeviation / counter;
+    quadDeviation = Foam::sqrt(quadDeviation / counter);
 
     // Print results
     Info << "\n === Normal vector results ===" << endl;
-    Info << "Linear deviation (in %) = " << linearDeviation/100.0 << endl;
-    Info << "Quadratic deviation (in %) = " << quadDeviation/100.0 << endl;
+    Info << "Linear deviation (in %) = " << linearDeviation*100.0 << endl;
+    Info << "Quadratic deviation (in %) = " << quadDeviation*100.0 << endl;
     Info << "Maximum deviation angle = " << devAngle << endl;
+}
+
+// Compute front vertices' deviation from a sphere surface
+void sphereDeviation(const triSurface& front, scalar radius, vector center)
+{
+    scalar averageDeviation = 0;
+    scalar maxDeviation = 0;
+    scalar counter = 0;
+
+    const labelList& vertices = front.meshPoints();
+    const pointField& localPoints = front.localPoints();
+
+    forAll(vertices, V)
+    {
+        scalar deviation = mag(radius - mag(center - localPoints[V]));
+
+        if (deviation > maxDeviation)
+        {
+            maxDeviation = deviation;
+        }
+
+        averageDeviation += deviation;
+
+        counter++;
+    }
+
+    averageDeviation = averageDeviation / counter;
+
+    Info << "\n=== Front deviation from sphere ===" << endl;
+    Info << "Linear deviation (in %) = " << averageDeviation / radius * 100 << endl;
+    Info << "Maximum deviation (in %) = " << maxDeviation / radius * 100 << endl;
 }
 
 int main(int argc, char *argv[])
@@ -432,7 +457,7 @@ int main(int argc, char *argv[])
     );
 
     // Initialize field for curvature normals
-    triSurfaceVectorField cn
+    triSurfacePointVectorField cn
     (
         IOobject
         (
@@ -453,6 +478,9 @@ int main(int argc, char *argv[])
 
     // Finally call the function
     curvatureNormals(cn, front);
+
+    // Check deviation from sphere
+    sphereDeviation(front, radius, center);
 
     // Check curvature
     checkCurvature(cn, radius);
