@@ -268,18 +268,164 @@ void curvatureNormals(triSurfaceVectorField& cn, const triSurface& front)
             // Compute mean curvature normal contributions
             cn[Vl] += cot(Qa)*VR + cot(Ra)*VQ;
         }
-        cn[Vl] = cn[Vl]/(2*Amix);
+        // Do not use factor of 0.5 mentioned in Meyer et al since
+        // we need twice the mean curvature for computation of
+        // surface tension
+        cn[Vl] = cn[Vl] / Amix;
     }
+}
+
+// TODO: implement function that computes front vertices' deviation from
+// sphere, e.g. compare radius with actual distance from center
+
+// Compare exact curvature with numerical curvature
+void checkCurvature(const triSurfaceVectorField& cn, scalar radius)
+{
+    scalar curvatureExact = 2.0 / radius;
+
+    scalar minCurvature = curvatureExact;
+    scalar maxCurvature = 0;
+
+    scalar averageCurvature = 0;
+    scalar linearDeviation = 0;
+    scalar quadDeviation = 0;
+
+    scalar counter = 0;
+
+    forAll(cn, V)
+    {
+        scalar numCurvature = mag(cn[V]);
+        scalar deviation = mag(numCurvature - curvatureExact);
+
+        // Set extremal values
+        if (numCurvature < minCurvature)
+        {
+            minCurvature = numCurvature;
+        }
+
+        if (numCurvature > maxCurvature)
+        {
+            maxCurvature = numCurvature;
+        }
+
+        // Contribution to average value
+        averageCurvature += numCurvature;
+
+        // Increment deviations
+        linearDeviation += deviation;
+        quadDeviation += deviation*deviation;
+
+        counter++;
+    }
+
+    averageCurvature = averageCurvature / counter;
+    linearDeviation = linearDeviation / counter;
+    quadDeviation = quadDeviation / counter;
+
+    // Convert deviations to percent for better readability
+    linearDeviation = mag(linearDeviation - curvatureExact) * 100;
+    quadDeviation = mag(quadDeviation - curvatureExact) * 100;
+
+    // Print results
+    Info << "\n=== Curvature results ===" << endl;
+    Info << "Exact curvature = " << curvatureExact << endl;
+    Info << "Average curvature = " << averageCurvature << endl;
+    Info << "Linear deviation (in %) = " << linearDeviation << endl;
+    Info << "Quadratic deviation (in %) = " << quadDeviation << endl;
+    Info << "Minimum curvature = " << minCurvature << endl;
+    Info << "Maximum curvature = " << maxCurvature << endl;
+}
+
+// Compare exact front normal with numerical normal
+void checkNormal(const triSurfaceVectorField& cn, const triSurface& front,
+                 vector center)
+{
+    scalar maxDeviation = 0;
+    scalar devAngle = 0;
+    scalar linearDeviation = 0;
+    scalar quadDeviation = 0;
+
+    scalar counter = 0;
+
+    const pointField& localPoints = front.localPoints();
+
+    forAll(localPoints, P)
+    {
+        vector normalExact = center - localPoints[P];
+        vector normalNumerical = cn[P];
+
+        // Normalize vectors
+        normalExact = normalExact / mag(normalExact);
+        normalNumerical = normalNumerical / mag(normalNumerical);
+
+        // Do not compute actual angle; instead use dot product
+        // only as measure for angular deviation
+        scalar angle = normalExact & normalNumerical;
+
+        scalar deviation = mag(mag(angle) - 1.0);
+
+        if (deviation > maxDeviation)
+        {
+            maxDeviation = deviation;
+
+            // Compute deviation angle in degree
+            devAngle = Foam::acos(angle) * 57.3;
+        }
+
+        linearDeviation += deviation;
+        quadDeviation += deviation*deviation;
+
+        counter++;
+    }
+
+    linearDeviation = linearDeviation / counter;
+    quadDeviation = quadDeviation / counter;
+
+    // Print results
+    Info << "\n === Normal vector results ===" << endl;
+    Info << "Linear deviation (in %) = " << linearDeviation/100.0 << endl;
+    Info << "Quadratic deviation (in %) = " << quadDeviation/100.0 << endl;
+    Info << "Maximum deviation angle = " << devAngle << endl;
 }
 
 int main(int argc, char *argv[])
 {
+    argList::addOption
+    (
+        "radius",
+        "Radius of the sphere used for curvature calculation"
+    );
+
+    argList::addOption
+    (
+        "center",
+        "Center of the sphere."    
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
 
     #include "createFields.H"
     
+    if (!args.optionFound("radius"))
+    {
+        FatalErrorIn("main()")
+            << "Please use option '-radius' to specify the sphere's radius"
+            << endl << exit(FatalError);
+    }
+
+    if (!args.optionFound("center"))
+    {
+        FatalErrorIn("main()")
+            << "Please use option '-center' to specify the sphere's center"
+            << endl << exit(FatalError);
+    }
+
+    // Read command line arguments
+    const scalar radius = args.optionRead<scalar>("radius");
+    const vector center = args.optionRead<vector>("center");
+
     // Read and intialize front 
     triSurface front(
         "front/front.stl"
@@ -308,29 +454,11 @@ int main(int argc, char *argv[])
     // Finally call the function
     curvatureNormals(cn, front);
 
-    // Check for plausability and debugging...
-    scalar counter, curvature = 0;
-    scalar minCur = 1000;
-    scalar maxCur = 0;
+    // Check curvature
+    checkCurvature(cn, radius);
 
-    scalar tmp = 0;
-
-    forAll(cn, V)
-    {
-        tmp = mag(cn[V]);        
-        curvature += tmp;
-
-        minCur = tmp < minCur ? tmp : minCur;
-        maxCur = tmp > maxCur ? tmp : maxCur;
-
-        counter++;
-    }
-
-    curvature = curvature / counter;
-
-    Info << "Average curvature is: " << curvature<< endl;
-    Info << "Maximum curvature is: " << maxCur<< endl;
-    Info << "Minimum curvature is: " << minCur << endl; 
+    // Check normals
+    checkNormal(cn, front, center);
 
     return 0;
 }
