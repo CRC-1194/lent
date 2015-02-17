@@ -56,6 +56,8 @@ Description
 #include "incompressibleTwoPhaseMixture.H"
 #include "lentMethod.H"
 
+#include <fstream>
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // Aux functions
@@ -273,7 +275,8 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
 }
 
 // Compare exact curvature with numerical curvature
-void checkCurvature(const triSurfacePointVectorField& cn, scalar radius)
+void checkCurvature(const triSurfacePointVectorField& cn, const triSurface& front,
+                    scalar radius, std::fstream& errorFile)
 {
     scalar curvatureExact = 2.0 / radius;
 
@@ -283,6 +286,7 @@ void checkCurvature(const triSurfacePointVectorField& cn, scalar radius)
     scalar averageCurvature = 0;
     scalar linearDeviation = 0;
     scalar quadDeviation = 0;
+    scalar maxDeviation = 0; // L_inf norm as in Francois' paper
 
     scalar counter = 0;
 
@@ -313,26 +317,49 @@ void checkCurvature(const triSurfacePointVectorField& cn, scalar radius)
     }
 
     averageCurvature = averageCurvature / counter;
-    linearDeviation = linearDeviation / counter;
-    quadDeviation = Foam::sqrt(quadDeviation / counter);
 
-    // Convert deviations to percent for better readability
-    linearDeviation = linearDeviation * 100;
-    quadDeviation = quadDeviation * 100;
+    if (mag(curvatureExact - minCurvature) > mag(maxCurvature - curvatureExact))
+    {
+        maxDeviation = mag(curvatureExact - minCurvature);
+    }
+    else
+    {
+        maxDeviation = mag(maxCurvature - curvatureExact);
+    }
+
+    // Normalize with exact curvature for comparability and
+    // convert to percent (readability)
+    linearDeviation = 100 * linearDeviation / (counter*curvatureExact);
+    quadDeviation = 100 * Foam::sqrt(quadDeviation / (counter*curvatureExact));
 
     // Print results
     Info << "\n=== Curvature results ===" << endl;
     Info << "Exact curvature = " << curvatureExact << endl;
+    Info << "L_inf = " << maxDeviation << endl;
     Info << "Average curvature = " << averageCurvature << endl;
     Info << "Linear deviation (in %) = " << linearDeviation << endl;
     Info << "Quadratic deviation (in %) = " << quadDeviation << endl;
     Info << "Minimum curvature = " << minCurvature << endl;
     Info << "Maximum curvature = " << maxCurvature << endl;
+
+    // Write to file
+    errorFile << "# Curvature header" << std::endl;
+    errorFile << "# n points\t n trias\t curv(exact)\t L_inf\t curv(avg.)\t"
+              << " linDev (%)\t quadDev (%)\t curv(min)\t curv(max)" << std::endl;
+    errorFile << front.meshPoints().size() << "\t"
+              << front.localFaces().size() << "\t"
+              << curvatureExact << "\t"
+              << maxDeviation << "\t"
+              << averageCurvature << "\t"
+              << linearDeviation << "\t"
+              << quadDeviation << "\t"
+              << minCurvature << "\t"
+              << maxCurvature << "\t" << std::endl;
 }
 
 // Compare exact front normal with numerical normal
 void checkNormal(const triSurfacePointVectorField& cn, const triSurface& front,
-                 vector center)
+                 vector center, std::fstream& errorFile)
 {
     scalar maxDeviation = 0;
     scalar devAngle = 0;
@@ -363,7 +390,7 @@ void checkNormal(const triSurfacePointVectorField& cn, const triSurface& front,
             maxDeviation = deviation;
 
             // Compute deviation angle in degree
-            devAngle = Foam::acos(angle) * 57.3;
+            devAngle = Foam::acos(angle) * 57.296;
         }
 
         linearDeviation += deviation;
@@ -372,18 +399,30 @@ void checkNormal(const triSurfacePointVectorField& cn, const triSurface& front,
         counter++;
     }
 
-    linearDeviation = linearDeviation / counter;
-    quadDeviation = Foam::sqrt(quadDeviation / counter);
+    // Average and convert to percentage
+    linearDeviation = 100 * linearDeviation / counter;
+    quadDeviation = 100 * Foam::sqrt(quadDeviation / counter);
 
     // Print results
     Info << "\n === Normal vector results ===" << endl;
-    Info << "Linear deviation (in %) = " << linearDeviation*100.0 << endl;
-    Info << "Quadratic deviation (in %) = " << quadDeviation*100.0 << endl;
+    Info << "Linear deviation (in %) = " << linearDeviation << endl;
+    Info << "Quadratic deviation (in %) = " << quadDeviation << endl;
     Info << "Maximum deviation angle = " << devAngle << endl;
+
+    // Write to file
+    errorFile << "# Normal vector header" << std::endl;
+    errorFile << "# n points\t n trias\t max. deviation (degree)\t"
+              << " linDev (%)\t quadDev (%)" << std::endl;
+    errorFile << front.meshPoints().size() << "\t"
+              << front.localFaces().size() << "\t"
+              << devAngle << "\t\t"
+              << linearDeviation << "\t"
+              << quadDeviation << std::endl;
 }
 
 // Compute front vertices' deviation from a sphere surface
-void sphereDeviation(const triSurface& front, scalar radius, vector center)
+void sphereDeviation(const triSurface& front, scalar radius, vector center,
+                     std::fstream& errorFile)
 {
     scalar averageDeviation = 0;
     scalar maxDeviation = 0;
@@ -406,15 +445,32 @@ void sphereDeviation(const triSurface& front, scalar radius, vector center)
         counter++;
     }
 
-    averageDeviation = averageDeviation / counter;
+    // Normalize results and convert to percentage
+    averageDeviation = 100* averageDeviation / (counter*radius);
+    maxDeviation = 100 * maxDeviation / radius;
 
+    // Print results
     Info << "\n=== Front deviation from sphere ===" << endl;
-    Info << "Linear deviation (in %) = " << averageDeviation / radius * 100 << endl;
-    Info << "Maximum deviation (in %) = " << maxDeviation / radius * 100 << endl;
+    Info << "Linear deviation (in %) = " << averageDeviation << endl;
+    Info << "Maximum deviation (in %) = " << maxDeviation << endl;
+
+    // Write to file
+    errorFile << "# Sphere deviation header" << std::endl;
+    errorFile << "# n points\t n trias\t linDev (%)\t maxDev (%)" << std::endl;
+    errorFile << front.meshPoints().size() << "\t"
+              << front.localFaces().size() << "\t"
+              << averageDeviation << "\t"
+              << maxDeviation << std::endl;
 }
 
 int main(int argc, char *argv[])
 {
+    argList::addOption
+    (
+        "errorFile",
+        "Path to file where results will be appended"
+    );
+
     argList::addOption
     (
         "radius",
@@ -433,6 +489,13 @@ int main(int argc, char *argv[])
 
     #include "createFields.H"
     
+    if (!args.optionFound("errorFile"))
+    {
+        FatalErrorIn("main()")
+            << "Please use option '-errorFile' to name the output file"
+            << endl << exit(FatalError);
+    }
+
     if (!args.optionFound("radius"))
     {
         FatalErrorIn("main()")
@@ -450,6 +513,14 @@ int main(int argc, char *argv[])
     // Read command line arguments
     const scalar radius = args.optionRead<scalar>("radius");
     const vector center = args.optionRead<vector>("center");
+    const std::string errorFileName = args.optionRead<fileName>("errorFile");
+
+    // Open file to write results to
+    const char* errorFileNamePtr = errorFileName.c_str();
+
+    std::fstream errorFile;
+
+    errorFile.open(errorFileNamePtr, std::ios_base::app);
 
     // Read and intialize front 
     triSurface front(
@@ -476,17 +547,21 @@ int main(int argc, char *argv[])
         )
     );
 
+    // Print number of mesh points and faces
+    Info << "Number of front mesh points: " << front.meshPoints().size() << endl;
+    Info << "Number of front mesh triangles: " << front.localFaces().size() << endl;
+
     // Finally call the function
     curvatureNormals(cn, front);
 
     // Check deviation from sphere
-    sphereDeviation(front, radius, center);
+    sphereDeviation(front, radius, center, errorFile);
 
     // Check curvature
-    checkCurvature(cn, radius);
+    checkCurvature(cn, front, radius, errorFile);
 
     // Check normals
-    checkNormal(cn, front, center);
+    checkNormal(cn, front, center, errorFile);
 
     return 0;
 }
