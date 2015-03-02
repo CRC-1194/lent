@@ -327,25 +327,24 @@ void checkCurvature(const triSurfacePointVectorField& cn, const triSurface& fron
         maxDeviation = mag(maxCurvature - curvatureExact);
     }
 
-    // Normalize with exact curvature for comparability and
-    // convert to percent (readability)
-    linearDeviation = 100 * linearDeviation / (counter*curvatureExact);
-    quadDeviation = 100 * Foam::sqrt(quadDeviation / (counter*curvatureExact));
+    // Normalize with exact curvature for comparability
+    linearDeviation = linearDeviation / (counter*curvatureExact);
+    quadDeviation = Foam::sqrt(quadDeviation / (counter*curvatureExact));
 
     // Print results
     Info << "\n=== Curvature results ===" << endl;
     Info << "Exact curvature = " << curvatureExact << endl;
     Info << "L_inf = " << maxDeviation << endl;
     Info << "Average curvature = " << averageCurvature << endl;
-    Info << "Linear deviation (in %) = " << linearDeviation << endl;
-    Info << "Quadratic deviation (in %) = " << quadDeviation << endl;
+    Info << "Linear deviation = " << linearDeviation << endl;
+    Info << "Quadratic deviation = " << quadDeviation << endl;
     Info << "Minimum curvature = " << minCurvature << endl;
     Info << "Maximum curvature = " << maxCurvature << endl;
 
     // Write to file
     errorFile << "# Curvature header" << std::endl;
-    errorFile << "# n points\t n trias\t curv(exact)\t L_inf\t curv(avg.)\t"
-              << " linDev (%)\t quadDev (%)\t curv(min)\t curv(max)" << std::endl;
+    errorFile << "# n_points\tn_trias\tcurv(exact)\tL_inf\tcurv(avg.)\t"
+              << "linDev\tquadDev\tcurv(min)\tcurv(max)" << std::endl;
     errorFile << front.meshPoints().size() << "\t"
               << front.localFaces().size() << "\t"
               << curvatureExact << "\t"
@@ -399,20 +398,20 @@ void checkNormal(const triSurfacePointVectorField& cn, const triSurface& front,
         counter++;
     }
 
-    // Average and convert to percentage
-    linearDeviation = 100 * linearDeviation / counter;
-    quadDeviation = 100 * Foam::sqrt(quadDeviation / counter);
+    // Average
+    linearDeviation = linearDeviation / counter;
+    quadDeviation = Foam::sqrt(quadDeviation / counter);
 
     // Print results
-    Info << "\n === Normal vector results ===" << endl;
-    Info << "Linear deviation (in %) = " << linearDeviation << endl;
-    Info << "Quadratic deviation (in %) = " << quadDeviation << endl;
+    Info << "\n=== Normal vector results ===" << endl;
+    Info << "Linear deviation = " << linearDeviation << endl;
+    Info << "Quadratic deviation = " << quadDeviation << endl;
     Info << "Maximum deviation angle = " << devAngle << endl;
 
     // Write to file
     errorFile << "# Normal vector header" << std::endl;
-    errorFile << "# n points\t n trias\t max. deviation (degree)\t"
-              << " linDev (%)\t quadDev (%)" << std::endl;
+    errorFile << "# n points\tn trias\tmax. deviation (degree)\t"
+              << "linDev\tquadDev" << std::endl;
     errorFile << front.meshPoints().size() << "\t"
               << front.localFaces().size() << "\t"
               << devAngle << "\t\t"
@@ -445,18 +444,18 @@ void sphereDeviation(const triSurface& front, scalar radius, vector center,
         counter++;
     }
 
-    // Normalize results and convert to percentage
-    averageDeviation = 100* averageDeviation / (counter*radius);
-    maxDeviation = 100 * maxDeviation / radius;
+    // Normalize results
+    averageDeviation = averageDeviation / (counter*radius);
+    maxDeviation = maxDeviation / radius;
 
     // Print results
     Info << "\n=== Front deviation from sphere ===" << endl;
-    Info << "Linear deviation (in %) = " << averageDeviation << endl;
-    Info << "Maximum deviation (in %) = " << maxDeviation << endl;
+    Info << "Linear deviation = " << averageDeviation << endl;
+    Info << "Maximum deviation = " << maxDeviation << endl;
 
     // Write to file
     errorFile << "# Sphere deviation header" << std::endl;
-    errorFile << "# n points\t n trias\t linDev (%)\t maxDev (%)" << std::endl;
+    errorFile << "# n_points\tn_trias\tlinDev\tmaxDev" << std::endl;
     errorFile << front.meshPoints().size() << "\t"
               << front.localFaces().size() << "\t"
               << averageDeviation << "\t"
@@ -513,14 +512,25 @@ int main(int argc, char *argv[])
     // Read command line arguments
     const scalar radius = args.optionRead<scalar>("radius");
     const vector center = args.optionRead<vector>("center");
-    const std::string errorFileName = args.optionRead<fileName>("errorFile");
+    const std::string errorFileNameBase = args.optionRead<fileName>("errorFile");
+
+    // Define three file names for different errors
+    const std::string errorFileNameCurvature = errorFileNameBase + ".curvature";
+    const std::string errorFileNameNormalVector = errorFileNameBase + ".normvec";
+    const std::string errorFileNameSphereDev = errorFileNameBase + ".spheredev";
 
     // Open file to write results to
-    const char* errorFileNamePtr = errorFileName.c_str();
+    const char* errorFileNameCurvaturePtr = errorFileNameCurvature.c_str();
+    const char* errorFileNameNormalVectorPtr = errorFileNameNormalVector.c_str();
+    const char* errorFileNameSphereDevPtr = errorFileNameSphereDev.c_str();
 
-    std::fstream errorFile;
+    std::fstream errorFileCurvature;
+    std::fstream errorFileNormalVector;
+    std::fstream errorFileSphereDev;
 
-    errorFile.open(errorFileNamePtr, std::ios_base::app);
+    errorFileCurvature.open(errorFileNameCurvaturePtr, std::ios_base::app);
+    errorFileNormalVector.open(errorFileNameNormalVectorPtr, std::ios_base::app);
+    errorFileSphereDev.open(errorFileNameSphereDevPtr, std::ios_base::app);
 
     // Read and intialize front 
     triSurface front(
@@ -555,13 +565,17 @@ int main(int argc, char *argv[])
     curvatureNormals(cn, front);
 
     // Check deviation from sphere
-    sphereDeviation(front, radius, center, errorFile);
+    sphereDeviation(front, radius, center, errorFileSphereDev);
 
     // Check curvature
-    checkCurvature(cn, front, radius, errorFile);
+    checkCurvature(cn, front, radius, errorFileCurvature);
 
     // Check normals
-    checkNormal(cn, front, center, errorFile);
+    checkNormal(cn, front, center, errorFileNormalVector);
+
+    errorFileCurvature.close();
+    errorFileNormalVector.close();
+    errorFileSphereDev.close();
 
     return 0;
 }
