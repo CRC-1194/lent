@@ -175,34 +175,100 @@ void meshQuality(const triSurface& front, std::fstream& file)
          << "# Max Area = " << maxArea << std::endl;
 }
 
-/*
-// method taken from tryggvason book "direct numerical simulations..."
-void nocurvature(trisurfacepointvectorfield& cn, const trisurface& front)
+// Aux function to get a reference point for consistent normal vectors
+// Does only work for convex, closed surfaces
+point getRefPoint(const triSurface& front)
 {
-    cn = dimensionedvector("zero",
-                            dimless/dimlength,
+    point refPoint = vector(0,0,0);
+
+    // Approach: get extremal points for each axis (x,y,z), thereby putting
+    // the front in a box. The center of this cuboid should also be located
+    // inside the front (assuming the surface is convex...)
+    const labelList& vertices = front.meshPoints();
+    const pointField& localPoints = front.localPoints();
+
+    point initValue = localPoints[0];
+
+    scalar xmin = initValue[0];
+    scalar xmax = initValue[0];
+    scalar ymin = initValue[1];
+    scalar ymax = initValue[1];
+    scalar zmin = initValue[2];
+    scalar zmax = initValue[2];
+
+    forAll(vertices, Vl)
+    {
+        point V = localPoints[Vl];
+
+        xmin = V[0] < xmin ? V[0] : xmin;
+        xmax = V[0] > xmax ? V[0] : xmax;
+
+        ymin = V[1] < ymin ? V[1] : ymin;
+        ymax = V[1] > ymax ? V[1] : ymax;
+
+        zmin = V[2] < zmin ? V[2] : zmin;
+        zmax = V[2] > zmax ? V[2] : zmax;
+    }
+
+    // Assemble reference point
+    refPoint[0] = 0.5 * (xmin+xmax);
+    refPoint[1] = 0.5 * (ymin+ymax);
+    refPoint[2] = 0.5 * (zmin+zmax);
+
+    return refPoint;
+}
+
+// Method taken from tryggvason book "Direct numerical simulations..."
+void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
+{
+    cn = dimensionedVector("zero",
+                            dimless/dimLength,
                             vector(0,0,0)
                            );
 
-    const labellist& vertices = front.meshpoints();
-    const pointfield& localpoints = front.localpoints();
-    const list<labelledtri>& localfaces = front.localfaces();
+    const pointField& localPoints = front.localPoints();
+    const List<labelledTri>& localFaces = front.localFaces();
 
-    forall(localfaces, tri)
+    forAll(localFaces, T)
     {
+        labelledTri tri = localFaces[T];
+
         label lx1 = tri[0];
         label lx2 = tri[1];
         label lx3 = tri[2];
 
-        point x1 = localpoints[x1];
-        point x2 = localpoints[x2];
-        point x3 = localpoints[x3];
+        // Triangle vertices
+        point x1 = localPoints[lx1];
+        point x2 = localPoints[lx2];
+        point x3 = localPoints[lx3];
 
-        // get consistent normal vector of face
+        // Triangle edges
+        vector x13 = x3 - x1;
+        vector x21 = x1 - x2;
+        vector x32 = x2 - x3;
 
+        // Get consistent normal vector of face
+        // The folllowing method only works for completlely convex surfaces
+        // which are closed
+
+        // Get reference point inside surface
+        point refPoint = getRefPoint(front);
+
+        vector faceNormal = (x13^x21) / mag(x13^x21);
+        
+        // Consistency check
+        scalar angle = (x1-refPoint) & faceNormal;
+        if (angle < 0.0)
+        {
+            faceNormal = -faceNormal;
+        }
+
+        // Add contributions to each triangle vertex
+        cn[lx1] += 0.5 * faceNormal ^ x32;
+        cn[lx2] += 0.5 * faceNormal ^ x13;
+        cn[lx3] += 0.5 * faceNormal ^ x21;
     }
 }
-*/
 
 void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
 {
