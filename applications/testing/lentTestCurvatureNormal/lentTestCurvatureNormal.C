@@ -92,8 +92,7 @@ scalar areaCross(vector& a, vector& b)
     return 0.5*mag(a ^ b);
 }
 
-// Quality metric in order to get to the core of the problem
-// of completely wrong curvatures
+// Determine mesh quality
 void meshQuality(const triSurface& front, std::fstream& file)
 {
     scalar pi = 3.141592653589793238; 
@@ -219,6 +218,7 @@ point getRefPoint(const triSurface& front)
 }
 
 // Method taken from tryggvason book "Direct numerical simulations..."
+// Despite 
 void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
 {
     cn = dimensionedVector("zero",
@@ -226,47 +226,91 @@ void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
                             vector(0,0,0)
                            );
 
+    // Get necessary references
+    const labelList& vertices = front.meshPoints();
+    const labelListList& adjacentFaces = front.pointFaces();
     const pointField& localPoints = front.localPoints();
     const List<labelledTri>& localFaces = front.localFaces();
 
-    forAll(localFaces, T)
+    // Get reference point inside surface
+    point refPoint = getRefPoint(front);
+
+    // Iterate over all vertices instead of triangles
+    // --> easier consistency check and normalization
+    // back to K*n
+    forAll(vertices, Vl)
     {
-        labelledTri tri = localFaces[T];
+        // Get all triangles adjacent to V
+        const labelList& oneRingNeighborhood = adjacentFaces[Vl];
 
-        label lx1 = tri[0];
-        label lx2 = tri[1];
-        label lx3 = tri[2];
-
-        // Triangle vertices
-        point x1 = localPoints[lx1];
-        point x2 = localPoints[lx2];
-        point x3 = localPoints[lx3];
-
-        // Triangle edges
-        vector x13 = x3 - x1;
-        vector x21 = x1 - x2;
-        vector x32 = x2 - x3;
-
-        // Get consistent normal vector of face
-        // The folllowing method only works for completlely convex surfaces
-        // which are closed
-
-        // Get reference point inside surface
-        point refPoint = getRefPoint(front);
-
-        vector faceNormal = (x13^x21) / mag(x13^x21);
-        
-        // Consistency check
-        scalar angle = (x1-refPoint) & faceNormal;
-        if (angle < 0.0)
+        forAll(oneRingNeighborhood, T)
         {
-            faceNormal = -faceNormal;
+            labelledTri tri = localFaces[T];
+
+            label tri0 = tri[0];
+            label tri1 = tri[1];
+            label tri2 = tri[2];
+
+            // Triangle vertices
+            point x1;
+            point x2;
+            point x3;
+
+            if (tri0 == Vl)
+            {
+                x1 = localPoints[Vl];
+                x2 = localPoints[tri1];
+                x3 = localPoints[tri2];
+            }
+            else if (tri1 == Vl)
+            {
+                x1 = localPoints[Vl];
+                x2 = localPoints[tri0];
+                x3 = localPoints[tri2];
+            }
+            else
+            {
+                x1 = localPoints[Vl];
+                x2 = localPoints[tri0];
+                x3 = localPoints[tri1];
+            }
+
+            // Triangle edges
+            vector x13 = x3 - x1;
+            vector x21 = x1 - x2;
+            vector x32 = x2 - x3;
+
+            // Midpoint of edge opposite to V
+            // Needed to ensure that the "pull" points outwards
+            point midpoint = 0.5*(x2+x3);
+            vector direction = x1 - midpoint;
+
+            // Get consistent normal vector of face
+            // The folllowing method only works for completlely convex surfaces
+            // which are closed
+            vector faceNormal = (x13^x21) / mag(x13^x21);
+            
+            // Consistency check
+            scalar angle = (x1-refPoint) & faceNormal;
+            if (angle < 0.0)
+            {
+                faceNormal = -faceNormal;
+            }
+
+            // Curvature normal contribution
+            angle = (faceNormal ^ x32) & direction;
+            if (angle > 0.0)
+            {
+                cn[Vl] += 0.5*(faceNormal ^ x32);
+            }
+            else
+            {
+                cn[Vl] += 0.5*(x32 ^ faceNormal);
+            }
         }
 
-        // Add contributions to each triangle vertex
-        cn[lx1] += 0.5 * faceNormal ^ x32;
-        cn[lx2] += 0.5 * faceNormal ^ x13;
-        cn[lx3] += 0.5 * faceNormal ^ x21;
+        // Divide by area to finally get curvature normal
+        cn[Vl] = cn[Vl];
     }
 }
 
@@ -670,7 +714,7 @@ int main(int argc, char *argv[])
     Info << "Number of front mesh triangles: " << front.localFaces().size() << endl;
 
     // Finally call the function
-    curvatureNormals(cn, front);
+    noCurvature(cn, front);
 
     // Check deviation from sphere
     meshQuality(front, errorFileSphereDev);
@@ -683,6 +727,33 @@ int main(int argc, char *argv[])
     // Check normals
     meshQuality(front, errorFileNormalVector);
     checkNormal(cn, front, center, errorFileNormalVector);
+
+    // Write curvature normals field for visual inspection
+    // Additionally, write scalar curvature error field
+    triSurfacePointScalarField curvatureError
+    (
+        IOobject
+        (
+            "curvatureErrors",
+            runTime.timeName(),
+            runTime,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        front,
+        dimensionedScalar
+        (
+            "zero",
+            pow(dimLength, -1),
+            0
+        )
+    );
+
+    dimensionedScalar dradius = dimensionedScalar("zero", dimLength, radius);
+    curvatureError = mag(mag(cn) - 2.0/dradius);
+
+    cn.write();
+    curvatureError.write();
 
     errorFileCurvature.close();
     errorFileNormalVector.close();
