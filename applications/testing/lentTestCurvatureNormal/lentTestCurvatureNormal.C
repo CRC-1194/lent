@@ -58,373 +58,15 @@ Description
 
 #include <fstream>
 
+#include "auxFunctions.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// Aux functions
-
-// Calculate angle between two vectors
-scalar getAngle(vector& a, vector& b)
-{
-    return Foam::acos((a & b) / (mag(a) * mag(b)));
-}
-
-// Cotangent function to resemble algorihm notion from paper
-scalar cot(scalar angle)
-{
-    return 1.0/Foam::tan(angle);
-}
-
-// Triangle area functions
-// Use heron's formula
-scalar areaHeron(vector& A, vector& B, vector& C)
-{
-    scalar a = mag(A);
-    scalar b = mag(B);
-    scalar c = mag(C);
-    scalar s = 0.5 * (a + b + c);
-                
-    return Foam::sqrt(s*(s-a)*(s-b)*(s-c));
-}
-
-// Use cross product property
-scalar areaCross(vector& a, vector& b)
-{
-    return 0.5*mag(a ^ b);
-}
-
-// Determine mesh quality
-void meshQuality(const triSurface& front, std::fstream& file)
-{
-    scalar pi = 3.141592653589793238; 
-
-    // Get references to surface mesh
-    const pointField& localPoints = front.localPoints();
-    const List<labelledTri>& localFaces = front.localFaces();
-
-    // Extrema of mesh properties
-    scalar minAngle = 2.0*pi;  
-    scalar maxAngle = 0.0;   
-
-    scalar maxRatio = 1.0; 
-
-    scalar minArea = 1000.0; 
-    scalar maxArea = 0.0; 
-
-    forAll(localFaces, T)
-    {
-        labelledTri tri = localFaces[T];
-
-        label lx1 = tri[0];
-        label lx2 = tri[1];
-        label lx3 = tri[2];
-
-        // points
-        point x1 = localPoints[lx1];
-        point x2 = localPoints[lx2];
-        point x3 = localPoints[lx3];
-
-        // edges
-        vector a = x1 - x2;
-        vector b = x1 - x3;
-        vector c = x2 - x3;
-
-        // angles
-        scalar alpha = getAngle(b, c);
-        scalar gamma = getAngle(a, b);
-        scalar beta = pi - (alpha + gamma);
-
-        // area
-        scalar area = areaHeron(a, b, c);
-
-        // angle check
-        minAngle = alpha < minAngle ? alpha : minAngle;
-        minAngle = beta < minAngle ? beta : minAngle;
-        minAngle = gamma < minAngle ? gamma : minAngle;
-
-        maxAngle = alpha > maxAngle ? alpha : maxAngle;
-        maxAngle = beta > maxAngle ? beta : maxAngle;
-        maxAngle = gamma > maxAngle ? gamma : maxAngle;
-
-        // edge ratio check
-        scalar minlength = mag(a);
-        scalar maxlength = mag(b);
-
-        minlength = mag(c) < minlength ? mag(c) : minlength;
-        minlength = mag(b) < minlength ? mag(b) : minlength;
-        maxlength = mag(c) > maxlength ? mag(c) : maxlength;
-        maxlength = mag(a) > maxlength ? mag(a) : maxlength;
-
-        // Edge ratio check
-        if (maxlength/minlength > maxRatio)
-        {
-            maxRatio = maxlength/minlength;
-        }
-
-        // area check
-        minArea = area < minArea ? area : minArea;
-        maxArea = area > maxArea ? area : maxArea;
-    }
-
-    // Write results
-    file << "# Mesh metrics:\n"
-         << "# Minimum angle = " << 57.3*minAngle << "\n"
-         << "# Maximum angle = " << 57.3*maxAngle << "\n"
-         << "# Max edge ratio = " << maxRatio << "\n"
-         << "# Min area = " << minArea << "\n"
-         << "# Max Area = " << maxArea << std::endl;
-}
-
-// Aux function to get a reference point for consistent normal vectors
-// Does only work for convex, closed surfaces
-point getRefPoint(const triSurface& front)
-{
-    point refPoint = vector(0,0,0);
-
-    // Approach: get extremal points for each axis (x,y,z), thereby putting
-    // the front in a box. The center of this cuboid should also be located
-    // inside the front (assuming the surface is convex...)
-    const labelList& vertices = front.meshPoints();
-    const pointField& localPoints = front.localPoints();
-
-    point initValue = localPoints[0];
-
-    scalar xmin = initValue[0];
-    scalar xmax = initValue[0];
-    scalar ymin = initValue[1];
-    scalar ymax = initValue[1];
-    scalar zmin = initValue[2];
-    scalar zmax = initValue[2];
-
-    forAll(vertices, Vl)
-    {
-        point V = localPoints[Vl];
-
-        xmin = V[0] < xmin ? V[0] : xmin;
-        xmax = V[0] > xmax ? V[0] : xmax;
-
-        ymin = V[1] < ymin ? V[1] : ymin;
-        ymax = V[1] > ymax ? V[1] : ymax;
-
-        zmin = V[2] < zmin ? V[2] : zmin;
-        zmax = V[2] > zmax ? V[2] : zmax;
-    }
-
-    // Assemble reference point
-    refPoint[0] = 0.5 * (xmin+xmax);
-    refPoint[1] = 0.5 * (ymin+ymax);
-    refPoint[2] = 0.5 * (zmin+zmax);
-
-    return refPoint;
-}
-
-// Method taken from tryggvason book "Direct numerical simulations..."
-// Despite 
-void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
-{
-    cn = dimensionedVector("zero",
-                            dimless/dimLength,
-                            vector(0,0,0)
-                           );
-
-    // Get necessary references
-    const labelList& vertices = front.meshPoints();
-    const labelListList& adjacentFaces = front.pointFaces();
-    const pointField& localPoints = front.localPoints();
-    const List<labelledTri>& localFaces = front.localFaces();
-
-    // Get reference point inside surface
-    point refPoint = getRefPoint(front);
-
-    // Iterate over all vertices instead of triangles
-    // --> easier consistency check and normalization
-    // back to K*n
-    forAll(vertices, Vl)
-    {
-        // Get all triangles adjacent to V
-        const labelList& oneRingNeighborhood = adjacentFaces[Vl];
-
-        forAll(oneRingNeighborhood, T)
-        {
-            labelledTri tri = localFaces[T];
-
-            label tri0 = tri[0];
-            label tri1 = tri[1];
-            label tri2 = tri[2];
-
-            // Triangle vertices
-            point x1;
-            point x2;
-            point x3;
-
-            if (tri0 == Vl)
-            {
-                x1 = localPoints[Vl];
-                x2 = localPoints[tri1];
-                x3 = localPoints[tri2];
-            }
-            else if (tri1 == Vl)
-            {
-                x1 = localPoints[Vl];
-                x2 = localPoints[tri0];
-                x3 = localPoints[tri2];
-            }
-            else
-            {
-                x1 = localPoints[Vl];
-                x2 = localPoints[tri0];
-                x3 = localPoints[tri1];
-            }
-
-            // Triangle edges
-            vector x13 = x3 - x1;
-            vector x21 = x1 - x2;
-            vector x32 = x2 - x3;
-
-            // Midpoint of edge opposite to V
-            // Needed to ensure that the "pull" points outwards
-            point midpoint = 0.5*(x2+x3);
-            vector direction = x1 - midpoint;
-
-            // Get consistent normal vector of face
-            // The folllowing method only works for completlely convex surfaces
-            // which are closed
-            vector faceNormal = (x13^x21) / mag(x13^x21);
-            
-            // Consistency check
-            scalar angle = (x1-refPoint) & faceNormal;
-            if (angle < 0.0)
-            {
-                faceNormal = -faceNormal;
-            }
-
-            // Curvature normal contribution
-            angle = (faceNormal ^ x32) & direction;
-            if (angle > 0.0)
-            {
-                cn[Vl] += 0.5*(faceNormal ^ x32);
-            }
-            else
-            {
-                cn[Vl] += 0.5*(x32 ^ faceNormal);
-            }
-        }
-
-        // Divide by area to finally get curvature normal
-        cn[Vl] = cn[Vl];
-    }
-}
-
-void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
-{
-    scalar pi = 3.141592653589793238; 
-
-    cn = dimensionedVector("zero",
-                            dimless/dimLength,
-                            vector(0,0,0)
-                          );
-
-    // TODO: modify so that mutliple patches, e.g. in the case of
-    // bubble breakup, are supported
-
-    // All of the following functions are taken from
-    // "PrimitivePatch.H"
-    // Get label list of all mesh vertices
-    const labelList& vertices = front.meshPoints();
-
-    // Get assignment point --> faces
-    const labelListList& adjacentFaces = front.pointFaces();
-
-    // List of local point references for current patch
-    const pointField& localPoints = front.localPoints();
-    
-    // Needed: List of local face references
-    const List<labelledTri>& localFaces = front.localFaces();
-
-    // V (the actual vertex) and Vl (its label) are used synonymously
-    // in the following comments
-    forAll(vertices, Vl)
-    {
-        scalar Amix = 0;
-
-        // Get all triangles adjacent to V
-        const labelList& oneRingNeighborhood = adjacentFaces[Vl];
-
-        // Sum up mixed area and contributions to mean curvature normal
-        forAll(oneRingNeighborhood, T)
-        {
-            // Compute area contributions
-            // First, resolve label T to get the actual face
-            label triLabel = oneRingNeighborhood[T];
-            labelledTri currentTri = localFaces[triLabel];
-
-            // Read point labels from triangle and determine which
-            // one matches Vl to resolve point coordinates correctly
-            label tri0 = currentTri[0];
-            label tri1 = currentTri[1];
-            label tri2 = currentTri[2];
-
-            point V;
-            point Q;
-            point R;
-
-            if (tri0 == Vl)
-            {
-                V = localPoints[Vl];
-                Q = localPoints[tri1];
-                R = localPoints[tri2];
-            }
-            else if (tri1 == Vl)
-            {
-                V = localPoints[Vl];
-                Q = localPoints[tri0];
-                R = localPoints[tri2];
-            }
-            else
-            {
-                V = localPoints[Vl];
-                Q = localPoints[tri0];
-                R = localPoints[tri1];
-            }
-
-            // Edge vectors
-            vector VQ = Q - V;
-            vector VR = R - V;
-            vector QR = R - Q;
-
-            // Get angles
-            scalar Va = getAngle(VQ, VR);
-            scalar Ra = getAngle(VR, QR);
-            scalar Qa = pi - (Va + Ra);
-
-            // Check if non-obtuse in order to use the correct area metric
-            if (Va < pi/2 && Qa < pi/2 && Ra < pi/2)
-            {
-                // Use Voronoi-area
-                // Cotangent function 'cot' has to be defined locally since
-                // it is not offered by OpenFOAM
-                Amix += 0.125*(magSqr(VR)*cot(Qa) + magSqr(VQ)*cot(Ra));    
-            }
-            else if (Va >= pi/2)
-            {
-                // Obtuse angle at V, use half area
-                // Use Heron's formula for now until problem
-                // with vector approach is solved
-                Amix += 0.5 * areaHeron(VQ, VR, QR);
-            }
-            else
-            {
-                // Obtuse angle not at V, use quarter area
-                // Use Heron's formula for now until problem
-                // with vector approach is solved
-                Amix += 0.25 * areaHeron(VQ, VR, QR);
-            }
-
-            // Compute mean curvature normal contributions
-            cn[Vl] += cot(Qa)*VR + cot(Ra)*VQ;
-        }
-        cn[Vl] = cn[Vl] / (2.0 * Amix);
-    }
-}
+/*****************************************************************************\
+ *
+ *      Error metrics and checks
+ *
+\*****************************************************************************/
 
 // Compare exact curvature with numerical curvature
 void checkCurvature(const triSurfacePointVectorField& cn, const triSurface& front,
@@ -614,6 +256,308 @@ void sphereDeviation(const triSurface& front, scalar radius, vector center,
               << maxDeviation << std::endl;
 }
 
+// Following test exploits the property that the sum of surface tension of
+// closed surface has to be zero. In case of a constant surface tension
+// coefficient the same holds true for the sum of the curvature normals
+void checkGlobalForceBalance(triSurfacePointVectorField& cn)
+{
+    vector resultingForce(0,0,0);
+
+    forAll(cn, V)
+    {
+        resultingForce += cn[V];
+    }
+
+    Info << "Magnitude of resulting force is " << mag(resultingForce) << endl;
+}
+
+// Determine mesh quality
+void meshQuality(const triSurface& front, std::fstream& file)
+{
+    // Get references to surface mesh
+    const pointField& localPoints = front.localPoints();
+    const List<labelledTri>& localFaces = front.localFaces();
+
+    // Extrema of mesh properties
+    scalar minAngle = 2.0*pi;  
+    scalar maxAngle = 0.0;   
+
+    scalar maxRatio = 1.0; 
+
+    scalar minArea = 1000.0; 
+    scalar maxArea = 0.0; 
+
+    forAll(localFaces, T)
+    {
+        labelledTri tri = localFaces[T];
+
+        label lx1 = tri[0];
+        label lx2 = tri[1];
+        label lx3 = tri[2];
+
+        // points
+        point x1 = localPoints[lx1];
+        point x2 = localPoints[lx2];
+        point x3 = localPoints[lx3];
+
+        // edges
+        vector a = x1 - x2;
+        vector b = x1 - x3;
+        vector c = x2 - x3;
+
+        // angles
+        scalar alpha = getAngle(b, c);
+        scalar gamma = getAngle(a, b);
+        scalar beta = pi - (alpha + gamma);
+
+        // area
+        scalar area = areaHeron(a, b, c);
+
+        // angle check
+        minAngle = alpha < minAngle ? alpha : minAngle;
+        minAngle = beta < minAngle ? beta : minAngle;
+        minAngle = gamma < minAngle ? gamma : minAngle;
+
+        maxAngle = alpha > maxAngle ? alpha : maxAngle;
+        maxAngle = beta > maxAngle ? beta : maxAngle;
+        maxAngle = gamma > maxAngle ? gamma : maxAngle;
+
+        // edge ratio check
+        scalar minlength = mag(a);
+        scalar maxlength = mag(b);
+
+        minlength = mag(c) < minlength ? mag(c) : minlength;
+        minlength = mag(b) < minlength ? mag(b) : minlength;
+        maxlength = mag(c) > maxlength ? mag(c) : maxlength;
+        maxlength = mag(a) > maxlength ? mag(a) : maxlength;
+
+        // Edge ratio check
+        if (maxlength/minlength > maxRatio)
+        {
+            maxRatio = maxlength/minlength;
+        }
+
+        // area check
+        minArea = area < minArea ? area : minArea;
+        maxArea = area > maxArea ? area : maxArea;
+    }
+
+    // Write results
+    file << "# Mesh metrics:\n"
+         << "# Minimum angle = " << 57.3*minAngle << "\n"
+         << "# Maximum angle = " << 57.3*maxAngle << "\n"
+         << "# Max edge ratio = " << maxRatio << "\n"
+         << "# Min area = " << minArea << "\n"
+         << "# Max Area = " << maxArea << std::endl;
+}
+
+/*****************************************************************************\
+ *
+ *  Front curvature models
+ *
+\*****************************************************************************/
+
+// Method taken from tryggvason book "Direct numerical simulations..."
+// TODO: further investigation regarding the quality of the method...
+void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
+{
+    cn = dimensionedVector("zero",
+                            dimless/dimLength,
+                            vector(0,0,0)
+                           );
+
+    // Get necessary references
+    const labelList& vertices = front.meshPoints();
+    const labelListList& adjacentFaces = front.pointFaces();
+    const pointField& localPoints = front.localPoints();
+    const List<labelledTri>& localFaces = front.localFaces();
+
+    // Get reference point inside surface
+    point refPoint = getRefPoint(front);
+
+    // Iterate over all vertices instead of triangles
+    // --> easier consistency check
+    forAll(vertices, Vl)
+    {
+        // Get all triangles adjacent to V
+        const labelList& oneRingNeighborhood = adjacentFaces[Vl];
+
+        forAll(oneRingNeighborhood, T)
+        {
+            labelledTri tri = localFaces[T];
+
+            label tri0 = tri[0];
+            label tri1 = tri[1];
+            label tri2 = tri[2];
+
+            // Triangle vertices
+            point x1;
+            point x2;
+            point x3;
+
+            if (tri0 == Vl)
+            {
+                x1 = localPoints[Vl];
+                x2 = localPoints[tri1];
+                x3 = localPoints[tri2];
+            }
+            else if (tri1 == Vl)
+            {
+                x1 = localPoints[Vl];
+                x2 = localPoints[tri0];
+                x3 = localPoints[tri2];
+            }
+            else
+            {
+                x1 = localPoints[Vl];
+                x2 = localPoints[tri0];
+                x3 = localPoints[tri1];
+            }
+
+            // Triangle edges
+            vector x13 = x3 - x1;
+            vector x21 = x1 - x2;
+            vector x32 = x2 - x3;
+
+            // Get consistent normal vector of face
+            // The folllowing method only works for completlely convex surfaces
+            // which are closed
+            vector faceNormal = (x13^x21) / mag(x13^x21);
+            
+            // Consistency check
+            scalar angle = (x1-refPoint) & faceNormal;
+            if (angle < 0.0)
+            {
+                faceNormal = -faceNormal;
+            }
+
+            // Curvature normal contribution
+            // Direction check only works for convex surfaces
+            angle = (faceNormal ^ x32) & (x1-refPoint);
+            if (angle > 0.0)
+            {
+                cn[Vl] += 0.5*(faceNormal ^ x32);
+            }
+            else
+            {
+                cn[Vl] += 0.5*(x32 ^ faceNormal);
+            }
+        }
+    }
+}
+
+// Method from Meyer et al.
+void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
+{
+    cn = dimensionedVector("zero",
+                            dimless/dimLength,
+                            vector(0,0,0)
+                          );
+
+    // TODO: modify so that mutliple patches, e.g. in the case of
+    // bubble breakup, are supported
+
+    // All of the following functions are taken from
+    // "PrimitivePatch.H"
+    // Get label list of all mesh vertices
+    const labelList& vertices = front.meshPoints();
+
+    // Get assignment point --> faces
+    const labelListList& adjacentFaces = front.pointFaces();
+
+    // List of local point references for current patch
+    const pointField& localPoints = front.localPoints();
+    
+    // Needed: List of local face references
+    const List<labelledTri>& localFaces = front.localFaces();
+
+    // V (the actual vertex) and Vl (its label) are used synonymously
+    // in the following comments
+    forAll(vertices, Vl)
+    {
+        scalar Amix = 0;
+
+        // Get all triangles adjacent to V
+        const labelList& oneRingNeighborhood = adjacentFaces[Vl];
+
+        // Sum up mixed area and contributions to mean curvature normal
+        forAll(oneRingNeighborhood, T)
+        {
+            // Compute area contributions
+            // First, resolve label T to get the actual face
+            label triLabel = oneRingNeighborhood[T];
+            labelledTri currentTri = localFaces[triLabel];
+
+            // Read point labels from triangle and determine which
+            // one matches Vl to resolve point coordinates correctly
+            label tri0 = currentTri[0];
+            label tri1 = currentTri[1];
+            label tri2 = currentTri[2];
+
+            point V;
+            point Q;
+            point R;
+
+            if (tri0 == Vl)
+            {
+                V = localPoints[Vl];
+                Q = localPoints[tri1];
+                R = localPoints[tri2];
+            }
+            else if (tri1 == Vl)
+            {
+                V = localPoints[Vl];
+                Q = localPoints[tri0];
+                R = localPoints[tri2];
+            }
+            else
+            {
+                V = localPoints[Vl];
+                Q = localPoints[tri0];
+                R = localPoints[tri1];
+            }
+
+            // Edge vectors
+            vector VQ = Q - V;
+            vector VR = R - V;
+            vector QR = R - Q;
+
+            // Get angles
+            scalar Va = getAngle(VQ, VR);
+            scalar Ra = getAngle(VR, QR);
+            scalar Qa = pi - (Va + Ra);
+
+            // Check if non-obtuse in order to use the correct area metric
+            if (Va < pi/2 && Qa < pi/2 && Ra < pi/2)
+            {
+                // Use Voronoi-area
+                // Cotangent function 'cot' has to be defined locally since
+                // it is not offered by OpenFOAM
+                Amix += 0.125*(magSqr(VR)*cot(Qa) + magSqr(VQ)*cot(Ra));    
+            }
+            else if (Va >= pi/2)
+            {
+                // Obtuse angle at V, use half area
+                // Use Heron's formula for now until problem
+                // with vector approach is solved
+                Amix += 0.5 * areaHeron(VQ, VR, QR);
+            }
+            else
+            {
+                // Obtuse angle not at V, use quarter area
+                // Use Heron's formula for now until problem
+                // with vector approach is solved
+                Amix += 0.25 * areaHeron(VQ, VR, QR);
+            }
+
+            // Compute mean curvature normal contributions
+            cn[Vl] += cot(Qa)*VR + cot(Ra)*VQ;
+        }
+        cn[Vl] = cn[Vl] / (2.0 * Amix);
+    }
+}
+
+
 int main(int argc, char *argv[])
 {
     argList::addOption
@@ -714,7 +658,7 @@ int main(int argc, char *argv[])
     Info << "Number of front mesh triangles: " << front.localFaces().size() << endl;
 
     // Finally call the function
-    noCurvature(cn, front);
+    curvatureNormals(cn, front);
 
     // Check deviation from sphere
     meshQuality(front, errorFileSphereDev);
@@ -727,6 +671,9 @@ int main(int argc, char *argv[])
     // Check normals
     meshQuality(front, errorFileNormalVector);
     checkNormal(cn, front, center, errorFileNormalVector);
+
+    // Check force sum
+    checkGlobalForceBalance(cn);
 
     // Write curvature normals field for visual inspection
     // Additionally, write scalar curvature error field
