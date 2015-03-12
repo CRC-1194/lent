@@ -124,6 +124,7 @@ void checkCurvature(const triSurfacePointVectorField& cn, const triSurface& fron
     // Normalize with exact curvature for comparability
     linearDeviation = linearDeviation / (counter*curvatureExact);
     quadDeviation = Foam::sqrt(quadDeviation / (counter*curvatureExact));
+    maxDeviation = maxDeviation / curvatureExact;
 
     // Print results
     Info << "\n=== Curvature results ===" << endl;
@@ -447,6 +448,15 @@ void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
 }
 
 // Method from Meyer et al.
+//
+// Current TODO: Check how much improvement can be achieved if the curvature
+// for one-ring-neighborhoods with obtuse triangles are computed with a more
+// accurate method (for now this is simply the exact curvature for it
+// represents the maximum possible improvement
+//
+// First test indicates that it may improve the L_inf norm for up to 
+// 1e4 triangles by roughly two orders of magnitude. For more
+// triangles the curves begin to converge
 void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
 {
     cn = dimensionedVector("zero",
@@ -476,6 +486,7 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
     forAll(vertices, Vl)
     {
         scalar Amix = 0;
+        bool obtuse = false;
 
         // Get all triangles adjacent to V
         const labelList& oneRingNeighborhood = adjacentFaces[Vl];
@@ -541,6 +552,7 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
                 // Use Heron's formula for now until problem
                 // with vector approach is solved
                 Amix += 0.5 * areaHeron(VQ, VR, QR);
+                obtuse = true;
             }
             else
             {
@@ -548,12 +560,20 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
                 // Use Heron's formula for now until problem
                 // with vector approach is solved
                 Amix += 0.25 * areaHeron(VQ, VR, QR);
+                obtuse = true;
             }
 
             // Compute mean curvature normal contributions
             cn[Vl] += cot(Qa)*VR + cot(Ra)*VQ;
         }
         cn[Vl] = cn[Vl] / (2.0 * Amix);
+
+        /*
+        if(obtuse)
+        {
+            cn[Vl] = 2.0/0.3 * cn[Vl] / mag(cn[Vl]);
+        }
+        */
     }
 }
 
@@ -578,12 +598,18 @@ int main(int argc, char *argv[])
         "Center of the sphere."    
     );
 
+    argList::addOption
+    (
+        "reconTimes",
+        "Number of times the front is to be reconstructed before curvature calculation."
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
 
     #include "createFields.H"
-    
+
     if (!args.optionFound("errorFile"))
     {
         FatalErrorIn("main()")
@@ -605,10 +631,28 @@ int main(int argc, char *argv[])
             << endl << exit(FatalError);
     }
 
+    if (!args.optionFound("reconTimes"))
+    {
+        FatalErrorIn("main")
+            << "Please use option 'reconTimes' to specify the number of "
+            << "reconstructions."
+            << endl << exit(FatalError);
+    }
+
     // Read command line arguments
     const scalar radius = args.optionRead<scalar>("radius");
     const vector center = args.optionRead<vector>("center");
     const std::string errorFileNameBase = args.optionRead<fileName>("errorFile");
+    const label reconTimes = args.optionRead<label>("reconTimes");
+
+    // Respect number of time steps defined in lent reconstruction trest cases
+    // for now
+    if (reconTimes < 0 || reconTimes > 3)
+    {
+        FatalErrorIn("main")
+            << "Option -reconTimes is out of range. Please use n=0...4"
+            << endl << exit(FatalError);
+    }
 
     // Define three file names for different errors
     const std::string errorFileNameCurvature = errorFileNameBase + ".curvature";
@@ -629,9 +673,33 @@ int main(int argc, char *argv[])
     errorFileSphereDev.open(errorFileNameSphereDevPtr, std::ios_base::app);
 
     // Read and intialize front 
+    // Get correct file name first
+    std::string frontFileName = "";
+    switch (reconTimes)
+    {
+        case 0:
+            frontFileName = "front/front.stl";
+            break;
+        case 1:
+            frontFileName = "front/front-00000000.vtk";
+            break;
+        case 2:
+            frontFileName = "front/front-00000001.vtk";
+            break;
+        case 3:
+            frontFileName = "front/front-00000002.vtk";
+            break;
+        case 4:
+            frontFileName = "front/front-00000003.vtk";
+            break;
+    }
+
+    Info << "Loading front" << endl;
     triSurface front(
-        "front/front.stl"
+        frontFileName
     );
+
+    Info << "Front loaded\n" << endl;
 
     // Initialize field for curvature normals
     triSurfacePointVectorField cn
