@@ -359,7 +359,6 @@ void meshQuality(const triSurface& front, std::fstream& file)
 \*****************************************************************************/
 
 // Method taken from tryggvason book "Direct numerical simulations..."
-// TODO: further investigation regarding the quality of the method...
 void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
 {
     cn = dimensionedVector("zero",
@@ -368,82 +367,43 @@ void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
                            );
 
     // Get necessary references
-    const labelList& vertices = front.meshPoints();
-    const labelListList& adjacentFaces = front.pointFaces();
-    const pointField& localPoints = front.localPoints();
-    const List<labelledTri>& localFaces = front.localFaces();
+    const labelList vertexLabels = front.meshPoints();
+    const pointField& vertices = front.localPoints();
+    const List<labelledTri>& triangles = front.localFaces();
 
-    // Get reference point inside surface
-    point refPoint = getRefPoint(front);
-
-    // Iterate over all vertices instead of triangles
-    // --> easier consistency check
-    forAll(vertices, Vl)
+    // Iterate over all triangles and compute the contribution to each of
+    // its vertices
+    forAll(triangles, Tl)
     {
-        // Get all triangles adjacent to V
-        const labelList& oneRingNeighborhood = adjacentFaces[Vl];
+        labelledTri T = triangles[Tl];
 
-        forAll(oneRingNeighborhood, T)
-        {
-            labelledTri tri = localFaces[T];
+        // Get vertex labels
+        label l0 = T[0];
+        label l1 = T[1];
+        label l2 = T[2];
 
-            label tri0 = tri[0];
-            label tri1 = tri[1];
-            label tri2 = tri[2];
+        // Get vertices
+        point v0 = vertices[l0];
+        point v1 = vertices[l1];
+        point v2 = vertices[l2];
 
-            // Triangle vertices
-            point x1;
-            point x2;
-            point x3;
+        // Set edge vectors. They oriented in such a way that they follow
+        // the rotational direction of the triangle normal vector. Since
+        // the normal vectors are conistently defined (see lentFOAM paper) 
+        // this ensures consistency in the direction of the contributions
+        vector v01 = v1 - v0;
+        vector v12 = v2 - v1;
+        vector v20 = v0 - v2;
 
-            if (tri0 == Vl)
-            {
-                x1 = localPoints[Vl];
-                x2 = localPoints[tri1];
-                x3 = localPoints[tri2];
-            }
-            else if (tri1 == Vl)
-            {
-                x1 = localPoints[Vl];
-                x2 = localPoints[tri0];
-                x3 = localPoints[tri2];
-            }
-            else
-            {
-                x1 = localPoints[Vl];
-                x2 = localPoints[tri0];
-                x3 = localPoints[tri1];
-            }
+        // The order is inverted compared to the lentFOAM paper to factor in
+        // the inverted direction of vector v20
+        vector normal = v20 ^ v01;
+        normal = normal / mag(normal);
 
-            // Triangle edges
-            vector x13 = x3 - x1;
-            vector x21 = x1 - x2;
-            vector x32 = x2 - x3;
-
-            // Get consistent normal vector of face
-            // The folllowing method only works for completlely convex surfaces
-            // which are closed
-            vector faceNormal = (x13^x21) / mag(x13^x21);
-            
-            // Consistency check
-            scalar angle = (x1-refPoint) & faceNormal;
-            if (angle < 0.0)
-            {
-                faceNormal = -faceNormal;
-            }
-
-            // Curvature normal contribution
-            // Direction check only works for convex surfaces
-            angle = (faceNormal ^ x32) & (x1-refPoint);
-            if (angle > 0.0)
-            {
-                cn[Vl] += 0.5*(faceNormal ^ x32);
-            }
-            else
-            {
-                cn[Vl] += 0.5*(x32 ^ faceNormal);
-            }
-        }
+        // Compute contributions according to Tryggvason book
+        cn[l0] += 0.5 * v12 ^ normal;
+        cn[l1] += 0.5 * v20 ^ normal;
+        cn[l2] += 0.5 * v01 ^ normal;
     }
 }
 
@@ -726,7 +686,7 @@ int main(int argc, char *argv[])
     Info << "Number of front mesh triangles: " << front.localFaces().size() << endl;
 
     // Finally call the function
-    curvatureNormals(cn, front);
+    noCurvature(cn, front);
 
     // Check deviation from sphere
     meshQuality(front, errorFileSphereDev);

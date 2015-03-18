@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
     Info << "Done." << endl;
 
     runTime.writeNow();
+    searchDistanceSqr.write();
 
     Info<< "End\n" << endl;
 
