@@ -33,46 +33,28 @@ scalar areaCross(vector& a, vector& b)
     return 0.5*mag(a ^ b);
 }
 
-// Aux function to get a reference point for consistent normal vectors
-// Does only work for convex, closed surfaces
-point getRefPoint(const triSurface& front)
+labelList orderVertices(labelledTri& tri, label V)
 {
-    point refPoint = vector(0,0,0);
+    labelList vertices(3);
 
-    // Approach: get extremal points for each axis (x,y,z), thereby putting
-    // the front in a box. The center of this cuboid should also be located
-    // inside the front (assuming the surface is convex...)
-    const labelList& vertices = front.meshPoints();
-    const pointField& localPoints = front.localPoints();
-
-    point initValue = localPoints[0];
-
-    scalar xmin = initValue[0];
-    scalar xmax = initValue[0];
-    scalar ymin = initValue[1];
-    scalar ymax = initValue[1];
-    scalar zmin = initValue[2];
-    scalar zmax = initValue[2];
-
-    forAll(vertices, Vl)
+    if (tri[0] == V)
     {
-        point V = localPoints[Vl];
-
-        // TODO: replace by min / max functions from standard library
-        xmin = V[0] < xmin ? V[0] : xmin;
-        xmax = V[0] > xmax ? V[0] : xmax;
-
-        ymin = V[1] < ymin ? V[1] : ymin;
-        ymax = V[1] > ymax ? V[1] : ymax;
-
-        zmin = V[2] < zmin ? V[2] : zmin;
-        zmax = V[2] > zmax ? V[2] : zmax;
+        vertices[0] = tri[0];
+        vertices[1] = tri[1];
+        vertices[2] = tri[2];
+    }
+    else if (tri[1] == V)
+    {
+        vertices[0] = tri[1];
+        vertices[1] = tri[0];
+        vertices[2] = tri[2];
+    }
+    else
+    {
+        vertices[0] = tri[2];
+        vertices[1] = tri[0];
+        vertices[2] = tri[1];
     }
 
-    // Assemble reference point
-    refPoint[0] = 0.5 * (xmin+xmax);
-    refPoint[1] = 0.5 * (ymin+ymax);
-    refPoint[2] = 0.5 * (zmin+zmax);
-
-    return refPoint;
+    return vertices;
 }

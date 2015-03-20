@@ -18,6 +18,6 @@ scalar areaHeron(vector& A, vector& B, vector& C);
 // Use cross product property
 scalar areaCross(vector& a, vector& b);
 
-// Aux function to get a reference point for consistent normal vectors
-// Does only work for convex, closed surfaces
-point getRefPoint(const triSurface& front);
+// Sort labels of triangle vertices in such a way, that the label passed
+// as an argument is the first element of the returned list
+labelList orderVertices(labelledTri& tri, label V);

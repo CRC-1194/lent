@@ -272,6 +272,38 @@ void checkGlobalForceBalance(triSurfacePointVectorField& cn)
     Info << "Magnitude of resulting force is " << mag(resultingForce) << endl;
 }
 
+// Compute mean curvature normal from discrete surface force by using
+// relation eg. 7.52 of Tryggvason's book
+void forceToCurvature(triSurfacePointVectorField& cn, triSurface& front)
+{
+    const pointField& vertices = front.localPoints();
+    const labelListList& adjacentTriangles = front.pointFaces();
+    const List<labelledTri> trias = front.localFaces();
+
+    forAll(vertices, Vl)
+    {
+        scalar area = 0;
+        const labelList& oneRingNeighborhood = adjacentTriangles[Vl];
+
+        forAll(oneRingNeighborhood, Tl)
+        {
+            labelledTri T = trias[oneRingNeighborhood[Tl]];
+
+            point V = vertices[T[0]];
+            point Q = vertices[T[1]];
+            point R = vertices[T[2]];
+
+            vector a = Q - V;
+            vector b = R - V;
+            vector c = R - Q;
+
+            area += areaHeron(a, b, c) / 3.0;
+        }
+
+        cn[Vl] = cn[Vl] / area;
+    }
+}
+
 // Determine mesh quality
 void meshQuality(const triSurface& front, std::fstream& file)
 {
@@ -461,32 +493,11 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
 
             // Read point labels from triangle and determine which
             // one matches Vl to resolve point coordinates correctly
-            label tri0 = currentTri[0];
-            label tri1 = currentTri[1];
-            label tri2 = currentTri[2];
+            labelList triVertices = orderVertices(currentTri, Vl);
 
-            point V;
-            point Q;
-            point R;
-
-            if (tri0 == Vl)
-            {
-                V = localPoints[Vl];
-                Q = localPoints[tri1];
-                R = localPoints[tri2];
-            }
-            else if (tri1 == Vl)
-            {
-                V = localPoints[Vl];
-                Q = localPoints[tri0];
-                R = localPoints[tri2];
-            }
-            else
-            {
-                V = localPoints[Vl];
-                Q = localPoints[tri0];
-                R = localPoints[tri1];
-            }
+            point V = localPoints[triVertices[0]];
+            point Q = localPoints[triVertices[1]];
+            point R = localPoints[triVertices[2]];
 
             // Edge vectors
             vector VQ = Q - V;
@@ -686,7 +697,7 @@ int main(int argc, char *argv[])
     Info << "Number of front mesh triangles: " << front.localFaces().size() << endl;
 
     // Finally call the function
-    noCurvature(cn, front);
+    curvatureNormals(cn, front);
 
     // Check deviation from sphere
     meshQuality(front, errorFileSphereDev);
@@ -719,13 +730,16 @@ int main(int argc, char *argv[])
         dimensionedScalar
         (
             "zero",
-            pow(dimLength, -1),
+            dimless,
             0
         )
     );
 
     dimensionedScalar dradius = dimensionedScalar("zero", dimLength, radius);
-    curvatureError = mag(mag(cn) - 2.0/dradius);
+
+    // Compute difference to exact curvature and relate the difference to
+    // the exact curvature
+    curvatureError = mag(mag(cn) - 2.0/dradius)*dradius/2.0;
 
     cn.write();
     curvatureError.write();
