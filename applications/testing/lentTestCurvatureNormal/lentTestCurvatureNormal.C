@@ -75,12 +75,12 @@ void checkCurvature(const triSurfacePointVectorField& cn, const triSurface& fron
     scalar curvatureExact = 2.0 / radius;
 
     scalar minCurvature = curvatureExact;
-    scalar maxCurvature = 0;
+    scalar maxCurvature = 0.0;
 
-    scalar averageCurvature = 0;
-    scalar linearDeviation = 0;
-    scalar quadDeviation = 0;
-    scalar maxDeviation = 0; // L_inf norm as in Francois' paper
+    scalar averageCurvature = 0.0;
+    scalar linearDeviation = 0.0;
+    scalar quadDeviation = 0.0;
+    scalar maxDeviation = 0.0; // L_inf norm as in Francois' paper
 
     scalar counter = 0;
 
@@ -155,10 +155,10 @@ void checkCurvature(const triSurfacePointVectorField& cn, const triSurface& fron
 void checkNormal(const triSurfacePointVectorField& cn, const triSurface& front,
                  vector center, std::fstream& errorFile)
 {
-    scalar maxDeviation = 0;
-    scalar devAngle = 0;
-    scalar linearDeviation = 0;
-    scalar quadDeviation = 0;
+    scalar maxDeviation = 0.0;
+    scalar devAngle = 0.0;
+    scalar linearDeviation = 0.0;
+    scalar quadDeviation = 0.0;
 
     scalar counter = 0;
 
@@ -218,8 +218,8 @@ void checkNormal(const triSurfacePointVectorField& cn, const triSurface& front,
 void sphereDeviation(const triSurface& front, scalar radius, vector center,
                      std::fstream& errorFile)
 {
-    scalar averageDeviation = 0;
-    scalar maxDeviation = 0;
+    scalar averageDeviation = 0.0;
+    scalar maxDeviation = 0.0;
     scalar counter = 0;
 
     const labelList& vertices = front.meshPoints();
@@ -262,7 +262,7 @@ void sphereDeviation(const triSurface& front, scalar radius, vector center,
 // coefficient the same holds true for the sum of the curvature normals
 void checkGlobalForceBalance(triSurfacePointVectorField& cn)
 {
-    vector resultingForce(0,0,0);
+    vector resultingForce(0.0,0.0,0.0);
 
     forAll(cn, V)
     {
@@ -282,7 +282,7 @@ void forceToCurvature(triSurfacePointVectorField& cn, triSurface& front)
 
     forAll(vertices, Vl)
     {
-        scalar area = 0;
+        scalar area = 0.0;
         const labelList& oneRingNeighborhood = adjacentTriangles[Vl];
 
         forAll(oneRingNeighborhood, Tl)
@@ -395,7 +395,7 @@ void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
 {
     cn = dimensionedVector("zero",
                             dimless/dimLength,
-                            vector(0,0,0)
+                            vector(0.0,0.0,0.0)
                            );
 
     // Get necessary references
@@ -453,7 +453,7 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
 {
     cn = dimensionedVector("zero",
                             dimless/dimLength,
-                            vector(0,0,0)
+                            vector(0.0,0.0,0.0)
                           );
 
     // TODO: modify so that mutliple patches, e.g. in the case of
@@ -477,7 +477,7 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
     // in the following comments
     forAll(vertices, Vl)
     {
-        scalar Amix = 0;
+        scalar Amix = 0.0;
         bool obtuse = false;
 
         // Get all triangles adjacent to V
@@ -510,14 +510,14 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
             scalar Qa = pi - (Va + Ra);
 
             // Check if non-obtuse in order to use the correct area metric
-            if (Va < pi/2 && Qa < pi/2 && Ra < pi/2)
+            if (Va < 0.5*pi && Qa < 0.5*pi && Ra < 0.5*pi)
             {
                 // Use Voronoi-area
                 // Cotangent function 'cot' has to be defined locally since
                 // it is not offered by OpenFOAM
                 Amix += 0.125*(magSqr(VR)*cot(Qa) + magSqr(VQ)*cot(Ra));    
             }
-            else if (Va >= pi/2)
+            else if (Va >= 0.5*pi)
             {
                 // Obtuse angle at V, use half area
                 // Use Heron's formula for now until problem
@@ -688,7 +688,7 @@ int main(int argc, char *argv[])
         (
             "zero",
             pow(dimLength, -1),
-            vector(0,0,0)
+            vector(0.0,0.0,0.0)
         )
     );
 
@@ -731,7 +731,7 @@ int main(int argc, char *argv[])
         (
             "zero",
             dimless,
-            0
+            0.0
         )
     );
 
