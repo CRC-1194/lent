@@ -516,7 +516,7 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
                 // Use Voronoi-area
                 // Cotangent function 'cot' has to be defined locally since
                 // it is not offered by OpenFOAM
-                Amix += 0.125*(magSqr(VR)*cot(Qa) + magSqr(VQ)*cot(Ra));    
+                Amix += 0.125*(magSqr(VR)*cot(-VQ, QR) + magSqr(VQ)*cot(VR, QR));    
             }
             else if (Va >= 0.5*pi)
             {
@@ -536,16 +536,14 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
             }
 
             // Compute mean curvature normal contributions
-            cn[Vl] += cot(Qa)*VR + cot(Ra)*VQ;
+            cn[Vl] += cot(-VQ, QR)*VR + cot(VR, QR)*VQ;
         }
         cn[Vl] = cn[Vl] / (2.0 * Amix);
 
-        /*
         if(obtuse)
         {
             cn[Vl] = 2.0/0.3 * cn[Vl] / mag(cn[Vl]);
         }
-        */
     }
 }
 

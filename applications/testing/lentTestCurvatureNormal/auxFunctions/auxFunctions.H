@@ -9,7 +9,7 @@ const scalar pi = 3.141592653589793238;
 scalar getAngle(vector& a, vector& b);
 
 // Cotangent function to resemble algorihm notion from paper
-scalar cot(scalar angle);
+scalar cot(vector a, vector b);
 
 // Triangle area functions
 // Use heron's formula

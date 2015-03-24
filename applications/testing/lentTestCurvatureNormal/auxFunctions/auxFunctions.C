@@ -10,9 +10,10 @@ scalar getAngle(vector& a, vector& b)
 }
 
 // Cotangent function to resemble algorihm notion from paper
-scalar cot(scalar angle)
+// Removed trigonometric functions to prevent precision loss
+scalar cot(vector a, vector b)
 {
-    return 1.0/Foam::tan(angle);
+    return a & b / mag(a ^ b);
 }
 
 // Triangle area functions
