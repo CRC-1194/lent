@@ -391,6 +391,7 @@ void meshQuality(const triSurface& front, std::fstream& file)
 \*****************************************************************************/
 
 // Method taken from tryggvason book "Direct numerical simulations..."
+// See sec. 7.2.2
 void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
 {
     cn = dimensionedVector("zero",
@@ -421,7 +422,7 @@ void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
 
         // Set edge vectors. They oriented in such a way that they follow
         // the rotational direction of the triangle normal vector. Since
-        // the normal vectors are conistently defined (see lentFOAM paper) 
+        // the normal vectors are consistently defined (see lentFOAM paper) 
         // this ensures consistency in the direction of the contributions
         vector v01 = v1 - v0;
         vector v12 = v2 - v1;
