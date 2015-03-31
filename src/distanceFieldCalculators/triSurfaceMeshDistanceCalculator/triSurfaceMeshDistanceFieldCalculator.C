@@ -60,6 +60,7 @@ Description
 
 #include "triSurfaceMeshDistanceFieldCalculator.H"
 #include "addToRunTimeSelectionTable.H"
+#include "volumeType.H"
 
 namespace Foam {
 namespace FrontTracking {
@@ -140,7 +141,7 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
     );
 
     // Create a list of the volume types: based on the cell centre, the
-    List<searchableSurface::volumeType> volType;
+    List<volumeType> volType;
     // Fill the list of the volume types.
     frontMesh.getVolumeType(C, volType);
 
@@ -148,20 +149,20 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
     forAll(volType, I)
     {
         // Get the volume type.
-        searchableSurface::volumeType vT = volType[I];
+        volumeType vT = volType[I];
 
         const pointIndexHit& h = cellsElementNearest_[I];
 
         if (h.hit())
         {
             // If the volume is OUTSIDE.
-            if (vT == searchableSurface::OUTSIDE)
+            if (vT == volumeType::OUTSIDE)
             {
                 // Set the positive distance.
                 signedDistance[I] = Foam::mag(C[I] - h.hitPoint());
             }
             // If the volume is inside.
-            else if (vT == searchableSurface::INSIDE)
+            else if (vT == volumeType::INSIDE)
             {
                 // Set the negative distance.
                 signedDistance[I] = -Foam::mag(C[I] - h.hitPoint());
@@ -213,27 +214,27 @@ void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
         pointsElementNearest_
     );
 
-    List<searchableSurface::volumeType> volType;
+    List<volumeType> volType;
     frontMesh.getVolumeType(points, volType);
 
     // For all volume types.
     forAll(volType, I)
     {
         // Get the volume type.
-        searchableSurface::volumeType vT = volType[I];
+        volumeType vT = volType[I];
 
         const pointIndexHit& h = pointsElementNearest_[I];
 
         if (h.hit())
         {
             // If the volume is OUTSIDE.
-            if (vT == searchableSurface::OUTSIDE)
+            if (vT == volumeType::OUTSIDE)
             {
                 // Set the positive distance.
                 pointSignedDistance[I] = Foam::mag(points[I] - h.hitPoint());
             }
             // If the volume is inside.
-            else if (vT == searchableSurface::INSIDE)
+            else if (vT == volumeType::INSIDE)
             {
                 // Set the negative distance.
                 pointSignedDistance[I] = -Foam::mag(points[I] - h.hitPoint());
