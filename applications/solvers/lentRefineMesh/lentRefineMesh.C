@@ -53,10 +53,6 @@ Description
 
 #include "fvCFD.H"
 #include "dynamicFvMesh.H"
-#include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
-#include "fvIOoptionList.H"
-
 #include "lentMethod.H"
 
 using namespace FrontTracking;
@@ -68,7 +64,7 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createDynamicFvMesh.H"
-    #include "createFields.H"
+    #include "createReconstructionFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
