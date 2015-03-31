@@ -1,7 +1,8 @@
-
     Info<< "Reading field p_rgh\n" << endl;
-    volScalarField p_rgh(
-        IOobject(
+    volScalarField p_rgh
+    (
+        IOobject
+        (
             "p_rgh",
             runTime.timeName(),
             mesh,
@@ -12,8 +13,10 @@
     );
 
     Info<< "Reading field U\n" << endl;
-    volVectorField U(
-        IOobject(
+    volVectorField U
+    (
+        IOobject
+        (
             "U",
             runTime.timeName(),
             mesh,
@@ -23,9 +26,11 @@
         mesh
     );
 
-    Info << "Reading the cell-centered distance field signedDistance\n" << endl;
-    volScalarField signedDistance(
-        IOobject(
+    Info << "Reading the cell distance field signedDistance\n" << endl;
+    volScalarField signedDistance
+    (
+        IOobject
+        (
             "signedDistance",
             runTime.timeName(),
             mesh,
@@ -43,7 +48,7 @@
             runTime.timeName(),
             mesh,
             IOobject::NO_READ,
-            IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
         ),
         mesh, 
         dimensionedScalar(
@@ -56,8 +61,11 @@
     pointMesh pmesh(mesh); 
 
     // Initialize the points-to-elements distance. 
-    pointScalarField pointSignedDistance(
-        IOobject(
+    Info << "Reading the point distance field signedDistance\n" << endl;
+    pointScalarField pointSignedDistance 
+    (
+        IOobject
+        (
             "pointSignedDistance", 
             runTime.timeName(), 
             mesh, 
@@ -85,9 +93,11 @@
         )
     );
 
-    Info << "Reading the cell-centered MarkerField function field H\n" << endl;
-    volScalarField markerField(
-        IOobject(
+    Info << "Reading the cell-centered MarkerField field markerField\n" << endl;
+    volScalarField markerField 
+    (
+        IOobject
+        (
             "markerField",
             runTime.timeName(),
             mesh,
@@ -101,15 +111,17 @@
 
 
     Info<< "Reading transportProperties\n" << endl;
-    incompressibleTwoPhaseMixture twoPhaseProperties(U, phi, "markerField");
+    immiscibleIncompressibleTwoPhaseMixture mixture(U, phi);
 
-    const dimensionedScalar& rho1 = twoPhaseProperties.rho1();
-    const dimensionedScalar& rho2 = twoPhaseProperties.rho2();
+    const dimensionedScalar& rho1 = mixture.rho1();
+    const dimensionedScalar& rho2 = mixture.rho2();
 
 
     // Need to store rho for ddt(rho, U)
-    volScalarField rho(
-        IOobject(
+    volScalarField rho
+    (
+        IOobject
+        (
             "rho",
             runTime.timeName(),
             mesh,
@@ -125,8 +137,10 @@
     // Mass flux
     // Initialisation does not matter because rhoPhi is reset after the
     // alpha1 solution before it is used in the U equation.
-    surfaceScalarField rhoPhi(
-        IOobject(
+    surfaceScalarField rhoPhi
+    (
+        IOobject
+        (
             "rho*phi",
             runTime.timeName(),
             mesh,
@@ -136,15 +150,14 @@
         rho1*phi
     );
 
-
-    // Construct interface from alpha1 distribution
-    interfaceProperties interface(markerField, U, twoPhaseProperties);
-
-
     // Construct incompressible turbulence model
-    autoPtr<incompressible::turbulenceModel> turbulence(
-        incompressible::turbulenceModel::New(U, phi, twoPhaseProperties)
+    autoPtr<incompressible::turbulenceModel> turbulence
+    (
+        incompressible::turbulenceModel::New(U, phi, mixture)
     );
+
+    // Construct interface from markerField distribution
+    interfaceProperties interface(markerField, U, mixture);
 
     #include "readGravitationalAcceleration.H"
 
@@ -162,8 +175,10 @@
     volScalarField gh("gh", g & mesh.C());
     surfaceScalarField ghf("ghf", g & mesh.Cf());
 
-    volScalarField p(
-        IOobject(
+    volScalarField p
+    (
+        IOobject
+        (
             "p",
             runTime.timeName(),
             mesh,
@@ -175,7 +190,8 @@
 
     label pRefCell = 0;
     scalar pRefValue = 0.0;
-    setRefCell(
+    setRefCell
+    (
         p,
         p_rgh,
         mesh.solutionDict().subDict("PIMPLE"),
@@ -183,8 +199,10 @@
         pRefValue
     );
 
-    if (p_rgh.needReference()) {
-        p += dimensionedScalar(
+    if (p_rgh.needReference())
+    {
+        p += dimensionedScalar
+        (
             "p",
             p.dimensions(),
             pRefValue - getRefCellValue(p, pRefCell)

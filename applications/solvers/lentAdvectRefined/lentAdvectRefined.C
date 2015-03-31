@@ -54,10 +54,9 @@ Description
 #include "fvCFD.H"
 #include "dynamicFvMesh.H"
 #include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulenceModel.H"
 #include "pimpleControl.H"
-#include "fvIOoptionList.H"
 #include "lentMethod.H"
 
 // Time Measurements

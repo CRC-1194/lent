@@ -1,8 +1,11 @@
 EXE_INC = \
+    -I$(LENT_PROJECT)/applications/solvers \
     -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
     -I$(LIB_SRC)/transportModels \
     -I$(LIB_SRC)/transportModels/incompressible/lnInclude \
     -I$(LIB_SRC)/transportModels/interfaceProperties/lnInclude \
+    -I$(LIB_SRC)/transportModels/immiscibleIncompressibleTwoPhaseMixture/lnInclude \
+    -I$(LIB_SRC)/turbulenceModels/incompressible/turbulenceModel \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/triSurface/lnInclude \
     -I$(LIB_SRC)/sampling/lnInclude \
@@ -11,8 +14,13 @@ EXE_INC = \
 
 EXE_LIBS = \
     -ltwoPhaseMixture \
+    -limmiscibleIncompressibleTwoPhaseMixture \
     -linterfaceProperties \
     -ltwoPhaseProperties \
+    -lincompressibleTransportModels \
+    -lincompressibleTurbulenceModel \
+    -lincompressibleRASModels \
+    -lincompressibleLESModels \
     -lincompressibleTransportModels \
     -L$(FOAM_USER_LIBBIN) \
     -ltriSurface \

@@ -52,9 +52,6 @@ Description
 
 
 #include "fvCFD.H"
-#include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
-
 #include "lentMethod.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -73,7 +70,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMesh.H"
 
-    #include "createFields.H"
+    #include "createReconstructionFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -102,8 +99,6 @@ int main(int argc, char *argv[])
         runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
-
-        twoPhaseProperties.correct();
 
         lent.calcSignedDistances(
             signedDistance,

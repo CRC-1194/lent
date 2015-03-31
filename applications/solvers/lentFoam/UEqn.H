@@ -1,7 +1,7 @@
     surfaceScalarField muEff
     (
         "muEff",
-        twoPhaseProperties.muf()
+        mixture.muf()
       + fvc::interpolate(rho*turbulence->nut())
     );
 
