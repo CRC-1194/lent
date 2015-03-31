@@ -26,7 +26,9 @@ Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Test application for the interface reconstruction algorithm of the LENT method.
+    Reset the timestep to maintain a constant maximum courant Number.
+    Reduction of time-step is immediate, but increase is damped to avoid
+    unstable oscillations.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -37,7 +39,7 @@ Description
         Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
     
     Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de
+    	Holger Marschall <marschall@csi.tu-darmstadt.de>
     	Holger Marschall <marschall@csi.tu-darmstadt.de>
     	Dieter Bothe <bothe@csi.tu-darmstadt.de>
 
@@ -51,82 +53,23 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "fvCFD.H"
-#include "lentMethod.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-using namespace FrontTracking;
-
-int main(int argc, char *argv[])
+if (adjustTimeStep)
 {
-    argList::addBoolOption 
+    scalar maxDeltaTFact =
+        min(maxCo/(CoNum + SMALL), maxMarkerFieldCo/(markerFieldCoNum + SMALL));
+
+    scalar deltaTFact = min(min(maxDeltaTFact, 1.0 + 0.1*maxDeltaTFact), 1.2);
+
+    runTime.setDeltaT
     (
-        "once", 
-        "Execute reconstruction only once."
-    );  
-
-    #include "setRootCase.H"
-    #include "createTime.H"
-    #include "createMesh.H"
-
-    #include "createReconstructionFields.H"
-
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-    triSurfaceFront front(
-        IOobject(
-            "front.stl",
-            "front",
-            runTime,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
+        min
+        (
+            deltaTFact*runTime.deltaTValue(),
+            maxDeltaT
         )
     );
 
-    lentMethod lent(front, mesh);
-
-    lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
-
-    lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-    front.write();
-
-    const bool once = args.optionFound("once");
-
-    while (runTime.run()) {
-
-        runTime++;
-
-        Info<< "Time = " << runTime.timeName() << nl << endl;
-
-        lent.calcSignedDistances(
-            signedDistance,
-            pointSignedDistance,
-            searchDistanceSqr,
-            pointSearchDistanceSqr,
-            front
-        );
-
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
-
-        lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-        runTime.write();
-
-        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            << nl << endl;
-
-        if (once)
-        {
-            return 0;
-        }
-    }
-
-    Info<< "End\n" << endl;
-
-    return 0;
+    Info<< "deltaT = " <<  runTime.deltaTValue() << endl;
 }
 
 // ************************************************************************* //

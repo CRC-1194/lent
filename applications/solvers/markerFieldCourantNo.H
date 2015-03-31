@@ -23,21 +23,22 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tomislav Maric <maric@csi.tu-darmstadt.de>
+    All rights reserved.
 
 Description
-    Test application for the interface reconstruction algorithm of the LENT method.
+    Calculates and outputs the mean and maximum Courant Numbers.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
 
     This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
+        Tomislav Maric<maric@csi.tu-darmstadt.de> (main developer)
     under the project supervision of :
         Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
     
     Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de
+    	Tomislav Maric<maric@csi.tu-darmstadt.de>
     	Holger Marschall <marschall@csi.tu-darmstadt.de>
     	Dieter Bothe <bothe@csi.tu-darmstadt.de>
 
@@ -51,82 +52,29 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "fvCFD.H"
-#include "lentMethod.H"
+scalar maxMarkerFieldCo
+(
+    readScalar(runTime.controlDict().lookup("maxMarkerFieldCo"))
+);
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+scalar markerFieldCoNum = 0.0;
+scalar meanMarkerFieldCoNum = 0.0;
 
-using namespace FrontTracking;
-
-int main(int argc, char *argv[])
+if (mesh.nInternalFaces())
 {
-    argList::addBoolOption 
+    scalarField sumPhi
     (
-        "once", 
-        "Execute reconstruction only once."
-    );  
-
-    #include "setRootCase.H"
-    #include "createTime.H"
-    #include "createMesh.H"
-
-    #include "createReconstructionFields.H"
-
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-    triSurfaceFront front(
-        IOobject(
-            "front.stl",
-            "front",
-            runTime,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        )
+        pos(markerField - 0.01)*pos(0.99 - markerField)
+       *fvc::surfaceSum(mag(phi))().internalField()
     );
 
-    lentMethod lent(front, mesh);
+    markerFieldCoNum = 0.5*gMax(sumPhi/mesh.V().field())*runTime.deltaTValue();
 
-    lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
-
-    lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-    front.write();
-
-    const bool once = args.optionFound("once");
-
-    while (runTime.run()) {
-
-        runTime++;
-
-        Info<< "Time = " << runTime.timeName() << nl << endl;
-
-        lent.calcSignedDistances(
-            signedDistance,
-            pointSignedDistance,
-            searchDistanceSqr,
-            pointSearchDistanceSqr,
-            front
-        );
-
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
-
-        lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-        runTime.write();
-
-        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            << nl << endl;
-
-        if (once)
-        {
-            return 0;
-        }
-    }
-
-    Info<< "End\n" << endl;
-
-    return 0;
+    meanMarkerFieldCoNum =
+        0.5*(gSum(sumPhi)/gSum(mesh.V().field()))*runTime.deltaTValue();
 }
+
+Info<< "Interface Courant Number mean: " << meanMarkerFieldCoNum
+    << " max: " << markerFieldCoNum << endl;
 
 // ************************************************************************* //
