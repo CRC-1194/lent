@@ -53,7 +53,10 @@ Description
 #include "fvCFD.H"
 #include "triSurfaceFields.H"
 #include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
+#include "turbulenceModel.H"
+#include "pimpleControl.H"
+
 #include "lentMethod.H"
 
 #include <fstream>
