@@ -35,12 +35,12 @@ Authors
 
 #include "fvCFD.H"
 #include "timeSelector.H"
-
+#include "pointFields.H"
 #include "frontCurvatureModel.H"
-
-// Testing OF curvature
 #include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H" 
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
+#include "turbulenceModel.H"
+#include "pimpleControl.H"
 
 #include <fstream>
 
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMesh.H"
 
-#include "createFields.H"
+    #include "createFields.H"
 
     if (!args.optionFound("errorFile"))
     {
