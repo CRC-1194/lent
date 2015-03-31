@@ -90,7 +90,7 @@ bool triSurfaceNormalsAreConsistent(const triSurface& front)
 
 class triSurfaceSizeChange
 {
-    int lastSize_ = 0;
+    int lastSize_;
 
     const triSurface& t_;
 
@@ -100,6 +100,7 @@ class triSurfaceSizeChange
 
         triSurfaceSizeChange(const triSurface& t, double allowedChange=0.2)
             :
+                lastSize_(0),
                 t_(t),
                 allowedChange_(allowedChange)
         {}
