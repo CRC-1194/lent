@@ -13,8 +13,8 @@ EXE_INC = \
     -I$(LENT_PROJECT)/src/lnInclude
 
 EXE_LIBS = \
-    -limmiscibleIncompressibleTwoPhaseMixture \
     -L$(FOAM_USER_LIBBIN) \
+    -limmiscibleIncompressibleTwoPhaseMixture \
     -ltwoPhaseMixture \
     -ltwoPhaseProperties \
     -lincompressibleTransportModels \

@@ -54,6 +54,9 @@ Description
 #include "fvCFD.H"
 #include "dynamicFvMesh.H"
 #include "lentMethod.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
+#include "turbulenceModel.H"
+#include "pimpleControl.H"
 
 using namespace FrontTracking;
 
@@ -64,7 +67,7 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createDynamicFvMesh.H"
-    #include "createReconstructionFields.H"
+    #include "createFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;

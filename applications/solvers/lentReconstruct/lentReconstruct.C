@@ -53,6 +53,9 @@ Description
 
 #include "fvCFD.H"
 #include "lentMethod.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
+#include "turbulenceModel.H"
+#include "pimpleControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -70,7 +73,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMesh.H"
 
-    #include "createReconstructionFields.H"
+    #include "createFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
