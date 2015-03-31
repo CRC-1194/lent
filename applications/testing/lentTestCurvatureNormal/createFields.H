@@ -112,7 +112,8 @@
 
 
     Info<< "Reading transportProperties\n" << endl;
-    incompressibleTwoPhaseMixture twoPhaseProperties(U, phi, "markerField");
+
+    incompressibleTwoPhaseMixture twoPhaseProperties(U, phi);
 
     const dimensionedScalar& rho1 = twoPhaseProperties.rho1();
     const dimensionedScalar& rho2 = twoPhaseProperties.rho2();
