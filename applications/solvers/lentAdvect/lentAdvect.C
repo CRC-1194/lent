@@ -54,10 +54,9 @@ Description
 #include "fvCFD.H"
 #include "subCycle.H"
 #include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulenceModel.H"
 #include "pimpleControl.H"
-#include "fvIOoptionList.H"
 
 #include "lentMethod.H"
 
@@ -129,7 +128,7 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        twoPhaseProperties.correct();
+        mixture.correct();
 
         lent.calcSignedDistances(
             signedDistance,
