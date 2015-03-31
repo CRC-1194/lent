@@ -94,24 +94,13 @@
     );
 
     Info << "Reading the cell-centered MarkerField field markerField\n" << endl;
-    volScalarField markerField 
-    (
-        IOobject
-        (
-            "markerField",
-            runTime.timeName(),
-            mesh,
-            IOobject::MUST_READ, 
-            IOobject::AUTO_WRITE
-        ),
-        mesh
-    );
 
     #include "createPhi.H"
 
-
     Info<< "Reading transportProperties\n" << endl;
     immiscibleIncompressibleTwoPhaseMixture mixture(U, phi);
+
+    volScalarField& markerField(mixture.alpha1());
 
     const dimensionedScalar& rho1 = mixture.rho1();
     const dimensionedScalar& rho2 = mixture.rho2();
