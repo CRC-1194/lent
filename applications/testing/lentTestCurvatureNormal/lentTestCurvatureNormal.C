@@ -58,7 +58,7 @@ Description
 
 #include <fstream>
 
-#include "auxFunctions.H"
+#include "auxFunctions/auxFunctions.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
