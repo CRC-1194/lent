@@ -58,6 +58,7 @@ Description
 #include "pimpleControl.H"
 
 #include "lentMethod.H"
+#include "frontCurvatureMeyer.H"
 
 #include <fstream>
 
