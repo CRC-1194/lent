@@ -3,7 +3,7 @@
  */
 
 // Pi...
-const scalar pi = 3.141592653589793238; 
+const scalar pi = Foam::constant::mathematical::pi; 
 
 // Calculate angle between two vectors
 scalar getAngle(vector& a, vector& b);
