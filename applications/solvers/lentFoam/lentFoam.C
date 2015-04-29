@@ -128,6 +128,7 @@ int main(int argc, char *argv[])
 
     front.write();
 
+    // TODO: Examine the internal p-U coupling loop. Update on markerField? TM.  
     while (runTime.run())
     {
         #include "readTimeControls.H"
@@ -140,10 +141,10 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        // TODO: examine the PIMPLE integration. TM.
+        // TODO: Fix this, only the curvature is updated. TM. 
         mixture.correct();
 
-        // TODO: use the mixture. TM.
+        // TODO: Use a mixture model for this. TM.
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
         lent.calcSignedDistances(
@@ -177,6 +178,8 @@ int main(int argc, char *argv[])
         }
         Info << "Done." << endl;
 
+        // Solve for the cell centered velocity with the new fluxes coming from
+        // PISO and the new pressure. 
         #include "UEqn.H"
 
         Info << "Calculating front velocity..." << endl;
