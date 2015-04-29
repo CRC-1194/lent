@@ -146,7 +146,7 @@
     );
 
     // Construct interface from markerField distribution
-    interfaceProperties interface(markerField, U, mixture);
+    //interfaceProperties interface(markerField, U, mixture);
 
     #include "readGravitationalAcceleration.H"
 
@@ -198,3 +198,4 @@
         );
         p_rgh = p - rho*gh;
     }
+
