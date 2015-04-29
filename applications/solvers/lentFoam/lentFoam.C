@@ -142,10 +142,10 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         // TODO: Fix this, only the curvature is updated. TM. 
+        // Corrects the dynamic viscosity and the curvature.
+        // - interfaceProperties : correctK()
+        // - incompressibleTwoPhaseMixture : correctNu()
         mixture.correct();
-
-        // TODO: Use a mixture model for this. TM.
-        rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
         lent.calcSignedDistances(
             signedDistance,
@@ -156,6 +156,8 @@ int main(int argc, char *argv[])
         );
 
         lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+
+        rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
