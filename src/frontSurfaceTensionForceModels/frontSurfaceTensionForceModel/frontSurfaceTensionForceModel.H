@@ -111,6 +111,16 @@ public:
 
     // Member Functions
 
+        const Time& runTime() const 
+        {
+            return runTime_; 
+        }
+
+        const fvMesh& mesh() const 
+        {
+            return mesh_; 
+        }
+
         virtual tmp<surfaceScalarField> faceSurfaceTensionForce() const = 0;
         virtual tmp<volVectorField> cellSurfaceTensionForce() const = 0;  
 };

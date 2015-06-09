@@ -73,14 +73,14 @@ namespace FrontTracking {
 
 class interFoamSurfaceTensionForceModel
     :
-        public frontSurfaceTensionModel 
+        public frontSurfaceTensionForceModel 
 {
 
 public:
 
     TypeName ("interFoam");
 
-    using frontSurfaceTensionModel::frontSurfaceTensionModel;
+    using frontSurfaceTensionForceModel::frontSurfaceTensionForceModel;
 
     // Destructor
         virtual ~interFoamSurfaceTensionForceModel() {};

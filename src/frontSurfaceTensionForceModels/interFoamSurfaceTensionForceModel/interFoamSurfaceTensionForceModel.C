@@ -59,6 +59,7 @@ Description
 
 
 #include "interFoamSurfaceTensionForceModel.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -66,7 +67,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(interFoamSurfaceTensionForceModel, 0);
-    addToRunTimeSelectionTable(frontSurfaceTensionModel, interFoamSurfaceTensionForceModel, Dictionary);
+    addToRunTimeSelectionTable(frontSurfaceTensionForceModel, interFoamSurfaceTensionForceModel, Dictionary);
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -75,12 +76,12 @@ tmp<surfaceScalarField> interFoamSurfaceTensionForceModel::faceSurfaceTensionFor
     tmp<surfaceScalarField> faceSurfaceTensionForceTmp(
         new surfaceScalarField ( 
             IOobject (
-                runTime_.timeName(), 
-                mesh_, 
+                runTime().timeName(), 
+                mesh(), 
                 IOobject::NO_READ, 
                 IOobject::NO_WRITE
             ), 
-            mesh_, 
+            mesh(), 
             dimensionedScalar
             (
                 "zero", 
@@ -102,12 +103,12 @@ tmp<volVectorField> interFoamSurfaceTensionForceModel::cellSurfaceTensionForce()
     tmp<volVectorField> cellSurcellTensionForceTmp(
         new volVectorField ( 
             IOobject (
-                runTime_.timeName(), 
-                mesh_, 
+                runTime().timeName(), 
+                mesh(), 
                 IOobject::NO_READ, 
                 IOobject::NO_WRITE
             ), 
-            mesh_, 
+            mesh(), 
             dimensionedVector
             (
                 "zero", 
