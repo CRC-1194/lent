@@ -17,15 +17,13 @@
         (
             UEqn
          ==
-            // From interfaceProperties: 
-            // fvc::interpolate(sigmaK())*fvc::snGrad(alpha1_);
+
             lent.cellSurfaceTensionForce()
 
             + 
             
             fvc::reconstruct
             (
-
                 (
                   - ghf*fvc::snGrad(rho)
                   - fvc::snGrad(p_rgh)

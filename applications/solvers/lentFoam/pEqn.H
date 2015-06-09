@@ -17,8 +17,6 @@
     surfaceScalarField phig
     (
         (
-            // From interfaceProperties: 
-            // fvc::interpolate(sigmaK())*fvc::snGrad(alpha1_);
             lent.faceSurfaceTensionForce()
           - ghf*fvc::snGrad(rho)
         )*rAUf*mesh.magSf()
