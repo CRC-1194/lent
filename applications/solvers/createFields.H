@@ -98,6 +98,7 @@
     #include "createPhi.H"
 
     Info<< "Reading transportProperties\n" << endl;
+
     immiscibleIncompressibleTwoPhaseMixture mixture(U, phi);
 
     volScalarField& markerField(mixture.alpha1());
