@@ -81,13 +81,12 @@ class frontSurfaceTensionForceModel
 {
 
     const Time& runTime_; 
-    
     const word meshName_; 
     const fvMesh& mesh_; 
 
 public:
 
-    TypeName ("surfaceTensionForceBase");
+    TypeName ("base");
 
     declareRunTimeSelectionTable (
         tmp,
@@ -112,8 +111,8 @@ public:
 
     // Member Functions
 
-        virtual tmp<surfaceScalarField> faceSurfaceTensionForce() const; 
-        virtual tmp<volVectorField> cellSurfaceTensionForce() const; 
+        virtual tmp<surfaceScalarField> faceSurfaceTensionForce() const = 0;
+        virtual tmp<volVectorField> cellSurfaceTensionForce() const = 0;  
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

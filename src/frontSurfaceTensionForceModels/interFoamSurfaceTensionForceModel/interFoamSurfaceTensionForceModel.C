@@ -23,10 +23,10 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontSurfaceTensionForceModel
+    Foam::interFoamSurfaceTensionForceModel
 
 SourceFiles
-    frontSurfaceTensionForceModel.C
+    interFoamSurfaceTensionForceModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
@@ -51,61 +51,81 @@ Description
         Center of Smart Interfaces
         Technische Universitaet Darmstadt
        
+:qa
     If you use this software for your scientific work or your publications,
     please don't forget to acknowledge explicitly the use of it.
 
 \*---------------------------------------------------------------------------*/
 
 
-#include "frontSurfaceTensionForceModel.H"
-#include "dictionary.H"
+#include "interFoamSurfaceTensionForceModel.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(frontSurfaceTensionForceModel, 0);
-    defineRunTimeSelectionTable(frontSurfaceTensionForceModel, Dictionary);
+    defineTypeNameAndDebug(interFoamSurfaceTensionForceModel, 0);
+    addToRunTimeSelectionTable(frontSurfaceTensionModel, interFoamSurfaceTensionForceModel, Dictionary);
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-frontSurfaceTensionForceModel::frontSurfaceTensionForceModel(
-    const dictionary& configDict, 
-    const Time& runTime
-)
-    :
-        runTime_(runTime), 
-        meshName_(configDict.lookupOrDefault("meshName", word("region0"))),
-        mesh_(runTime_.lookupObject<fvMesh>(meshName_))
+tmp<surfaceScalarField> interFoamSurfaceTensionForceModel::faceSurfaceTensionForce() const
 {
+    tmp<surfaceScalarField> faceSurfaceTensionForceTmp(
+        new surfaceScalarField ( 
+            IOobject (
+                runTime_.timeName(), 
+                mesh_, 
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ), 
+            mesh_, 
+            dimensionedScalar
+            (
+                "zero", 
+                dimForce / dimVolume,  
+                scalar(0) 
+            ) 
+        )
+    );
+
+    // TODO: implement interFoam surface tension force.
+    // interfaceProperties calculateK()
+    // fvc::interpolate(sigmaK())*fvc::snGrad(alpha1_);
+
+    return faceSurfaceTensionForceTmp;  
 }
 
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-
-tmp<frontSurfaceTensionForceModel>
-frontSurfaceTensionForceModel::New(const dictionary& configDict, const Time& runTime)
+tmp<volVectorField> interFoamSurfaceTensionForceModel::cellSurfaceTensionForce() const
 {
-    const word name = configDict.lookup("type");
+    tmp<volVectorField> cellSurcellTensionForceTmp(
+        new volVectorField ( 
+            IOobject (
+                runTime_.timeName(), 
+                mesh_, 
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ), 
+            mesh_, 
+            dimensionedVector
+            (
+                "zero", 
+                dimForce / dimVolume,  
+                vector(0,0,0)
+            ) 
+        )
+    );
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    // TODO: forward call to faceSurfaceTensionForce.
+    //fvc::reconstruct
+    //( 
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
-    {
-        FatalErrorIn (
-            "frontSurfaceTensionForceModel::New(const word& name)"
-        )   << "Unknown frontSurfaceTensionForceModel type "
-            << name << nl << nl
-            << "Valid frontSurfaceTensionForceModels are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
-    }
-
-    return tmp<frontSurfaceTensionForceModel> (cstrIter()(configDict, runTime));
+    return cellSurcellTensionForceTmp;  
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 
 } // End namespace FrontTracking
 

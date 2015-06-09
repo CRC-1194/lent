@@ -23,16 +23,16 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontSurfaceTensionForceModel
+    Foam::interFoamSurfaceTensionForceModel
 
 SourceFiles
-    frontSurfaceTensionForceModel.C
+    interFoamSurfaceTensionForceModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+    Interface for the front surface tension models. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,53 +57,39 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "frontSurfaceTensionForceModel.H"
-#include "dictionary.H"
+#ifndef interFoamSurfaceTensionForceModel_H
+#define interFoamSurfaceTensionForceModel_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "frontSurfaceTensionForceModel.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(frontSurfaceTensionForceModel, 0);
-    defineRunTimeSelectionTable(frontSurfaceTensionForceModel, Dictionary);
+/*---------------------------------------------------------------------------*\
+                         Class interFoamSurfaceTensionForceModel Declaration
+\*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-frontSurfaceTensionForceModel::frontSurfaceTensionForceModel(
-    const dictionary& configDict, 
-    const Time& runTime
-)
+class interFoamSurfaceTensionForceModel
     :
-        runTime_(runTime), 
-        meshName_(configDict.lookupOrDefault("meshName", word("region0"))),
-        mesh_(runTime_.lookupObject<fvMesh>(meshName_))
+        public frontSurfaceTensionModel 
 {
-}
 
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
+public:
 
-tmp<frontSurfaceTensionForceModel>
-frontSurfaceTensionForceModel::New(const dictionary& configDict, const Time& runTime)
-{
-    const word name = configDict.lookup("type");
+    TypeName ("interFoam");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    using frontSurfaceTensionModel::frontSurfaceTensionModel;
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
-    {
-        FatalErrorIn (
-            "frontSurfaceTensionForceModel::New(const word& name)"
-        )   << "Unknown frontSurfaceTensionForceModel type "
-            << name << nl << nl
-            << "Valid frontSurfaceTensionForceModels are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
-    }
+    // Destructor
+        virtual ~interFoamSurfaceTensionForceModel() {};
 
-    return tmp<frontSurfaceTensionForceModel> (cstrIter()(configDict, runTime));
-}
+    // Member Functions
+
+        virtual tmp<surfaceScalarField> faceSurfaceTensionForce() const; 
+        virtual tmp<volVectorField> cellSurfaceTensionForce() const;  
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -114,5 +100,7 @@ frontSurfaceTensionForceModel::New(const dictionary& configDict, const Time& run
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //
