@@ -17,11 +17,16 @@
         (
             UEqn
          ==
+            // From interfaceProperties: 
+            // fvc::interpolate(sigmaK())*fvc::snGrad(alpha1_);
+            lent.cellSurfaceTensionForce()
+
+            + 
+            
             fvc::reconstruct
             (
+
                 (
-                    lent.faceSurfaceTensionForce()
-                    //mixture.surfaceTensionForce()
                   - ghf*fvc::snGrad(rho)
                   - fvc::snGrad(p_rgh)
                 ) * mesh.magSf()
