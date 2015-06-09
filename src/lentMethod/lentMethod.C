@@ -131,9 +131,9 @@ lentMethod::lentMethod(
             lentControlDict_.subDict("markerFieldModel")
          )
      ),
-     curvatureModelTmp_(
-         frontCurvatureModel::New(
-            lentControlDict_.subDict("frontCurvatureModel"), mesh.time()
+     surfaceTensionForceModelTmp_(
+         frontSurfaceTensionForceModel::New(
+            lentControlDict_.subDict("surfaceTensionForceModel"), mesh.time()
          )
      )
 {

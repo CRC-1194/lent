@@ -17,7 +17,7 @@
     surfaceScalarField phig
     (
         (
-            mixture.surfaceTensionForce()
+            lent.faceSurfaceTensionForce()
           - ghf*fvc::snGrad(rho)
         )*rAUf*mesh.magSf()
     );

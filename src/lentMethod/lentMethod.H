@@ -74,7 +74,7 @@ Description
 #include "frontVelocityCalculator.H"
 #include "frontMotionSolver.H"
 #include "markerFieldModel.H"
-#include "frontCurvatureModel.H"
+#include "frontSurfaceTensionForceModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -84,6 +84,10 @@ namespace FrontTracking {
 /*---------------------------------------------------------------------------*\
                          Class lentMethod Declaration
 \*---------------------------------------------------------------------------*/
+
+// TODO: Inherit from objectRegistry, register all method fields and data to
+// lentMethod, let lentMetod control the IO based on its own IOobject arg
+// constructors.  TM. 
 
 class lentMethod
 :
@@ -119,8 +123,12 @@ class lentMethod
     // MarkerField model.
     tmp<markerFieldModel> markerFieldModelTmp_;
 
+    // TODO: compose into *curvatureBased* surface tension force model. TM.
     // Curvature model.
-    tmp<frontCurvatureModel> curvatureModelTmp_;
+    //tmp<frontCurvatureModel> curvatureModelTmp_;
+
+    // Surface tension force model.
+    tmp<frontSurfaceTensionForceModel> surfaceTensionForceModelTmp_;
 
 public:
 
@@ -182,14 +190,13 @@ public:
             const triSurfaceFrontVectorField& frontVelocity
         ) const;
 
-        tmp<volScalarField> cellCurvature() const
+        tmp<surfaceScalarField> faceSurfaceTensionForce() const
         {
-            return curvatureModelTmp_->cellCurvature(); 
+            return surfaceTensionForceModelTmp_->faceSurfaceTensionForce(); 
         }
-
-        tmp<surfaceScalarField> faceCurvature() const
+        tmp<volVectorField> cellSurfaceTensionForce() const
         {
-            return curvatureModelTmp_->faceCurvature(); 
+            return surfaceTensionForceModelTmp_->cellSurfaceTensionForce(); 
         }
 
         // Empty writer: regIOobject is used only for registry queries.
