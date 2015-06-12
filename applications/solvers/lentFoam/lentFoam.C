@@ -133,19 +133,12 @@ int main(int argc, char *argv[])
     {
         #include "readTimeControls.H"
         #include "CourantNo.H"
-        #include "alphaCourantNo.H"
         #include "markerFieldCourantNo.H"
         #include "setDeltaT.H"
 
         runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
-
-        // TODO: Fix this, only the curvature is updated. TM. 
-        // Corrects the dynamic viscosity and the curvature.
-        // - interfaceProperties : correctK()
-        // - incompressibleTwoPhaseMixture : correctNu()
-        mixture.correct();
 
         lent.calcSignedDistances(
             signedDistance,
@@ -157,6 +150,9 @@ int main(int argc, char *argv[])
 
         lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
 
+        // Update the viscosity. 
+        mixture.correct();
+        // Update density field.
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
