@@ -133,11 +133,10 @@ lentMethod::lentMethod(
      ),
      surfaceTensionForceModelTmp_(
          frontSurfaceTensionForceModel::New(
-            lentControlDict_.subDict("surfaceTensionForceModel"), mesh.time()
+            lentControlDict_.subDict("surfaceTensionForceModel") 
          )
      )
-{
-}
+{}
 
 lentMethod::lentMethod(const lentMethod& copy)
 :

@@ -189,14 +189,22 @@ public:
             triSurfaceFront& front,
             const triSurfaceFrontVectorField& frontVelocity
         ) const;
-
-        tmp<surfaceScalarField> faceSurfaceTensionForce() const
+        
+        // TODO: Overload for associativity (frontMesh, markerField). TM. 
+        tmp<surfaceScalarField> faceSurfaceTensionForce(
+            const volScalarField& markerField, 
+            const triSurfaceMesh& frontMesh
+        ) const
         {
-            return surfaceTensionForceModelTmp_->faceSurfaceTensionForce(); 
+            return surfaceTensionForceModelTmp_->faceSurfaceTensionForce(markerField, frontMesh); 
         }
-        tmp<volVectorField> cellSurfaceTensionForce() const
+
+        tmp<volVectorField> cellSurfaceTensionForce(
+            const volScalarField& markerField, 
+            const triSurfaceMesh& frontMesh
+        ) const
         {
-            return surfaceTensionForceModelTmp_->cellSurfaceTensionForce(); 
+            return surfaceTensionForceModelTmp_->cellSurfaceTensionForce(markerField, frontMesh); 
         }
 
         // Empty writer: regIOobject is used only for registry queries.
