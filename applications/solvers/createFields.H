@@ -97,15 +97,11 @@
 
     #include "createPhi.H"
 
-    Info<< "Reading transportProperties\n" << endl;
-
-    immiscibleIncompressibleTwoPhaseMixture mixture(U, phi);
-
+    incompressibleTwoPhaseMixture mixture(U, phi);
     volScalarField& markerField(mixture.alpha1());
-
+    
     const dimensionedScalar& rho1 = mixture.rho1();
     const dimensionedScalar& rho2 = mixture.rho2();
-
 
     // Need to store rho for ddt(rho, U)
     volScalarField rho
