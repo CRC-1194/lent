@@ -17,7 +17,7 @@
     surfaceScalarField phig
     (
         (
-            lent.faceSurfaceTensionForce()
+            lent.faceSurfaceTensionForce(markerField, frontMesh)
           - ghf*fvc::snGrad(rho)
         )*rAUf*mesh.magSf()
 

@@ -18,7 +18,7 @@
             UEqn
          ==
 
-            lent.cellSurfaceTensionForce()
+            lent.cellSurfaceTensionForce(markerField, frontMesh)
 
             + 
             
