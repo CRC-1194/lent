@@ -127,7 +127,6 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        mixture.correct();
 
         lent.calcSignedDistances(
             signedDistance,
@@ -138,6 +137,11 @@ int main(int argc, char *argv[])
         );
 
         lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+
+        // Update viscosity. 
+        mixture.correct();
+        // Update density field.
+        rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
