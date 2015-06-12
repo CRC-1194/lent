@@ -58,7 +58,6 @@ Description
 
 
 #include "frontSurfaceTensionForceModel.H"
-#include "dictionary.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -66,43 +65,30 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(frontSurfaceTensionForceModel, 0);
-    defineRunTimeSelectionTable(frontSurfaceTensionForceModel, Dictionary);
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-frontSurfaceTensionForceModel::frontSurfaceTensionForceModel(
-    const dictionary& configDict, 
-    const Time& runTime
-)
-    :
-        runTime_(runTime), 
-        meshName_(configDict.lookupOrDefault("meshName", word("region0"))),
-        mesh_(runTime_.lookupObject<fvMesh>(meshName_))
-{
-}
+    defineRunTimeSelectionTable(frontSurfaceTensionForceModel, Empty);
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 tmp<frontSurfaceTensionForceModel>
-frontSurfaceTensionForceModel::New(const dictionary& configDict, const Time& runTime)
+frontSurfaceTensionForceModel::New(const dictionary& configDict)
 {
     const word name = configDict.lookup("type");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    EmptyConstructorTable::iterator cstrIter =
+        EmptyConstructorTablePtr_->find(name);
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    if (cstrIter == EmptyConstructorTablePtr_->end())
     {
         FatalErrorIn (
             "frontSurfaceTensionForceModel::New(const word& name)"
         )   << "Unknown frontSurfaceTensionForceModel type "
             << name << nl << nl
             << "Valid frontSurfaceTensionForceModels are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
+            << EmptyConstructorTablePtr_->sortedToc()
             << exit(FatalError);
     }
 
-    return tmp<frontSurfaceTensionForceModel> (cstrIter()(configDict, runTime));
+    return tmp<frontSurfaceTensionForceModel> (cstrIter()());
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

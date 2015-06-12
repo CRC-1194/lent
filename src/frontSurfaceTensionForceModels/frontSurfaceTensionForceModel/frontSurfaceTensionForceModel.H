@@ -64,7 +64,8 @@ Description
 #include "tmp.H"
 #include "refCount.H"
 #include "volFieldsFwd.H"
-#include "triSurfaceFront.H"
+#include "surfaceFieldsFwd.H"
+#include "triSurfaceMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -80,49 +81,34 @@ class frontSurfaceTensionForceModel
         public refCount
 {
 
-    const Time& runTime_; 
-    const word meshName_; 
-    const fvMesh& mesh_; 
-
 public:
 
-    TypeName ("base");
+    TypeName ("abstract");
 
     declareRunTimeSelectionTable (
         tmp,
         frontSurfaceTensionForceModel,
-        Dictionary,
-        (
-            const dictionary& configDict, 
-            const Time& runTime
-        ),
-        (configDict, runTime)
+        Empty,
+        (),
+        ()
     );
 
-    // Constructors
-        frontSurfaceTensionForceModel(const dictionary& configDict, const Time& runTime);
-
     // Selectors
-
-        static tmp<frontSurfaceTensionForceModel> New(const dictionary& configDict, const Time& runTime);
+        static tmp<frontSurfaceTensionForceModel> New(const dictionary& configDict);
 
     // Destructor
         virtual ~frontSurfaceTensionForceModel() {};
 
     // Member Functions
+        virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
+            const volScalarField&, 
+            const triSurfaceMesh&
+        ) const = 0;
 
-        const Time& runTime() const 
-        {
-            return runTime_; 
-        }
-
-        const fvMesh& mesh() const 
-        {
-            return mesh_; 
-        }
-
-        virtual tmp<surfaceScalarField> faceSurfaceTensionForce() const = 0;
-        virtual tmp<volVectorField> cellSurfaceTensionForce() const = 0;  
+        virtual tmp<volVectorField> cellSurfaceTensionForce(
+            const volScalarField&, 
+            const triSurfaceMesh&
+        ) const = 0;  
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
