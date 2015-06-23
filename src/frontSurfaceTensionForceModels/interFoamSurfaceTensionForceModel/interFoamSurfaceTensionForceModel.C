@@ -68,25 +68,6 @@ Description
 #include "fvcDiv.H"
 #include "fvcSnGrad.H"
 
-
-// * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
-
-//interFoamSurfaceTensionForceModel::interFoamSurfaceTensionForceModel(
-    //const dictionary& configDict, 
-    //const Time& runTime
-//)
-    //:
-        //frontSurfaceTensionForceModel(configDict, runTime), 
-        //mixture_(runTime.lookup
-        //interfaceProperties(
-            //runTime.lookupObject<const volVectorField&> ("alpha.water"), 
-            //runTime.lookupObject<const surfaceScalarField&> ("phi"), 
-            //runTime.lookupObject<const dictionary&>("transportProperties")
-        //)
-//{}
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
 namespace Foam {
 namespace FrontTracking {
 
@@ -133,10 +114,11 @@ tmp<surfaceScalarField> interFoamSurfaceTensionForceModel::faceSurfaceTensionFor
     const Time& runTime = markerField.time(); 
     const dictionary& transportProperties = 
         runTime.lookupObject<dictionary>("transportProperties");
-
     const dimensionedScalar sigma = transportProperties.lookup("sigma");  
 
-    return fvc::interpolate(666 * cellCurvature(markerField, frontMesh)) * 
+    return fvc::interpolate(
+               sigma * cellCurvature(markerField, frontMesh)
+           ) * 
            fvc::snGrad(markerField);
 }
 
