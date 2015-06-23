@@ -93,8 +93,6 @@
         )
     );
 
-    Info << "Reading the cell-centered MarkerField field markerField\n" << endl;
-
     #include "createPhi.H"
 
     incompressibleTwoPhaseMixture mixture(U, phi);
