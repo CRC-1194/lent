@@ -102,9 +102,9 @@ int main(int argc, char *argv[])
         )
     );
 
-    triSurfaceFrontGeoMesh frontMesh(front);
+    triSurfaceMesh frontMesh(front);
 
-    triSurfaceFrontVectorField frontVelocity(
+    triSurfaceVectorField frontVelocity(
         IOobject(
             "frontVelocity",
             runTime.timeName(),

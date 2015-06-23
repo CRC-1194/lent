@@ -92,7 +92,7 @@ public:
 
         void evolveFront(
             triSurfaceFront& front,
-            const triSurfaceFrontVectorField& frontVelocity
+            const triSurfaceVectorField& frontVelocity
         ) const;
 };
 

@@ -66,7 +66,7 @@ Description
 #include "refCount.H"
 #include "volFieldsFwd.H"
 #include "triSurfaceFront.H"
-#include "triSurfaceFrontFields.H"
+#include "triSurfaceFields.H"
 #include "frontMeshSearch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -132,7 +132,7 @@ public:
         }
 
         virtual void calcFrontVelocity(
-            triSurfaceFrontVectorField& frontVelocity,
+            triSurfaceVectorField& frontVelocity,
             const volVectorField& U,
             labelList& elementCells
         ) const = 0;

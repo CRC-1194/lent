@@ -1,5 +1,4 @@
 fronts/triSurfaceFront/triSurfaceFront/triSurfaceFront.C
-fronts/triSurfaceFront/triSurfaceFrontFields/triSurfaceFrontFields.C
 
 distanceFieldCalculators/distanceFieldCalculator/distanceFieldCalculator.C
 distanceFieldCalculators/triSurfaceMeshDistanceCalculator/triSurfaceMeshDistanceFieldCalculator.C

@@ -64,13 +64,14 @@ Description
 
 #include "regIOobject.H"
 #include "typeInfo.H"
-#include "triSurfaceFront.H"
 #include "fvMesh.H"
+#include "triSurfaceFields.H"
 
+#include "triSurfaceFront.H"
 #include "distanceFieldCalculator.H"
 #include "frontReconstructionModel.H"
 #include "frontReconstructor.H"
-#include "triSurfaceFrontFields.H"
+#include "triSurfaceFields.H"
 #include "frontVelocityCalculator.H"
 #include "frontMotionSolver.H"
 #include "markerFieldModel.H"
@@ -177,13 +178,13 @@ public:
         }
 
         void calcFrontVelocity(
-            triSurfaceFrontVectorField& frontVelocity,
+            triSurfaceVectorField & frontVelocity,
             const volVectorField& U
         );
 
         void evolveFront(
             triSurfaceFront& front,
-            const triSurfaceFrontVectorField& frontVelocity
+            const triSurfaceVectorField& frontVelocity
         ) const;
         
         // TODO: Overload for associativity (frontMesh, markerField). TM. 

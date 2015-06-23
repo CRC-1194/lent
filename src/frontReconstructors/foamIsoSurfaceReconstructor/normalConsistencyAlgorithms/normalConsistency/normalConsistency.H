@@ -70,7 +70,6 @@ Description
 #include "refCount.H"
 #include "volFieldsFwd.H"
 #include "triSurfaceFront.H"
-#include "triSurfaceFrontFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

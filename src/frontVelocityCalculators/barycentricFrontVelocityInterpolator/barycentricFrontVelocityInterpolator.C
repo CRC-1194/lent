@@ -84,12 +84,12 @@ barycentricFrontVelocityInterpolator::barycentricFrontVelocityInterpolator(const
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 void barycentricFrontVelocityInterpolator::calcFrontVelocity(
-    triSurfaceFrontVectorField& frontVelocity,
+    triSurfaceVectorField& frontVelocity,
     const volVectorField& U,
     labelList& elementCells
 ) const
 {
-    const triSurfaceFront& front = frontVelocity.mesh();
+    const triSurface& front = frontVelocity.mesh();
 
     frontVelocity.resize(front.nPoints());
 

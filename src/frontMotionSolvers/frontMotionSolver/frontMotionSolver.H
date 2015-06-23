@@ -66,7 +66,7 @@ Description
 #include "refCount.H"
 #include "volFieldsFwd.H"
 #include "triSurfaceFront.H"
-#include "triSurfaceFrontFields.H"
+#include "triSurfaceFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -111,7 +111,7 @@ public:
 
         virtual void evolveFront(
             triSurfaceFront& front,
-            const triSurfaceFrontVectorField& frontVelocity
+            const triSurfaceVectorField& frontVelocity
         ) const = 0;
 };
 
