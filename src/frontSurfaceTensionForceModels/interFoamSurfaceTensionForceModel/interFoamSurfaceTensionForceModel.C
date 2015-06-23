@@ -60,6 +60,30 @@ Description
 
 #include "interFoamSurfaceTensionForceModel.H"
 #include "addToRunTimeSelectionTable.H"
+#include "volFields.H"
+#include "fvcGrad.H"
+#include "fvcReconstruct.H"
+#include "surfaceInterpolate.H"
+#include "surfaceFields.H"
+#include "fvcDiv.H"
+#include "fvcSnGrad.H"
+
+
+// * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
+
+//interFoamSurfaceTensionForceModel::interFoamSurfaceTensionForceModel(
+    //const dictionary& configDict, 
+    //const Time& runTime
+//)
+    //:
+        //frontSurfaceTensionForceModel(configDict, runTime), 
+        //mixture_(runTime.lookup
+        //interfaceProperties(
+            //runTime.lookupObject<const volVectorField&> ("alpha.water"), 
+            //runTime.lookupObject<const surfaceScalarField&> ("phi"), 
+            //runTime.lookupObject<const dictionary&>("transportProperties")
+        //)
+//{}
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -67,62 +91,61 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(interFoamSurfaceTensionForceModel, 0);
-    addToRunTimeSelectionTable(frontSurfaceTensionForceModel, interFoamSurfaceTensionForceModel, Dictionary);
+    addToRunTimeSelectionTable(frontSurfaceTensionForceModel, interFoamSurfaceTensionForceModel, Empty);
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-tmp<surfaceScalarField> interFoamSurfaceTensionForceModel::faceSurfaceTensionForce() const
+tmp<volScalarField> interFoamSurfaceTensionForceModel::cellCurvature(
+    const volScalarField& markerField, 
+    const triSurfaceMesh& triSurfaceMesh
+) const
 {
-    tmp<surfaceScalarField> faceSurfaceTensionForceTmp(
-        new surfaceScalarField ( 
-            IOobject (
-                runTime().timeName(), 
-                mesh(), 
-                IOobject::NO_READ, 
-                IOobject::NO_WRITE
-            ), 
-            mesh(), 
-            dimensionedScalar
-            (
-                "zero", 
-                dimForce / dimVolume,  
-                scalar(0) 
-            ) 
-        )
+    const fvMesh& mesh = markerField.mesh(); 
+    const surfaceVectorField& Sf = mesh.Sf();
+
+    // Cell gradient of alpha
+    const volVectorField gradAlpha(fvc::grad(markerField, "nHat"));
+
+    // Interpolated face-gradient of alpha
+    surfaceVectorField gradAlphaf(fvc::interpolate(gradAlpha));
+
+    // Hardcoded stabilization of the gradient to avoid floating point
+    // exception.
+    dimensionedScalar deltaN
+    (
+        "deltaN",
+        1e-8/pow(average(markerField.mesh().V()), 1.0/3.0)
     );
 
-    // TODO: implement interFoam surface tension force.
-    // interfaceProperties calculateK()
-    // fvc::interpolate(sigmaK())*fvc::snGrad(alpha1_);
+    // Face unit interface normal
+    surfaceVectorField nHatfv(gradAlphaf/(mag(gradAlphaf) + deltaN));
 
-    return faceSurfaceTensionForceTmp;  
+    return -fvc::div(nHatfv & Sf); 
+} 
+
+tmp<surfaceScalarField> interFoamSurfaceTensionForceModel::faceSurfaceTensionForce(
+    const volScalarField& markerField,  
+    const triSurfaceMesh& frontMesh 
+) const
+{
+    // Read off the surface tension coefficient from the transport properties 
+    // dictionary. 
+    const Time& runTime = markerField.time(); 
+    const dictionary& transportProperties = 
+        runTime.lookupObject<dictionary>("transportProperties");
+
+    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+
+    return fvc::interpolate(666 * cellCurvature(markerField, frontMesh)) * 
+           fvc::snGrad(markerField);
 }
 
-tmp<volVectorField> interFoamSurfaceTensionForceModel::cellSurfaceTensionForce() const
+tmp<volVectorField> interFoamSurfaceTensionForceModel::cellSurfaceTensionForce(
+    const volScalarField& markerField,  
+    const triSurfaceMesh& frontMesh 
+) const
 {
-    tmp<volVectorField> cellSurcellTensionForceTmp(
-        new volVectorField ( 
-            IOobject (
-                runTime().timeName(), 
-                mesh(), 
-                IOobject::NO_READ, 
-                IOobject::NO_WRITE
-            ), 
-            mesh(), 
-            dimensionedVector
-            (
-                "zero", 
-                dimForce / dimVolume,  
-                vector(0,0,0)
-            ) 
-        )
-    );
-
-    // TODO: forward call to faceSurfaceTensionForce.
-    //fvc::reconstruct
-    //( 
-
-    return cellSurcellTensionForceTmp;  
+    return fvc::reconstruct(faceSurfaceTensionForce(markerField, frontMesh));  
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

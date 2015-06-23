@@ -73,7 +73,7 @@ namespace FrontTracking {
 
 class interFoamSurfaceTensionForceModel
     :
-        public frontSurfaceTensionForceModel 
+        public frontSurfaceTensionForceModel
 {
 
 public:
@@ -86,9 +86,21 @@ public:
         virtual ~interFoamSurfaceTensionForceModel() {};
 
     // Member Functions
+    
+        tmp<volScalarField> cellCurvature(
+            const volScalarField& markerField, 
+            const triSurfaceMesh& triSurfaceMesh
+        ) const; 
 
-        virtual tmp<surfaceScalarField> faceSurfaceTensionForce() const; 
-        virtual tmp<volVectorField> cellSurfaceTensionForce() const;  
+        virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
+            const volScalarField& markerField, 
+            const triSurfaceMesh& frontMesh 
+        ) const; 
+
+        virtual tmp<volVectorField> cellSurfaceTensionForce(
+            const volScalarField& markerField,  
+            const triSurfaceMesh& frontMesh 
+        ) const;  
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
