@@ -123,10 +123,6 @@ class lentMethod
     // MarkerField model.
     tmp<markerFieldModel> markerFieldModelTmp_;
 
-    // TODO: compose into *curvatureBased* surface tension force model. TM.
-    // Curvature model.
-    //tmp<frontCurvatureModel> curvatureModelTmp_;
-
     // Surface tension force model.
     tmp<frontSurfaceTensionForceModel> surfaceTensionForceModelTmp_;
 
