@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
     Info << "Done." << endl;
 
     Info << "Calculating the markerField field...";
-    lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+    lent.calcMarkerField(markerField);
     Info << "Done." << endl;
 
     runTime.writeNow();

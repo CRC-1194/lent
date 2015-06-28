@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
         IOobject(
             "front.stl",
             "front",
-            runTime,
+            mesh,
             IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         )
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        front,
+        frontMesh,
         dimensionedVector(
             "zero",
             dimLength / dimTime,
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
             front
         );
 
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+        lent.calcMarkerField(markerField);
 
         // Update the viscosity. 
         mixture.correct();

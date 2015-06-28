@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
             front
         );
 
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+        lent.calcMarkerField(markerField);
 
         runTime.write();
 

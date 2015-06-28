@@ -271,9 +271,9 @@ int main(int argc, char *argv[])
         )
     );
 
-    triSurfaceFrontGeoMesh frontMesh(front);
+    triSurfaceMesh frontMesh(front);
 
-    triSurfaceFrontVectorField frontVelocity(
+    triSurfaceVectorField frontVelocity(
         IOobject(
             "frontVelocity",
             runTime.timeName(),
@@ -318,6 +318,7 @@ int main(int argc, char *argv[])
         //timing.stop("Search Distance");
 
         //timing.start("Signed Distance");
+        // FIXME: Cleanup interface.  
         lent.calcSignedDistances(
             signedDistance,
             pointSignedDistance,
@@ -328,7 +329,7 @@ int main(int argc, char *argv[])
         //timing.stop("Signed Distance");
 
         //timing.start("MarkerField");
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+        lent.calcMarkerField(markerField);
         //timing.stop("MarkerField");
 
         // FIXME: heisenbug in Debug mode: field checking probably fails TM, Mar 05 14

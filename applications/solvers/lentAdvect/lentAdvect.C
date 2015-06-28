@@ -89,9 +89,9 @@ int main(int argc, char *argv[])
         )
     );
 
-    triSurfaceFrontGeoMesh frontMesh(front);
+    triSurfaceMesh frontMesh(front);
 
-    triSurfaceFrontVectorField frontVelocity(
+    triSurfaceVectorField frontVelocity(
         IOobject(
             "frontVelocity",
             runTime.timeName(),
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
             front
         );
 
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+        lent.calcMarkerField(markerField);
 
         // Update viscosity. 
         mixture.correct();

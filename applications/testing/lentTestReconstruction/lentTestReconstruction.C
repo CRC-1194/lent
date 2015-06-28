@@ -115,7 +115,7 @@ TEST_F(lentTests, lentReconstruction)
             front
         );
 
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+        lent.calcMarkerField(markerField);
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 

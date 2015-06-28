@@ -97,9 +97,9 @@ TEST_F(lentTests, lentReconstruction)
         )
     );
 
-    triSurfaceFrontGeoMesh frontMesh(front);
+    triSurfaceMesh frontMesh(front);
 
-    triSurfaceFrontVectorField frontVelocity(
+    triSurfaceVectorField frontVelocity(
         IOobject(
             "frontVelocity",
             runTime.timeName(),
@@ -150,7 +150,7 @@ TEST_F(lentTests, lentReconstruction)
         Pout << "done." << endl;
 
         Pout << "MarkerField ... ";
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+        lent.calcMarkerField(markerField);
         Pout << "done." << endl;
 
         Pout << "Reconstruction ...";
