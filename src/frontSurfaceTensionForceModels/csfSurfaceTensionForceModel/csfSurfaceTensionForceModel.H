@@ -23,10 +23,10 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::interFoamSurfaceTensionForceModel
+    Foam::csfSurfaceTensionForceModel
 
 SourceFiles
-    interFoamSurfaceTensionForceModel.C
+    csfSurfaceTensionForceModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
@@ -57,8 +57,8 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef interFoamSurfaceTensionForceModel_H
-#define interFoamSurfaceTensionForceModel_H
+#ifndef csfSurfaceTensionForceModel_H
+#define csfSurfaceTensionForceModel_H
 
 #include "frontSurfaceTensionForceModel.H"
 
@@ -68,39 +68,54 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class interFoamSurfaceTensionForceModel Declaration
+                         Class csfSurfaceTensionForceModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class interFoamSurfaceTensionForceModel
+class csfSurfaceTensionForceModel
     :
         public frontSurfaceTensionForceModel
 {
 
+    word curvatureFieldName_; 
+    word filterFieldName_; 
+
 public:
 
-    TypeName ("interFoam");
+    TypeName ("CSF");
 
-    using frontSurfaceTensionForceModel::frontSurfaceTensionForceModel;
+    // Constructors 
+    
+    csfSurfaceTensionForceModel() = default;
+    csfSurfaceTensionForceModel(const dictionary&);  
 
     // Destructor
-        virtual ~interFoamSurfaceTensionForceModel() {};
+    
+    virtual ~csfSurfaceTensionForceModel() {};
 
     // Member Functions
     
-        tmp<volScalarField> cellCurvature(
-            const volScalarField& markerField, 
-            const triSurfaceMesh& triSurfaceMesh
-        ) const; 
+    virtual tmp<volScalarField> cellCurvature(const volScalarField& curvatureField) const; 
 
-        virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
-            const volScalarField& markerField, 
-            const triSurfaceMesh& frontMesh 
-        ) const; 
+    virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
+        const fvMesh& mesh, 
+        const triSurfaceMesh& frontMesh 
+    ) const; 
 
-        virtual tmp<volVectorField> cellSurfaceTensionForce(
-            const volScalarField& markerField,  
-            const triSurfaceMesh& frontMesh 
-        ) const;  
+    virtual tmp<volVectorField> cellSurfaceTensionForce(
+        const fvMesh& mesh,  
+        const triSurfaceMesh& frontMesh 
+    ) const;  
+
+    const word curvatureFieldName() 
+    {
+        return curvatureFieldName_; 
+    }
+
+    const word filterFieldName() 
+    {
+        return filterFieldName_; 
+    }
+
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

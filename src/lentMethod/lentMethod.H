@@ -187,7 +187,6 @@ public:
             const triSurfaceVectorField& frontVelocity
         ) const;
         
-        // TODO: Overload for associativity (frontMesh, markerField). TM. 
         tmp<surfaceScalarField> faceSurfaceTensionForce(
             const fvMesh& mesh, 
             const triSurfaceMesh& frontMesh

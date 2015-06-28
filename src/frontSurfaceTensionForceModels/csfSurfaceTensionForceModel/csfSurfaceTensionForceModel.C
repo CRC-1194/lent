@@ -23,10 +23,10 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::interFoamSurfaceTensionForceModel
+    Foam::csfSurfaceTensionForceModel
 
 SourceFiles
-    interFoamSurfaceTensionForceModel.C
+    csfSurfaceTensionForceModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
@@ -58,7 +58,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "interFoamSurfaceTensionForceModel.H"
+#include "csfSurfaceTensionForceModel.H"
 #include "addToRunTimeSelectionTable.H"
 #include "volFields.H"
 #include "fvcGrad.H"
@@ -71,21 +71,28 @@ Description
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(interFoamSurfaceTensionForceModel, 0);
-    addToRunTimeSelectionTable(frontSurfaceTensionForceModel, interFoamSurfaceTensionForceModel, Empty);
+    defineTypeNameAndDebug(csfSurfaceTensionForceModel, 0);
+    addToRunTimeSelectionTable(frontSurfaceTensionForceModel, csfSurfaceTensionForceModel, Dictionary);
+
+// * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * //
+
+csfSurfaceTensionForceModel::csfSurfaceTensionForceModel(const dictionary& configDict)
+    :
+        curvatureFieldName_(configDict.lookup("curvatureField")), 
+        filterFieldName_(configDict.lookup("filterField"))
+{}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-tmp<volScalarField> interFoamSurfaceTensionForceModel::cellCurvature(
-    const volScalarField& markerField, 
-    const triSurfaceMesh& triSurfaceMesh
+tmp<volScalarField> csfSurfaceTensionForceModel::cellCurvature(
+    const volScalarField& curvatureField 
 ) const
 {
-    const fvMesh& mesh = markerField.mesh(); 
+    const fvMesh& mesh = curvatureField.mesh(); 
     const surfaceVectorField& Sf = mesh.Sf();
 
     // Cell gradient of alpha
-    const volVectorField gradAlpha(fvc::grad(markerField, "nHat"));
+    const volVectorField gradAlpha(fvc::grad(curvatureField, "nHat"));
 
     // Interpolated face-gradient of alpha
     surfaceVectorField gradAlphaf(fvc::interpolate(gradAlpha));
@@ -95,7 +102,7 @@ tmp<volScalarField> interFoamSurfaceTensionForceModel::cellCurvature(
     dimensionedScalar deltaN
     (
         "deltaN",
-        1e-8/pow(average(markerField.mesh().V()), 1.0/3.0)
+        1e-8/pow(average(curvatureField.mesh().V()), 1.0/3.0)
     );
 
     // Face unit interface normal
@@ -104,30 +111,36 @@ tmp<volScalarField> interFoamSurfaceTensionForceModel::cellCurvature(
     return -fvc::div(nHatfv & Sf); 
 } 
 
-tmp<surfaceScalarField> interFoamSurfaceTensionForceModel::faceSurfaceTensionForce(
-    const volScalarField& markerField,  
+tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
+    const fvMesh& mesh,  
     const triSurfaceMesh& frontMesh 
 ) const
 {
     // Read off the surface tension coefficient from the transport properties 
     // dictionary. 
-    const Time& runTime = markerField.time(); 
+    const Time& runTime = mesh.time(); 
     const dictionary& transportProperties = 
         runTime.lookupObject<dictionary>("transportProperties");
     const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+    
+    const volScalarField& curvatureField = 
+        mesh.lookupObject<volScalarField>(curvatureFieldName_); 
+    
+    const volScalarField& filterField = 
+        mesh.lookupObject<volScalarField>(filterFieldName_); 
 
     return fvc::interpolate(
-               sigma * cellCurvature(markerField, frontMesh)
+               sigma * cellCurvature(curvatureField)
            ) * 
-           fvc::snGrad(markerField);
+           fvc::snGrad(filterField);
 }
 
-tmp<volVectorField> interFoamSurfaceTensionForceModel::cellSurfaceTensionForce(
-    const volScalarField& markerField,  
+tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
+    const fvMesh& mesh,  
     const triSurfaceMesh& frontMesh 
 ) const
 {
-    return fvc::reconstruct(faceSurfaceTensionForce(markerField, frontMesh));  
+    return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh));  
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

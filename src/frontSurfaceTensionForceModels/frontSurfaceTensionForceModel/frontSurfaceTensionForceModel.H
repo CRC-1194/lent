@@ -87,7 +87,6 @@ public:
     TypeName ("abstract");
 
     frontSurfaceTensionForceModel() = default; 
-
     explicit frontSurfaceTensionForceModel(const dictionary& configDict) {};
 
     declareRunTimeSelectionTable (
