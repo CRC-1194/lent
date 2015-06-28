@@ -66,6 +66,8 @@ Description
 #include "tmp.H"
 #include "refCount.H"
 #include "volFieldsFwd.H"
+#include "fvMesh.H"
+#include "triSurfaceMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -80,6 +82,7 @@ class markerFieldModel
     :
         public refCount
 {
+    const word markerFieldName_; 
 
 public:
 
@@ -96,26 +99,23 @@ public:
     );
 
     // Constructors
-
-        markerFieldModel(const dictionary& configDict);
+    explicit markerFieldModel(const dictionary& configDict);
 
     // Selectors
-
-        static tmp<markerFieldModel> New(const dictionary& configDict);
+    static tmp<markerFieldModel> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~markerFieldModel();
+    virtual ~markerFieldModel() = default;
 
     // Member Functions
+    virtual void calcMarkerField(const fvMesh& mesh) const = 0;
 
-        virtual void calcMarkerField(
-            volScalarField& markerField,
-            const volScalarField& signedDistance,
-            const volScalarField& searchDistanceSqr
-        ) const = 0;
+    bool distanceWithinNarrowBand(scalar distance, scalar narrowBandWidth) const;
 
-        bool distanceWithinNarrowBand(scalar distance, scalar narrowBandWidth) const;
-
+    word markerFieldName() const
+    {
+        return markerFieldName_;
+    } 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

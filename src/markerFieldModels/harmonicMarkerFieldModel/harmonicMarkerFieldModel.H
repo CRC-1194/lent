@@ -79,25 +79,32 @@ class harmonicMarkerFieldModel
     :
         public markerFieldModel
 {
+    const word cellDistFieldName_; 
+    const word pointDistFieldName_; 
 
 public:
 
     TypeName ("harmonic");
 
     // Constructors
-
-        harmonicMarkerFieldModel(const dictionary& configDict);
+    explicit harmonicMarkerFieldModel(const dictionary& configDict);
 
     //- Destructor
     virtual ~harmonicMarkerFieldModel();
 
     // Member Functions
+    virtual void calcMarkerField(const fvMesh& mesh) const;
 
-        virtual void calcMarkerField(
-            volScalarField& markerField,
-            const volScalarField& signedDistance,
-            const volScalarField& searchDistanceSqr
-        ) const;
+    word cellDistanceFieldName() const
+    {
+        return cellDistFieldName_; 
+    }
+
+    word pointDistanceFieldName() const
+    {
+        return pointDistFieldName_; 
+    }
+
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

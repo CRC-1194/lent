@@ -75,7 +75,9 @@ namespace FrontTracking {
 
 harmonicMarkerFieldModel::harmonicMarkerFieldModel(const dictionary& configDict)
 :
-    markerFieldModel(configDict)
+    markerFieldModel(configDict), 
+    cellDistFieldName_(configDict.lookup("cellDistanceField")),
+    pointDistFieldName_(configDict.lookup("pointDistanceField"))
 {
 }
 
@@ -86,12 +88,17 @@ harmonicMarkerFieldModel::~harmonicMarkerFieldModel()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void harmonicMarkerFieldModel::calcMarkerField(
-    volScalarField& markerField,
-    const volScalarField& signedDistance,
-    const volScalarField& searchDistanceSqr
-) const
+void harmonicMarkerFieldModel::calcMarkerField(const fvMesh& mesh) const
 {
+    volScalarField& markerField = 
+        mesh.lookupObject<volScalarField>(markerFieldName()); 
+
+    const volScalarField& signedDistance = 
+        mesh.lookupObject<volScalarField>(cellDistFieldName_); 
+
+    const volScalarField& searchDistanceSqr = 
+        mesh.lookupObject<volScalarField>(markerFieldName()); 
+
     scalar pi = constant::mathematical::pi;
 
     forAll (markerField, cellI)

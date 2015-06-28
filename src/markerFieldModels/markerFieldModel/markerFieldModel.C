@@ -72,6 +72,8 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 markerFieldModel::markerFieldModel(const dictionary& configDict)
+    :
+        markerFieldName_(configDict.lookup("markerField"))
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -96,21 +98,6 @@ markerFieldModel::New(const dictionary& configDict)
     }
 
     return tmp<markerFieldModel> (cstrIter()(configDict));
-}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-markerFieldModel::~markerFieldModel()
-{}
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-bool markerFieldModel::distanceWithinNarrowBand(
-    scalar distance,
-    scalar narrowBandWidth
-) const
-{
-    return mag(distance) < narrowBandWidth;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
