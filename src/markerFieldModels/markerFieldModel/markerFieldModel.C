@@ -69,6 +69,14 @@ namespace FrontTracking {
     defineTypeNameAndDebug(markerFieldModel, 0);
     defineRunTimeSelectionTable(markerFieldModel, Dictionary);
 
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+markerFieldModel::markerFieldModel(const dictionary& configDict)
+:
+    cellDistFieldName_(configDict.lookup("cellDistance")), 
+    sqrSearchDistFieldName_(configDict.lookup("sqrSearchDistance")) 
+{}
+
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 tmp<markerFieldModel>

@@ -71,21 +71,6 @@ namespace FrontTracking {
     defineTypeNameAndDebug(harmonicMarkerFieldModel, 0);
     addToRunTimeSelectionTable(markerFieldModel, harmonicMarkerFieldModel, Dictionary);
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-harmonicMarkerFieldModel::harmonicMarkerFieldModel(const dictionary& configDict)
-:
-    markerFieldModel(configDict), 
-    cellDistFieldName_(configDict.lookup("cellDistanceField")),
-    pointDistFieldName_(configDict.lookup("pointDistanceField"))
-{
-}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-harmonicMarkerFieldModel::~harmonicMarkerFieldModel()
-{}
-
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 void harmonicMarkerFieldModel::calcMarkerField(volScalarField& markerField) const
@@ -93,10 +78,10 @@ void harmonicMarkerFieldModel::calcMarkerField(volScalarField& markerField) cons
     const fvMesh& mesh = markerField.mesh(); 
 
     const volScalarField& signedDistance = 
-        mesh.lookupObject<volScalarField>(cellDistFieldName_); 
+        mesh.lookupObject<volScalarField>(cellDistFieldName()); 
 
     const volScalarField& searchDistanceSqr = 
-        mesh.lookupObject<volScalarField>(pointDistFieldName_); 
+        mesh.lookupObject<volScalarField>(sqrSearchDistFieldName()); 
 
     scalar pi = constant::mathematical::pi;
 

@@ -83,6 +83,9 @@ class markerFieldModel
         public refCount
 {
 
+    const word cellDistFieldName_; 
+    const word sqrSearchDistFieldName_; 
+
 public:
 
     TypeName ("markerFieldModel");
@@ -98,7 +101,7 @@ public:
     );
 
     // Constructors
-    explicit markerFieldModel(const dictionary& configDict) {};
+    explicit markerFieldModel(const dictionary& configDict); 
 
     // Selectors
     static tmp<markerFieldModel> New(const dictionary& configDict);
@@ -108,6 +111,16 @@ public:
 
     // Member Functions
     virtual void calcMarkerField(volScalarField& markerField) const = 0;
+
+    word cellDistFieldName() const
+    {
+        return cellDistFieldName_; 
+    }
+
+    word sqrSearchDistFieldName() const
+    {
+        return sqrSearchDistFieldName_; 
+    }
 
     bool distanceWithinNarrowBand(scalar distance, scalar narrowBandWidth) const;
 };
