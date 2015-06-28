@@ -23,10 +23,10 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::sharpHarmonicMarkerFieldModel
+    Foam::twoCellHarmonicMarkerFieldModel
 
 SourceFiles
-    sharpHarmonicMarkerFieldModel.C
+    twoCellHarmonicMarkerFieldModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
@@ -58,8 +58,8 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef sharpHarmonicMarkerFieldModel_H
-#define sharpHarmonicMarkerFieldModel_H
+#ifndef twoCellHarmonicMarkerFieldModel_H
+#define twoCellHarmonicMarkerFieldModel_H
 
 #include "typeInfo.H"
 #include "autoPtr.H"
@@ -72,32 +72,23 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class sharpHarmonicMarkerFieldModel Declaration
+                         Class twoCellHarmonicMarkerFieldModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class sharpHarmonicMarkerFieldModel
+class twoCellHarmonicMarkerFieldModel
     :
         public markerFieldModel
 {
 
 public:
 
-    TypeName ("sharpHarmonic");
+    TypeName ("twoCellHarmonic");
 
     // Constructors
-
-        sharpHarmonicMarkerFieldModel(const dictionary& configDict);
-
-    //- Destructor
-    virtual ~sharpHarmonicMarkerFieldModel();
+    using markerFieldModel::markerFieldModel;
 
     // Member Functions
-
-        virtual void calcMarkerField(
-            volScalarField& markerField,
-            const volScalarField& signedDistance,
-            const volScalarField& searchDistanceSqr
-        ) const;
+    virtual void calcMarkerField(volScalarField& markerField) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

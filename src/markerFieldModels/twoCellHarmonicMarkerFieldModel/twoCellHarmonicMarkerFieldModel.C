@@ -23,7 +23,7 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::sharpHarmonicMarkerFieldModel
+    Foam::twoCellHarmonicMarkerFieldModel
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
@@ -55,7 +55,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "sharpHarmonicMarkerFieldModel.H"
+#include "twoCellHarmonicMarkerFieldModel.H"
 #include "addToRunTimeSelectionTable.H"
 #include "volFields.H"
 #include "mathematicalConstants.H"
@@ -65,35 +65,24 @@ Description
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(sharpHarmonicMarkerFieldModel, 0);
-    addToRunTimeSelectionTable(markerFieldModel, sharpHarmonicMarkerFieldModel, Dictionary);
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-sharpHarmonicMarkerFieldModel::sharpHarmonicMarkerFieldModel(const dictionary& configDict)
-:
-    markerFieldModel(configDict)
-{
-}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-sharpHarmonicMarkerFieldModel::~sharpHarmonicMarkerFieldModel()
-{}
+    defineTypeNameAndDebug(twoCellHarmonicMarkerFieldModel, 0);
+    addToRunTimeSelectionTable(markerFieldModel, twoCellHarmonicMarkerFieldModel, Dictionary);
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void sharpHarmonicMarkerFieldModel::calcMarkerField(
-    volScalarField& markerField,
-    const volScalarField& signedDistance,
-    const volScalarField& searchDistanceSqr
-) const
+void twoCellHarmonicMarkerFieldModel::calcMarkerField(volScalarField& markerField) const
 {
     const scalar pi = constant::mathematical::pi;
     const fvMesh& mesh = markerField.mesh(); 
     const cellList& cells = mesh.cells(); 
     const labelList& own = mesh.owner(); 
     const labelList& nei = mesh.neighbour(); 
+
+    const volScalarField& signedDistance = 
+        mesh.lookupObject<volScalarField>(cellDistFieldName()); 
+
+    const volScalarField& searchDistanceSqr = 
+        mesh.lookupObject<volScalarField>(sqrSearchDistFieldName()); 
 
     // For all cell centered values of signedDistance. 
     forAll(signedDistance, cellI)
