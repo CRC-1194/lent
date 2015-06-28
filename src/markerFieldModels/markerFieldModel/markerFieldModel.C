@@ -69,13 +69,6 @@ namespace FrontTracking {
     defineTypeNameAndDebug(markerFieldModel, 0);
     defineRunTimeSelectionTable(markerFieldModel, Dictionary);
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-markerFieldModel::markerFieldModel(const dictionary& configDict)
-    :
-        markerFieldName_(configDict.lookup("markerField"))
-{}
-
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 tmp<markerFieldModel>

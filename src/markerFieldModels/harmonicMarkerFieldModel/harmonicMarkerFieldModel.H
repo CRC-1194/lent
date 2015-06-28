@@ -93,7 +93,7 @@ public:
     virtual ~harmonicMarkerFieldModel();
 
     // Member Functions
-    virtual void calcMarkerField(const fvMesh& mesh) const;
+    virtual void calcMarkerField(volScalarField& markerField) const;
 
     word cellDistanceFieldName() const
     {

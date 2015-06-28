@@ -88,16 +88,15 @@ harmonicMarkerFieldModel::~harmonicMarkerFieldModel()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void harmonicMarkerFieldModel::calcMarkerField(const fvMesh& mesh) const
+void harmonicMarkerFieldModel::calcMarkerField(volScalarField& markerField) const
 {
-    volScalarField& markerField = 
-        mesh.lookupObject<volScalarField>(markerFieldName()); 
+    const fvMesh& mesh = markerField.mesh(); 
 
     const volScalarField& signedDistance = 
         mesh.lookupObject<volScalarField>(cellDistFieldName_); 
 
     const volScalarField& searchDistanceSqr = 
-        mesh.lookupObject<volScalarField>(markerFieldName()); 
+        mesh.lookupObject<volScalarField>(pointDistFieldName_); 
 
     scalar pi = constant::mathematical::pi;
 

@@ -187,17 +187,9 @@ void lentMethod::calcSignedDistances(
     );
 }
 
-void lentMethod::calcMarkerField(
-   volScalarField& markerField,
-   const volScalarField& signedDistance,
-   const volScalarField& searchDistanceSqr
-) const
+void lentMethod::calcMarkerField(volScalarField& markerField) const
 {
-    markerFieldModelTmp_->calcMarkerField(
-        markerField,
-        signedDistance,
-        searchDistanceSqr
-    );
+    markerFieldModelTmp_->calcMarkerField(markerField);
 }
 
 void lentMethod::reconstructFront(

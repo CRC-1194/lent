@@ -160,11 +160,7 @@ public:
             const triSurfaceFront& front
         );
 
-        void calcMarkerField(
-            volScalarField& markerField,
-            const volScalarField& signedDistance,
-            const volScalarField& searchDistanceSqr
-        ) const;
+        void calcMarkerField(volScalarField& markerField) const;
 
         void reconstructFront(
             triSurfaceFront& front,

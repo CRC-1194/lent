@@ -82,7 +82,6 @@ class markerFieldModel
     :
         public refCount
 {
-    const word markerFieldName_; 
 
 public:
 
@@ -99,7 +98,7 @@ public:
     );
 
     // Constructors
-    explicit markerFieldModel(const dictionary& configDict);
+    explicit markerFieldModel(const dictionary& configDict) {};
 
     // Selectors
     static tmp<markerFieldModel> New(const dictionary& configDict);
@@ -108,14 +107,9 @@ public:
     virtual ~markerFieldModel() = default;
 
     // Member Functions
-    virtual void calcMarkerField(const fvMesh& mesh) const = 0;
+    virtual void calcMarkerField(volScalarField& markerField) const = 0;
 
     bool distanceWithinNarrowBand(scalar distance, scalar narrowBandWidth) const;
-
-    word markerFieldName() const
-    {
-        return markerFieldName_;
-    } 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
