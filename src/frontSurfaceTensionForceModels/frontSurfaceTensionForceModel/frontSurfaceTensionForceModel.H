@@ -63,6 +63,7 @@ Description
 #include "typeInfo.H"
 #include "tmp.H"
 #include "refCount.H"
+#include "fvMesh.H"
 #include "volFieldsFwd.H"
 #include "surfaceFieldsFwd.H"
 #include "triSurfaceMesh.H"
@@ -85,12 +86,16 @@ public:
 
     TypeName ("abstract");
 
+    frontSurfaceTensionForceModel() = default; 
+
+    explicit frontSurfaceTensionForceModel(const dictionary& configDict) {};
+
     declareRunTimeSelectionTable (
         tmp,
         frontSurfaceTensionForceModel,
-        Empty,
-        (),
-        ()
+        Dictionary,
+        (const dictionary& configDict),
+        (configDict)
     );
 
     // Selectors
@@ -101,12 +106,12 @@ public:
 
     // Member Functions
         virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
-            const volScalarField&, 
+            const fvMesh&, 
             const triSurfaceMesh&
         ) const = 0;
 
         virtual tmp<volVectorField> cellSurfaceTensionForce(
-            const volScalarField&, 
+            const fvMesh&, 
             const triSurfaceMesh&
         ) const = 0;  
 };

@@ -65,7 +65,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(frontSurfaceTensionForceModel, 0);
-    defineRunTimeSelectionTable(frontSurfaceTensionForceModel, Empty);
+    defineRunTimeSelectionTable(frontSurfaceTensionForceModel, Dictionary);
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
@@ -74,21 +74,21 @@ frontSurfaceTensionForceModel::New(const dictionary& configDict)
 {
     const word name = configDict.lookup("type");
 
-    EmptyConstructorTable::iterator cstrIter =
-        EmptyConstructorTablePtr_->find(name);
+    DictionaryConstructorTable::iterator cstrIter =
+        DictionaryConstructorTablePtr_->find(name);
 
-    if (cstrIter == EmptyConstructorTablePtr_->end())
+    if (cstrIter == DictionaryConstructorTablePtr_->end())
     {
         FatalErrorIn (
             "frontSurfaceTensionForceModel::New(const word& name)"
         )   << "Unknown frontSurfaceTensionForceModel type "
             << name << nl << nl
             << "Valid frontSurfaceTensionForceModels are : " << endl
-            << EmptyConstructorTablePtr_->sortedToc()
+            << DictionaryConstructorTablePtr_->sortedToc()
             << exit(FatalError);
     }
 
-    return tmp<frontSurfaceTensionForceModel> (cstrIter()());
+    return tmp<frontSurfaceTensionForceModel> (cstrIter()(configDict));
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
