@@ -47,6 +47,7 @@
             "searchDistanceSqr",
             runTime.timeName(),
             mesh,
+            // FIXME: Must read, from 0.  
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),

@@ -88,7 +88,7 @@ public:
     TypeName ("singleCellHarmonic");
 
     // Constructors
-    using markerFieldModel::markerFieldModel;
+    singleCellHarmonicMarkerFieldModel(const dictionary& dict); 
 
     // Member Functions
     virtual void calcMarkerField(volScalarField& markerField) const;

@@ -74,7 +74,7 @@ namespace FrontTracking {
 markerFieldModel::markerFieldModel(const dictionary& configDict)
 :
     cellDistFieldName_(configDict.lookup("cellDistance")), 
-    sqrSearchDistFieldName_(configDict.lookup("sqrSearchDistance")) 
+    sqrSearchDistFieldName_(configDict.lookupOrDefault<word>("sqrSearchDistance", "searchDistanceSqr")) 
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //

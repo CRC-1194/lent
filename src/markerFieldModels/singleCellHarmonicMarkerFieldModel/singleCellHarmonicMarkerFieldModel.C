@@ -68,6 +68,13 @@ namespace FrontTracking {
     defineTypeNameAndDebug(singleCellHarmonicMarkerFieldModel, 0);
     addToRunTimeSelectionTable(markerFieldModel, singleCellHarmonicMarkerFieldModel, Dictionary);
 
+// * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * //
+singleCellHarmonicMarkerFieldModel::singleCellHarmonicMarkerFieldModel(const dictionary& configDict)
+    :
+        markerFieldModel(configDict), 
+        pointDistFieldName_(configDict.lookup("pointDistance"))
+{}
+
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 void singleCellHarmonicMarkerFieldModel::calcMarkerField(volScalarField& markerField) const
