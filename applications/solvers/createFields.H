@@ -126,7 +126,7 @@
     (
         IOobject
         (
-            "rho*phi",
+            "rhoPhi",
             runTime.timeName(),
             mesh,
             IOobject::NO_READ,
