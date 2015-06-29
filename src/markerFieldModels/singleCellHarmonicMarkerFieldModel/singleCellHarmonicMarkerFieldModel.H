@@ -64,7 +64,7 @@ Description
 #include "typeInfo.H"
 #include "autoPtr.H"
 #include "volFieldsFwd.H"
-#include "markerFieldModel.H"
+#include "sharpMarkerFieldModel.H"
 #include "pointFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -78,7 +78,7 @@ namespace FrontTracking {
 
 class singleCellHarmonicMarkerFieldModel
     :
-        public markerFieldModel
+        public sharpMarkerFieldModel 
 {
 
     const word pointDistFieldName_; 

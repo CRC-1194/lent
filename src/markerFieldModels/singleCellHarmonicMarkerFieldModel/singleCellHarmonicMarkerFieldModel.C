@@ -71,7 +71,7 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * //
 singleCellHarmonicMarkerFieldModel::singleCellHarmonicMarkerFieldModel(const dictionary& configDict)
     :
-        markerFieldModel(configDict), 
+        sharpMarkerFieldModel(configDict), 
         pointDistFieldName_(configDict.lookup("pointDistance"))
 {}
 
@@ -81,12 +81,8 @@ void singleCellHarmonicMarkerFieldModel::calcMarkerField(volScalarField& markerF
 {
     const scalar pi = constant::mathematical::pi;
     const fvMesh& mesh = markerField.mesh(); 
-    const cellList& cells = mesh.cells(); 
-    const labelList& own = mesh.owner(); 
-    const labelList& nei = mesh.neighbour(); 
-
-    const volScalarField& signedDistance = 
-        mesh.lookupObject<volScalarField>(cellDistFieldName()); 
+    const edgeList& meshEdges = mesh.edges(); 
+    const labelListList& meshEdgeCells = mesh.edgeCells();  
 
     const volScalarField& searchDistanceSqr = 
         mesh.lookupObject<volScalarField>(sqrSearchDistFieldName()); 
@@ -94,44 +90,40 @@ void singleCellHarmonicMarkerFieldModel::calcMarkerField(volScalarField& markerF
     const pointScalarField& pointDistance = 
         mesh.lookupObject<pointScalarField>(pointDistFieldName()); 
 
-    // For all cell centered values of signedDistance. 
-    forAll(signedDistance, cellI)
-    {
-        // If the cell centered signed distance switches signs across at least
-        // one cell face. 
-        bool signedDistanceSwitches = false; 
-        const cell& meshCell = cells[cellI];
-        forAll(meshCell, faceI)
-        {
-            const label ownCell = own[meshCell[faceI]]; 
-            const label neiCell = nei[meshCell[faceI]]; 
+    const volScalarField& signedDistance = 
+        mesh.lookupObject<volScalarField>(cellDistFieldName()); 
 
-            if ((sign(signedDistance[ownCell]) * sign(signedDistance[neiCell])) < 0)
+    // Compute the sharp marker field [0,1] based on the distance sign.
+    sharpMarkerFieldModel::calcMarkerField(markerField); 
+
+    // Find an edge of a cell where the point signed distance switches in sign.
+    // Find the cells that share that edge and set the marker field using the
+    // harmonic model. 
+    forAll(meshEdges, edgeI)
+    {
+        const edge& meshEdge = meshEdges[edgeI]; 
+        auto firstPointDist = pointDistance[meshEdge[0]];
+        auto secondPointDist = pointDistance[meshEdge[1]];
+
+        // If the distance switches sign for an edge of the cell cellI. 
+        if ((firstPointDist * secondPointDist ) < 0)
+        {
+            // FIXME: Remove Info line, debugging. TM. 
+            Info << firstPointDist << " " << secondPointDist << endl; 
+            const labelList& edgeCells = meshEdgeCells[edgeI]; 
+            forAll(edgeCells, edgeJ)
             {
-                signedDistanceSwitches = true; 
-                break; 
+                const label cellLabel = edgeCells[edgeJ]; 
+                scalar searchDistance = sqrt(searchDistanceSqr[cellLabel]); 
+
+                markerField[cellLabel] = 0.5 * (
+                    1 + signedDistance[cellLabel] / searchDistance + 1/pi *
+                    sin((pi * signedDistance[cellLabel]) / searchDistance)
+                );
             }
         }
-        
-        if (signedDistanceSwitches)
-        {
-            scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
-
-            markerField[cellI] = 0.5 * (
-                1 + signedDistance[cellI] / searchDistance + 1/pi *
-                sin((pi * signedDistance[cellI]) / searchDistance)
-            );
-        }
-        else if (signedDistance[cellI] > 0)
-        {
-            markerField[cellI] = 1;
-        }
-        else if (signedDistance[cellI] < 0)
-        {
-            markerField[cellI] = 0;
-        }
-
     }
+
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
