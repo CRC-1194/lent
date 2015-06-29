@@ -137,8 +137,6 @@ TEST_F(lentTests, lentReconstruction)
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        mixture.correct();
-
         Pout << "Signed distances...";
         lent.calcSignedDistances(
             signedDistance,

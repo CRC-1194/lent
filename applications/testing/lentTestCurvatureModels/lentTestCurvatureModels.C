@@ -63,6 +63,10 @@ int main(int argc, char *argv[])
 
     #include "createFields.H"
 
+    FatalErrorIn("main()")   
+        << "ReImplement this application, models have been changed." 
+        << endl << exit(FatalError);
+
     if (!args.optionFound("errorFile"))
     {
         FatalErrorIn("main()")   
@@ -155,24 +159,24 @@ int main(int argc, char *argv[])
     LinfField.write();  
 
     // Compute and test the numerical curvature using OpenFOAM interfaceProperties 
-    volScalarField cellCurvatureInterface("cellCurvatureInterface", interface.K()); 
-    cellCurvatureInterface *= delta;
-    cellCurvatureInterface.write(); 
+    //volScalarField cellCurvatureInterface("cellCurvatureInterface", lent.cellCurvature()); 
+    //cellCurvatureInterface *= delta;
+    //cellCurvatureInterface.write(); 
    
-    volScalarField LinfInterfaceField (
-            "LinfInterfaceCurvatureErr", 
-            mag(cellCurvatureInterface - cellCurvatureExact) 
-    ); 
+    //volScalarField LinfInterfaceField (
+            //"LinfInterfaceCurvatureErr", 
+            //mag(cellCurvatureInterface - cellCurvatureExact) 
+    //); 
 
-    LinfInterfaceField.write();  
+    //LinfInterfaceField.write();  
 
-    dimensionedScalar Linf = max(LinfField);
+    //dimensionedScalar Linf = max(LinfField);
 
-    dimensionedScalar LinfInterface = max(LinfInterfaceField);
+    //dimensionedScalar LinfInterface = max(LinfInterfaceField);
 
-    dimensionedScalar h = max(mag(mesh.delta())); 
+    //dimensionedScalar h = max(mag(mesh.delta())); 
 
-    errorFile << h.value() << " " << Linf.value() << " " << LinfInterface.value() << std::endl;
+    //errorFile << h.value() << " " << Linf.value() << " " << LinfInterface.value() << std::endl;
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

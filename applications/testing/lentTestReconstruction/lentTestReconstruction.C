@@ -101,11 +101,11 @@ TEST_F(lentTests, lentReconstruction)
 
     while (runTime.run()) {
 
+        TEST_NORMAL_CONSISTENCY(front);
+
         runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
-
-        mixture.correct();
 
         lent.calcSignedDistances(
             signedDistance,
@@ -118,8 +118,6 @@ TEST_F(lentTests, lentReconstruction)
         lent.calcMarkerField(markerField);
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-        TEST_NORMAL_CONSISTENCY(front);
 
         runTime.write();
 

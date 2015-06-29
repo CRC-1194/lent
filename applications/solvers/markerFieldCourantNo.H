@@ -27,7 +27,7 @@ Author
     All rights reserved.
 
 Description
-    Calculates and outputs the mean and maximum Courant Numbers.
+    Calculates and outputs the mean and maximum interface Courant Numbers.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -54,7 +54,7 @@ Description
 
 scalar maxMarkerFieldCo
 (
-    readScalar(runTime.controlDict().lookup("maxMarkerFieldCo"))
+    readScalar(runTime.controlDict().lookup("maxAlphaCo"))
 );
 
 scalar markerFieldCoNum = 0.0;
