@@ -119,8 +119,10 @@ tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
     // Read off the surface tension coefficient from the transport properties 
     // dictionary. 
     const Time& runTime = mesh.time(); 
+
     const dictionary& transportProperties = 
         runTime.lookupObject<dictionary>("transportProperties");
+
     const dimensionedScalar sigma = transportProperties.lookup("sigma");  
     
     const volScalarField& curvatureField = 

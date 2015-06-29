@@ -96,6 +96,25 @@
 
     #include "createPhi.H"
 
+    // FIXME: check if this can be avoided. The compilation 
+    // of the incompressibleTwoPhaseMixture holds relative 
+    // paths from within the folder with `Make`. It makes 
+    // it impossible to be compiled into any other code than
+    // the mixture library. Hence I can't lookup mixture from
+    // the registry - it is using multiple inheritance from 
+    // transportModel, IOdictionary and twoPhaseMixture. TM.
+    IOdictionary transportProperties 
+    (
+        IOobject
+        (
+            "transportProperties",
+            runTime.constant(),
+            runTime, 
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::NO_WRITE
+        )
+    ); 
+
     incompressibleTwoPhaseMixture mixture(U, phi);
     volScalarField& markerField(mixture.alpha1());
     
