@@ -108,8 +108,6 @@ void singleCellHarmonicMarkerFieldModel::calcMarkerField(volScalarField& markerF
         // If the distance switches sign for an edge of the cell cellI. 
         if ((firstPointDist * secondPointDist ) < 0)
         {
-            // FIXME: Remove Info line, debugging. TM. 
-            Info << firstPointDist << " " << secondPointDist << endl; 
             const labelList& edgeCells = meshEdgeCells[edgeI]; 
             forAll(edgeCells, edgeJ)
             {
