@@ -106,7 +106,7 @@ tmp<volScalarField> csfSurfaceTensionForceModel::cellCurvature(
     );
 
     // Face unit interface normal
-    surfaceVectorField nHatfv(gradAlphaf/(mag(gradAlphaf) + deltaN));
+    surfaceVectorField nHatfv(gradAlphaf/(mag(gradAlphaf) + deltaN.value()));
 
     return -fvc::div(nHatfv & Sf); 
 } 
@@ -131,10 +131,21 @@ tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
     const volScalarField& filterField = 
         mesh.lookupObject<volScalarField>(filterFieldName_); 
 
-    return fvc::interpolate(
-               sigma * cellCurvature(curvatureField)
-           ) * 
-           fvc::snGrad(filterField);
+    if (debug)
+    {
+        surfaceScalarField faceSurfaceTension = 
+            fvc::interpolate(sigma * cellCurvature(curvatureField)) * fvc::snGrad(filterField);
+        auto maxSurfaceTension = max(faceSurfaceTension).value(); 
+        Info << "Maximal surface tension force = " << maxSurfaceTension << endl;
+        Info << "Writing out surface tension field ... " << endl;
+        volVectorField surfaceTension = fvc::reconstruct(faceSurfaceTension); 
+        surfaceTension.rename("surfaceTension"); 
+        surfaceTension.write(); 
+        Info << "Done." << endl;
+    }
+
+    return fvc::interpolate(sigma * cellCurvature(curvatureField)) 
+           * fvc::snGrad(filterField);
 }
 
 tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
