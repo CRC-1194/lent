@@ -88,24 +88,19 @@ public:
     TypeName ("foamIsoSurface");
 
     // Constructors
-
-        foamIsoSurfaceFrontReconstructor(const dictionary& configDict);
-
-    // Destructor
-        virtual ~foamIsoSurfaceFrontReconstructor();
+    foamIsoSurfaceFrontReconstructor(const dictionary& configDict);
 
     // Member Functions
+    labelList reconstructFront(
+        triSurfaceFront& front,
+        const volScalarField& signedDistance,
+        const pointScalarField& pointSignedDistance
+    ) const;
 
-        labelList reconstructFront(
-            triSurfaceFront& front,
-            const volScalarField& signedDistance,
-            const pointScalarField& pointSignedDistance
-        ) const;
-
-        virtual void forceConsistentNormalOrientation(
-            isoSurface& iso,
-            const volScalarField& signedDistance
-        ) const;
+    virtual void forceConsistentNormalOrientation(
+        isoSurface& iso,
+        const volScalarField& signedDistance
+    ) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

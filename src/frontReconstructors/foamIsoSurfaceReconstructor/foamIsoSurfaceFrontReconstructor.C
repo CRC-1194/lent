@@ -83,11 +83,6 @@ foamIsoSurfaceFrontReconstructor::foamIsoSurfaceFrontReconstructor(
     consistencyAlgTmp_(normalConsistency::New(configDict.subDict("normalConsistency")))
 {}
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-foamIsoSurfaceFrontReconstructor::~foamIsoSurfaceFrontReconstructor()
-{}
-
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 labelList foamIsoSurfaceFrontReconstructor::reconstructFront(
@@ -99,7 +94,7 @@ labelList foamIsoSurfaceFrontReconstructor::reconstructFront(
     isoSurface iso (
         signedDistance,
         pointSignedDistance,
-        0,
+        0, // FIXME: Leave as a compile time constant? TM.
         regularize_,
         mergeTolerance_
     );
