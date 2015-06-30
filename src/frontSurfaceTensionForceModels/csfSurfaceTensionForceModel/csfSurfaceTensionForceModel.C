@@ -94,6 +94,11 @@ tmp<volScalarField> csfSurfaceTensionForceModel::cellCurvature(
     // Cell gradient of alpha
     const volVectorField gradAlpha(fvc::grad(curvatureField, "nHat"));
 
+    if (debug)
+    {
+        gradAlpha.write(); 
+    }
+
     // Interpolated face-gradient of alpha
     surfaceVectorField gradAlphaf(fvc::interpolate(gradAlpha));
 
@@ -108,6 +113,13 @@ tmp<volScalarField> csfSurfaceTensionForceModel::cellCurvature(
 
     // Face unit interface normal
     surfaceVectorField nHatfv(gradAlphaf/(mag(gradAlphaf) + deltaN));
+
+    if (debug)
+    {
+        volScalarField curvature = -fvc::div(nHatfv & Sf); 
+        curvature.rename("curvature"); 
+        curvature.write(); 
+    }
 
     return -fvc::div(nHatfv & Sf); 
 } 
