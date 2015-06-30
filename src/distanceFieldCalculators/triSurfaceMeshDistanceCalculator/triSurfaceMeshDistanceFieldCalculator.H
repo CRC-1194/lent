@@ -96,14 +96,7 @@ public:
     TypeName("triSurfaceMeshCalculator");
 
     // Constructors
-
-        explicit triSurfaceMeshDistanceFieldCalculator(
-            const dictionary& config
-        );
-
-    // Destructor
-
-        virtual ~triSurfaceMeshDistanceFieldCalculator();
+        explicit triSurfaceMeshDistanceFieldCalculator(const dictionary& config);
 
     // Member Functions
         void calcCellsToFrontDistance(

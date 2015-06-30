@@ -88,11 +88,6 @@ triSurfaceMeshDistanceFieldCalculator::triSurfaceMeshDistanceFieldCalculator(
     )
 {}
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-triSurfaceMeshDistanceFieldCalculator::~triSurfaceMeshDistanceFieldCalculator()
-{}
-
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
