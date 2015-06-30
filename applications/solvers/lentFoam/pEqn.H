@@ -52,20 +52,23 @@
 
             p_rgh.relax();
 
+            // FIXME: Test the volume conservation with the two ways of
+            // correcting the velocity. TM
+            
             // First order accurate explicit update of the velocity field.
-            //U = HbyA + rAU*fvc::reconstruct((phig - p_rghEqn.flux())/rAUf);
+            U = HbyA + rAU*fvc::reconstruct((phig - p_rghEqn.flux())/rAUf);
             
             // Second order momentum corrector step. 
-            solve
-            (
-                UEqn == lent.cellSurfaceTensionForce(mesh, frontMesh)
-                    + fvc::reconstruct(
-                        (
-                          - ghf*fvc::snGrad(rho)
-                          - fvc::snGrad(p_rgh)
-                        ) * mesh.magSf()
-                    )
-            );
+            //solve
+            //(
+                //UEqn == lent.cellSurfaceTensionForce(mesh, frontMesh)
+                    //+ fvc::reconstruct(
+                        //(
+                          //- ghf*fvc::snGrad(rho)
+                          //- fvc::snGrad(p_rgh)
+                        //) * mesh.magSf()
+                    //)
+            //);
 
             U.correctBoundaryConditions();
             fvOptions.correct(U);
