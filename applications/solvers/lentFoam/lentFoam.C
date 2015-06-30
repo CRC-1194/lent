@@ -176,10 +176,6 @@ int main(int argc, char *argv[])
         }
         Info << "Done." << endl;
 
-        // Solve for the cell centered velocity with the new fluxes coming from
-        // PISO and the new pressure. 
-        #include "UEqn.H"
-
         Info << "Calculating front velocity..." << endl;
         lent.calcFrontVelocity(frontVelocity, U);
         Info << "Done." << endl;
