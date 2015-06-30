@@ -101,6 +101,7 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
     const triSurfaceFront& front
 )
 {
+    // FIXME: Used for parallelization, needs work. TM
     if (front.size() > 0)
     {
         signedDistance = dimensionedScalar(
@@ -134,6 +135,7 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
     // Get the cell centres.
     const volVectorField& C = mesh.C();
 
+    // FIXME: combine with the KVS algorithm. TM. 
     frontMesh.findNearest(
         C,
         searchDistanceSqr,
@@ -184,6 +186,7 @@ void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
 {
     pointSignedDistance.resize(pointSearchDistanceSqr.size());
 
+    // FIXME: Used for parallelization, needs work. TM
     if (front.size() > 0)
     {
         pointSignedDistance = dimensionedScalar("GREAT", dimLength, GREAT);
@@ -208,6 +211,7 @@ void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
         front
     );
 
+    // FIXME: combine with the KVS algorithm. TM. 
     frontMesh.findNearest(
         points,
         pointSearchDistanceSqr,
