@@ -70,10 +70,6 @@ namespace FrontTracking {
     defineTypeNameAndDebug(frontReconstructionModel, 0);
     defineRunTimeSelectionTable(frontReconstructionModel, Dictionary);
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-frontReconstructionModel::frontReconstructionModel(const dictionary& configDict) {}
-
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 tmp<frontReconstructionModel>
@@ -97,11 +93,6 @@ frontReconstructionModel::New(const dictionary& configDict)
 
     return tmp<frontReconstructionModel> (cstrIter()(configDict));
 }
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-frontReconstructionModel::~frontReconstructionModel()
-{}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
