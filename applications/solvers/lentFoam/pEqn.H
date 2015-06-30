@@ -67,7 +67,6 @@
                     )
             );
 
-            fvOptions.correct(U);
             U.correctBoundaryConditions();
             fvOptions.correct(U);
         }
