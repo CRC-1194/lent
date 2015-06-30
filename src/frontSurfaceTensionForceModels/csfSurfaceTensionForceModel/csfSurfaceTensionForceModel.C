@@ -102,11 +102,12 @@ tmp<volScalarField> csfSurfaceTensionForceModel::cellCurvature(
     dimensionedScalar deltaN
     (
         "deltaN",
-        1e-8/pow(average(curvatureField.mesh().V()), 1.0/3.0)
+        curvatureField.dimensions() / dimLength, 
+        SMALL 
     );
 
     // Face unit interface normal
-    surfaceVectorField nHatfv(gradAlphaf/(mag(gradAlphaf) + deltaN.value()));
+    surfaceVectorField nHatfv(gradAlphaf/(mag(gradAlphaf) + deltaN));
 
     return -fvc::div(nHatfv & Sf); 
 } 
