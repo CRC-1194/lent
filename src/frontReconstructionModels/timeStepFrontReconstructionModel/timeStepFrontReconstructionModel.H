@@ -84,18 +84,13 @@ public:
     TypeName ("timeStepReconstruction");
 
     // Constructors
-
-        timeStepFrontReconstructionModel(const dictionary& configDict);
-
-    //- Destructor
-    virtual ~timeStepFrontReconstructionModel();
+    timeStepFrontReconstructionModel(const dictionary& configDict);
 
     // Member Functions
-
-        virtual bool reconstructionRequired(
-            const triSurfaceFront& front,
-            const volScalarField& signedDistance
-        ) const;
+    virtual bool reconstructionRequired(
+        const triSurfaceFront& front,
+        const volScalarField& signedDistance
+    ) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -76,14 +76,7 @@ namespace FrontTracking {
 timeStepFrontReconstructionModel::timeStepFrontReconstructionModel(const dictionary& configDict)
 :
     frontReconstructionModel(configDict),
-    reconstructionInterval_(
-        readLabel(configDict.lookup("reconstructionInterval"))
-    )
-{}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-timeStepFrontReconstructionModel::~timeStepFrontReconstructionModel()
+    reconstructionInterval_(readLabel(configDict.lookup("reconstructionInterval")))
 {}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
@@ -95,19 +88,11 @@ bool timeStepFrontReconstructionModel::reconstructionRequired(
 {
     const Time& runTime = signedDistance.time();
 
-    if (runTime.timeIndex() == 0)
-    {
-        return true;
-    }
-
     if (reconstructionInterval_ == 0)
-    {
-        return false;
-    }
-    else if ((runTime.timeIndex() % reconstructionInterval_) == 0)
-    {
+        return false; 
+
+    if ((runTime.timeIndex() % reconstructionInterval_) == 0)
         return true;
-    }
 
     return false;
 }
