@@ -166,7 +166,7 @@ tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
     const triSurfaceMesh& frontMesh 
 ) const
 {
-    return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh));  
+    return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
