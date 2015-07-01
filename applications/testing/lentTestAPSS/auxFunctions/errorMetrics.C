@@ -114,7 +114,7 @@ void checkNormal(const triSurfacePointVectorField& cn, const triSurface& front,
 
     forAll(localPoints, P)
     {
-        vector normalExact = center - localPoints[P];
+        vector normalExact = localPoints[P] - center;
         vector normalNumerical = cn[P];
 
         // Normalize vectors

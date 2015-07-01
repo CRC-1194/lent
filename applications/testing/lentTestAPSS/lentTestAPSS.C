@@ -96,6 +96,19 @@ scalar supportSize(point center, const labelList& neighbors,
     return h;
 }
 
+// Return true if label check is not yet in list elements
+bool isNotInList(const labelList& elements, label check)
+{
+    bool notInList = true;
+
+    forAll(elements, N)
+    {
+        if (check == elements[N]) {notInList = false;}
+    }
+
+    return notInList;
+}
+
 // Return the neighbors of a given point 'center' as a label list
 // It is useful to include the reference point itself for a more
 // consistent set up of the matrices in the course of algebraic
@@ -109,35 +122,34 @@ labelList getNeighborPoints(const label center,
     label size = oneRingNeighborhood.size() + 1;
     labelList neighbors(size);
 
-    // Set to negative value so the check for double entries starts
-    // work after the first triangle has been looked upon
-    neighbors[0] = center;
-
+    // Initialize center to have a working value for checks for doubles
+    neighbors = center;
+    
     // Only inspect every second triangle --> less effort to find unique
     // point labels
-    label even = 0;
+    // Error in reasoning: triangles stored in oneRingNeighborhood are not
+    // necessarily stored in any order. This most certainly leads to
+    // at least one vertex not being saved
     label index = 1;
 
     forAll(oneRingNeighborhood, T)
     {
-        if (even%2 == 0)
+        label triLabel = oneRingNeighborhood[T];
+        labelledTri currentTri = localFaces[triLabel];
+
+        forAll(currentTri, C)
         {
-            label triLabel = oneRingNeighborhood[T];
-            labelledTri currentTri = localFaces[triLabel];
+            label currentLabel = currentTri[C];
 
-            forAll(currentTri, C)
+            if (currentLabel != center)
             {
-                label currentLabel = currentTri[C];
-
-                if (currentLabel != center && currentLabel != neighbors[1])
+                if (isNotInList(neighbors, currentLabel))
                 {
                     neighbors[index] = currentLabel;
                     index++;
                 }
-            }   
-        }
-
-        even++;
+            }
+        }   
     }
 
     return neighbors;
@@ -223,8 +235,7 @@ void computeCurvature(triSurfacePointScalarField& curvature,
                                                 oneRingNeighborhood,
                                                 localFaces);
 
-        // + 1 since reference point is not included in neighborPoints
-        const label numPoints = neighborPoints.size() + 1;
+        const label numPoints = neighborPoints.size();
 
         scalar h = supportSize(V, neighborPoints, localPoints);
         
@@ -481,6 +492,26 @@ int main(int argc, char *argv[])
         )
     );
 
+    // Initialize field for curvatureNormals
+    triSurfacePointVectorField cn
+    (
+        IOobject
+        (
+            "curvatureNormals",
+            runTime.timeName(),
+            runTime,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        front,
+        dimensionedVector
+        (
+            "zero",
+            pow(dimLength, -1),
+            vector(0.0, 0.0, 0.0)
+        )
+    );
+
     // Print number of mesh points and faces
     Info << "Number of front mesh points: " << front.meshPoints().size() << endl;
     Info << "Number of front mesh triangles: " << front.localFaces().size() << endl;
@@ -490,7 +521,7 @@ int main(int argc, char *argv[])
     computeCurvature(curvature, front, normals);
 
     // Fuse normals and curvature into single field
-    normals = normals * curvature;
+    cn = normals * curvature;
 
     // Check deviation from sphere
     meshQuality(front, errorFileSphereDev);
@@ -498,7 +529,7 @@ int main(int argc, char *argv[])
 
     // Check curvature
     meshQuality(front, errorFileCurvature);
-    checkCurvature(normals, front, radius, errorFileCurvature);
+    checkCurvature(cn, front, radius, errorFileCurvature);
 
     // Check normals
     meshQuality(front, errorFileNormalVector);
@@ -529,9 +560,9 @@ int main(int argc, char *argv[])
 
     // Compute difference to exact curvature and relate the difference to
     // the exact curvature
-    curvatureError = mag(mag(normals) - 2.0/dradius)*dradius/2.0;
+    curvatureError = mag(mag(cn) - 2.0/dradius)*dradius/2.0;
 
-    normals.write();
+    cn.write();
     curvatureError.write();
 
     errorFileCurvature.close();
