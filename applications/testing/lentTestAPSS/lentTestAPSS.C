@@ -76,10 +76,10 @@ scalar weight(scalar x2byh2)
 //
 // For now: Use maximum distance between center and a neighbor point.
 // To add weight to the neighbor points, h is scaled by 1.5
+/*
 scalar supportSize(point center, const labelList& neighbors,
                    const pointField& localPoints)
 {
-    scalar h = 0;
     scalar scaleNeighborhoodSize = 1.5;
 
     forAll(neighbors, N)
@@ -93,9 +93,20 @@ scalar supportSize(point center, const labelList& neighbors,
 
     return h;
 }
+*/
+
+// h should be related to the local size of the Eulerian mesh
+// For now, hard code the value for the reconstruction 32*32*32
+// test case: h = 1.5*1/32
+scalar supportSize()
+{
+    scalar h = 0.045;
+    return h;
+}
+
 
 // Return true if label check is not yet in list elements
-bool isNotInList(const labelList& elements, label check)
+bool isNotInList(const DynamicList<label,1,1,1>& elements, label check)
 {
     bool notInList = true;
 
@@ -107,6 +118,7 @@ bool isNotInList(const labelList& elements, label check)
     return notInList;
 }
 
+/*
 // Return the neighbors of a given point 'center' as a label list
 // It is useful to include the reference point itself for a more
 // consistent set up of the matrices in the course of algebraic
@@ -147,7 +159,82 @@ labelList getNeighborPoints(const label center,
 
     return neighbors;
 }
+*/
+DynamicList<label,1,1,1> getNeighborPoints(const DynamicList<label,1,1,1>&
+                                                 centers,
+                                           DynamicList<label,1,1,1>
+                                                 knownPoints,
+                                           const labelListList& adjacentEdges,
+                                           const edgeList& edges)
+{
+    DynamicList<label,1,1,1> neighborPoints(1);
+    label counter = 0;
 
+    forAll(centers, Cl)
+    {
+        const label curPoint = centers[Cl];
+        const labelList& edgeStar = adjacentEdges[curPoint];
+
+        forAll(edgeStar, El)
+        {
+            edge E = edges[edgeStar[El]];
+
+            label newVertex = E.otherVertex(curPoint);
+
+            if (isNotInList(knownPoints, newVertex) &&
+                isNotInList(neighborPoints, newVertex))
+            {
+                neighborPoints[counter] = newVertex;
+                counter++;   
+            }
+        }
+    }
+
+    return neighborPoints;
+}
+
+// Collect topological neighbors of a given reference point;
+// only the topological distance in terms of number of edges is
+// considered, but no geometrical information
+DynamicList<label,1,1,1> findSupportPoints(const label refPoint,
+                                           const triSurface& front,
+                                           label numRings)
+{
+    // Note: numRings describes up to which neighborhood potential support
+    // points are included.
+    // 0 means only the reference point itself is included, 1 returns the
+    // 1-ring neighborhood and so forth
+
+    // TODO: set large initial capacity to avoid frequent resizing
+    // and shrink the list afterwards
+    DynamicList<label,1,1,1> knownPoints(1);
+    DynamicList<label,1,1,1> neighborhoodCenters(1);
+    neighborhoodCenters[0] = refPoint;
+    
+    // Get point-edge assignment
+    const labelListList& adjacentEdges = front.pointEdges();
+
+    // Get list of edges from which point labels are retrieved
+    const edgeList& edges = front.edges();
+
+    label counter = 0;
+
+    for (int i = 0; i <= numRings; i++)
+    {
+        neighborhoodCenters = getNeighborPoints(neighborhoodCenters,
+                                                knownPoints,
+                                                adjacentEdges,
+                                                edges);
+        // FIXME: may work with append offered by DynamicList class
+        forAll(neighborhoodCenters, N)
+        {
+            knownPoints[counter] = neighborhoodCenters[N];
+            counter++;
+        }
+    }
+
+    return knownPoints;
+}
 
 // Compute normal at a front vertex using area weighted triangle
 // normals
@@ -195,15 +282,6 @@ void computeFrontVertexNormals(triSurfacePointVectorField& normals,
     }  
 }
 
-/*
-DynamicList<Label,1,1,1> findSupportPoints()
-{
-    DynamicList<Label,1,1,1> supportPoints(1);
-
-    return supportPoints();
-}
-*/
-
 /******************************************************************************\
  Actual method from paper "Algebraic point set surfaces"
 \******************************************************************************/
@@ -219,27 +297,18 @@ void computeCurvature(triSurfacePointScalarField& curvature,
     // Get label list of all mesh vertices
     const labelList& vertices = front.meshPoints();
 
-    // Get assignment point -> faces
-    const labelListList& adjacentFaces = front.pointFaces();
-
     // List of local point references for current patch
     const pointField& localPoints = front.localPoints();
 
-    // List of local faces references
-    const List<labelledTri>& localFaces = front.localFaces();
-
     forAll(vertices, Vl)
     {
-        const labelList& oneRingNeighborhood = adjacentFaces[Vl];
         point V = localPoints[Vl];
 
-        const labelList neighborPoints = getNeighborPoints(Vl,
-                                                oneRingNeighborhood,
-                                                localFaces);
+        DynamicList<label,1,1,1> neighborPoints = findSupportPoints(Vl, front, 3);
 
         const label numPoints = neighborPoints.size();
 
-        scalar h = supportSize(V, neighborPoints, localPoints);
+        scalar h = supportSize();
         
         // For first tests, skip search for further points which may lay in
         // the feature sphere
