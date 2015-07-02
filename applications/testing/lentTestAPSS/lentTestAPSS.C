@@ -74,9 +74,8 @@ scalar weight(scalar x2byh2)
 // A relation to the cell size of the Eulerian grid or the one/two ring
 // neighborhood seem reasonable starting points
 //
-// For now: compute average distance between point at hand and its
-// one ring neighbors; multiply this with an arbitrarily chosen factor (e.g. 1.5)
-// so that at least the direct neighbors are assigned a weight larger than zero.
+// For now: Use maximum distance between center and a neighbor point.
+// To add weight to the neighbor points, h is scaled by 1.5
 scalar supportSize(point center, const labelList& neighbors,
                    const pointField& localPoints)
 {
@@ -87,11 +86,10 @@ scalar supportSize(point center, const labelList& neighbors,
     {
         point neighbor = localPoints[neighbors[N]];
 
-        h += mag(center - neighbor);
+        h = max(h, magSqr(center - neighbor));
     }
 
-    // Exclude center point from number of points
-    h = (h / (neighbors.size() - 1)) * scaleNeighborhoodSize;
+    h = Foam::sqrt(h) * scaleNeighborhoodSize;
 
     return h;
 }
@@ -122,14 +120,9 @@ labelList getNeighborPoints(const label center,
     label size = oneRingNeighborhood.size() + 1;
     labelList neighbors(size);
 
-    // Initialize center to have a working value for checks for doubles
+    // Initialize center to have a working value when checking for doubles
     neighbors = center;
     
-    // Only inspect every second triangle --> less effort to find unique
-    // point labels
-    // Error in reasoning: triangles stored in oneRingNeighborhood are not
-    // necessarily stored in any order. This most certainly leads to
-    // at least one vertex not being saved
     label index = 1;
 
     forAll(oneRingNeighborhood, T)
@@ -201,6 +194,15 @@ void computeFrontVertexNormals(triSurfacePointVectorField& normals,
         normals[Vl] = normals[Vl] / mag(normals[Vl]);
     }  
 }
+
+/*
+DynamicList<Label,1,1,1> findSupportPoints()
+{
+    DynamicList<Label,1,1,1> supportPoints(1);
+
+    return supportPoints();
+}
+*/
 
 /******************************************************************************\
  Actual method from paper "Algebraic point set surfaces"
@@ -329,6 +331,15 @@ void computeCurvature(triSurfacePointScalarField& curvature,
         scalar t = u(0)/u(4);
 
         curvature[Vl] = 2 / (Foam::sqrt(magSqr(c) - t));
+
+        // Tracking down conditions for large errors in curvature
+        scalar L_infNormalized = mag(curvature[Vl] - 2.0/0.3) / (2.0/0.3);
+
+        if (h < 0.01)
+        {
+            Info << "L_inf = " << L_infNormalized
+                 << ";\t h= " << h << endl;
+        };
     }
 
 }
