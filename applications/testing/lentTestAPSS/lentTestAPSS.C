@@ -209,6 +209,92 @@ void computeFrontVertexNormals(triSurfacePointVectorField& normals,
     }  
 }
 
+// Perform matrix and vector setup in functions for better readabilty of the
+// method itself
+void setUpW(MatrixXd& W, const DynamicList<label,1,1,1>& neighborPoints,
+            const pointField& localPoints, const point& refPoint)
+{
+    W.setZero();
+
+    label numPoints = neighborPoints.size();
+    scalar h = supportSize();
+        
+    forAll(neighborPoints, Pl)
+    {
+        point P = localPoints[neighborPoints[Pl]];
+        W(Pl, Pl) = weight(magSqr(P - refPoint)/(h*h));
+    }
+    // NOTE: changing the definition of the feature support size h may
+    // require definition of beta in a separate function
+    scalar beta = 1e6*h*h;
+
+    for (label counter = 0; counter < numPoints; counter++)
+    {
+        W(numPoints+counter, numPoints+counter) = beta*W(counter, counter);
+        W(2*numPoints+counter, 2*numPoints+counter) = beta*W(counter, counter);
+        W(3*numPoints+counter, 3*numPoints+counter) = beta*W(counter, counter);
+    }
+}
+
+void setUpD(MatrixXd& D, const DynamicList<label,1,1,1>& neighborPoints,
+            const pointField& localPoints)
+{
+        D.setZero();
+
+        label numPoints = neighborPoints.size();
+
+        vector e0(1, 0, 0); 
+        vector e1(0, 1, 0); 
+        vector e2(0, 0, 1); 
+        
+        forAll(neighborPoints, Pl)
+        {
+            point P = localPoints[Pl];
+
+            D(Pl, 0) = 1;
+            D(Pl, 1) = P[0];
+            D(Pl, 2) = P[1];
+            D(Pl, 3) = P[2];
+            D(Pl, 4) = P & P;
+
+            D(numPoints+Pl, 1) = e0[0];
+            D(numPoints+Pl, 2) = e0[1];
+            D(numPoints+Pl, 3) = e0[2];
+            D(numPoints+Pl, 4) = 2*e0 & P;
+
+            D(2*numPoints+Pl, 1) = e1[0];
+            D(2*numPoints+Pl, 2) = e1[1];
+            D(2*numPoints+Pl, 3) = e1[2];
+            D(2*numPoints+Pl, 4) = 2*e1 & P;
+
+            D(3*numPoints+Pl, 1) = e2[0];
+            D(3*numPoints+Pl, 2) = e2[1];
+            D(3*numPoints+Pl, 3) = e2[2];
+            D(3*numPoints+Pl, 4) = 2*e2 & P;
+        }        
+}
+
+void setUpb(VectorXd& b, const DynamicList<label,1,1,1>& neighborPoints,
+            const triSurfacePointVectorField& normals)
+{
+        b.setZero();
+
+        label numPoints = neighborPoints.size();
+
+        vector e0(1, 0, 0); 
+        vector e1(0, 1, 0); 
+        vector e2(0, 0, 1); 
+
+        forAll(neighborPoints, Pl)
+        {
+            vector n = normals[Pl];
+
+            b(numPoints+Pl) = e0 & n;
+            b(2*numPoints+Pl) = e1 & n;
+            b(3*numPoints+Pl) = e2 & n;
+        }
+}
+
 /******************************************************************************\
  Actual method from paper "Algebraic point set surfaces"
 \******************************************************************************/
@@ -232,85 +318,17 @@ void computeCurvature(triSurfacePointScalarField& curvature,
         point V = localPoints[Vl];
 
         DynamicList<label,1,1,1> neighborPoints = findSupportPoints(Vl, front, 3);
+        label numPoints = neighborPoints.size();
 
-        const label numPoints = neighborPoints.size();
-
-        scalar h = supportSize();
-        
-        // Set up matrices and vectors
+        // Allocate matrices and vectors
         MatrixXd W(4*numPoints, 4*numPoints);
         MatrixXd D(4*numPoints, 5);
         VectorXd b(4*numPoints);
 
-        W.setZero();
-        D.setZero();
-        b.setZero();
-
-        // Set up W
-        label counter = 0;
-        forAll(neighborPoints, Pl)
-        {
-            point P = localPoints[neighborPoints[Pl]];
-            W(counter, counter) = weight(magSqr(P - V)/(h*h));
-            counter++;
-        }
-        // NOTE: changing the definition of the feature support size h may
-        // require definition of beta in a separate function
-        scalar beta = 1e6*h*h;
-
-        for (counter = 0; counter < numPoints; counter++)
-        {
-            W(numPoints+counter, numPoints+counter) = beta*W(counter, counter);
-            W(2*numPoints+counter, 2*numPoints+counter) = beta*W(counter, counter);
-            W(3*numPoints+counter, 3*numPoints+counter) = beta*W(counter, counter);
-        }
-
-        // Set up D
-        vector e0(1, 0, 0); 
-        vector e1(0, 1, 0); 
-        vector e2(0, 0, 1); 
-        
-        counter = 0;
-        forAll(neighborPoints, Pl)
-        {
-            point P = localPoints[Pl];
-
-            D(counter, 0) = 1;
-            D(counter, 1) = P[0];
-            D(counter, 2) = P[1];
-            D(counter, 3) = P[2];
-            D(counter, 4) = P & P;
-
-            D(numPoints+counter, 1) = e0[0];
-            D(numPoints+counter, 2) = e0[1];
-            D(numPoints+counter, 3) = e0[2];
-            D(numPoints+counter, 4) = 2*e0 & P;
-
-            D(2*numPoints+counter, 1) = e1[0];
-            D(2*numPoints+counter, 2) = e1[1];
-            D(2*numPoints+counter, 3) = e1[2];
-            D(2*numPoints+counter, 4) = 2*e1 & P;
-
-            D(3*numPoints+counter, 1) = e2[0];
-            D(3*numPoints+counter, 2) = e2[1];
-            D(3*numPoints+counter, 3) = e2[2];
-            D(3*numPoints+counter, 4) = 2*e2 & P;
-
-            counter++;
-        }        
-
-        // Set up b
-        counter = 0;
-        forAll(neighborPoints, Pl)
-        {
-            vector n = normals[Pl];
-
-            b(numPoints+counter) = e0 & n;
-            b(2*numPoints+counter) = e1 & n;
-            b(3*numPoints+counter) = e2 & n;
-
-            counter++;
-        }
+        // Set up matrices and right hand side vector
+        setUpW(W, neighborPoints, localPoints, V);
+        setUpD(D, neighborPoints, localPoints);
+        setUpb(b, neighborPoints, normals);
 
         // Obtain solution vector u
         Matrix5d A = D.transpose() * W * D;
