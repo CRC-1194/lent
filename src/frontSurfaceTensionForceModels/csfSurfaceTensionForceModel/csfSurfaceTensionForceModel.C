@@ -78,59 +78,16 @@ namespace FrontTracking {
 
 csfSurfaceTensionForceModel::csfSurfaceTensionForceModel(const dictionary& configDict)
     :
-        curvatureFieldName_(configDict.lookup("curvatureField")), 
-        filterFieldName_(configDict.lookup("filterField"))
+        frontSurfaceTensionForceModel(configDict) 
 {}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-tmp<volScalarField> csfSurfaceTensionForceModel::cellCurvature(
-    const volScalarField& curvatureField 
-) const
-{
-    const fvMesh& mesh = curvatureField.mesh(); 
-    const surfaceVectorField& Sf = mesh.Sf();
-
-    // Cell gradient of alpha
-    const volVectorField gradAlpha(fvc::grad(curvatureField, "nHat"));
-
-    if (debug)
-    {
-        gradAlpha.write(); 
-    }
-
-    // Interpolated face-gradient of alpha
-    surfaceVectorField gradAlphaf(fvc::interpolate(gradAlpha));
-
-    // Hardcoded stabilization of the gradient to avoid floating point
-    // exception.
-    dimensionedScalar deltaN
-    (
-        "deltaN",
-        curvatureField.dimensions() / dimLength, 
-        SMALL 
-    );
-
-    // Face unit interface normal
-    surfaceVectorField nHatfv(gradAlphaf/(mag(gradAlphaf) + deltaN));
-
-    if (debug)
-    {
-        volScalarField curvature = -fvc::div(nHatfv & Sf); 
-        curvature.rename("curvature"); 
-        curvature.write(); 
-    }
-
-    return -fvc::div(nHatfv & Sf); 
-} 
 
 tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
     const fvMesh& mesh,  
     const triSurfaceMesh& frontMesh 
 ) const
 {
-    // Read off the surface tension coefficient from the transport properties 
-    // dictionary. 
     const Time& runTime = mesh.time(); 
 
     const dictionary& transportProperties = 
@@ -138,27 +95,9 @@ tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
 
     const dimensionedScalar sigma = transportProperties.lookup("sigma");  
     
-    const volScalarField& curvatureField = 
-        mesh.lookupObject<volScalarField>(curvatureFieldName_); 
-    
-    const volScalarField& filterField = 
-        mesh.lookupObject<volScalarField>(filterFieldName_); 
+    const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
 
-    if (debug)
-    {
-        surfaceScalarField faceSurfaceTension = 
-            fvc::interpolate(sigma * cellCurvature(curvatureField)) * fvc::snGrad(filterField);
-        auto maxSurfaceTension = max(faceSurfaceTension).value(); 
-        Info << "Maximal surface tension force = " << maxSurfaceTension << endl;
-        Info << "Writing out surface tension field ... " << endl;
-        volVectorField surfaceTension = fvc::reconstruct(faceSurfaceTension); 
-        surfaceTension.rename("surfaceTension"); 
-        surfaceTension.write(); 
-        Info << "Done." << endl;
-    }
-
-    return fvc::interpolate(sigma * cellCurvature(curvatureField)) 
-           * fvc::snGrad(filterField);
+    return fvc::interpolate(sigma * cellCurvature(mesh,frontMesh)) * fvc::snGrad(filterField);
 }
 
 tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(

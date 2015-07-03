@@ -77,6 +77,8 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontCurvatureModel::frontCurvatureModel(const dictionary& configDict)
+    :
+        curvatureFieldName_(configDict.lookup("curvatureField"))
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -110,6 +112,42 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature(
     const triSurfaceMesh& frontMesh
 ) const
 {
+    const volScalarField& curvatureField = 
+        mesh.lookupObject<volScalarField>(curvatureFieldName()); 
+
+    const surfaceVectorField& Sf = mesh.Sf();
+
+    // Cell gradient of alpha
+    const volVectorField curvGrad(fvc::grad(curvatureField, "curvatureGradient"));
+
+    if (debug)
+    {
+        curvGrad.write(); 
+    }
+
+    // Interpolated face-gradient of alpha
+    surfaceVectorField curvGradF(fvc::interpolate(curvGrad));
+
+    // Hardcoded stabilization of the gradient to avoid floating point
+    // exception.
+    dimensionedScalar deltaN
+    (
+        "deltaN",
+        curvatureField.dimensions() / dimLength, 
+        SMALL 
+    );
+
+    // Face unit interface normal
+    surfaceVectorField curvGradFhat(curvGradF /(mag(curvGradF) + deltaN));
+
+    if (debug)
+    {
+        volScalarField curvature = -fvc::div(curvGradFhat & Sf); 
+        curvature.rename("curvature"); 
+        curvature.write(); 
+    }
+
+    return -fvc::div(curvGradFhat & Sf); 
 }
 
 tmp<surfaceScalarField> frontCurvatureModel::faceCurvature(
@@ -117,6 +155,7 @@ tmp<surfaceScalarField> frontCurvatureModel::faceCurvature(
     const triSurfaceMesh& frontMesh
 ) const
 {
+    return fvc::interpolate(cellCurvature(mesh,frontMesh)); 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

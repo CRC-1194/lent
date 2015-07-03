@@ -76,9 +76,6 @@ class csfSurfaceTensionForceModel
         public frontSurfaceTensionForceModel
 {
 
-    word curvatureFieldName_; 
-    word filterFieldName_; 
-
 public:
 
     TypeName ("CSF");
@@ -94,8 +91,6 @@ public:
 
     // Member Functions
     
-    virtual tmp<volScalarField> cellCurvature(const volScalarField& curvatureField) const; 
-
     virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
         const fvMesh& mesh, 
         const triSurfaceMesh& frontMesh 
@@ -105,16 +100,6 @@ public:
         const fvMesh& mesh,  
         const triSurfaceMesh& frontMesh 
     ) const;  
-
-    const word curvatureFieldName() 
-    {
-        return curvatureFieldName_; 
-    }
-
-    const word filterFieldName() 
-    {
-        return filterFieldName_; 
-    }
 
 };
 

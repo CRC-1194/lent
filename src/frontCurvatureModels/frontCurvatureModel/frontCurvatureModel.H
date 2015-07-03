@@ -80,9 +80,11 @@ class frontCurvatureModel
         public refCount
 {
 
+    word curvatureFieldName_; 
+
 public:
 
-    TypeName("gradientBased");
+    TypeName("divGrad");
 
     declareRunTimeSelectionTable (
         tmp,
@@ -104,6 +106,12 @@ public:
     static tmp<frontCurvatureModel> New(const dictionary& configDict);
 
     // Member Functions
+    
+    const word curvatureFieldName() const
+    {
+        return curvatureFieldName_; 
+    }
+
     virtual tmp<volScalarField> cellCurvature(
         const fvMesh&, 
         const triSurfaceMesh&
@@ -113,6 +121,7 @@ public:
         const fvMesh&, 
         const triSurfaceMesh&
     ) const; 
+
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
