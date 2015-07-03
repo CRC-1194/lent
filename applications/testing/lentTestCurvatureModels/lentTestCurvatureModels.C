@@ -34,14 +34,10 @@ Authors
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "timeSelector.H"
 #include "pointFields.H"
-#include "frontCurvatureModel.H"
-#include "interfaceProperties.H"
-#include "immiscibleIncompressibleTwoPhaseMixture.H"
+#include "incompressibleTwoPhaseMixture.H"
 #include "turbulenceModel.H"
-#include "pimpleControl.H"
-
+#include "lentMethod.H"
 #include <fstream>
 
 using namespace FrontTracking;
@@ -51,132 +47,67 @@ using namespace FrontTracking;
 
 int main(int argc, char *argv[])
 {
-    argList::addOption
-    (
-        "errorFile",
-        "Path to the error file to which the application appends the results for later analysis." 
-    );
-
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
-
     #include "createFields.H"
 
-    FatalErrorIn("main()")   
-        << "ReImplement this application, models have been changed." 
-        << endl << exit(FatalError);
-
-    if (!args.optionFound("errorFile"))
-    {
-        FatalErrorIn("main()")   
-            << "Please use option '-errorFile' to name the output file."
-            << endl << exit(FatalError);
-    }
-
-    const std::string errorFileName = args.optionRead<fileName>("errorFile"); 
-
-    const char* errorFileNamePtr = errorFileName.c_str(); 
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     std::fstream errorFile; 
 
-    errorFile.open(errorFileNamePtr, std::ios_base::app);
+    errorFile.open("curvatureErrors.dat", std::ios_base::app);
 
-    //if (errorFile.peek() == std::ifstream::traits_type::eof())
-    //{
-        //errorFile << "#h        Linf        LinfInterface" << std::endl; 
-    //}
+    if (errorFile.peek() == std::ifstream::traits_type::eof())
+    {
+        errorFile << "#h        Linf        LinfInterface" << std::endl; 
+    }
 
-    IOdictionary lentMethodDict
-    (
+    triSurfaceFront front(
         IOobject(
-            "lentSolution",
-            "system", 
+            "front.stl",
+            "front",
             runTime,
             IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         )
     );
 
-    const dictionary& curvatureDict = lentMethodDict.subDict("frontCurvatureModel"); 
-    const word inputFieldName = curvatureDict.lookup("inputField"); 
+    triSurfaceMesh frontMesh(front); 
 
-    volScalarField inputField
-    (
-        IOobject(
-            inputFieldName, 
-            runTime.timeName(), 
-            mesh, 
-            IOobject::MUST_READ, 
-            IOobject::NO_WRITE 
-        ),
-        mesh
-    );
+    lentMethod lent(front, mesh);
 
-    tmp<frontCurvatureModel> curvatureModel = frontCurvatureModel::New(curvatureDict, runTime); 
-    
-    volScalarField delta = mag(fvc::grad(inputField)); 
+    lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
-    volScalarField cellCurvatureExact
-    (
-        IOobject
-        (
-            "cellCurvatureExact",
-            runTime.timeName(),
-            mesh,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh 
-    );
+    runTime++;
 
-    cellCurvatureExact *= delta;
-    cellCurvatureExact.write();
+    lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
-    surfaceScalarField faceCurvatureExact
-    (
-        IOobject
-        (
-            "faceCurvatureExact",
-            runTime.timeName(),
-            mesh,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh 
-    );
+    const dictionary& lentDict = lent.dict(); 
 
-    // Compute the numerical curvature with the model. 
-    volScalarField cellCurvature("cellCurvature", curvatureModel->cellCurvature()); 
-    cellCurvature *= delta; 
-    cellCurvature.write(); 
+    tmp<frontCurvatureModel> exactCurvatureModelTmp = frontCurvatureModel::New(lentDict.subDict("exactCurvatureModel")); 
+    const frontCurvatureModel& exactCurvatureModel = exactCurvatureModelTmp(); 
+    tmp<volScalarField> cellCurvatureExactTmp = exactCurvatureModel.cellCurvature(mesh,frontMesh);  
+    const volScalarField& exactCurvature = cellCurvatureExactTmp();  
 
-    volScalarField LinfField (
-            "LinfCurvatureErr", 
-            mag(cellCurvature - cellCurvatureExact) 
-    ); 
+    const frontCurvatureModel& numericalCurvatureModel = lent.curvatureModel();  
+    tmp<volScalarField> numericalCurvatureTmp = numericalCurvatureModel.cellCurvature(mesh,frontMesh);  
+    const volScalarField& numericalCurvature = numericalCurvatureTmp();  
 
-    LinfField.write();  
+    volScalarField LinfField ("LinfCurvatureErr", mag(exactCurvature - numericalCurvature)); 
+    dimensionedScalar Linf = max(LinfField);
+    dimensionedScalar h = max(mag(mesh.delta())); 
+    errorFile << h.value() << " " << Linf.value() << std::endl;
 
-    // Compute and test the numerical curvature using OpenFOAM interfaceProperties 
-    //volScalarField cellCurvatureInterface("cellCurvatureInterface", lent.cellCurvature()); 
-    //cellCurvatureInterface *= delta;
-    //cellCurvatureInterface.write(); 
-   
-    //volScalarField LinfInterfaceField (
-            //"LinfInterfaceCurvatureErr", 
-            //mag(cellCurvatureInterface - cellCurvatureExact) 
-    //); 
+    front.write();
 
-    //LinfInterfaceField.write();  
+    runTime.write();
 
-    //dimensionedScalar Linf = max(LinfField);
+    Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+        << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+        << nl << endl;
 
-    //dimensionedScalar LinfInterface = max(LinfInterfaceField);
-
-    //dimensionedScalar h = max(mag(mesh.delta())); 
-
-    //errorFile << h.value() << " " << Linf.value() << " " << LinfInterface.value() << std::endl;
+    Info<< "End\n" << endl;
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
