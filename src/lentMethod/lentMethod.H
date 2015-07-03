@@ -199,6 +199,22 @@ public:
             return surfaceTensionForceModelTmp_->cellSurfaceTensionForce(mesh, frontMesh); 
         }
 
+        const dictionary& dict() const
+        {
+            return lentControlDict_;
+        }
+
+        const frontSurfaceTensionForceModel& surfaceTensionForceModel() const
+        {
+            return surfaceTensionForceModelTmp_();  
+        }
+
+        const frontCurvatureModel& curvatureModel() const
+        {
+            return surfaceTensionForceModelTmp_->curvatureModel();
+        };
+
+
         // Empty writer: regIOobject is used only for registry queries.
         bool writeData(Ostream& os) const;
 

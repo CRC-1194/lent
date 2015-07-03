@@ -128,6 +128,11 @@ public:
     {
         return filterFieldName_;  
     } 
+
+    const frontCurvatureModel& curvatureModel() const 
+    {
+        return curvatureModelTmp_();  
+    }
     
     virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
         const fvMesh&, 
