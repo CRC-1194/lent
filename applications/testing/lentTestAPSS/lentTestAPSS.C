@@ -54,23 +54,26 @@ typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VectorXd;
 typedef Eigen::Matrix<double, 5, 5> Matrix5d;
 typedef Eigen::Matrix<double, 5, 1> Vector5d;
 
-// Aux functions
 // Weighting function from APSS; remember that the argument x is the 
 // distance squared divided by h squared
 scalar weight(scalar x2byh2)
 {
-    scalar result = (1.0 - x2byh2)*(1.0 - x2byh2)*(1.0 - x2byh2)*(1.0 - x2byh2);
-
-    if (result < 0) {result = 0;}
-
-    return result;
+    if (x2byh2 < 1.0)
+    {
+        return (1.0 - x2byh2)*(1.0 - x2byh2)*(1.0 - x2byh2)*(1.0 - x2byh2);
+    }
+    else
+    {
+        return 0.0;
+    }
 }
 
 // Computation of the feature support size h; the most viable approach is not
 // clear yet. h should be chosen so sufficient points are included to
 // achieve a little smoothing/averaging without erasing features.
 //
-// h should be related to the local size of the Eulerian mesh
+// h should be related to the local size of the Eulerian mesh, not
+// to front as its elements are of highly different sizes 
 // For now, hard code the value for the reconstruction 32*32*32
 // test case: h = 2.0*1/32
 scalar supportSize()
@@ -81,6 +84,7 @@ scalar supportSize()
 
 
 // Return true if label check is not yet in list elements
+// Used do detect new unique points
 bool isNotInList(const DynamicList<label,1,1,1>& elements, label check)
 {
     bool notInList = true;
@@ -128,7 +132,8 @@ DynamicList<label,1,1,1> getNeighborPoints(const DynamicList<label,1,1,1>&
 
 // Collect topological neighbors of a given reference point;
 // only the topological distance in terms of number of edges is
-// considered, but no geometrical information
+// considered, but no geometrical information. Geometric filtering
+// is performed by the weight function
 DynamicList<label,1,1,1> findSupportPoints(const label refPoint,
                                            const triSurface& front,
                                            label numRings)
@@ -138,8 +143,6 @@ DynamicList<label,1,1,1> findSupportPoints(const label refPoint,
     // 0 means only the reference point itself is included, 1 returns the
     // 1-ring neighborhood and so forth
 
-    // TODO: set large initial capacity to avoid frequent resizing
-    // and shrink the list afterwards
     DynamicList<label,1,1,1> knownPoints(1);
     DynamicList<label,1,1,1> neighborhoodCenters(1);
     neighborhoodCenters.append(refPoint);
@@ -165,9 +168,6 @@ DynamicList<label,1,1,1> findSupportPoints(const label refPoint,
 
 // Compute normal at a front vertex using area weighted triangle
 // normals
-// NOTE: seems that this is already implemented in OpenFOAM:
-// --> const Field<point>& normals =  triSurface.pointNormals()
-// --> Check this
 void computeFrontVertexNormals(triSurfacePointVectorField& normals,
                                const triSurface& front)
 {
@@ -323,17 +323,6 @@ void computeCurvature(triSurfacePointScalarField& curvature,
         scalar t = u(0)/u(4);
 
         curvature[Vl] = 2 / (Foam::sqrt(magSqr(c) - t));
-
-        /*
-        // Tracking down conditions for large errors in curvature
-        scalar L_infNormalized = mag(curvature[Vl] - 2.0/0.3) / (2.0/0.3);
-
-        if (h < 0.01)
-        {
-            Info << "L_inf = " << L_infNormalized
-                 << ";\t h= " << h << endl;
-        };
-        */
     }
 
 }
