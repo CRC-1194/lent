@@ -48,8 +48,6 @@ Description
 #include "auxFunctions/errorMetrics.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// TODO: include error metrics from curvatureNormal
-
 // Typedefs for more concise use of Eigen
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXd;
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VectorXd;
@@ -70,37 +68,14 @@ scalar weight(scalar x2byh2)
 
 // Computation of the feature support size h; the most viable approach is not
 // clear yet. h should be chosen so sufficient points are included to
-// achieve a little smoothing/averaging without erasing features
-// A relation to the cell size of the Eulerian grid or the one/two ring
-// neighborhood seem reasonable starting points
+// achieve a little smoothing/averaging without erasing features.
 //
-// For now: Use maximum distance between center and a neighbor point.
-// To add weight to the neighbor points, h is scaled by 1.5
-/*
-scalar supportSize(point center, const labelList& neighbors,
-                   const pointField& localPoints)
-{
-    scalar scaleNeighborhoodSize = 1.5;
-
-    forAll(neighbors, N)
-    {
-        point neighbor = localPoints[neighbors[N]];
-
-        h = max(h, magSqr(center - neighbor));
-    }
-
-    h = Foam::sqrt(h) * scaleNeighborhoodSize;
-
-    return h;
-}
-*/
-
 // h should be related to the local size of the Eulerian mesh
 // For now, hard code the value for the reconstruction 32*32*32
-// test case: h = 1.5*1/32
+// test case: h = 2.0*1/32
 scalar supportSize()
 {
-    scalar h = 0.045;
+    scalar h = 0.06;
     return h;
 }
 
@@ -118,57 +93,16 @@ bool isNotInList(const DynamicList<label,1,1,1>& elements, label check)
     return notInList;
 }
 
-/*
-// Return the neighbors of a given point 'center' as a label list
-// It is useful to include the reference point itself for a more
-// consistent set up of the matrices in the course of algebraic
-// sphere fitting
-labelList getNeighborPoints(const label center,
-                            const labelList& oneRingNeighborhood,
-                            const List<labelledTri>& localFaces)
-{
-    // Number of trinagles in one ring neighborhood matches the number
-    // of unique points different from the center point
-    label size = oneRingNeighborhood.size() + 1;
-    labelList neighbors(size);
-
-    // Initialize center to have a working value when checking for doubles
-    neighbors = center;
-    
-    label index = 1;
-
-    forAll(oneRingNeighborhood, T)
-    {
-        label triLabel = oneRingNeighborhood[T];
-        labelledTri currentTri = localFaces[triLabel];
-
-        forAll(currentTri, C)
-        {
-            label currentLabel = currentTri[C];
-
-            if (currentLabel != center)
-            {
-                if (isNotInList(neighbors, currentLabel))
-                {
-                    neighbors[index] = currentLabel;
-                    index++;
-                }
-            }
-        }   
-    }
-
-    return neighbors;
-}
-*/
+// Get unique new neighbors for points listed in center;
+// points listed in known points are ignored
 DynamicList<label,1,1,1> getNeighborPoints(const DynamicList<label,1,1,1>&
                                                  centers,
-                                           DynamicList<label,1,1,1>
+                                           const DynamicList<label,1,1,1>&
                                                  knownPoints,
                                            const labelListList& adjacentEdges,
                                            const edgeList& edges)
 {
     DynamicList<label,1,1,1> neighborPoints(1);
-    label counter = 0;
 
     forAll(centers, Cl)
     {
@@ -184,8 +118,7 @@ DynamicList<label,1,1,1> getNeighborPoints(const DynamicList<label,1,1,1>&
             if (isNotInList(knownPoints, newVertex) &&
                 isNotInList(neighborPoints, newVertex))
             {
-                neighborPoints[counter] = newVertex;
-                counter++;   
+                neighborPoints.append(newVertex);
             }
         }
     }
@@ -209,7 +142,7 @@ DynamicList<label,1,1,1> findSupportPoints(const label refPoint,
     // and shrink the list afterwards
     DynamicList<label,1,1,1> knownPoints(1);
     DynamicList<label,1,1,1> neighborhoodCenters(1);
-    neighborhoodCenters[0] = refPoint;
+    neighborhoodCenters.append(refPoint);
     
     // Get point-edge assignment
     const labelListList& adjacentEdges = front.pointEdges();
@@ -217,20 +150,14 @@ DynamicList<label,1,1,1> findSupportPoints(const label refPoint,
     // Get list of edges from which point labels are retrieved
     const edgeList& edges = front.edges();
 
-    label counter = 0;
-
     for (int i = 0; i <= numRings; i++)
     {
         neighborhoodCenters = getNeighborPoints(neighborhoodCenters,
                                                 knownPoints,
                                                 adjacentEdges,
                                                 edges);
-        // FIXME: may work with append offered by DynamicList class
-        forAll(neighborhoodCenters, N)
-        {
-            knownPoints[counter] = neighborhoodCenters[N];
-            counter++;
-        }
+
+        knownPoints.append(neighborhoodCenters);
     }
 
     return knownPoints;
@@ -310,9 +237,6 @@ void computeCurvature(triSurfacePointScalarField& curvature,
 
         scalar h = supportSize();
         
-        // For first tests, skip search for further points which may lay in
-        // the feature sphere
-
         // Set up matrices and vectors
         MatrixXd W(4*numPoints, 4*numPoints);
         MatrixXd D(4*numPoints, 5);
@@ -326,11 +250,10 @@ void computeCurvature(triSurfacePointScalarField& curvature,
         label counter = 0;
         forAll(neighborPoints, Pl)
         {
-            point P = localPoints[Pl];
+            point P = localPoints[neighborPoints[Pl]];
             W(counter, counter) = weight(magSqr(P - V)/(h*h));
             counter++;
         }
-
         // NOTE: changing the definition of the feature support size h may
         // require definition of beta in a separate function
         scalar beta = 1e6*h*h;
@@ -401,6 +324,7 @@ void computeCurvature(triSurfacePointScalarField& curvature,
 
         curvature[Vl] = 2 / (Foam::sqrt(magSqr(c) - t));
 
+        /*
         // Tracking down conditions for large errors in curvature
         scalar L_infNormalized = mag(curvature[Vl] - 2.0/0.3) / (2.0/0.3);
 
@@ -409,6 +333,7 @@ void computeCurvature(triSurfacePointScalarField& curvature,
             Info << "L_inf = " << L_infNormalized
                  << ";\t h= " << h << endl;
         };
+        */
     }
 
 }
