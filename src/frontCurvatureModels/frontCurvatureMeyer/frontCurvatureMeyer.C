@@ -72,42 +72,40 @@ namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-frontCurvatureMeyer::frontCurvatureMeyer(const dictionary& configDict, const Time& runTime)
+frontCurvatureMeyer::frontCurvatureMeyer(const dictionary& configDict) 
     :
-        frontCurvatureModel(configDict, runTime),
-        averagingIterations_(
-            configDict.lookupOrDefault<scalar>("averagingIterations", SMALL) 
-        )
+        frontCurvatureModel(configDict)
 {}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
- 
-frontCurvatureMeyer::~frontCurvatureMeyer() {} 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-
-tmp<volScalarField> frontCurvatureMeyer::cellCurvature() const
+tmp<volScalarField> frontCurvatureMeyer::cellCurvature (
+    const fvMesh& mesh, 
+    const triSurfaceMesh& frontMesh
+) const
 {
-    // Compute the curvature using the CSF model and an averaged field.
-    volScalarField inputFieldSmooth("smoothMarkerField", inputField()); 
+    const Time& runTime = mesh.time();  
+    tmp<volScalarField> cellCurvatureTmp(
+        new volScalarField(
+            IOobject(
+                "cellCurvature", 
+                runTime.timeName(), 
+                mesh, 
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ), 
+            mesh, 
+            dimensionedScalar("zero", pow(dimLength, -1), 0)
+        )
+    );
 
-    for (label I = 0; I < averagingIterations_; ++I)
-    {
-        inputFieldSmooth == fvc::average(inputFieldSmooth);
-    }
+    // Initialize a frontScalarField. 
+    
+    // Compute the front curvature. 
+   
+    // Transfer the front curvature to the cells.
 
-    // Testing
-    inputFieldSmooth.write(); 
-
-    volVectorField cellGradSmooth = fvc::grad(inputFieldSmooth); 
-
-    normalizeVectorField(cellGradSmooth);
-
-    // Testing
-    cellGradSmooth.write(); 
-
-    return fvc::div(-1*cellGradSmooth);
+    return  cellCurvatureTmp; 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

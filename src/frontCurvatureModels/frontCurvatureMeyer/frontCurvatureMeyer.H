@@ -77,20 +77,18 @@ class frontCurvatureMeyer
     :
         public frontCurvatureModel 
 {
-    label averagingIterations_;  
 
 public:
 
-    TypeName ("averaging");
+    TypeName ("Meyer");
 
     // Constructors
-        frontCurvatureMeyer(const dictionary& configDict, const Time& runTime);
+        frontCurvatureMeyer(const dictionary& configDict);
 
-        virtual ~frontCurvatureMeyer(); 
+        virtual ~frontCurvatureMeyer() = default;  
 
     // Member functions
-        virtual tmp<volScalarField> cellCurvature() const; 
-
+        virtual tmp<volScalarField> cellCurvature(const fvMesh&, const triSurfaceMesh&) const; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
