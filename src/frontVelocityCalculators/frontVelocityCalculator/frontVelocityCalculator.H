@@ -106,7 +106,7 @@ public:
     static tmp<frontVelocityCalculator> New(const dictionary& configDict);
 
     // Destructor
-    virtual ~frontVelocityCalculator() = 0;
+    virtual ~frontVelocityCalculator() = default;
 
     // Member Functions
     bool pointIsInCell(
