@@ -80,79 +80,39 @@ class frontCurvatureModel
         public refCount
 {
 
-    const Time& runTime_; 
-
-    const word meshName_; 
-    const fvMesh& mesh_; 
-
-    const word inputFieldName_; 
-    const volScalarField& inputField_; 
-
-    const word cellSignedDistFieldName_; 
-    const volScalarField& cellSignedDistField_; 
-
-    const word cellSearchDistFieldName_; 
-    const volScalarField& cellSearchDistField_; 
-
-    // Stabilizator value for the gradient to avoid division with zero.
-    const scalar epsilon_; 
-
-    frontCurvatureModel(const frontCurvatureModel&); 
-    void operator=(const frontCurvatureModel&);
-
 public:
 
-    TypeName ("base");
+    TypeName("gradientBased");
 
     declareRunTimeSelectionTable (
         tmp,
         frontCurvatureModel,
         Dictionary,
         (
-            const dictionary& configDict, 
-            const Time& runTime
+            const dictionary& configDict
         ),
-        (configDict, runTime)
+        (configDict)
     );
 
     // Constructors
-
-        frontCurvatureModel(const dictionary& configDict, const Time& runTime);
-
-    // Selectors
-
-        static tmp<frontCurvatureModel> New(const dictionary& configDict, const Time& runTime);
+    frontCurvatureModel(const dictionary& configDict);  
 
     // Destructor
-        virtual ~frontCurvatureModel();
+    virtual ~frontCurvatureModel() = default;
+
+    // Selectors
+    static tmp<frontCurvatureModel> New(const dictionary& configDict);
 
     // Member Functions
-        virtual tmp<volScalarField> delta() const; 
+    virtual tmp<volScalarField> cellCurvature(
+        const fvMesh&, 
+        const triSurfaceMesh&
+    ) const;  
 
-        virtual tmp<volScalarField> cellCurvature() const; 
-        virtual tmp<surfaceScalarField> faceCurvature() const; 
-
-        scalar epsilon() const
-        {
-            return epsilon_; 
-        }
-
-        const Time& time() const
-        {
-            return runTime_; 
-        }
-
-        const fvMesh& mesh() const
-        {
-            return mesh_; 
-        }
-
-        const volScalarField& inputField() const
-        {
-            return inputField_; 
-        }
-
-        virtual void normalizeVectorField(volVectorField& vf) const;
+    virtual tmp<surfaceScalarField> faceCurvature(
+        const fvMesh&, 
+        const triSurfaceMesh&
+    ) const; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

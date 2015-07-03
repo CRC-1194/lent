@@ -67,6 +67,14 @@ namespace FrontTracking {
     defineTypeNameAndDebug(frontSurfaceTensionForceModel, 0);
     defineRunTimeSelectionTable(frontSurfaceTensionForceModel, Dictionary);
 
+// * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
+//
+frontSurfaceTensionForceModel::frontSurfaceTensionForceModel(const dictionary& configDict)
+    :
+        curvatureModelTmp_(frontCurvatureModel::New(configDict.subDict("curvatureModel"))) 
+{}
+
+
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 tmp<frontSurfaceTensionForceModel>

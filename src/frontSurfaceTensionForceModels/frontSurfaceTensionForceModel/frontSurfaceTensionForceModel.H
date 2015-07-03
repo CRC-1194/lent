@@ -67,6 +67,7 @@ Description
 #include "volFieldsFwd.H"
 #include "surfaceFieldsFwd.H"
 #include "triSurfaceMesh.H"
+#include "frontCurvatureModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -82,12 +83,14 @@ class frontSurfaceTensionForceModel
         public refCount
 {
 
+    tmp<frontCurvatureModel> curvatureModelTmp_; 
+
 public:
 
     TypeName ("abstract");
 
     frontSurfaceTensionForceModel() = default; 
-    explicit frontSurfaceTensionForceModel(const dictionary& configDict) {};
+    explicit frontSurfaceTensionForceModel(const dictionary& configDict); 
 
     declareRunTimeSelectionTable (
         tmp,
@@ -98,21 +101,21 @@ public:
     );
 
     // Selectors
-        static tmp<frontSurfaceTensionForceModel> New(const dictionary& configDict);
+    static tmp<frontSurfaceTensionForceModel> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~frontSurfaceTensionForceModel() {};
+    virtual ~frontSurfaceTensionForceModel() = default;
 
     // Member Functions
-        virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
-            const fvMesh&, 
-            const triSurfaceMesh&
-        ) const = 0;
+    virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
+        const fvMesh&, 
+        const triSurfaceMesh&
+    ) const = 0;
 
-        virtual tmp<volVectorField> cellSurfaceTensionForce(
-            const fvMesh&, 
-            const triSurfaceMesh&
-        ) const = 0;  
+    virtual tmp<volVectorField> cellSurfaceTensionForce(
+        const fvMesh&, 
+        const triSurfaceMesh&
+    ) const = 0;  
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

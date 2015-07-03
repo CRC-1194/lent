@@ -76,27 +76,13 @@ namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-frontCurvatureModel::frontCurvatureModel(const dictionary& configDict, const Time& runTime)
-    :
-        runTime_(runTime), 
-        meshName_(configDict.lookupOrDefault("meshName", word("region0"))),
-        mesh_(runTime_.lookupObject<fvMesh>(meshName_)),
-        inputFieldName_(configDict.lookup("inputField")), 
-        inputField_(mesh_.lookupObject<volScalarField>(inputFieldName_)),
-        cellSignedDistFieldName_(configDict.lookup("cellSignedDistField")), 
-        cellSignedDistField_(mesh_.lookupObject<volScalarField>(cellSignedDistFieldName_)),
-        cellSearchDistFieldName_(configDict.lookup("cellSearchDistField")), 
-        cellSearchDistField_(mesh_.lookupObject<volScalarField>(cellSearchDistFieldName_)),
-        epsilon_(
-            configDict.lookupOrDefault<scalar>("epsilon", SMALL) 
-        )
-{
-}
+frontCurvatureModel::frontCurvatureModel(const dictionary& configDict)
+{}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 tmp<frontCurvatureModel>
-frontCurvatureModel::New(const dictionary& configDict, const Time& runTime)
+frontCurvatureModel::New(const dictionary& configDict)
 {
     const word name = configDict.lookup("type");
 
@@ -114,66 +100,23 @@ frontCurvatureModel::New(const dictionary& configDict, const Time& runTime)
             << exit(FatalError);
     }
 
-    return tmp<frontCurvatureModel> (cstrIter()(configDict, runTime));
+    return tmp<frontCurvatureModel> (cstrIter()(configDict));
 }
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-frontCurvatureModel::~frontCurvatureModel()
-{}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-//
-tmp<volScalarField> frontCurvatureModel::delta() const
+
+tmp<volScalarField> frontCurvatureModel::cellCurvature(
+    const fvMesh& mesh, 
+    const triSurfaceMesh& frontMesh
+) const
 {
-    tmp<volScalarField> deltaTmp(
-        new volScalarField(
-            IOobject(
-                "delta", 
-                runTime_.timeName(),
-                mesh_,
-                IOobject::NO_READ, 
-                IOobject::NO_WRITE
-            ),
-            mesh_,
-            dimensionedScalar("delta", dimless, 0)
-        )
-    );
-
-    volScalarField& delta = deltaTmp(); 
-
-    forAll(delta, I)
-    {
-        // FIXME : read narrowBandWidth_ from the frontDict or pass it as ctor arg. TM
-        if ((sqr(cellSignedDistField_[I]) * 4) <= cellSearchDistField_[I])
-        {
-            delta[I] = 1;
-        }
-    }
-
-    return deltaTmp; 
 }
 
-void frontCurvatureModel::normalizeVectorField(volVectorField& vf) const
+tmp<surfaceScalarField> frontCurvatureModel::faceCurvature(
+    const fvMesh& mesh, 
+    const triSurfaceMesh& frontMesh
+) const
 {
-    vf /= (
-        mag(vf) + 
-        dimensionedScalar("epsilon", vf.dimensions(), epsilon_)
-    );
-}
-
-tmp<volScalarField> frontCurvatureModel::cellCurvature() const
-{
-    volVectorField cellGrad = fvc::grad(inputField_); 
-
-    normalizeVectorField(cellGrad);  
-
-    return fvc::div(-1*cellGrad);
-}
-
-tmp<surfaceScalarField> frontCurvatureModel::faceCurvature() const
-{
-    return fvc::interpolate(cellCurvature());
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
