@@ -80,7 +80,7 @@ class frontCurvatureModel
         public refCount
 {
 
-    word curvatureFieldName_; 
+    word curvatureInputFieldName_; 
 
 public:
 
@@ -107,9 +107,9 @@ public:
 
     // Member Functions
     
-    const word curvatureFieldName() const
+    const word curvatureInputFieldName() const
     {
-        return curvatureFieldName_; 
+        return curvatureInputFieldName_; 
     }
 
     virtual tmp<volScalarField> cellCurvature(

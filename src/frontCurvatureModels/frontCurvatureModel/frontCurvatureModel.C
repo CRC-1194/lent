@@ -78,7 +78,7 @@ namespace FrontTracking {
 
 frontCurvatureModel::frontCurvatureModel(const dictionary& configDict)
     :
-        curvatureFieldName_(configDict.lookup("curvatureField"))
+        curvatureInputFieldName_(configDict.lookup("curvatureInputField"))
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -112,13 +112,13 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature(
     const triSurfaceMesh& frontMesh
 ) const
 {
-    const volScalarField& curvatureField = 
-        mesh.lookupObject<volScalarField>(curvatureFieldName()); 
+    const volScalarField& curvatureInputField = 
+        mesh.lookupObject<volScalarField>(curvatureInputFieldName()); 
 
     const surfaceVectorField& Sf = mesh.Sf();
 
     // Cell gradient of alpha
-    const volVectorField curvGrad(fvc::grad(curvatureField, "curvatureGradient"));
+    const volVectorField curvGrad(fvc::grad(curvatureInputField, "curvatureGradient"));
 
     if (debug)
     {
@@ -133,7 +133,7 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature(
     dimensionedScalar deltaN
     (
         "deltaN",
-        curvatureField.dimensions() / dimLength, 
+        curvatureInputField.dimensions() / dimLength, 
         SMALL 
     );
 
