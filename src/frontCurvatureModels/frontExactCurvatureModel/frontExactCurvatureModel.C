@@ -67,47 +67,44 @@ namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-frontExactCurvatureModel::frontExactCurvatureModel(const dictionary& configDict, const Time& runTime)
+frontExactCurvatureModel::frontExactCurvatureModel(const dictionary& configDict)
     :
-        frontCurvatureModel(configDict, runTime), 
+        frontCurvatureModel(configDict), 
         write_(configDict.lookupOrDefault<Switch>("write", "off"))
 {}
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
- 
-frontExactCurvatureModel::~frontExactCurvatureModel() {} 
-
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-tmp<volScalarField> frontExactCurvatureModel::cellCurvature() const
+tmp<volScalarField> frontExactCurvatureModel::cellCurvature(
+    const fvMesh& mesh, 
+    const triSurfaceMesh& frontMesh
+) const
 {
+    const Time& runTime = mesh.time(); 
+
     tmp<volScalarField> cellCurvatureTmp( 
         new volScalarField(
             IOobject(
                 "cellCurvatureExact", 
-                time().timeName(), 
-                mesh(),
+                runTime.timeName(), 
+                mesh,
                 IOobject::NO_READ,
                 IOobject::AUTO_WRITE
             ),
-            mesh(),
-            dimensionedScalar(
-                "zero", 
-                pow(dimLength, -1), 
-                0
-            ) 
+            mesh,
+            dimensionedScalar("zero", pow(dimLength, -1), 0) 
         )
     );
 
     volScalarField& cellCurvature = cellCurvatureTmp(); 
 
-    const volVectorField& C = mesh().C(); 
-    const surfaceVectorField& Cf = mesh().Cf(); 
+    const volVectorField& C = mesh.C(); 
+    const surfaceVectorField& Cf = mesh.Cf(); 
 
     // Set internal cell centered curvature field.
     forAll(cellCurvature, I)
     {
-        cellCurvature[I] = calcCurvature(C[I]);
+        cellCurvature[I] = curvatureAtPoint(C[I]);
     }
 
     // Set the boundary cell centered curvature field
@@ -118,7 +115,7 @@ tmp<volScalarField> frontExactCurvatureModel::cellCurvature() const
 
         forAll(cellCurvatureBoundary, J)
         {
-            cellCurvatureBoundary[J] = calcCurvature(CfBoundary[J]);
+            cellCurvatureBoundary[J] = curvatureAtPoint(CfBoundary[J]);
         }
     }
 
@@ -130,34 +127,34 @@ tmp<volScalarField> frontExactCurvatureModel::cellCurvature() const
     return cellCurvatureTmp;
 }
 
-tmp<surfaceScalarField> frontExactCurvatureModel::faceCurvature() const
+tmp<surfaceScalarField> frontExactCurvatureModel::faceCurvature(
+    const fvMesh& mesh, 
+    const triSurfaceMesh& frontMesh
+) const
 {
+    const Time& runTime = mesh.time(); 
     tmp<surfaceScalarField> surfaceCurvatureTmp( 
         new surfaceScalarField(
             IOobject(
-                "surfaceCurvatureExact", 
-                time().timeName(), 
-                mesh(),
+                "faceCurvatureExact", 
+                runTime.timeName(), 
+                mesh,
                 IOobject::NO_READ,
                 IOobject::AUTO_WRITE
             ),
-            mesh(),
-            dimensionedScalar(
-                "zero", 
-                pow(dimLength, -1), 
-                0
-            ) 
+            mesh,
+            dimensionedScalar("zero", pow(dimLength, -1), 0) 
         )
     );
 
     surfaceScalarField& surfaceCurvature = surfaceCurvatureTmp(); 
 
-    const surfaceVectorField& Cf = mesh().Cf(); 
+    const surfaceVectorField& Cf = mesh.Cf(); 
 
     // Set internal surface centered curvature field.
     forAll(surfaceCurvature, I)
     {
-        surfaceCurvature[I] = calcCurvature(Cf[I]);
+        surfaceCurvature[I] = curvatureAtPoint(Cf[I]);
     }
 
     // Set the boundary surface centered curvature field
@@ -168,7 +165,7 @@ tmp<surfaceScalarField> frontExactCurvatureModel::faceCurvature() const
 
         forAll(surfaceCurvatureBoundary, J)
         {
-            surfaceCurvatureBoundary[J] = calcCurvature(CfBoundary[J]);
+            surfaceCurvatureBoundary[J] = curvatureAtPoint(CfBoundary[J]);
         }
     }
 

@@ -82,16 +82,23 @@ class frontExactCurvatureModel
 public:
 
     // Constructors
-        frontExactCurvatureModel(const dictionary& configDict, const Time& runTime);
+    explicit frontExactCurvatureModel(const dictionary& configDict);
 
-        virtual ~frontExactCurvatureModel(); 
-
-    // Member functions
+    // Destructor
+    virtual ~frontExactCurvatureModel() = default;
         
-        virtual scalar calcCurvature(const point& p) const = 0; 
+    // Member functions
+    virtual scalar curvatureAtPoint(const point& p) const = 0; 
 
-        virtual tmp<volScalarField> cellCurvature() const; 
-        virtual tmp<surfaceScalarField> faceCurvature() const; 
+    virtual tmp<volScalarField> cellCurvature(
+        const fvMesh&, 
+        const triSurfaceMesh&
+    ) const;  
+
+    virtual tmp<surfaceScalarField> faceCurvature(
+        const fvMesh&, 
+        const triSurfaceMesh&
+    ) const; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
