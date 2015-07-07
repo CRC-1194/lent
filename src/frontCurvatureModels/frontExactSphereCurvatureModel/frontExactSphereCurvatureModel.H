@@ -23,10 +23,10 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontExactCircleCurvatureModel
+    Foam::frontExactSphereCurvatureModel
 
 SourceFiles
-    frontExactCircleCurvatureModel.C
+    frontExactSphereCurvatureModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
@@ -36,12 +36,11 @@ Description
     Computes the exact curvature used for testing the pressure-velocity
     coupling against parasitic currents.
 
-    Computes the curvature of a circle: make sure that the circle center lies
-    on the appropriate height of the single cell layer 2D OpenFOAM mesh. 
+    Computes the exact curvature of a sphere as a field. 
 
     Usage parameters:
 
-        type            circleCurvature;
+        type            sphereCurvature;
         writeExactCurvature yes;
         center          ( 4 4 0.1 );
 
@@ -68,10 +67,10 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef frontExactCircleCurvatureModel_H
-#define frontExactCircleCurvatureModel_H
+#ifndef frontExactSphereCurvatureModel_H
+#define frontExactSphereCurvatureModel_H
 
-#include "frontExactCurvatureModel.H"
+#include "frontExactCircleCurvatureModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -79,33 +78,25 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class frontExactCircleCurvatureModel Declaration
+                         Class frontExactSphereCurvatureModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class frontExactCircleCurvatureModel
+class frontExactSphereCurvatureModel
     :
-        public frontExactCurvatureModel 
+        public frontExactCircleCurvatureModel 
 {
-    const vector center_; 
 
 public:
 
-    TypeName ("circleCurvature");
+    TypeName ("sphereCurvature");
 
     // Constructors
-    explicit frontExactCircleCurvatureModel(const dictionary& configDict);
+    explicit frontExactSphereCurvatureModel(const dictionary& configDict);
 
-    virtual ~frontExactCircleCurvatureModel() = default; 
+    virtual ~frontExactSphereCurvatureModel() = default; 
             
     // Member Functions 
-    scalar curvatureRadius(const point& p) const;
-
     virtual scalar curvatureAtPoint(const point& p) const; 
-       
-    const vector& center() const
-    {
-        return center_; 
-    }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

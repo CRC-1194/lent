@@ -23,44 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontExactCircleCurvatureModel
+    Foam::frontExactSphereCurvatureModel
 
 SourceFiles
-    frontExactCircleCurvatureModel.C
+    frontExactSphereCurvatureModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
-Description
-
-    Computes the exact curvature used for testing the pressure-velocity
-    coupling against parasitic currents.
-
-    Computes the curvature of a circle. 
-
-    You may refer to this software as :
-    //- full bibliographic data to be provided
-
-    This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
-    under the project supervision of :
-        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
-    
-    Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de
-    	Holger Marschall <marschall@csi.tu-darmstadt.de>
-    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
-
-        Mathematical Modeling and Analysis
-        Center of Smart Interfaces
-        Technische Universitaet Darmstadt
-       
-    If you use this software for your scientific work or your publications,
-    please don't forget to acknowledge explicitly the use of it.
-
 \*---------------------------------------------------------------------------*/
 
-#include "frontExactCircleCurvatureModel.H"
+#include "frontExactSphereCurvatureModel.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -68,12 +41,12 @@ Description
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(frontExactCircleCurvatureModel, 0);
-    addToRunTimeSelectionTable(frontCurvatureModel, frontExactCircleCurvatureModel, Dictionary);
+    defineTypeNameAndDebug(frontExactSphereCurvatureModel, 0);
+    addToRunTimeSelectionTable(frontCurvatureModel, frontExactSphereCurvatureModel, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-frontExactCircleCurvatureModel::frontExactCircleCurvatureModel(const dictionary& configDict)
+frontExactSphereCurvatureModel::frontExactSphereCurvatureModel(const dictionary& configDict)
     :
         frontExactCurvatureModel(configDict), 
         center_(configDict.lookup("center"))
@@ -82,20 +55,15 @@ frontExactCircleCurvatureModel::frontExactCircleCurvatureModel(const dictionary&
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-scalar frontExactCircleCurvatureModel::curvatureRadius(const point& p) const
-{
-    return mag(center_ - p); 
-}
-
-scalar frontExactCircleCurvatureModel::curvatureAtPoint(const point& p) const
+scalar frontExactSphereCurvatureModel::curvatureAtPoint(const point& p) const
 {
     scalar curvature = 0;
-   
-    const scalar curvRadius = curvatureRadius(p); 
+
+    scalar curvRadius = curvatureRadius(p); 
 
     if (curvRadius > SMALL) 
     {
-        curvature = 1 / curvRadius;  
+        curvature = 1 / sqr(curvRadius); 
     }
     else
     {

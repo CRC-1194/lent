@@ -89,6 +89,7 @@ public:
 
     // Member functions
         virtual tmp<volScalarField> cellCurvature(const fvMesh&, const triSurfaceMesh&) const; 
+        //virtual tmp<surfaceScalarField> faceCurvature(const fvMesh&, const triSurfaceMesh&) const; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
