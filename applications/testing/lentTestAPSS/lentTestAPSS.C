@@ -338,9 +338,12 @@ void computeCurvature(triSurfacePointScalarField& curvature,
         vector c(u(1), u(2), u(3));
         c = c/(-2*u(4));
 
+        // According to paper the sign of the curvature is determined by the
+        // sign of u's last element
+        scalar sign = u(4) / mag(u(4));
         scalar t = u(0)/u(4);
 
-        curvature[Vl] = 2 / (Foam::sqrt(magSqr(c) - t));
+        curvature[Vl] = sign*2 / (Foam::sqrt(magSqr(c) - t));
     }
 
 }
