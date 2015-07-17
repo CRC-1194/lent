@@ -1,6 +1,7 @@
 /* For now do not include any headers. Compile time errors will show which
  * are needed...
  */
+#include "fvCFD.H"
 
 // Pi...
 const scalar pi = Foam::constant::mathematical::pi; 

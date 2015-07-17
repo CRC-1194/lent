@@ -62,6 +62,7 @@ Description
 #include <fstream>
 
 #include "auxFunctions/auxFunctions.H"
+#include "auxFunctions/ellipsoidFunctions.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -708,7 +709,7 @@ int main(int argc, char *argv[])
 
     // Print number of mesh points and faces
     Info << "Number of front mesh points: " << front.meshPoints().size() << endl;
-    Info << "Number of front mesh triangles: " << front.localFaces().size() << endl;
+    Info << "Nu mber of front mesh triangles: " << front.localFaces().size() << endl;
 
     // Finally call the function
     curvatureNormals(cn, front);
