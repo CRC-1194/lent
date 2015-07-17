@@ -437,6 +437,12 @@ void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
         normal = normal / mag(normal);
 
         // Compute contributions according to Tryggvason book
+        // TODO: by theory the factors of the cross product have to be
+        // switched; check for sphere: if computed correctly, the scalar
+        // product of cn[] and n should be negative for outward facing
+        // normals
+        // TODO: surface tension coefficient sigma has to be incorporated
+        // in actual implementation
         cn[l0] += 0.5 * v12 ^ normal;
         cn[l1] += 0.5 * v20 ^ normal;
         cn[l2] += 0.5 * v01 ^ normal;
@@ -620,10 +626,10 @@ int main(int argc, char *argv[])
 
     // Respect number of time steps defined in lent reconstruction trest cases
     // for now
-    if (reconTimes < 0 || reconTimes > 3)
+    if (reconTimes < 0 || reconTimes > 6)
     {
         FatalErrorIn("main")
-            << "Option -reconTimes is out of range. Please use n=0...4"
+            << "Option -reconTimes is out of range. Please use n=0...6"
             << endl << exit(FatalError);
     }
 
@@ -664,6 +670,12 @@ int main(int argc, char *argv[])
             break;
         case 4:
             frontFileName = "front/front-00000003.vtk";
+            break;
+        case 5:
+            frontFileName = "front/front-00000004.vtk";
+            break;
+        case 6:
+            frontFileName = "front/front-00000005.vtk";
             break;
     }
 

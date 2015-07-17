@@ -78,7 +78,7 @@ scalar weight(scalar x2byh2)
 // test case: h = 2.0*1/32
 scalar supportSize()
 {
-    scalar h = 0.06;
+    scalar h = 0.00625;
     return h;
 }
 
@@ -335,15 +335,23 @@ void computeCurvature(triSurfacePointScalarField& curvature,
         Vector5d bhat = D.transpose() * W * b;
         Vector5d u = A.colPivHouseholderQr().solve(bhat);
 
-        vector c(u(1), u(2), u(3));
-        c = c/(-2*u(4));
+        // TODO: check condition u(4) > SMALL, else curvature is 0
+        if (mag(u(4)) > SMALL)
+        {
+            vector c(u(1), u(2), u(3));
+            c = c/(-2*u(4));
 
-        // According to paper the sign of the curvature is determined by the
-        // sign of u's last element
-        scalar sign = u(4) / mag(u(4));
-        scalar t = u(0)/u(4);
+            // According to paper the sign of the curvature is determined by the
+            // sign of u's last element
+            scalar sign = u(4) / mag(u(4));
+            scalar t = u(0)/u(4);
 
-        curvature[Vl] = sign*2 / (Foam::sqrt(magSqr(c) - t));
+            curvature[Vl] = sign*2 / (Foam::sqrt(magSqr(c) - t));
+        }
+        else
+        {
+            curvature[Vl] = 0;
+        }
     }
 
 }
@@ -418,7 +426,7 @@ int main(int argc, char *argv[])
 
     // Respect number of time steps defined in lent reconstruction trest cases
     // for now
-    if (reconTimes < 0 || reconTimes > 3)
+    if (reconTimes < 0 || reconTimes > 6)
     {
         FatalErrorIn("main")
             << "Option -reconTimes is out of range. Please use n=0...4"
@@ -462,6 +470,12 @@ int main(int argc, char *argv[])
             break;
         case 4:
             frontFileName = "front/front-00000003.vtk";
+            break;
+        case 5:
+            frontFileName = "front/front-00000004.vtk";
+            break;
+        case 6:
+            frontFileName = "front/front-00000005.vtk";
             break;
     }
 
