@@ -489,7 +489,7 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
     forAll(vertices, Vl)
     {
         scalar Amix = 0.0;
-        bool obtuse = false;
+        //bool obtuse = false;
 
         // Get all triangles adjacent to V
         const labelList& oneRingNeighborhood = adjacentFaces[Vl];
@@ -534,7 +534,7 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
                 // Use Heron's formula for now until problem
                 // with vector approach is solved
                 Amix += 0.5 * areaHeron(VQ, VR, QR);
-                obtuse = true;
+                //obtuse = true;
             }
             else
             {
@@ -542,7 +542,7 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
                 // Use Heron's formula for now until problem
                 // with vector approach is solved
                 Amix += 0.25 * areaHeron(VQ, VR, QR);
-                obtuse = true;
+                //obtuse = true;
             }
 
             // Compute mean curvature normal contributions
@@ -550,10 +550,10 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
         }
         cn[Vl] = cn[Vl] / (2.0 * Amix);
 
-        if(obtuse)
-        {
-            cn[Vl] = 2.0/0.3 * cn[Vl] / mag(cn[Vl]);
-        }
+        //if(obtuse)
+        //{
+        //    cn[Vl] = 2.0/0.3 * cn[Vl] / mag(cn[Vl]);
+        //}
     }
 }
 
@@ -714,50 +714,73 @@ int main(int argc, char *argv[])
     // Finally call the function
     curvatureNormals(cn, front);
 
-    // Check deviation from sphere
-    meshQuality(front, errorFileSphereDev);
-    sphereDeviation(front, radius, center, errorFileSphereDev);
+    bool sphere = false;
+    vector axis(0.3, 0.3, 0.3);
 
-    // Check curvature
-    meshQuality(front, errorFileCurvature);
-    checkCurvature(cn, front, radius, errorFileCurvature);
+    if (sphere)
+    {
+        // Check deviation from sphere
+        meshQuality(front, errorFileSphereDev);
+        sphereDeviation(front, radius, center, errorFileSphereDev);
 
-    // Check normals
-    meshQuality(front, errorFileNormalVector);
-    checkNormal(cn, front, center, errorFileNormalVector);
+        // Check curvature
+        meshQuality(front, errorFileCurvature);
+        checkCurvature(cn, front, radius, errorFileCurvature);
 
-    // Check force sum
-    checkGlobalForceBalance(cn);
+        // Check normals
+        meshQuality(front, errorFileNormalVector);
+        checkNormal(cn, front, center, errorFileNormalVector);
 
-    // Write curvature normals field for visual inspection
-    // Additionally, write scalar curvature error field
-    triSurfacePointScalarField curvatureError
-    (
-        IOobject
+        // Check force sum
+        checkGlobalForceBalance(cn);
+
+        // Write curvature normals field for visual inspection
+        // Additionally, write scalar curvature error field
+        triSurfacePointScalarField curvatureError
         (
-            "curvatureErrors",
-            runTime.timeName(),
-            runTime,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        front,
-        dimensionedScalar
-        (
-            "zero",
-            dimless,
-            0.0
-        )
-    );
+            IOobject
+            (
+                "curvatureErrors",
+                runTime.timeName(),
+                runTime,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            front,
+            dimensionedScalar
+            (
+                "zero",
+                dimless,
+                0.0
+            )
+        );
 
-    dimensionedScalar dradius = dimensionedScalar("zero", dimLength, radius);
+        dimensionedScalar dradius = dimensionedScalar("zero", dimLength, radius);
 
-    // Compute difference to exact curvature and relate the difference to
-    // the exact curvature
-    curvatureError = mag(mag(cn) - 2.0/dradius)*dradius/2.0;
+        // Compute difference to exact curvature and relate the difference to
+        // the exact curvature
+        curvatureError = mag(mag(cn) - 2.0/dradius)*dradius/2.0;
 
-    cn.write();
-    curvatureError.write();
+        cn.write();
+        curvatureError.write();
+    }
+    else // Ellipsoid
+    {
+        // Check deviation from ellipsoid
+        meshQuality(front, errorFileSphereDev);
+        ellipsoidDeviation(front, center, axis, errorFileSphereDev);
+
+        // Check curvature
+        meshQuality(front, errorFileCurvature);
+        checkEllipsoidCurvature(cn, front, center, axis, errorFileCurvature);
+
+        // Check normals
+        meshQuality(front, errorFileNormalVector);
+        checkEllipsoidNormal(cn, front, axis, errorFileNormalVector);
+
+        // Check force sum
+        checkGlobalForceBalance(cn);
+    }
 
     errorFileCurvature.close();
     errorFileNormalVector.close();

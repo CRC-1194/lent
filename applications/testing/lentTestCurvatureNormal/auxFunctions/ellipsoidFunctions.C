@@ -6,7 +6,7 @@
 #include "auxFunctions.H"
 
 // Compute first parameter of parametrization of an ellipsoid
-scalar computeU(vector& p)
+scalar computeU(vector p)
 {
     scalar u = 0;
 
@@ -33,7 +33,7 @@ scalar computeU(vector& p)
 }
 
 // Compute second parameter of parametrization of an ellipsoid
-scalar computeV(vector& p)
+scalar computeV(vector p)
 {
     scalar v = 0;
 
@@ -49,8 +49,8 @@ scalar computeV(vector& p)
 
 // Compute deviation of front vertices from the analytical ellipsoid
 // normalized with the analytical value
-scalar ellipsoidDeviation(scalar u, scalar v, vector& axis, vector& p,
-                          vector& center)
+scalar ellipsoidDeviationNormalized(scalar u, scalar v, vector& axis, vector p,
+                          vector center)
 {
     scalar deviation = 0;
 
@@ -68,7 +68,7 @@ scalar ellipsoidDeviation(scalar u, scalar v, vector& axis, vector& p,
 
 // Compute normal at point on ellipsoid given the parameters (u,v)
 // Vector axis contains length of axis
-vector ellipsoidNormal(scalar u, scalar v, vector& axis)
+vector ellipsoidNormal(scalar u, scalar v, vector axis)
 {
     vector normal(0.0, 0.0, 0.0);
 
@@ -86,7 +86,7 @@ vector ellipsoidNormal(scalar u, scalar v, vector& axis)
 }
 
 // Compute twice the mean curvature according to wolfram alpha
-scalar ellipsoidCurvature(scalar u, scalar v, vector& axis)
+scalar ellipsoidCurvature(scalar u, scalar v, vector axis)
 {
     scalar curvature = 0;
 
@@ -110,9 +110,9 @@ scalar ellipsoidCurvature(scalar u, scalar v, vector& axis)
 }
 
 // Compare exact curvature with numerical curvature at each vertex
-void checkEllipsoidCurvature(const triSurfacePointScalarField& cn,
-                             const triSurface& front, vector& center,
-                             vector& axis, std::fstream& errorFile)
+void checkEllipsoidCurvature(const triSurfacePointVectorField& cn,
+                             const triSurface& front, vector center,
+                             vector axis, std::fstream& errorFile)
 {
     const pointField& localPoints = front.localPoints();
 
@@ -187,7 +187,8 @@ void checkEllipsoidCurvature(const triSurfacePointScalarField& cn,
 }
 
 // Compare exact front normal with numerical normal
-void checkEllipsoidNormal(const triSurfaceVectorField& cn, const triSurface& front,
+void checkEllipsoidNormal(const triSurfacePointVectorField& cn,
+                          const triSurface& front,
                           vector axis, std::fstream& errorFile)
 {
     const pointField& localPoints = front.localPoints();
@@ -249,4 +250,55 @@ void checkEllipsoidNormal(const triSurfaceVectorField& cn, const triSurface& fro
               << front.localFaces().size() << "\t"
               << devAngle << "\t\t"
               << linearDeviation << std::endl;
+}
+
+// Compute front vertices' deviation from a ellipsoid ssurface
+void ellipsoidDeviation(const triSurface& front, vector center, vector axis,
+                        std::fstream& errorFile)
+{
+    scalar deviation = 0.0;
+    scalar linearDeviation = 0.0;
+    scalar maxDeviation = 0.0;
+    scalar counter = 0.0;
+
+    const labelList& vertices = front.meshPoints();
+    const pointField& localPoints = front.localPoints();
+
+    scalar u = 0.0;
+    scalar v = 0.0;
+    point p(0.0, 0.0, 0.0);
+
+    forAll(vertices, V)
+    {
+        p = localPoints[V];
+
+        u = computeU(p);
+        v = computeV(p);
+
+        deviation = ellipsoidDeviationNormalized(u, v, axis, p, center);
+
+        if (deviation > maxDeviation)
+        {  
+            maxDeviation = deviation;
+        }
+
+        linearDeviation += deviation;
+
+        counter++;
+    }
+
+    linearDeviation = linearDeviation / counter;
+
+    // Print results
+    Info << "\n=== Front deviation from ellipsoid ===" << endl;
+    Info << "Linear deviation = " << linearDeviation << endl;
+    Info << "Maximum deviation = " << maxDeviation << endl;
+
+    // Write to file
+    errorFile << "# Ellipsoid deviation header" << std::endl;
+    errorFile << "# n_points\tn_trias\tlinDev\tmaxDev" << std::endl;
+    errorFile << front.meshPoints().size() << "\t"
+              << front.localFaces().size() << "\t"
+              << linearDeviation << "\t"
+              << maxDeviation << std::endl;
 }
