@@ -13,7 +13,8 @@ void checkEllipsoidCurvature(const triSurfacePointVectorField& cn,
                              const triSurface& front, vector center,
                              vector axis, std::fstream& errorFile);
 
-void checkEllipsoidNormal(const triSurfacePointVectorField& cn, const triSurface& front,
+void checkEllipsoidNormal(const triSurfacePointVectorField& cn,
+                          const triSurface& front, vector center,
                           vector axis, std::fstream& errorFile);
 
 void ellipsoidDeviation(const triSurface& front, vector center, vector axis,

@@ -37,12 +37,9 @@ scalar computeV(vector p)
 {
     scalar v = 0;
 
-    vector ptilde = p;
+    vector ez(0.0, 0.0, 1.0);
 
-    // Project into xy-plane
-    ptilde[2] = 0;
-
-    v = Foam::acos(p & ptilde / (mag(p)*mag(ptilde)));
+    v = Foam::acos((p & ez) / mag(p));
 
     return v;
 }
@@ -134,6 +131,9 @@ void checkEllipsoidCurvature(const triSurfacePointVectorField& cn,
     {
         p = localPoints[V];
 
+        // Move center of ellipsoid to origin
+        p = p - center;
+
         scalar u = computeU(p);
         scalar v = computeV(p);
 
@@ -189,6 +189,7 @@ void checkEllipsoidCurvature(const triSurfacePointVectorField& cn,
 // Compare exact front normal with numerical normal
 void checkEllipsoidNormal(const triSurfacePointVectorField& cn,
                           const triSurface& front,
+                          vector center,
                           vector axis, std::fstream& errorFile)
 {
     const pointField& localPoints = front.localPoints();
@@ -208,6 +209,9 @@ void checkEllipsoidNormal(const triSurfacePointVectorField& cn,
     forAll(localPoints, P)
     {
         p = localPoints[P];
+
+        // Move center of ellipsoid to origin
+        p = p - center;
 
         scalar u = computeU(p);
         scalar v = computeV(p);
@@ -271,6 +275,9 @@ void ellipsoidDeviation(const triSurface& front, vector center, vector axis,
     forAll(vertices, V)
     {
         p = localPoints[V];
+
+        // Move center of ellipsoid to origin
+        p = p - center;
 
         u = computeU(p);
         v = computeV(p);

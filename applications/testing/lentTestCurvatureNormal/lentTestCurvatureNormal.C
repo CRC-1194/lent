@@ -776,7 +776,7 @@ int main(int argc, char *argv[])
 
         // Check normals
         meshQuality(front, errorFileNormalVector);
-        checkEllipsoidNormal(cn, front, axis, errorFileNormalVector);
+        checkEllipsoidNormal(cn, front, center, axis, errorFileNormalVector);
 
         // Check force sum
         checkGlobalForceBalance(cn);
