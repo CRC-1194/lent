@@ -8,13 +8,13 @@
 // Compute first parameter of parametrization of an ellipsoid
 scalar computeU(vector p)
 {
-    scalar u = 0;
+    scalar u = 0.0;
 
     vector ptilde = p;
-    vector ex(1,0,0);
+    vector ex(1.0, 0.0, 0.0);
 
     // Project into xy-plane
-    ptilde[2] = 0;
+    ptilde[2] = 0.0;
 
     scalar utilde = 0.0;
     // Avoid divide-by-zero for vectors which point solely in
@@ -29,13 +29,13 @@ scalar computeU(vector p)
 
     // Since u element of [0,2pi], above expression is not unique;
     // therefore distiction of cases using sign of y-entry
-    if (ptilde[1] >= 0)
+    if (ptilde[1] >= 0.0)
     {
         u = utilde;
     }
     else
     {
-        u = 2*pi - utilde;
+        u = 2.0*pi - utilde;
     }
 
     return u;
@@ -44,7 +44,7 @@ scalar computeU(vector p)
 // Compute second parameter of parametrization of an ellipsoid
 scalar computeV(vector p)
 {
-    scalar v = 0;
+    scalar v = 0.0;
 
     vector ez(0.0, 0.0, 1.0);
 
@@ -53,16 +53,24 @@ scalar computeV(vector p)
     return v;
 }
 
+// Analytical function describing the surface of an ellipsoid
+point ellipsoidPoint(scalar u, scalar v, vector& axis)
+{
+    point ePoint(axis[0]*Foam::cos(u)*Foam::sin(v),
+                         axis[1]*Foam::sin(u)*Foam::sin(v),
+                         axis[2]*Foam::cos(v));
+
+    return ePoint;
+}
+
 // Compute deviation of front vertices from the analytical ellipsoid
 // normalized with the analytical value
 scalar ellipsoidDeviationNormalized(scalar u, scalar v, vector& axis, vector p,
                           vector center)
 {
-    scalar deviation = 0;
+    scalar deviation = 0.0;
 
-    vector pointAnalytic(axis[0]*Foam::cos(u)*Foam::sin(v),
-                         axis[1]*Foam::sin(u)*Foam::sin(v),
-                         axis[2]*Foam::cos(v));
+    vector pointAnalytic = ellipsoidPoint(u, v, axis);
 
     // Center of ellipsoid has already been moved to origin
     scalar distanceNumeric = mag(p);
@@ -342,4 +350,26 @@ void ellipsoidDeviation(const triSurface& front, vector center, vector axis,
               << front.localFaces().size() << "\t"
               << linearDeviation << "\t"
               << maxDeviation << std::endl;
+}
+
+// Experiment: correct the vertices of the gmsh front
+void correctFront(triSurface& front, vector center, vector axis)
+{
+    pointField& frontPoints = const_cast<pointField&> (front.points());
+
+    point p(0.0 ,0.0, 0.0);
+
+    forAll(frontPoints, V)
+    {
+        p = frontPoints[V];
+
+        p = p - center;
+
+        scalar u = computeU(p);
+        scalar v = computeV(p);
+
+        // Compute correct location from parameters and translate
+        // the result by center
+        frontPoints[V] = ellipsoidPoint(u, v, axis) + center;
+    }
 }

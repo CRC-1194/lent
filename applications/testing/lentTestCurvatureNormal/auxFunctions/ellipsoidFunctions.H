@@ -19,3 +19,5 @@ void checkEllipsoidNormal(const triSurfacePointVectorField& cn,
 
 void ellipsoidDeviation(const triSurface& front, vector center, vector axis,
                         std::fstream& errorFile);
+
+void correctFront(triSurface& front, vector center, vector axis);
