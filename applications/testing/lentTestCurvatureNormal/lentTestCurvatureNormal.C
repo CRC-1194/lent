@@ -580,6 +580,12 @@ int main(int argc, char *argv[])
 
     argList::addOption
     (
+        "ellipsoidAxes",
+        "Vector of ellipsoid axes (a b c) relating to directions (x y z). Use a=b=c for a sphere."
+    );
+
+    argList::addOption
+    (
         "reconTimes",
         "Number of times the front is to be reconstructed before curvature calculation."
     );
@@ -611,6 +617,14 @@ int main(int argc, char *argv[])
             << endl << exit(FatalError);
     }
 
+    if (!args.optionFound("ellipsoidAxes"))
+    {
+        FatalErrorIn("main()")
+            << "Please use option '-ellipsoidAxes' to specify the axes of an"
+            << " ellipsoid."
+            << endl << exit(FatalError);
+    }
+
     if (!args.optionFound("reconTimes"))
     {
         FatalErrorIn("main")
@@ -622,6 +636,7 @@ int main(int argc, char *argv[])
     // Read command line arguments
     const scalar radius = args.optionRead<scalar>("radius");
     const vector center = args.optionRead<vector>("center");
+    const vector axes = args.optionRead<vector>("ellipsoidAxes");
     const std::string errorFileNameBase = args.optionRead<fileName>("errorFile");
     const label reconTimes = args.optionRead<label>("reconTimes");
 
@@ -680,6 +695,20 @@ int main(int argc, char *argv[])
             break;
     }
 
+    // Determine if sphere or ellpisoid using the axes vector.
+    // Set boolean flag accordingly so the correct methods are called
+    bool sphere = false;
+
+    if (axes[0] == axes[1] && axes[0] == axes[2] && axes[1] == axes[2])
+    {
+        sphere = true;
+        Info << "Using methods for sphere." << endl;
+    }
+    else
+    {
+        Info << "Using methods for ellipsoid." << endl;
+    }
+
     Info << "Loading front" << endl;
     triSurface front(
         frontFileName
@@ -713,9 +742,6 @@ int main(int argc, char *argv[])
 
     // Finally call the function
     curvatureNormals(cn, front);
-
-    bool sphere = false;
-    vector axis(0.3, 0.3, 0.3);
 
     if (sphere)
     {
@@ -768,15 +794,15 @@ int main(int argc, char *argv[])
     {
         // Check deviation from ellipsoid
         meshQuality(front, errorFileSphereDev);
-        ellipsoidDeviation(front, center, axis, errorFileSphereDev);
+        ellipsoidDeviation(front, center, axes, errorFileSphereDev);
 
         // Check curvature
         meshQuality(front, errorFileCurvature);
-        checkEllipsoidCurvature(cn, front, center, axis, errorFileCurvature);
+        checkEllipsoidCurvature(cn, front, center, axes, errorFileCurvature);
 
         // Check normals
         meshQuality(front, errorFileNormalVector);
-        checkEllipsoidNormal(cn, front, center, axis, errorFileNormalVector);
+        checkEllipsoidNormal(cn, front, center, axes, errorFileNormalVector);
 
         // Check force sum
         checkGlobalForceBalance(cn);

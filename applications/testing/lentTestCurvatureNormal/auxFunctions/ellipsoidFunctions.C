@@ -16,7 +16,16 @@ scalar computeU(vector p)
     // Project into xy-plane
     ptilde[2] = 0;
 
-    scalar utilde = Foam::acos(ptilde & ex / mag(ptilde));
+    scalar utilde = 0.0;
+    // Avoid divide-by-zero for vectors which point solely in
+    // z-direction. In this case the projection of p results
+    // in the zero vector.
+    // However, in this case an arbitray value of the interval
+    // [0, 2pi] can be chosen for u, thus to leave it zero is fine.
+    if (mag(ptilde) > SMALL)
+    {
+        utilde = Foam::acos(ptilde & ex / mag(ptilde));
+    }
 
     // Since u element of [0,2pi], above expression is not unique;
     // therefore distiction of cases using sign of y-entry
@@ -55,8 +64,9 @@ scalar ellipsoidDeviationNormalized(scalar u, scalar v, vector& axis, vector p,
                          axis[1]*Foam::sin(u)*Foam::sin(v),
                          axis[2]*Foam::cos(v));
 
-    scalar distanceNumeric = mag(p - center);
-    scalar distanceAnalytic = mag(pointAnalytic - center);
+    // Center of ellipsoid has already been moved to origin
+    scalar distanceNumeric = mag(p);
+    scalar distanceAnalytic = mag(pointAnalytic);
 
     deviation = mag(distanceNumeric - distanceAnalytic) / distanceAnalytic;
 
@@ -69,7 +79,7 @@ vector ellipsoidNormal(scalar u, scalar v, vector axis)
 {
     vector normal(0.0, 0.0, 0.0);
 
-    vector tangentU(-axis[0]*Foam::sin(u)*Foam::sin(v), 
+    vector tangentU(axis[0]*Foam::sin(u)*Foam::sin(v), 
                     -axis[1]*Foam::cos(u)*Foam::sin(v),
                     0.0);
     vector tangentV(axis[0]*Foam::cos(u)*Foam::cos(v),
@@ -77,7 +87,29 @@ vector ellipsoidNormal(scalar u, scalar v, vector axis)
                     -axis[2]*Foam::sin(v));
     
     normal = tangentU ^ tangentV;
-    normal = normal / mag(normal);
+
+    // Tangent approach fails for points coinciding with the
+    // z-axis. However, for those points, the normal is simply the
+    // basis vector e_z
+    if (mag(normal) > SMALL)
+    {
+        normal = normal / mag(normal);
+    }
+    else
+    {
+        normal[0] = 0.0;
+        normal[1] = 0.0;
+
+        if (v < pi/2.0)
+        {
+            normal[2] = 1.0;
+        }
+        else
+        {
+            normal[2] = -1.0;
+        }
+
+    }
    
     return normal;
 }
@@ -230,7 +262,9 @@ void checkEllipsoidNormal(const triSurfacePointVectorField& cn,
             maxDeviation = deviation;
 
             // Compute deviation angle in degree
-            devAngle = Foam::acos(angle) * 180.0/pi;
+            // Factor in that curvature normal should point inwards
+            // whereas the analytical normal points outwards
+            devAngle = (pi - Foam::acos(angle)) * 180.0/pi;
         }
 
         linearDeviation += deviation;
