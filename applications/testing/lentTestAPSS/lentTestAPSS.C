@@ -46,6 +46,7 @@ Description
 
 #include "auxFunctions/auxFunctions.H"
 #include "auxFunctions/errorMetrics.H"
+#include "auxFunctions/ellipsoidFunctions.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Typedefs for more concise use of Eigen
@@ -78,7 +79,7 @@ scalar weight(scalar x2byh2)
 // test case: h = 2.0*1/32
 scalar supportSize()
 {
-    scalar h = 0.00625;
+    scalar h = 0.4;
     return h;
 }
 
@@ -335,7 +336,6 @@ void computeCurvature(triSurfacePointScalarField& curvature,
         Vector5d bhat = D.transpose() * W * b;
         Vector5d u = A.colPivHouseholderQr().solve(bhat);
 
-        // TODO: check condition u(4) > SMALL, else curvature is 0
         if (mag(u(4)) > SMALL)
         {
             vector c(u(1), u(2), u(3));
@@ -380,6 +380,12 @@ int main(int argc, char *argv[])
 
     argList::addOption
     (
+        "ellipsoidAxes",
+        "Vector of the axes of an ellipsoid."
+    );
+
+    argList::addOption
+    (
         "reconTimes",
         "Number of times the front is to be reconstructed before curvature calculation."
     );
@@ -410,6 +416,20 @@ int main(int argc, char *argv[])
             << endl << exit(FatalError);
     }
 
+    argList::addOption
+    (
+        "ellipsoidAxes",
+        "Vector of ellipsoid axes (a b c) relating to directions (x y z). Use a=b=c for a sphere."
+    );
+
+    if (!args.optionFound("ellipsoidAxes"))
+    {
+        FatalErrorIn("main()")
+            << "Please use option '-ellipsoidAxes' to specify the axes of an"
+            << " ellipsoid."
+            << endl << exit(FatalError);
+    }
+
     if (!args.optionFound("reconTimes"))
     {
         FatalErrorIn("main")
@@ -421,6 +441,7 @@ int main(int argc, char *argv[])
     // Read command line arguments
     const scalar radius = args.optionRead<scalar>("radius");
     const vector center = args.optionRead<vector>("center");
+    const vector axes = args.optionRead<vector>("ellipsoidAxes");
     const std::string errorFileNameBase = args.optionRead<fileName>("errorFile");
     const label reconTimes = args.optionRead<label>("reconTimes");
 
@@ -479,10 +500,24 @@ int main(int argc, char *argv[])
             break;
     }
 
+    // Determine if sphere or ellpisoid using the axes vector.
+    // Set boolean flag accordingly so the correct methods are called
+    bool sphere = false;
+
     Info << "Loading front" << endl;
     triSurface front(
         frontFileName
     );
+
+    if (axes[0] == axes[1] && axes[0] == axes[2] && axes[1] == axes[2])
+    {
+        sphere = true;
+        Info << "Using methods for sphere." << endl;
+    }
+    else
+    {
+        Info << "Using methods for ellipsoid." << endl;
+    }
 
     Info << "Front loaded\n" << endl;
 
@@ -552,47 +587,64 @@ int main(int argc, char *argv[])
     // Fuse normals and curvature into single field
     cn = normals * curvature;
 
-    // Check deviation from sphere
-    meshQuality(front, errorFileSphereDev);
-    sphereDeviation(front, radius, center, errorFileSphereDev);
+    if (sphere)
+    {
+        // Check deviation from sphere
+        meshQuality(front, errorFileSphereDev);
+        sphereDeviation(front, radius, center, errorFileSphereDev);
 
-    // Check curvature
-    meshQuality(front, errorFileCurvature);
-    checkCurvature(cn, front, radius, errorFileCurvature);
+        // Check curvature
+        meshQuality(front, errorFileCurvature);
+        checkCurvature(cn, front, radius, errorFileCurvature);
 
-    // Check normals
-    meshQuality(front, errorFileNormalVector);
-    checkNormal(normals, front, center, errorFileNormalVector);
+        // Check normals
+        meshQuality(front, errorFileNormalVector);
+        checkNormal(normals, front, center, errorFileNormalVector);
 
-    // Write curvature normals field for visual inspection
-    // Additionally, write scalar curvature error field
-    triSurfacePointScalarField curvatureError
-    (
-        IOobject
+        // Write curvature normals field for visual inspection
+        // Additionally, write scalar curvature error field
+        triSurfacePointScalarField curvatureError
         (
-            "curvatureErrors",
-            runTime.timeName(),
-            runTime,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        front,
-        dimensionedScalar
-        (
-            "zero",
-            dimless,
-            0.0
-        )
-    );
+            IOobject
+            (
+                "curvatureErrors",
+                runTime.timeName(),
+                runTime,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            front,
+            dimensionedScalar
+            (
+                "zero",
+                dimless,
+                0.0
+            )
+        );
 
-    dimensionedScalar dradius = dimensionedScalar("zero", dimLength, radius);
+        dimensionedScalar dradius = dimensionedScalar("zero", dimLength, radius);
 
-    // Compute difference to exact curvature and relate the difference to
-    // the exact curvature
-    curvatureError = mag(mag(cn) - 2.0/dradius)*dradius/2.0;
+        // Compute difference to exact curvature and relate the difference to
+        // the exact curvature
+        curvatureError = mag(mag(cn) - 2.0/dradius)*dradius/2.0;
 
-    cn.write();
-    curvatureError.write();
+        cn.write();
+        curvatureError.write();
+    }
+    else // Ellipsoid
+    {
+        // Check deviation from ellipsoid
+        meshQuality(front, errorFileSphereDev);
+        ellipsoidDeviation(front, center, axes, errorFileSphereDev);
+
+        // Check curvature
+        meshQuality(front, errorFileCurvature);
+        checkEllipsoidCurvature(cn, front, center, axes, errorFileCurvature);
+
+        // Check normals
+        meshQuality(front, errorFileNormalVector);
+        checkEllipsoidNormal(cn, front, center, axes, errorFileNormalVector);
+    }
 
     errorFileCurvature.close();
     errorFileNormalVector.close();

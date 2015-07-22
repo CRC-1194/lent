@@ -264,7 +264,9 @@ void sphereDeviation(const triSurface& front, scalar radius, vector center,
 // Following test exploits the property that the sum of surface tension of
 // closed surface has to be zero. In case of a constant surface tension
 // coefficient the same holds true for the sum of the curvature normals
-void checkGlobalForceBalance(triSurfacePointVectorField& cn)
+void checkGlobalForceBalance(triSurfacePointVectorField& cn,
+                             const triSurface& front,
+                             std::fstream& errorFile)
 {
     vector resultingForce(0.0,0.0,0.0);
 
@@ -274,6 +276,12 @@ void checkGlobalForceBalance(triSurfacePointVectorField& cn)
     }
 
     Info << "Magnitude of resulting force is " << mag(resultingForce) << endl;
+
+    errorFile << "# Global force balance header" << std::endl;
+    errorFile << "# n_points\tn_trias\tforce_sum" << std::endl;
+    errorFile << front.meshPoints().size() << "\t"
+              << front.localFaces().size() << "\t"
+              << mag(resultingForce) << std::endl;
 }
 
 // Compute mean curvature normal from discrete surface force by using
@@ -437,11 +445,9 @@ void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
         vector normal = v20 ^ v01;
         normal = normal / mag(normal);
 
-        // Compute contributions according to Tryggvason book
-        // TODO: by theory the factors of the cross product have to be
-        // switched; check for sphere: if computed correctly, the scalar
-        // product of cn[] and n should be negative for outward facing
-        // normals
+        // Inverted order of the cross product is due to different labelling
+        // compared to Tryggvason book. With outward facing normals,
+        // the corss product wirtten here reults in an inward "pull"
         // TODO: surface tension coefficient sigma has to be incorporated
         // in actual implementation
         cn[l0] += 0.5 * v12 ^ normal;
@@ -451,15 +457,6 @@ void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
 }
 
 // Method from Meyer et al.
-//
-// Current TODO: Check how much improvement can be achieved if the curvature
-// for one-ring-neighborhoods with obtuse triangles are computed with a more
-// accurate method (for now this is simply the exact curvature for it
-// represents the maximum possible improvement
-//
-// First test indicates that it may improve the L_inf norm for up to 
-// 1e4 triangles by roughly two orders of magnitude. For more
-// triangles the curves begin to converge
 void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
 {
     cn = dimensionedVector("zero",
@@ -653,19 +650,23 @@ int main(int argc, char *argv[])
     const std::string errorFileNameCurvature = errorFileNameBase + ".curvature";
     const std::string errorFileNameNormalVector = errorFileNameBase + ".normvec";
     const std::string errorFileNameSphereDev = errorFileNameBase + ".spheredev";
+    const std::string errorFileNameDummy = errorFileNameBase + ".forceToCurvature";
 
     // Open file to write results to
     const char* errorFileNameCurvaturePtr = errorFileNameCurvature.c_str();
     const char* errorFileNameNormalVectorPtr = errorFileNameNormalVector.c_str();
     const char* errorFileNameSphereDevPtr = errorFileNameSphereDev.c_str();
+    const char* errorFileNameDummyPtr = errorFileNameDummy.c_str();
 
     std::fstream errorFileCurvature;
     std::fstream errorFileNormalVector;
     std::fstream errorFileSphereDev;
+    std::fstream errorFileDummy;
 
     errorFileCurvature.open(errorFileNameCurvaturePtr, std::ios_base::app);
     errorFileNormalVector.open(errorFileNameNormalVectorPtr, std::ios_base::app);
     errorFileSphereDev.open(errorFileNameSphereDevPtr, std::ios_base::app);
+    errorFileDummy.open(errorFileNameDummyPtr, std::ios_base::app);
 
     // Read and intialize front 
     // Get correct file name first
@@ -741,7 +742,8 @@ int main(int argc, char *argv[])
     Info << "Nu mber of front mesh triangles: " << front.localFaces().size() << endl;
 
     // Finally call the function
-    curvatureNormals(cn, front);
+    //curvatureNormals(cn, front);
+    noCurvature(cn, front);
 
     if (sphere)
     {
@@ -749,16 +751,22 @@ int main(int argc, char *argv[])
         meshQuality(front, errorFileSphereDev);
         sphereDeviation(front, radius, center, errorFileSphereDev);
 
+        /*
         // Check curvature
         meshQuality(front, errorFileCurvature);
         checkCurvature(cn, front, radius, errorFileCurvature);
+        */
 
         // Check normals
         meshQuality(front, errorFileNormalVector);
         checkNormal(cn, front, center, errorFileNormalVector);
 
         // Check force sum
-        checkGlobalForceBalance(cn);
+        meshQuality(front, errorFileCurvature);
+        checkGlobalForceBalance(cn, front, errorFileCurvature);
+
+        forceToCurvature(cn, front);
+        checkCurvature(cn, front, radius, errorFileDummy);
 
         // Write curvature normals field for visual inspection
         // Additionally, write scalar curvature error field
@@ -796,16 +804,22 @@ int main(int argc, char *argv[])
         meshQuality(front, errorFileSphereDev);
         ellipsoidDeviation(front, center, axes, errorFileSphereDev);
 
+        /*
         // Check curvature
         meshQuality(front, errorFileCurvature);
         checkEllipsoidCurvature(cn, front, center, axes, errorFileCurvature);
+        */
 
         // Check normals
         meshQuality(front, errorFileNormalVector);
         checkEllipsoidNormal(cn, front, center, axes, errorFileNormalVector);
 
         // Check force sum
-        checkGlobalForceBalance(cn);
+        meshQuality(front, errorFileCurvature);
+        checkGlobalForceBalance(cn, front, errorFileCurvature);
+
+        forceToCurvature(cn, front);
+        checkEllipsoidCurvature(cn, front, center, axes, errorFileDummy);
     }
 
     errorFileCurvature.close();
