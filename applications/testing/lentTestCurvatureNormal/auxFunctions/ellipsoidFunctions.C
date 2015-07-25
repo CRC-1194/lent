@@ -28,7 +28,7 @@ scalar computeU(vector p)
     }
 
     // Since u element of [0,2pi], above expression is not unique;
-    // therefore distiction of cases using sign of y-entry
+    // therefore distinction of cases using sign of y-entry
     if (ptilde[1] >= 0.0)
     {
         u = utilde;
@@ -148,7 +148,9 @@ scalar ellipsoidCurvature(scalar u, scalar v, vector axis)
 
 // Compare exact curvature with numerical curvature at each vertex
 void checkEllipsoidCurvature(const triSurfacePointVectorField& cn,
-                             const triSurface& front, vector center,
+                             const triSurface& front,
+                             const triSurfacePointVectorField& uv,
+                             vector center,
                              vector axis, std::fstream& errorFile)
 {
     const pointField& localPoints = front.localPoints();
@@ -166,16 +168,27 @@ void checkEllipsoidCurvature(const triSurfacePointVectorField& cn,
     scalar deviation = 0.0;
 
     point p(0,0,0);
+    vector parameters(0.0, 0.0, 0.0);
+
+    // Metrics to find location of maximum error
+    scalar uMax = 0.0;
+    scalar vMax = 0.0;
+    point pMax(0.0, 0.0, 0.0);
+    label pl = 0;
+    vector normal(0.0, 0.0, 0.0);
+    scalar curvatureNum = 0.0;
+    scalar curvatureAna = 0.0;
 
     forAll(cn, V)
     {
         p = localPoints[V];
+        parameters = uv[V];
 
         // Move center of ellipsoid to origin
         p = p - center;
 
-        scalar u = computeU(p);
-        scalar v = computeV(p);
+        scalar u = parameters[0];
+        scalar v = parameters[1];
 
         numCurvature = mag(cn[V]);
         anaCurvature = ellipsoidCurvature(u, v, axis);
@@ -197,6 +210,15 @@ void checkEllipsoidCurvature(const triSurfacePointVectorField& cn,
         if (deviation > maxDeviation)
         {
             maxDeviation = deviation;
+
+            // Save max error metrics
+            uMax = u;
+            vMax = v;
+            pMax = localPoints[V];
+            pl = V;
+            curvatureNum = numCurvature;
+            curvatureAna = anaCurvature;
+            normal = cn[V]/mag(cn[V]);
         }
 
         // Increment deviations
@@ -215,6 +237,36 @@ void checkEllipsoidCurvature(const triSurfacePointVectorField& cn,
     Info << "Maximum curvature = " << maxCurvature << endl;
 
     // Write to file
+    errorFile << "# Location of maximum error:\n"
+         << "# u = " << uMax << "; v = " << vMax
+         << "\n# point = [" << pMax[0] << ", " << pMax[1] << ", " << pMax[2] << "]"
+         << "\n# Curvature numeric = " << curvatureNum
+         << "; Curvature analytic = " << curvatureAna
+         << "\n# normal vector = ["
+         << normal[0] << ", " << normal[1] << ", " << normal[2] << "]"
+         << std::endl;
+
+    // Write neighborpoints to File
+    const labelListList& adjacentFaces = front.pointFaces();
+    const List<labelledTri>& localFaces = front.localFaces();
+
+    const labelList& oneRingNeighborhood = adjacentFaces[pl];
+
+    forAll(oneRingNeighborhood, O)
+    {
+        labelledTri currentTri = localFaces[oneRingNeighborhood[O]];
+
+        vector p0 = localPoints[currentTri[0]];
+        vector p1 = localPoints[currentTri[1]];
+        vector p2 = localPoints[currentTri[2]];
+
+        errorFile << "# P0 = [" << p0[0] << ", " << p0[1] << ", " <<p0[2]<<"]"<<"\n"
+                  << "# P1 = [" << p1[0] << ", " << p1[1] << ", " <<p1[2]<<"]"<<"\n"
+                  << "# P2 = [" << p2[0] << ", " << p2[1] << ", " <<p2[2]<<"]" 
+                  << std::endl;
+    }
+
+
     errorFile << "# Curvature header" << std::endl;
     errorFile << "# n_points\tn_trias\tL_inf\t"
               << "linDev\tcurv(min)\tcurv(max)" << std::endl;
@@ -229,6 +281,7 @@ void checkEllipsoidCurvature(const triSurfacePointVectorField& cn,
 // Compare exact front normal with numerical normal
 void checkEllipsoidNormal(const triSurfacePointVectorField& cn,
                           const triSurface& front,
+                          const triSurfacePointVectorField& uv,
                           vector center,
                           vector axis, std::fstream& errorFile)
 {
@@ -243,18 +296,20 @@ void checkEllipsoidNormal(const triSurfacePointVectorField& cn,
     vector numNormal(0.0, 0.0, 0.0);
     vector anaNormal(0.0, 0.0, 0.0);
     point p(0.0, 0.0, 0.0);
+    vector parameters(0.0, 0.0, 0.0);
     scalar angle = 0.0;
     scalar deviation = 0.0;
     
     forAll(localPoints, P)
     {
         p = localPoints[P];
+        parameters = uv[P];
 
         // Move center of ellipsoid to origin
         p = p - center;
 
-        scalar u = computeU(p);
-        scalar v = computeV(p);
+        scalar u = parameters[0];
+        scalar v = parameters[1];
 
         anaNormal = ellipsoidNormal(u, v, axis);
         numNormal = cn[P] / mag(cn[P]);
@@ -272,7 +327,7 @@ void checkEllipsoidNormal(const triSurfacePointVectorField& cn,
             // Compute deviation angle in degree
             // Factor in that curvature normal should point inwards
             // whereas the analytical normal points outwards
-            devAngle = (pi - Foam::acos(angle)) * 180.0/pi;
+            devAngle = 180.0 - (Foam::acos(angle)) * 180.0/pi;
         }
 
         linearDeviation += deviation;
@@ -299,7 +354,9 @@ void checkEllipsoidNormal(const triSurfacePointVectorField& cn,
 }
 
 // Compute front vertices' deviation from a ellipsoid ssurface
-void ellipsoidDeviation(const triSurface& front, vector center, vector axis,
+void ellipsoidDeviation(const triSurface& front, 
+                        const triSurfacePointVectorField& uv,
+                        vector center, vector axis,
                         std::fstream& errorFile)
 {
     scalar deviation = 0.0;
@@ -313,16 +370,18 @@ void ellipsoidDeviation(const triSurface& front, vector center, vector axis,
     scalar u = 0.0;
     scalar v = 0.0;
     point p(0.0, 0.0, 0.0);
+    vector parameters(0.0, 0.0, 0.0);
 
     forAll(vertices, V)
     {
         p = localPoints[V];
+        parameters = uv[V];
 
         // Move center of ellipsoid to origin
         p = p - center;
 
-        u = computeU(p);
-        v = computeV(p);
+        u = parameters[0];
+        v = parameters[1];
 
         deviation = ellipsoidDeviationNormalized(u, v, axis, p, center);
 
@@ -352,12 +411,16 @@ void ellipsoidDeviation(const triSurface& front, vector center, vector axis,
               << maxDeviation << std::endl;
 }
 
-// Experiment: correct the vertices of the gmsh front
-void correctFront(triSurface& front, vector center, vector axis)
+// Experiment: correct the vertices of the gmsh front, store parameters
+// u,v in a field since repeated recovery from coordinates severly
+// deteriorates results
+void correctFront(triSurface& front, triSurfacePointVectorField& uv, 
+                  vector center, vector axis)
 {
-    pointField& frontPoints = const_cast<pointField&> (front.points());
+    pointField& frontPoints = const_cast<pointField&> (front.localPoints());
 
     point p(0.0 ,0.0, 0.0);
+    vector parameters(0.0, 0.0, 0.0);
 
     forAll(frontPoints, V)
     {
@@ -367,6 +430,11 @@ void correctFront(triSurface& front, vector center, vector axis)
 
         scalar u = computeU(p);
         scalar v = computeV(p);
+
+        parameters[0] = u;
+        parameters[1] = v;
+
+        uv[V] = parameters;   
 
         // Compute correct location from parameters and translate
         // the result by center

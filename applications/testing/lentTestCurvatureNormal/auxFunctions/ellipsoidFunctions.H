@@ -10,14 +10,22 @@ vector ellipsoidNormal(scalar u, scalar v, vector axis);
 scalar ellipsoidCurvature(scalar u, scalar v, vector axis);
 
 void checkEllipsoidCurvature(const triSurfacePointVectorField& cn,
-                             const triSurface& front, vector center,
+                             const triSurface& front,
+                             const triSurfacePointVectorField& uv,
+                             vector center,
                              vector axis, std::fstream& errorFile);
 
 void checkEllipsoidNormal(const triSurfacePointVectorField& cn,
-                          const triSurface& front, vector center,
+                          const triSurface& front,
+                          const triSurfacePointVectorField& uv,
+                          vector center,
                           vector axis, std::fstream& errorFile);
 
-void ellipsoidDeviation(const triSurface& front, vector center, vector axis,
+void ellipsoidDeviation(const triSurface& front,
+                        const triSurfacePointVectorField& uv,
+                        vector center, vector axis,
                         std::fstream& errorFile);
 
-void correctFront(triSurface& front, vector center, vector axis);
+void correctFront(triSurface& front,
+                  triSurfacePointVectorField& uv,
+                  vector center, vector axis);

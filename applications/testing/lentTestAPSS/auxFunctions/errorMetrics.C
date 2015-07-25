@@ -222,6 +222,9 @@ void meshQuality(const triSurface& front, std::fstream& file)
     scalar minArea = 1000.0; 
     scalar maxArea = 0.0; 
 
+    scalar minEdge = 1000.0;
+    scalar maxEdge = 0.0;
+
     forAll(localFaces, T)
     {
         labelledTri tri = localFaces[T];
@@ -275,6 +278,15 @@ void meshQuality(const triSurface& front, std::fstream& file)
         // area check
         minArea = area < minArea ? area : minArea;
         maxArea = area > maxArea ? area : maxArea;
+
+        // minimum and maximum edge length
+        minEdge = mag(a) < minEdge ? mag(a) : minEdge;
+        minEdge = mag(b) < minEdge ? mag(b) : minEdge;
+        minEdge = mag(c) < minEdge ? mag(c) : minEdge;
+
+        maxEdge = mag(a) > maxEdge ? mag(a) : maxEdge;
+        maxEdge = mag(b) > maxEdge ? mag(b) : maxEdge;
+        maxEdge = mag(c) > maxEdge ? mag(c) : maxEdge;
     }
 
     // Write results
@@ -282,6 +294,8 @@ void meshQuality(const triSurface& front, std::fstream& file)
          << "# Minimum angle = " << 57.3*minAngle << "\n"
          << "# Maximum angle = " << 57.3*maxAngle << "\n"
          << "# Max edge ratio = " << maxRatio << "\n"
+         << "# Min edge length = " << minEdge << "\n"
+         << "# Max edge length = " << maxEdge << "\n"
          << "# Min area = " << minArea << "\n"
          << "# Max Area = " << maxArea << std::endl;
 }

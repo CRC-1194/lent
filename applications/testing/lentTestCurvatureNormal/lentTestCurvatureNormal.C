@@ -332,6 +332,9 @@ void meshQuality(const triSurface& front, std::fstream& file)
     scalar minArea = 1000.0; 
     scalar maxArea = 0.0; 
 
+    scalar minEdge = 1000.0;
+    scalar maxEdge = 0.0;
+
     forAll(localFaces, T)
     {
         labelledTri tri = localFaces[T];
@@ -385,6 +388,15 @@ void meshQuality(const triSurface& front, std::fstream& file)
         // area check
         minArea = area < minArea ? area : minArea;
         maxArea = area > maxArea ? area : maxArea;
+
+        // minimum and maximum edge length
+        minEdge = mag(a) < minEdge ? mag(a) : minEdge;
+        minEdge = mag(b) < minEdge ? mag(b) : minEdge;
+        minEdge = mag(c) < minEdge ? mag(c) : minEdge;
+
+        maxEdge = mag(a) > maxEdge ? mag(a) : maxEdge;
+        maxEdge = mag(b) > maxEdge ? mag(b) : maxEdge;
+        maxEdge = mag(c) > maxEdge ? mag(c) : maxEdge;
     }
 
     // Write results
@@ -392,8 +404,11 @@ void meshQuality(const triSurface& front, std::fstream& file)
          << "# Minimum angle = " << 57.3*minAngle << "\n"
          << "# Maximum angle = " << 57.3*maxAngle << "\n"
          << "# Max edge ratio = " << maxRatio << "\n"
+         << "# Min edge length = " << minEdge << "\n"
+         << "# Max edge length = " << maxEdge << "\n"
          << "# Min area = " << minArea << "\n"
-         << "# Max Area = " << maxArea << std::endl;
+         << "# Max Area = " << maxArea << "\n"
+         << "# Area ratio = " << maxArea/minArea << std::endl;
 }
 
 /*****************************************************************************\
@@ -447,7 +462,7 @@ void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
 
         // Inverted order of the cross product is due to different labelling
         // compared to Tryggvason book. With outward facing normals,
-        // the corss product wirtten here reults in an inward "pull"
+        // the cross product wirtten here reults in an inward "pull"
         // TODO: surface tension coefficient sigma has to be incorporated
         // in actual implementation
         cn[l0] += 0.5 * v12 ^ normal;
@@ -737,13 +752,42 @@ int main(int argc, char *argv[])
         )
     );
 
+    // Initialize field for curvature normals
+    triSurfacePointVectorField uv
+    (
+        IOobject
+        (
+            "curvatureNormals",
+            runTime.timeName(),
+            runTime,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        front,
+        dimensionedVector
+        (
+            "zero",
+            dimless,
+            vector(0.0,0.0,0.0)
+        )
+    );
+
+    if(!sphere && reconTimes == 0)
+    {
+        // Correct points for ellipsoid
+        correctFront(front, uv, center, axes);
+
+        // write corrected front to use it for reconstruction
+        front.write("front/front_corrected.stl");
+    }
+
     // Print number of mesh points and faces
     Info << "Number of front mesh points: " << front.meshPoints().size() << endl;
     Info << "Nu mber of front mesh triangles: " << front.localFaces().size() << endl;
 
     // Finally call the function
-    //curvatureNormals(cn, front);
-    noCurvature(cn, front);
+    curvatureNormals(cn, front);
+    //noCurvature(cn, front);
 
     if (sphere)
     {
@@ -751,75 +795,39 @@ int main(int argc, char *argv[])
         meshQuality(front, errorFileSphereDev);
         sphereDeviation(front, radius, center, errorFileSphereDev);
 
-        /*
         // Check curvature
         meshQuality(front, errorFileCurvature);
         checkCurvature(cn, front, radius, errorFileCurvature);
-        */
 
         // Check normals
         meshQuality(front, errorFileNormalVector);
         checkNormal(cn, front, center, errorFileNormalVector);
 
-        // Check force sum
-        meshQuality(front, errorFileCurvature);
-        checkGlobalForceBalance(cn, front, errorFileCurvature);
-
+        /*
+        // For Tryggvason method: convert force to curvature normal
         forceToCurvature(cn, front);
         checkCurvature(cn, front, radius, errorFileDummy);
-
-        // Write curvature normals field for visual inspection
-        // Additionally, write scalar curvature error field
-        triSurfacePointScalarField curvatureError
-        (
-            IOobject
-            (
-                "curvatureErrors",
-                runTime.timeName(),
-                runTime,
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE
-            ),
-            front,
-            dimensionedScalar
-            (
-                "zero",
-                dimless,
-                0.0
-            )
-        );
-
-        dimensionedScalar dradius = dimensionedScalar("zero", dimLength, radius);
-
-        // Compute difference to exact curvature and relate the difference to
-        // the exact curvature
-        curvatureError = mag(mag(cn) - 2.0/dradius)*dradius/2.0;
-
-        cn.write();
-        curvatureError.write();
+        */
     }
     else // Ellipsoid
     {
         // Check deviation from ellipsoid
         meshQuality(front, errorFileSphereDev);
-        ellipsoidDeviation(front, center, axes, errorFileSphereDev);
+        ellipsoidDeviation(front, uv, center, axes, errorFileSphereDev);
 
-        /*
         // Check curvature
         meshQuality(front, errorFileCurvature);
-        checkEllipsoidCurvature(cn, front, center, axes, errorFileCurvature);
-        */
+        checkEllipsoidCurvature(cn, front, uv, center, axes, errorFileCurvature);
 
         // Check normals
         meshQuality(front, errorFileNormalVector);
-        checkEllipsoidNormal(cn, front, center, axes, errorFileNormalVector);
+        checkEllipsoidNormal(cn, front, uv, center, axes, errorFileNormalVector);
 
-        // Check force sum
-        meshQuality(front, errorFileCurvature);
-        checkGlobalForceBalance(cn, front, errorFileCurvature);
-
+        /*
+        // For Tryggvason method: convert force to curvature normal
         forceToCurvature(cn, front);
-        checkEllipsoidCurvature(cn, front, center, axes, errorFileDummy);
+        checkEllipsoidCurvature(cn, front, uv, center, axes, errorFileDummy);
+        */
     }
 
     errorFileCurvature.close();

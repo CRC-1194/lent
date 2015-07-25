@@ -77,9 +77,42 @@ scalar weight(scalar x2byh2)
 // to front as its elements are of highly different sizes 
 // For now, hard code the value for the reconstruction 32*32*32
 // test case: h = 2.0*1/32
-scalar supportSize()
+scalar supportSize(label npoints)
 {
-    scalar h = 0.4;
+
+    scalar h = 1.0;
+
+    switch(npoints)
+    {
+        case 26:
+            h = 0.8;
+            break;
+        case 56:
+            h = 0.4;
+            break;
+        case 182:
+            h = 0.2;
+            break;
+        case 648:
+            h = 0.1;
+            break;
+        case 2255:
+            h = 0.05;
+            break;
+        case 8853:
+            h = 0.025;
+            break;
+        case 34990:
+            h = 0.0125;
+            break;
+        case 150325:
+            h= 0.006;
+            break;
+        default:
+            Info << "Warning: no suitable support size found, using h = 1.0"
+                 << endl;
+    }
+
     return h;
 }
 
@@ -218,7 +251,7 @@ void setUpW(MatrixXd& W, const DynamicList<label,1,1,1>& neighborPoints,
     W.setZero();
 
     label numPoints = neighborPoints.size();
-    scalar h = supportSize();
+    scalar h = supportSize(localPoints.size());
         
     forAll(neighborPoints, Pl)
     {
@@ -318,7 +351,7 @@ void computeCurvature(triSurfacePointScalarField& curvature,
     {
         point V = localPoints[Vl];
 
-        DynamicList<label,1,1,1> neighborPoints = findSupportPoints(Vl, front, 3);
+        DynamicList<label,1,1,1> neighborPoints = findSupportPoints(Vl, front, 1);
         label numPoints = neighborPoints.size();
 
         // Allocate matrices and vectors
@@ -576,9 +609,32 @@ int main(int argc, char *argv[])
         )
     );
 
-    // Print number of mesh points and faces
-    Info << "Number of front mesh points: " << front.meshPoints().size() << endl;
-    Info << "Number of front mesh triangles: " << front.localFaces().size() << endl;
+    // Initialize field for parameters (u,v)
+    // First vector entry represents u, second v
+    triSurfacePointVectorField uv
+    (
+        IOobject
+        (
+            "curvatureNormals",
+            runTime.timeName(),
+            runTime,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        front,
+        dimensionedVector
+        (
+            "zero",
+            dimless,
+            vector(0.0, 0.0, 0.0)
+        )
+    );
+
+    if (!sphere && reconTimes == 0)
+    {
+        // Correct points for ellipsoid
+        correctFront(front, uv, center, axes);
+    }
 
     // Finally call the functions
     computeFrontVertexNormals(normals, front);
@@ -601,6 +657,7 @@ int main(int argc, char *argv[])
         meshQuality(front, errorFileNormalVector);
         checkNormal(normals, front, center, errorFileNormalVector);
 
+        /*
         // Write curvature normals field for visual inspection
         // Additionally, write scalar curvature error field
         triSurfacePointScalarField curvatureError
@@ -630,20 +687,22 @@ int main(int argc, char *argv[])
 
         cn.write();
         curvatureError.write();
+        */
+
     }
     else // Ellipsoid
     {
         // Check deviation from ellipsoid
         meshQuality(front, errorFileSphereDev);
-        ellipsoidDeviation(front, center, axes, errorFileSphereDev);
+        ellipsoidDeviation(front, uv, center, axes, errorFileSphereDev);
 
         // Check curvature
         meshQuality(front, errorFileCurvature);
-        checkEllipsoidCurvature(cn, front, center, axes, errorFileCurvature);
+        checkEllipsoidCurvature(cn, front, uv, center, axes, errorFileCurvature);
 
         // Check normals
         meshQuality(front, errorFileNormalVector);
-        checkEllipsoidNormal(cn, front, center, axes, errorFileNormalVector);
+        checkEllipsoidNormal(cn, front, uv, center, axes, errorFileNormalVector);
     }
 
     errorFileCurvature.close();
