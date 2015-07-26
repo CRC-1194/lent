@@ -38,9 +38,69 @@ Authors
 #include "incompressibleTwoPhaseMixture.H"
 #include "turbulenceModel.H"
 #include "lentMethod.H"
+#include "volMesh.H"
 #include <fstream>
 
 using namespace FrontTracking;
+
+namespace Foam {
+
+auto true_ref_lambda = [](const auto& x) { return true; };
+
+template
+<
+    typename Type, 
+    template<typename> class PatchField, 
+    typename Mesh, 
+    typename FilterFunction
+>
+tmp<GeometricField<Type, PatchField,Mesh>>  
+mapToOnes(
+    GeometricField<Type, PatchField, Mesh> const& vf, 
+    FilterFunction filter = true_ref_lambda 
+)
+{
+    tmp<GeometricField<Type, PatchField, Mesh> > resultTmp(
+        new GeometricField<Type, PatchField, Mesh>(
+            IOobject(
+                "ones", 
+                vf.time().timeName(), 
+                vf.mesh(), 
+                IOobject::NO_READ, 
+                IOobject::AUTO_WRITE
+            ),
+            vf.mesh(), 
+            dimensioned<Type>("zero", dimless, pTraits<Type>::zero)
+        )
+    ); 
+
+    GeometricField<Type, PatchField, Mesh>& result = resultTmp(); 
+
+    forAll(vf, cellI)
+    {
+        if (filter(vf[cellI]))
+        {
+            result[cellI] = pTraits<Type>::one;
+        }
+    }
+
+    return resultTmp;
+}; 
+
+template
+<
+    typename Type, 
+    template<typename> class PatchField, 
+    typename Mesh, 
+    typename FilterFunction
+>
+tmp<GeometricField<Type, PatchField, Mesh>>  
+mapToOnes(tmp<GeometricField<Type, PatchField, Mesh> > vfTmp, FilterFunction filter)
+{
+    return mapToOnes(vfTmp(), filter); 
+}
+
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Main program:
@@ -54,14 +114,10 @@ int main(int argc, char *argv[])
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+
     std::fstream errorFile; 
 
     errorFile.open("curvatureErrors.dat", std::ios_base::app);
-
-    if (errorFile.peek() == std::ifstream::traits_type::eof())
-    {
-        errorFile << "#h        Linf        LinfInterface" << std::endl; 
-    }
 
     triSurfaceFront front(
         IOobject(
@@ -88,19 +144,27 @@ int main(int argc, char *argv[])
     tmp<frontCurvatureModel> exactCurvatureModelTmp = frontCurvatureModel::New(lentDict.subDict("exactCurvatureModel")); 
     const frontCurvatureModel& exactCurvatureModel = exactCurvatureModelTmp(); 
     tmp<volScalarField> cellCurvatureExactTmp = exactCurvatureModel.cellCurvature(mesh,frontMesh);  
-    const volScalarField& exactCurvature = cellCurvatureExactTmp();  
+    volScalarField& exactCurvature = cellCurvatureExactTmp();  
 
     const frontCurvatureModel& numericalCurvatureModel = lent.curvatureModel();  
     tmp<volScalarField> numericalCurvatureTmp = numericalCurvatureModel.cellCurvature(mesh,frontMesh);  
-    const volScalarField& numericalCurvature = numericalCurvatureTmp();  
+    volScalarField& numericalCurvature = numericalCurvatureTmp();  
+    numericalCurvature.rename("numericalCurvature"); 
+
+    volScalarField onesFilter (mapToOnes(mag(fvc::grad(markerField)), [](scalar x) { return x > SMALL; })); 
+    numericalCurvature *= onesFilter; 
+    exactCurvature *= onesFilter; 
 
     volScalarField LinfField ("LinfCurvatureErr", mag(exactCurvature - numericalCurvature)); 
     dimensionedScalar Linf = max(LinfField);
+
     dimensionedScalar h = max(mag(mesh.delta())); 
     errorFile << h.value() << " " << Linf.value() << std::endl;
 
+    // FIXME: Clean up the write calls. TM. 
+    numericalCurvature.write(); 
+    LinfField.write(); 
     front.write();
-
     runTime.write();
 
     Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
