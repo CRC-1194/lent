@@ -154,6 +154,10 @@ int main(int argc, char *argv[])
         mixture.correct();
         // Update density field.
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
+        // The momentum flux is computed from MULES as  
+        // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
+        // However, LENT has no ability to compute the volumetric phase flux. 
+        rhoPhi == fvc::interpolate(rho) * phi; 
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
