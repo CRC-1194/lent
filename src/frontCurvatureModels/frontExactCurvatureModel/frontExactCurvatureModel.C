@@ -92,6 +92,7 @@ tmp<volScalarField> frontExactCurvatureModel::cellCurvature(
                 IOobject::AUTO_WRITE
             ),
             mesh,
+            //FIXME: Error in the curvature dimensions. Fix it. TM.
             dimensionedScalar("zero", pow(dimLength, -1), 0) 
         )
     );
@@ -143,7 +144,7 @@ tmp<surfaceScalarField> frontExactCurvatureModel::faceCurvature(
                 IOobject::AUTO_WRITE
             ),
             mesh,
-            dimensionedScalar("zero", pow(dimLength, -1), 0) 
+            dimensionedScalar("zero", pow(dimLength, -2), 0) 
         )
     );
 

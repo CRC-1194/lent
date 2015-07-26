@@ -78,7 +78,9 @@ namespace FrontTracking {
 
 frontCurvatureModel::frontCurvatureModel(const dictionary& configDict)
     :
-        curvatureInputFieldName_(configDict.lookup("curvatureInputField"))
+        curvatureInputFieldName_(
+            configDict.lookupOrDefault<word>("curvatureField", "curvatureField")
+        )
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -117,7 +119,7 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature(
 
     const surfaceVectorField& Sf = mesh.Sf();
 
-    // Cell gradient of alpha
+    //Cell gradient of alpha
     const volVectorField curvGrad(fvc::grad(curvatureInputField, "curvatureGradient"));
 
     if (debug)
@@ -142,12 +144,18 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature(
 
     if (debug)
     {
-        volScalarField curvature = -fvc::div(curvGradFhat & Sf); 
+        volScalarField curvature = fvc::div(curvGradFhat & Sf); 
         curvature.rename("curvature"); 
         curvature.write(); 
     }
 
-    return -fvc::div(curvGradFhat & Sf); 
+    // FIXME: Check the sign of the curvature in the pU coupling files. TM
+    return fvc::div(curvGradFhat & Sf); 
+    
+    // TODO: Analyze the difference between the two options.
+    //return -fvc::div(
+        //fvc::grad(curvatureInputField) / (mag(fvc::grad(curvatureInputField)) + deltaN)
+    //); 
 }
 
 tmp<surfaceScalarField> frontCurvatureModel::faceCurvature(
