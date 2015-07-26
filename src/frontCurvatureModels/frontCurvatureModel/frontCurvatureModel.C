@@ -122,6 +122,7 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature(
     //Cell gradient of alpha
     const volVectorField curvGrad(fvc::grad(curvatureInputField, "curvatureGradient"));
 
+    // TODO: uncomment
     if (debug)
     {
         curvGrad.write(); 
