@@ -49,7 +49,7 @@
         if (pimple.finalNonOrthogonalIter())
         {
             phi = phiHbyA - p_rghEqn.flux();
-
+            // Update the momentum flux explictly. 
             p_rgh.relax();
 
             // FIXME: Test the volume conservation with the two ways of
@@ -58,17 +58,32 @@
             // First order accurate explicit update of the velocity field.
             U = HbyA + rAU*fvc::reconstruct((phig - p_rghEqn.flux())/rAUf);
             
-            // Second order momentum corrector step. 
-            //solve
-            //(
-                //UEqn == lent.cellSurfaceTensionForce(mesh, frontMesh)
-                    //+ fvc::reconstruct(
-                        //(
-                          //- ghf*fvc::snGrad(rho)
-                          //- fvc::snGrad(p_rgh)
-                        //) * mesh.magSf()
-                    //)
-            //);
+            // Assemble the matrix anew. TM.  
+            // Update the momentum flux using the volume conservative flux.
+            rhoPhi == fvc::interpolate(rho) * phi; 
+            fvVectorMatrix UEqn
+            (
+                fvm::ddt(rho, U)
+              + fvm::div(rhoPhi, U)
+              + turbulence->divDevRhoReff(rho, U)
+             ==
+                fvOptions(rho, U)
+            );
+            UEqn.relax();
+            fvOptions.constrain(UEqn);
+
+            // Solve the momentum equaiton for the cell centered velocity. 
+            solve
+            (
+                UEqn == lent.cellSurfaceTensionForce(mesh, frontMesh)
+                    + fvc::reconstruct(
+                        (
+                          - ghf*fvc::snGrad(rho)
+                          - fvc::snGrad(p_rgh)
+                        ) * mesh.magSf()
+                    )
+                    - fvc::grad(p_rgh)  // Add the final pressure to the equation.
+            );
 
             U.correctBoundaryConditions();
             fvOptions.correct(U);
