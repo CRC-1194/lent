@@ -48,8 +48,7 @@ namespace FrontTracking {
 
 frontExactSphereCurvatureModel::frontExactSphereCurvatureModel(const dictionary& configDict)
     :
-        frontExactCurvatureModel(configDict), 
-        center_(configDict.lookup("center"))
+        frontExactCircleCurvatureModel(configDict)
 {
 }
 
@@ -63,7 +62,7 @@ scalar frontExactSphereCurvatureModel::curvatureAtPoint(const point& p) const
 
     if (curvRadius > SMALL) 
     {
-        curvature = 1 / sqr(curvRadius); 
+        curvature = 2 / curvRadius; 
     }
     else
     {
