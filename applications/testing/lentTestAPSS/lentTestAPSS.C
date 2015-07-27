@@ -77,39 +77,88 @@ scalar weight(scalar x2byh2)
 // to front as its elements are of highly different sizes 
 // For now, hard code the value for the reconstruction 32*32*32
 // test case: h = 2.0*1/32
+//
+// For now the support size simply depends on the number of front vertices.
+// This only works for thesis' test cases
 scalar supportSize(label npoints)
 {
 
-    scalar h = 1.0;
+    scalar h = 0.8;
 
     switch(npoints)
     {
+        case 302:
+            h = 0.125;
+            //h = 0.25;
+            break;
+        case 1278:
+            h = 0.0625;
+            //h = 0.125;
+            break;
+        case 5174:
+            h = 0.03125;
+            //h = 0.0625;
+            break;
+        case 20590:
+            h = 0.015625;
+            //h = 0.03125;
+            break;
+        case 82534:
+            h = 0.0078125;
+            //h = 0.015625;
+            break;
+        case 1332194:
+            h = 0.001;
+            break;
+        /*
         case 26:
             h = 0.8;
+            break;
+        case 38:
+            h = 0.4;
             break;
         case 56:
             h = 0.4;
             break;
+        case 126:
+            h = 0.2;
+            break;
         case 182:
             h = 0.2;
+            break;
+        case 446:
+            h = 0.1;
             break;
         case 648:
             h = 0.1;
             break;
+        case 1598:
+            h = 0.05;
+            break;
         case 2255:
             h = 0.05;
             break;
+        case 6194:
+            h = 0.025;
+            break; 
         case 8853:
             h = 0.025;
+            break;
+        case 24202:
+            h = 0.0125;
             break;
         case 34990:
             h = 0.0125;
             break;
-        case 150325:
-            h= 0.006;
+        case 103862:
+            h = 0.006;
             break;
+        case 150325:
+            h = 0.006;
+            break;
+            */
         default:
-            Info << "Warning: no suitable support size found, using h = 1.0"
+            Info << "Warning: no suitable support size found, using h = 0.8"
                  << endl;
     }
 
@@ -351,7 +400,7 @@ void computeCurvature(triSurfacePointScalarField& curvature,
     {
         point V = localPoints[Vl];
 
-        DynamicList<label,1,1,1> neighborPoints = findSupportPoints(Vl, front, 1);
+        DynamicList<label,1,1,1> neighborPoints = findSupportPoints(Vl, front, 3);
         label numPoints = neighborPoints.size();
 
         // Allocate matrices and vectors
@@ -633,8 +682,21 @@ int main(int argc, char *argv[])
     if (!sphere && reconTimes == 0)
     {
         // Correct points for ellipsoid
+        computeUV(front, uv, center);
         correctFront(front, uv, center, axes);
     }
+    else if (!sphere && reconTimes != 0)
+    {
+        // Only compute parameter field, do not modify reconstructed front
+        computeUV(front, uv, center);
+    }
+
+    // Print number of mesh points and faces
+    Info << "Number of front mesh points: " << front.meshPoints().size() << endl;
+    Info << "Nu mber of front mesh triangles: " << front.localFaces().size() << endl;
+    
+
+    Info << "Support size = " << supportSize(front.localPoints().size()) << endl;
 
     // Finally call the functions
     computeFrontVertexNormals(normals, front);
@@ -656,39 +718,6 @@ int main(int argc, char *argv[])
         // Check normals
         meshQuality(front, errorFileNormalVector);
         checkNormal(normals, front, center, errorFileNormalVector);
-
-        /*
-        // Write curvature normals field for visual inspection
-        // Additionally, write scalar curvature error field
-        triSurfacePointScalarField curvatureError
-        (
-            IOobject
-            (
-                "curvatureErrors",
-                runTime.timeName(),
-                runTime,
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE
-            ),
-            front,
-            dimensionedScalar
-            (
-                "zero",
-                dimless,
-                0.0
-            )
-        );
-
-        dimensionedScalar dradius = dimensionedScalar("zero", dimLength, radius);
-
-        // Compute difference to exact curvature and relate the difference to
-        // the exact curvature
-        curvatureError = mag(mag(cn) - 2.0/dradius)*dradius/2.0;
-
-        cn.write();
-        curvatureError.write();
-        */
-
     }
     else // Ellipsoid
     {

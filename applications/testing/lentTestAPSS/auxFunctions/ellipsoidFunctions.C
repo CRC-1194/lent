@@ -410,6 +410,28 @@ void ellipsoidDeviation(const triSurface& front,
               << maxDeviation << std::endl;
 }
 
+// Compute parameter field
+void computeUV(const triSurface& front, triSurfacePointVectorField& uv,
+               vector center)
+{
+    const pointField& frontPoints = front.localPoints();
+
+    point p(0.0, 0.0, 0.0);
+    vector parameters(0.0, 0.0, 0.0);
+
+    forAll(frontPoints, V)
+    {
+        p = frontPoints[V];
+
+        p = p - center;
+        
+        parameters[0] = computeU(p);
+        parameters[1] = computeV(p);
+
+        uv[V] = parameters;
+    }
+}
+
 // Experiment: correct the vertices of the gmsh front, store parameters
 // u,v in a field since repeated recovery from coordinates severly
 // deteriorates results
@@ -418,22 +440,16 @@ void correctFront(triSurface& front, triSurfacePointVectorField& uv,
 {
     pointField& frontPoints = const_cast<pointField&> (front.localPoints());
 
-    point p(0.0 ,0.0, 0.0);
     vector parameters(0.0, 0.0, 0.0);
+    scalar u = 0.0;
+    scalar v = 0.0;
 
     forAll(frontPoints, V)
     {
-        p = frontPoints[V];
+        parameters = uv[V];
 
-        p = p - center;
-
-        scalar u = computeU(p);
-        scalar v = computeV(p);
-
-        parameters[0] = u;
-        parameters[1] = v;
-
-        uv[V] = parameters;   
+        u = parameters[0];
+        v = parameters[1];
 
         // Compute correct location from parameters and translate
         // the result by center

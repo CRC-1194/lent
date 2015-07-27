@@ -665,23 +665,19 @@ int main(int argc, char *argv[])
     const std::string errorFileNameCurvature = errorFileNameBase + ".curvature";
     const std::string errorFileNameNormalVector = errorFileNameBase + ".normvec";
     const std::string errorFileNameSphereDev = errorFileNameBase + ".spheredev";
-    const std::string errorFileNameDummy = errorFileNameBase + ".forceToCurvature";
 
     // Open file to write results to
     const char* errorFileNameCurvaturePtr = errorFileNameCurvature.c_str();
     const char* errorFileNameNormalVectorPtr = errorFileNameNormalVector.c_str();
     const char* errorFileNameSphereDevPtr = errorFileNameSphereDev.c_str();
-    const char* errorFileNameDummyPtr = errorFileNameDummy.c_str();
 
     std::fstream errorFileCurvature;
     std::fstream errorFileNormalVector;
     std::fstream errorFileSphereDev;
-    std::fstream errorFileDummy;
 
     errorFileCurvature.open(errorFileNameCurvaturePtr, std::ios_base::app);
     errorFileNormalVector.open(errorFileNameNormalVectorPtr, std::ios_base::app);
     errorFileSphereDev.open(errorFileNameSphereDevPtr, std::ios_base::app);
-    errorFileDummy.open(errorFileNameDummyPtr, std::ios_base::app);
 
     // Read and intialize front 
     // Get correct file name first
@@ -775,10 +771,16 @@ int main(int argc, char *argv[])
     if(!sphere && reconTimes == 0)
     {
         // Correct points for ellipsoid
+        computeUV(front, uv, center);
         correctFront(front, uv, center, axes);
 
         // write corrected front to use it for reconstruction
         front.write("front/front_corrected.stl");
+    }
+    else if (!sphere && reconTimes != 0)
+    {
+        // Only compute parameter field, do not modify reconstructed front
+        computeUV(front, uv, center);
     }
 
     // Print number of mesh points and faces
@@ -797,17 +799,13 @@ int main(int argc, char *argv[])
 
         // Check curvature
         meshQuality(front, errorFileCurvature);
+        // For Tryggvason method: convert force to curvature normal
+        //forceToCurvature(cn, front);
         checkCurvature(cn, front, radius, errorFileCurvature);
 
         // Check normals
         meshQuality(front, errorFileNormalVector);
         checkNormal(cn, front, center, errorFileNormalVector);
-
-        /*
-        // For Tryggvason method: convert force to curvature normal
-        forceToCurvature(cn, front);
-        checkCurvature(cn, front, radius, errorFileDummy);
-        */
     }
     else // Ellipsoid
     {
@@ -817,17 +815,13 @@ int main(int argc, char *argv[])
 
         // Check curvature
         meshQuality(front, errorFileCurvature);
+        // For Tryggvason method: convert force to curvature normal
+        //forceToCurvature(cn, front);
         checkEllipsoidCurvature(cn, front, uv, center, axes, errorFileCurvature);
 
         // Check normals
         meshQuality(front, errorFileNormalVector);
         checkEllipsoidNormal(cn, front, uv, center, axes, errorFileNormalVector);
-
-        /*
-        // For Tryggvason method: convert force to curvature normal
-        forceToCurvature(cn, front);
-        checkEllipsoidCurvature(cn, front, uv, center, axes, errorFileDummy);
-        */
     }
 
     errorFileCurvature.close();

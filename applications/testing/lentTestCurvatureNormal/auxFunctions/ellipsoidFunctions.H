@@ -26,6 +26,9 @@ void ellipsoidDeviation(const triSurface& front,
                         vector center, vector axis,
                         std::fstream& errorFile);
 
+void computeUV(const triSurface& front, triSurfacePointVectorField& uv,
+               vector center);
+
 void correctFront(triSurface& front,
                   triSurfacePointVectorField& uv,
                   vector center, vector axis);
