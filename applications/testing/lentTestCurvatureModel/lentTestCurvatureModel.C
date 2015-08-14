@@ -152,11 +152,15 @@ int main(int argc, char *argv[])
     numericalCurvature.rename("numericalCurvature"); 
 
     // FIXME: How to filter out the curvature for testing? PEqn uses snGrad for this. How is the surface
-    // tension force filtered out in the UEqn?   
     //volScalarField onesFilter (mapToOnes(mag(fvc::grad(markerField)), [](scalar x) { return x > SMALL; })); 
-    volScalarField onesFilter (mapToOnes(mag(markerField), [](scalar x) { return (x > 0) && (x < 1); })); 
+    volScalarField onesFilter (mapToOnes(markerField, [](scalar x) { return (x > 0) && (x < 1); })); 
+    // TODO: cleanup required
+    onesFilter.rename("ones"); 
+    onesFilter.write(); 
     numericalCurvature *= onesFilter; 
     exactCurvature *= onesFilter; 
+
+    Info << max(numericalCurvature).value() << " " << min(numericalCurvature).value() << endl; 
 
     volScalarField LinfField ("LinfCurvatureErr", mag(exactCurvature - numericalCurvature)); 
     dimensionedScalar Linf = max(LinfField);
@@ -169,6 +173,8 @@ int main(int argc, char *argv[])
     LinfField.write(); 
     front.write();
     runTime.write();
+
+    Info <<"Maximal curvature error = " << Linf.value() << endl;
 
     Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
         << "  ClockTime = " << runTime.elapsedClockTime() << " s"
