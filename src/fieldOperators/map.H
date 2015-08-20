@@ -35,8 +35,9 @@ template
     typename FilterFunction
 >
 tmp<GeometricField<Type, PatchField,Mesh>>  
-mapToOnes(
+map(
     GeometricField<Type, PatchField, Mesh> const& vf, 
+    Type value, 
     FilterFunction filter = true_ref_lambda 
 )
 {
@@ -60,7 +61,7 @@ mapToOnes(
     {
         if (filter(vf[cellI]))
         {
-            result[cellI] = pTraits<Type>::one;
+            result[cellI] = value; 
         }
     }
 
@@ -75,9 +76,9 @@ template
     typename FilterFunction
 >
 tmp<GeometricField<Type, PatchField, Mesh>>  
-mapToOnes(tmp<GeometricField<Type, PatchField, Mesh> > vfTmp, FilterFunction filter)
+mapToOnes(tmp<GeometricField<Type, PatchField, Mesh> > vfTmp, Type value, FilterFunction filter)
 {
-    return mapToOnes(vfTmp(), filter); 
+    return mapToOnes(vfTmp(), value, filter); 
 }
 
 } // End namespace Foam 

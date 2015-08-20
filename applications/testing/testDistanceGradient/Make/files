@@ -1,0 +1,4 @@
+
+testDistanceGradient.C
+
+EXE = $(FOAM_APPBIN)/testDistanceGradient

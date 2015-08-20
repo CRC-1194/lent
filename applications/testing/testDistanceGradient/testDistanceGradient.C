@@ -29,7 +29,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "mapToOnes.H"
+#include "map.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Main program:
@@ -51,9 +51,22 @@ int main(int argc, char *argv[])
         mesh
     );
 
+    volScalarField alpha1( 
+        IOobject(
+            "alpha.water", 
+            runTime.timeName(), 
+            runTime, 
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh
+    );
+
     volVectorField distGrad = fvc::grad(signedDistance, "distanceGradient"); 
 
     volScalarField distGradMag = mag(distGrad); 
+
+    distGradMag *= map(alpha1, 1.0, [](double x) { return  (x > 0) && (x < 1); }); 
 
     Info << max(distGradMag) << " " << min(distGradMag) << endl;
 

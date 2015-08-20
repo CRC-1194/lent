@@ -39,68 +39,10 @@ Authors
 #include "turbulenceModel.H"
 #include "lentMethod.H"
 #include "volMesh.H"
+#include "map.H"
 #include <fstream>
 
 using namespace FrontTracking;
-
-namespace Foam {
-
-auto true_ref_lambda = [](const auto& x) { return true; };
-
-template
-<
-    typename Type, 
-    template<typename> class PatchField, 
-    typename Mesh, 
-    typename FilterFunction
->
-tmp<GeometricField<Type, PatchField,Mesh>>  
-mapToOnes(
-    GeometricField<Type, PatchField, Mesh> const& vf, 
-    FilterFunction filter = true_ref_lambda 
-)
-{
-    tmp<GeometricField<Type, PatchField, Mesh> > resultTmp(
-        new GeometricField<Type, PatchField, Mesh>(
-            IOobject(
-                "ones", 
-                vf.time().timeName(), 
-                vf.mesh(), 
-                IOobject::NO_READ, 
-                IOobject::AUTO_WRITE
-            ),
-            vf.mesh(), 
-            dimensioned<Type>("zero", dimless, pTraits<Type>::zero)
-        )
-    ); 
-
-    GeometricField<Type, PatchField, Mesh>& result = resultTmp(); 
-
-    forAll(vf, cellI)
-    {
-        if (filter(vf[cellI]))
-        {
-            result[cellI] = pTraits<Type>::one;
-        }
-    }
-
-    return resultTmp;
-}; 
-
-template
-<
-    typename Type, 
-    template<typename> class PatchField, 
-    typename Mesh, 
-    typename FilterFunction
->
-tmp<GeometricField<Type, PatchField, Mesh>>  
-mapToOnes(tmp<GeometricField<Type, PatchField, Mesh> > vfTmp, FilterFunction filter)
-{
-    return mapToOnes(vfTmp(), filter); 
-}
-
-}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Main program:
@@ -153,7 +95,7 @@ int main(int argc, char *argv[])
 
     // FIXME: How to filter out the curvature for testing? PEqn uses snGrad for this. How is the surface
     //volScalarField onesFilter (mapToOnes(mag(fvc::grad(markerField)), [](scalar x) { return x > SMALL; })); 
-    volScalarField onesFilter (mapToOnes(markerField, [](scalar x) { return (x > 0) && (x < 1); })); 
+    volScalarField onesFilter (map(markerField, 1.0, [](scalar x) { return (x > 0) && (x < 1); })); 
     // TODO: cleanup required
     onesFilter.rename("ones"); 
     onesFilter.write(); 
