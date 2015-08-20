@@ -22,20 +22,17 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Description
-    Geometric field map operations.
+    Field filters. 
 
-Author 
-    Tomislav Maric
+Author
+    Tomislav Maric 
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef map_H
-#define map_H
-
-#include "lambda.H" 
+#ifndef filter_H
+#define filter_H
 
 namespace Foam {
-
 
 template
 <
@@ -45,16 +42,15 @@ template
     typename FilterFunction
 >
 tmp<GeometricField<Type, PatchField,Mesh>>  
-map(
+filter(
     GeometricField<Type, PatchField, Mesh> const& vf, 
-    Type value, 
-    FilterFunction filterFunction = true_ref_lambda 
+    FilterFunction filter = true_ref_lambda 
 )
 {
     tmp<GeometricField<Type, PatchField, Mesh> > resultTmp(
         new GeometricField<Type, PatchField, Mesh>(
             IOobject(
-                "map(" + vf.name() + ")", 
+                "filter(" + vf.name() + ")", 
                 vf.time().timeName(), 
                 vf.mesh(), 
                 IOobject::NO_READ, 
@@ -69,13 +65,13 @@ map(
 
     forAll(vf, cellI)
     {
-        if (filterFunction(vf[cellI]))
+        if (filter(vf[cellI]))
         {
-            result[cellI] = value; 
+            result[cellI] = vf[cellI]; 
         }
     }
 
-    // TODO: Map boundary fields. TM
+    // TODO: Filter boundary fields. TM 
 
     return resultTmp;
 }; 
@@ -88,13 +84,12 @@ template
     typename FilterFunction
 >
 tmp<GeometricField<Type, PatchField, Mesh>>  
-map(
-    tmp<GeometricField<Type, PatchField, Mesh> > vfTmp, 
-    Type value, 
-    FilterFunction filterFunction
+mapToOnes(
+    tmp<GeometricField<Type, PatchField, Mesh> > vfTmp,
+    FilterFunction filter
 )
 {
-    return map(vfTmp(), value, filterFunction); 
+    return filter(vfTmp(), value, filter); 
 }
 
 } // End namespace Foam 
