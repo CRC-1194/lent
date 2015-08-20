@@ -40,6 +40,9 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMesh.H"
 
+    std::fstream errorFile; 
+    errorFile.open("gradientErrors.dat", std::ios_base::app);
+
     volScalarField signedDistance(
         IOobject(
             "signedDistance", 
@@ -68,7 +71,9 @@ int main(int argc, char *argv[])
 
     distGradMag *= map(alpha1, 1.0, [](double x) { return  (x > 0) && (x < 1); }); 
 
-    Info << max(distGradMag) << " " << min(distGradMag) << endl;
+    Info << max(distGradMag).value() << " " << min(distGradMag).value() << endl;
+
+    errorFile  << max(distGradMag).value() << " " << min(distGradMag).value() << endl;
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
