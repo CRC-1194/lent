@@ -44,7 +44,7 @@ template
 tmp<GeometricField<Type, PatchField,Mesh>>  
 filter(
     GeometricField<Type, PatchField, Mesh> const& vf, 
-    FilterFunction filter = true_ref_lambda 
+    FilterFunction filterFunction = true_ref_lambda 
 )
 {
     tmp<GeometricField<Type, PatchField, Mesh> > resultTmp(
@@ -65,7 +65,7 @@ filter(
 
     forAll(vf, cellI)
     {
-        if (filter(vf[cellI]))
+        if (filterFunction(vf[cellI]))
         {
             result[cellI] = vf[cellI]; 
         }
@@ -84,12 +84,12 @@ template
     typename FilterFunction
 >
 tmp<GeometricField<Type, PatchField, Mesh>>  
-mapToOnes(
+filter(
     tmp<GeometricField<Type, PatchField, Mesh> > vfTmp,
-    FilterFunction filter
+    FilterFunction filterFunction 
 )
 {
-    return filter(vfTmp(), value, filter); 
+    return filter(vfTmp(), filterFunction); 
 }
 
 } // End namespace Foam 
