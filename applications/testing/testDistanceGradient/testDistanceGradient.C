@@ -30,6 +30,7 @@ Description
 
 #include "fvCFD.H"
 #include "map.H"
+#include "filter.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Main program:
@@ -43,37 +44,54 @@ int main(int argc, char *argv[])
     std::fstream errorFile; 
     errorFile.open("gradientErrors.dat", std::ios_base::app);
 
-    volScalarField signedDistance(
+    const volScalarField signedDistance(
         IOobject(
             "signedDistance", 
             runTime.timeName(), 
             runTime, 
             IOobject::MUST_READ,
-            IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
         ),
         mesh
     );
 
-    volScalarField alpha1( 
+    const volScalarField alpha1( 
         IOobject(
             "alpha.water", 
             runTime.timeName(), 
             runTime, 
             IOobject::MUST_READ,
-            IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
         ),
         mesh
     );
 
+    // Cancel out the gradient in the narrow band (interface cells). 
+    volScalarField narrowBandFilterField = 
+        map(alpha1, 1.0, [](double x) { return  (x > 0) && (x < 1); }); 
+    narrowBandFilterField.rename("narrowBandFilterField"); 
+
     volVectorField distGrad = fvc::grad(signedDistance, "distanceGradient"); 
+    distGrad.writeOpt() = IOobject::AUTO_WRITE; 
 
     volScalarField distGradMag = mag(distGrad); 
+    distGradMag.rename("distGradMag"); 
+    distGradMag.writeOpt() = IOobject::AUTO_WRITE; 
 
-    distGradMag *= map(alpha1, 1.0, [](double x) { return  (x > 0) && (x < 1); }); 
+    distGradMag = distGradMag * narrowBandFilterField;  
 
-    Info << max(distGradMag).value() << " " << min(distGradMag).value() << endl;
+    volScalarField LinfError = mag(1 - distGradMag);  
+    LinfError.rename("LinfError"); 
+    LinfError = LinfError * narrowBandFilterField;  
+    LinfError.writeOpt() = IOobject::AUTO_WRITE; 
 
-    errorFile  << max(distGradMag).value() << " " << min(distGradMag).value() << endl;
+    dimensionedScalar h = max(mag(mesh.delta())); 
+    errorFile << h.value() << " " 
+        << max(LinfError).value() 
+        << " " << max(distGradMag).value() 
+        << " " << min(distGradMag).value() << "\n";
+
+    runTime.writeNow(); 
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
