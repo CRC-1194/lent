@@ -50,22 +50,6 @@ filter(
     FilterFunction filterFunction = true_ref_lambda 
 )
 {
-    //tmp<GeometricField<Type, PatchField, Mesh> > resultTmp(
-        //new GeometricField<Type, PatchField, Mesh>(
-            //IOobject(
-                //"filter(" + vf.name() + ")", 
-                //vf.time().timeName(), 
-                //vf.mesh(), 
-                //IOobject::NO_READ, 
-                //IOobject::AUTO_WRITE
-            //),
-            //vf.mesh(), 
-            //dimensioned<Type>("zero", dimless, pTraits<Type>::zero)
-        //)
-    //); 
-
-    //GeometricField<Type, PatchField, Mesh>& result = resultTmp(); 
-    
     DynamicField<Type> result;
 
     forAll(vf, cellI)
@@ -86,7 +70,6 @@ template
     typename Mesh, 
     typename FilterFunction
 >
-//tmp<GeometricField<Type, PatchField, Mesh>>  
 DynamicField<Type>
 filter(
     tmp<GeometricField<Type, PatchField, Mesh> > vfTmp,
