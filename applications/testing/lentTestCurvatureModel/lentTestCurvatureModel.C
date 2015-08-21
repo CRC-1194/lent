@@ -92,29 +92,25 @@ int main(int argc, char *argv[])
     tmp<volScalarField> numericalCurvatureTmp = numericalCurvatureModel.cellCurvature(mesh,frontMesh);  
     volScalarField& numericalCurvature = numericalCurvatureTmp();  
     numericalCurvature.rename("numericalCurvature"); 
+    numericalCurvature.writeOpt() = IOobject::AUTO_WRITE; 
 
-    // FIXME: How to filter out the curvature for testing? PEqn uses snGrad for this. How is the surface
-    //volScalarField onesFilter (mapToOnes(mag(fvc::grad(markerField)), [](scalar x) { return x > SMALL; })); 
     volScalarField onesFilter (map(markerField, 1.0, [](scalar x) { return (x > 0) && (x < 1); })); 
-    // TODO: cleanup required
     onesFilter.rename("ones"); 
-    onesFilter.write(); 
+    onesFilter.writeOpt() = IOobject::AUTO_WRITE; 
     numericalCurvature *= onesFilter; 
     exactCurvature *= onesFilter; 
 
     Info << max(numericalCurvature).value() << " " << min(numericalCurvature).value() << endl; 
 
     volScalarField LinfField ("LinfCurvatureErr", mag(exactCurvature - numericalCurvature)); 
+    LinfField.writeOpt() = IOobject::AUTO_WRITE; 
     dimensionedScalar Linf = max(LinfField);
 
     dimensionedScalar h = max(mag(mesh.delta())); 
     errorFile << h.value() << " " << Linf.value() << std::endl;
 
-    // FIXME: Clean up the write calls. TM. 
-    numericalCurvature.write(); 
-    LinfField.write(); 
     front.write();
-    runTime.write();
+    runTime.writeNow();
 
     Info <<"Maximal curvature error = " << Linf.value() << endl;
 
