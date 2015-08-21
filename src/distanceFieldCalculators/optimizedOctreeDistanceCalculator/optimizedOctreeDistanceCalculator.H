@@ -23,17 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::triSurfaceMeshDistanceFieldCalculator
+    Foam::optimizedOctreeDistanceCalculator
 
 SourceFiles
-    triSurfaceMeshDistanceFieldCalculator.H
+    optimizedOctreeDistanceCalculator.H
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
     Computes signed distance fields between the volume mesh and the immersed
-    surface mesh using octree searches implemented in the triSurfaceMesh class.
+    surface mesh using octree searches implemented in the optimizedOctree class.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,8 +58,8 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef triSurfaceMeshDistanceFieldCalculator_H
-#define triSurfaceMeshDistanceFieldCalculator_H
+#ifndef optimizedOctreeDistanceCalculator_H
+#define optimizedOctreeDistanceCalculator_H
 
 #include "typeInfo.H"
 #include "refCount.H"
@@ -74,10 +74,10 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class triSurfaceMeshDistanceFieldCalculator Declaration
+                         Class optimizedOctreeDistanceCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class triSurfaceMeshDistanceFieldCalculator
+class optimizedOctreeDistanceCalculator
     :
         public distanceFieldCalculator
 {
@@ -93,10 +93,10 @@ class triSurfaceMeshDistanceFieldCalculator
 
 public:
 
-    TypeName("triSurfaceMeshCalculator");
+    TypeName("optimizedOctree");
 
     // Constructors
-        explicit triSurfaceMeshDistanceFieldCalculator(const dictionary& config);
+        explicit optimizedOctreeDistanceCalculator(const dictionary& config);
 
     // Member Functions
         void calcCellsToFrontDistance(

@@ -61,6 +61,7 @@ Description
 #include "dictionary.H"
 #include "fvcGrad.H" 
 #include "fvcDiv.H"
+#include "fvcLaplacian.H"
 #include "fvcAverage.H" 
 #include "surfaceInterpolate.H" 
 #include "addToRunTimeSelectionTable.H" 
@@ -122,12 +123,6 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature(
     //Cell gradient of alpha
     const volVectorField curvGrad(fvc::grad(curvatureInputField, "curvatureGradient"));
 
-    // TODO: uncomment
-    if (debug)
-    {
-        curvGrad.write(); 
-    }
-
     // Interpolated face-gradient of alpha
     surfaceVectorField curvGradF(fvc::interpolate(curvGrad));
 
@@ -143,20 +138,7 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature(
     // Face unit interface normal
     surfaceVectorField curvGradFhat(curvGradF /(mag(curvGradF) + deltaN));
 
-    if (debug)
-    {
-        volScalarField curvature = fvc::div(curvGradFhat & Sf); 
-        curvature.rename("curvature"); 
-        curvature.write(); 
-    }
-
-    // FIXME: Check the sign of the curvature in the pU coupling files. TM
     return fvc::div(curvGradFhat & Sf); 
-    
-    // TODO: Analyze the difference between the two options.
-    //return -fvc::div(
-        //fvc::grad(curvatureInputField) / (mag(fvc::grad(curvatureInputField)) + deltaN)
-    //); 
 }
 
 tmp<surfaceScalarField> frontCurvatureModel::faceCurvature(

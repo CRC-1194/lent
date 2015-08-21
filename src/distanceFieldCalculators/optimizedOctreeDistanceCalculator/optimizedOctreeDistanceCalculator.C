@@ -23,7 +23,7 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::triSurfaceMeshDistanceFieldCalculator
+    Foam::optimizedOctreeDistanceCalculator
 
 SourceFiles
     diffuseInterfaceProperties.C
@@ -33,7 +33,7 @@ Author
 
 Description
     Computes signed distance fields between the volume mesh and the immersed
-    surface mesh using octree searches implemented in the triSurfaceMesh class.
+    surface mesh using octree searches implemented in the optimizedOctree class.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,17 +58,17 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "triSurfaceMeshDistanceFieldCalculator.H"
+#include "optimizedOctreeDistanceCalculator.H"
 #include "addToRunTimeSelectionTable.H"
 #include "volumeType.H"
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(triSurfaceMeshDistanceFieldCalculator, 0);
+    defineTypeNameAndDebug(optimizedOctreeDistanceCalculator, 0);
     addToRunTimeSelectionTable(
        distanceFieldCalculator,
-       triSurfaceMeshDistanceFieldCalculator,
+       optimizedOctreeDistanceCalculator,
        Dictionary
     );
 
@@ -76,7 +76,7 @@ namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-triSurfaceMeshDistanceFieldCalculator::triSurfaceMeshDistanceFieldCalculator(
+optimizedOctreeDistanceCalculator::optimizedOctreeDistanceCalculator(
     const dictionary& config
 )
 :
@@ -90,13 +90,13 @@ triSurfaceMeshDistanceFieldCalculator::triSurfaceMeshDistanceFieldCalculator(
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
+void optimizedOctreeDistanceCalculator::calcCellsToFrontDistance(
     volScalarField& signedDistance,
     const volScalarField& searchDistanceSqr,
     const triSurfaceFront& front
 )
 {
-    // FIXME: Used for parallelization, needs work. TM
+    // FIXME: Used for parallelization, needs fixing. TM
     if (front.size() > 0)
     {
         signedDistance = dimensionedScalar(
@@ -130,40 +130,28 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
     // Get the cell centres.
     const volVectorField& C = mesh.C();
 
-    // FIXME: combine with the KVS algorithm. TM. 
+    // FIXME: Update the cellsElementNearest by the KVS algorithm. TM. 
+    // Use the same list below to compute the distances from the point hit.
     frontMesh.findNearest(
         C,
         searchDistanceSqr,
         cellsElementNearest_
     );
 
-    // Create a list of the volume types: based on the cell centre, the
-    List<volumeType> volType;
-    // Fill the list of the volume types.
-    frontMesh.getVolumeType(C, volType);
-
-    // For all volume types.
-    forAll(volType, I)
+    const auto& faceNormals = front.faceNormals(); 
+    
+    // For all cell-elements.  
+    forAll(cellsElementNearest_, I)
     {
-        // Get the volume type.
-        volumeType vT = volType[I];
-
         const pointIndexHit& h = cellsElementNearest_[I];
 
         if (h.hit())
         {
-            // If the volume is OUTSIDE.
-            if (vT == volumeType::OUTSIDE)
-            {
-                // Set the positive distance.
-                signedDistance[I] = Foam::mag(C[I] - h.hitPoint());
-            }
-            // If the volume is inside.
-            else if (vT == volumeType::INSIDE)
-            {
-                // Set the negative distance.
-                signedDistance[I] = -Foam::mag(C[I] - h.hitPoint());
-            }
+            // Set the distance.
+            auto unitNormal = faceNormals[h.index()] / mag(faceNormals[h.index()]); 
+            auto distanceVector = C[I] - h.hitPoint(); 
+            auto distSign = sign(unitNormal & distanceVector); 
+            signedDistance[I] = distSign * mag(distanceVector);  
         }
     }
 
@@ -173,7 +161,7 @@ void triSurfaceMeshDistanceFieldCalculator::calcCellsToFrontDistance(
     narrowBandTmp_->ensureNarrowBand(signedDistance, GREAT);
 }
 
-void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
+void optimizedOctreeDistanceCalculator::calcPointsToFrontDistance(
     pointScalarField& pointSignedDistance,
     const pointScalarField& pointSearchDistanceSqr,
     const triSurfaceFront& front
@@ -213,31 +201,20 @@ void triSurfaceMeshDistanceFieldCalculator::calcPointsToFrontDistance(
         pointsElementNearest_
     );
 
-    List<volumeType> volType;
-    frontMesh.getVolumeType(points, volType);
-
-    // For all volume types.
-    forAll(volType, I)
+    // For all cell-elements.  
+    const auto& faceNormals = front.faceNormals(); 
+    forAll(pointsElementNearest_, I)
     {
-        // Get the volume type.
-        volumeType vT = volType[I];
-
         const pointIndexHit& h = pointsElementNearest_[I];
 
         if (h.hit())
         {
-            // If the volume is OUTSIDE.
-            if (vT == volumeType::OUTSIDE)
-            {
-                // Set the positive distance.
-                pointSignedDistance[I] = Foam::mag(points[I] - h.hitPoint());
-            }
-            // If the volume is inside.
-            else if (vT == volumeType::INSIDE)
-            {
-                // Set the negative distance.
-                pointSignedDistance[I] = -Foam::mag(points[I] - h.hitPoint());
-            }
+            // Set the distance.
+            auto unitNormal = faceNormals[h.index()] / mag(faceNormals[h.index()]); 
+            auto distanceVector = points[I] - h.hitPoint(); 
+            auto distSign = sign(unitNormal & distanceVector); 
+
+            pointSignedDistance[I] = distSign * mag(distanceVector);  
         }
     }
 
