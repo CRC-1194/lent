@@ -32,6 +32,9 @@ Author
 #ifndef filter_H
 #define filter_H
 
+#include "DynamicField.H"
+#include "dimensionedType.H"
+
 namespace Foam {
 
 template
@@ -41,39 +44,39 @@ template
     typename Mesh, 
     typename FilterFunction
 >
-tmp<GeometricField<Type, PatchField,Mesh>>  
+DynamicField<Type>
 filter(
     GeometricField<Type, PatchField, Mesh> const& vf, 
     FilterFunction filterFunction = true_ref_lambda 
 )
 {
-    tmp<GeometricField<Type, PatchField, Mesh> > resultTmp(
-        new GeometricField<Type, PatchField, Mesh>(
-            IOobject(
-                "filter(" + vf.name() + ")", 
-                vf.time().timeName(), 
-                vf.mesh(), 
-                IOobject::NO_READ, 
-                IOobject::AUTO_WRITE
-            ),
-            vf.mesh(), 
-            dimensioned<Type>("zero", dimless, pTraits<Type>::zero)
-        )
-    ); 
+    //tmp<GeometricField<Type, PatchField, Mesh> > resultTmp(
+        //new GeometricField<Type, PatchField, Mesh>(
+            //IOobject(
+                //"filter(" + vf.name() + ")", 
+                //vf.time().timeName(), 
+                //vf.mesh(), 
+                //IOobject::NO_READ, 
+                //IOobject::AUTO_WRITE
+            //),
+            //vf.mesh(), 
+            //dimensioned<Type>("zero", dimless, pTraits<Type>::zero)
+        //)
+    //); 
 
-    GeometricField<Type, PatchField, Mesh>& result = resultTmp(); 
+    //GeometricField<Type, PatchField, Mesh>& result = resultTmp(); 
+    
+    DynamicField<Type> result;
 
     forAll(vf, cellI)
     {
         if (filterFunction(vf[cellI]))
         {
-            result[cellI] = vf[cellI]; 
+            result.append(vf[cellI]); 
         }
     }
 
-    // TODO: Filter boundary fields. TM 
-
-    return resultTmp;
+    return result;
 }; 
 
 template
@@ -83,7 +86,8 @@ template
     typename Mesh, 
     typename FilterFunction
 >
-tmp<GeometricField<Type, PatchField, Mesh>>  
+//tmp<GeometricField<Type, PatchField, Mesh>>  
+DynamicField<Type>
 filter(
     tmp<GeometricField<Type, PatchField, Mesh> > vfTmp,
     FilterFunction filterFunction 

@@ -71,25 +71,25 @@ int main(int argc, char *argv[])
         map(alpha1, 1.0, [](double x) { return  (x > 0) && (x < 1); }); 
     narrowBandFilterField.rename("narrowBandFilterField"); 
 
-    volVectorField distGrad = fvc::grad(signedDistance, "distanceGradient"); 
+    volVectorField distGrad = fvc::grad(signedDistance, "distGrad"); 
     distGrad.writeOpt() = IOobject::AUTO_WRITE; 
+    distGrad = distGrad * narrowBandFilterField; 
 
     volScalarField distGradMag = mag(distGrad); 
     distGradMag.rename("distGradMag"); 
     distGradMag.writeOpt() = IOobject::AUTO_WRITE; 
-
     distGradMag = distGradMag * narrowBandFilterField;  
 
-    volScalarField LinfError = mag(1 - distGradMag);  
-    LinfError.rename("LinfError"); 
-    LinfError = LinfError * narrowBandFilterField;  
-    LinfError.writeOpt() = IOobject::AUTO_WRITE; 
+    // Filter out the zeros in the bulk. 
+    auto distGradMagFilt = filter(distGradMag, [](double x) {return x > 0;}); 
+
+    auto LinfError = mag(1 - distGradMagFilt);  
 
     dimensionedScalar h = max(mag(mesh.delta())); 
     errorFile << h.value() << " " 
-        << max(LinfError).value() 
-        << " " << max(distGradMag).value() 
-        << " " << min(distGradMag).value() << "\n";
+        << max(LinfError)
+        << " " << max(distGradMagFilt)
+        << " " << min(distGradMagFilt) << "\n";
 
     runTime.writeNow(); 
 
