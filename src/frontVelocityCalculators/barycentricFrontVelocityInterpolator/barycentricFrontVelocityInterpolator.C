@@ -110,9 +110,9 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
 
             const point& vertex = vertices[element[vertexI]]; 
 
-            if (!pointIsInCell(vertex, elementCells[elementI], mesh))
+            if (!pointIsInCell(vertex, elementCells[elementI], mesh)) 
             {
-                foundCell  = cellContainingPoint(
+                foundCell = cellContainingPoint(
                     vertex,
                     mesh,
                     elementCells[elementI]
@@ -123,6 +123,8 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
                     elementCells[elementI] = foundCell;
                 }
             }
+            else
+                foundCell = elementCells[elementI];
 
             if (foundCell > 0)
             {
