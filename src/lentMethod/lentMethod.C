@@ -200,6 +200,7 @@ void lentMethod::reconstructFront(
 {
     if (frontReconstructionModelTmp_->reconstructionRequired(front, signedDistance))
     {
+        Info << "Reconstructing front..." << endl;
         elementCells_ = frontReconstructorTmp_->reconstructFront(
             front,
             signedDistance,
@@ -207,6 +208,7 @@ void lentMethod::reconstructFront(
         );
 
         frontIsReconstructed_ = true;
+        Info << "Done." << endl;
     }
 }
 
