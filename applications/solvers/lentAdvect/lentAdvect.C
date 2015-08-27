@@ -111,6 +111,16 @@ int main(int argc, char *argv[])
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
+    lent.calcSignedDistances(
+        signedDistance,
+        pointSignedDistance,
+        searchDistanceSqr,
+        pointSearchDistanceSqr,
+        front
+    );
+
+    lent.calcMarkerField(markerField);
+
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
     front.write();
@@ -127,6 +137,11 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
+        lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
+        lent.calcFrontVelocity(frontVelocity, U);
+
+        lent.evolveFront(front, frontVelocity);
 
         lent.calcSignedDistances(
             signedDistance,
@@ -142,12 +157,6 @@ int main(int argc, char *argv[])
         mixture.correct();
         // Update density field.
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
-
-        lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-        lent.calcFrontVelocity(frontVelocity, U);
-
-        lent.evolveFront(front, frontVelocity);
 
         runTime.write();
 
