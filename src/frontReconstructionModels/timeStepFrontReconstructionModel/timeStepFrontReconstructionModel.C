@@ -88,6 +88,9 @@ bool timeStepFrontReconstructionModel::reconstructionRequired(
 {
     const Time& runTime = signedDistance.time();
 
+    if (runTime.timeIndex() <= 1) 
+        return true; 
+
     if (reconstructionInterval_ == 0)
         return false; 
 
