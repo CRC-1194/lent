@@ -96,15 +96,15 @@ void centerNormalConsistency::makeFrontNormalsConsistent(
     {
         point P = frontPoints[triangles[E][0]];
         label cellI = triangleCells[E];
-        point C = cellCenters[cellI];
-        vector n = triangleNormals[E];
-        n /= mag(n);
+        const point& C = cellCenters[cellI];
+        const vector& n = triangleNormals[E];
+        //n /= mag(n);
 
-        scalar normalCellDistance = (C - P) & n;
+        //scalar normalProjection = (C - P) & n;
 
         //if (((normalCellDistance < 0 && signedDistance[cellI] > 0)  ||
             //(normalCellDistance > 0 && signedDistance[cellI] < 0)))
-        if (normalCellDistance * signedDistance[cellI] <  0)
+        if (((C - P) & n) * signedDistance[cellI] <  0)
         {
             triangles[E].flip();
         }
