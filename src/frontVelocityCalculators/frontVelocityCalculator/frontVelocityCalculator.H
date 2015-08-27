@@ -113,7 +113,7 @@ public:
         const point p,
         const label cellLabel,
         const fvMesh& mesh,
-        scalar tolerance=SMALL
+        scalar tolerance=-SMALL
     ) const
     {
         return searchAlgTmp_->pointIsInCell(p, cellLabel, mesh, tolerance);
