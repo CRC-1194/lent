@@ -159,7 +159,7 @@ label frontMeshSearch::cellContainingPoint(
 {
     //appendLabelAndWriteCellSet(seedCell);
 
-    if (pointIsInCell(p, seedCell, mesh))
+    if (pointIsInCell(p, seedCell, mesh, -SMALL)) // FIXME: Tolerance data member? TM.
     {
         //appendLabelAndWriteCellSet(seedCell);
         return seedCell;
@@ -191,7 +191,7 @@ label frontMeshSearch::cellContainingPoint(
 
         //Info << "minDistance = " << minDistance << endl;
 
-        if (pointIsInCell(p, neighborCell, mesh))
+        if (pointIsInCell(p, neighborCell, mesh, -SMALL)) // FIXME: Tolerance data member? TM.
         {
             //appendLabelAndWriteCellSet(neighborCell);
             lastDistance_ = minDistance;
@@ -212,7 +212,7 @@ label frontMeshSearch::cellContainingPoint(
         }
     }
 
-    if (pointIsInCell(p, minDistanceCell, mesh))
+    if (pointIsInCell(p, minDistanceCell, mesh, -SMALL)) // FIXME: Tolerance data member? TM. 
     {
         //appendLabelAndWriteCellSet(seedCell);
         lastDistance_ = minDistance;
@@ -228,7 +228,7 @@ label frontMeshSearch::cellContainingPoint(
         {
             //Info << "skipping to cell " << minDistanceCell << endl;
             lastDistance_ = minDistance;
-            return cellContainingPoint(p, mesh, minDistanceCell);
+            return cellContainingPoint(p, mesh, minDistanceCell); 
         }
     }
 
@@ -330,7 +330,7 @@ void frontMeshSearch::updateElementCells(
 
             const point& vertex = vertices[element[vertexI]];
 
-            if (!pointIsInCell(vertex, elementCells[elementI], mesh))
+                if (!pointIsInCell(vertex, elementCells[elementI], mesh, -SMALL)) //FIXME: Tolerance data member? TM. 
             {
                 foundCell  = cellContainingPoint(
                     vertex,

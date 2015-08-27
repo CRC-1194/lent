@@ -118,7 +118,7 @@ public:
             const point p,
             const label cellLabel,
             const fvMesh& mesh,
-            scalar tolerance=SMALL
+            scalar tolerance=-SMALL
         ) const;
 
         virtual label cellContainingPoint(
