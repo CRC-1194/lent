@@ -148,9 +148,10 @@ void optimizedOctreeDistanceCalculator::calcCellsToFrontDistance(
         if (h.hit())
         {
             // Set the distance.
-            auto unitNormal = faceNormals[h.index()] / mag(faceNormals[h.index()]); 
+            //auto unitNormal = faceNormals[h.index()] / mag(faceNormals[h.index()]); 
+            const auto& faceNormal = faceNormals[h.index()]; 
             auto distanceVector = C[I] - h.hitPoint(); 
-            auto distSign = sign(unitNormal & distanceVector); 
+            auto distSign = sign(faceNormal & distanceVector); 
             signedDistance[I] = distSign * mag(distanceVector);  
         }
     }
@@ -210,10 +211,10 @@ void optimizedOctreeDistanceCalculator::calcPointsToFrontDistance(
         if (h.hit())
         {
             // Set the distance.
-            auto unitNormal = faceNormals[h.index()] / mag(faceNormals[h.index()]); 
+            //auto unitNormal = faceNormals[h.index()] / mag(faceNormals[h.index()]); 
+            const auto& faceNormal = faceNormals[h.index()] / mag(faceNormals[h.index()]); 
             auto distanceVector = points[I] - h.hitPoint(); 
-            auto distSign = sign(unitNormal & distanceVector); 
-
+            auto distSign = sign(faceNormal & distanceVector); 
             pointSignedDistance[I] = distSign * mag(distanceVector);  
         }
     }
