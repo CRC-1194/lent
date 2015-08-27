@@ -121,8 +121,6 @@ int main(int argc, char *argv[])
 
     lent.calcMarkerField(markerField);
 
-    lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
     front.write();
 
     while (runTime.run())
