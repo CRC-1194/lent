@@ -77,20 +77,31 @@ class maxNormalAngleFrontReconstructionModel
         public frontReconstructionModel
 {
 
-    label reconstructionInterval_;
+    scalar maxAngle_; 
+    scalar maxAngleCos_;  
 
 public:
 
-    TypeName ("maxNormalAngleReconstruction");
+    TypeName ("maxNormalAngle");
 
     // Constructors
-    maxNormalAngleFrontReconstructionModel(const dictionary& configDict);
+    explicit maxNormalAngleFrontReconstructionModel(const dictionary& configDict);
 
     // Member Functions
     virtual bool reconstructionRequired(
         const triSurfaceFront& front,
         const volScalarField& signedDistance
     ) const;
+
+    scalar maxAngle() const
+    {
+        return maxAngle_;  
+    }
+
+    scalar maxAngleCos() const
+    {
+        return maxAngleCos_;  
+    }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

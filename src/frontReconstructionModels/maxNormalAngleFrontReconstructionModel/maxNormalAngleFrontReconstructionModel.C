@@ -26,7 +26,7 @@ Class
     Foam::maxNormalAngleFrontReconstructionModel
 
 SourceFiles
-    diffuseInterfaceProperties.C
+     maxNormalAngleFrontReconstructionModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
@@ -76,7 +76,8 @@ namespace FrontTracking {
 maxNormalAngleFrontReconstructionModel::maxNormalAngleFrontReconstructionModel(const dictionary& configDict)
 :
     frontReconstructionModel(configDict),
-    reconstructionInterval_(readLabel(configDict.lookup("reconstructionInterval")))
+    maxAngle_(readScalar(configDict.lookup("maxAngle")) * M_PI / 180.0),
+    maxAngleCos_(Foam::cos(maxAngle_))
 {}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
@@ -86,16 +87,54 @@ bool maxNormalAngleFrontReconstructionModel::reconstructionRequired(
     const volScalarField& signedDistance
 ) const
 {
-    const Time& runTime = signedDistance.time();
-
-    if (runTime.timeIndex() <= 1) 
+    if (signedDistance.time().timeIndex() <= 1)
         return true; 
 
-    if (reconstructionInterval_ == 0)
-        return false; 
+    const auto& edges = front.edges(); 
+    const auto& allEdgeFaces = front.edgeFaces(); 
+    const auto& faceNormals = front.faceNormals(); 
 
-    if ((runTime.timeIndex() % reconstructionInterval_) == 0)
-        return true;
+    Info << "max angle " << maxAngle_ << endl;
+    Info << "max angle cosinus : " << maxAngleCos_ << endl;
+
+    forAll(edges, I)
+    {
+        const auto& edgeFaces = allEdgeFaces[I];
+
+        const auto& n0 = faceNormals[edgeFaces[0]]; 
+
+        for(label J = 1; J < edgeFaces.size(); ++J)
+        //forAll(edgeFaces, J)
+        {
+            const auto& n = faceNormals[edgeFaces[J]]; 
+
+            Info << (n0 & n) << endl;
+            Info << mag(n0) << " " << mag(n) << endl;
+            //Info << Foam::acos((n0 & n) / (mag(n0) * mag(n))) << endl; 
+
+            if (((n0 & n) / (mag(n0) * mag(n))) < maxAngleCos_)
+            {
+                // FIXME: Put under TESTING conditional compilation.
+                if ((n0 & n) < 0)
+                {
+                    Info << "NORMALS INCONSISTENTLY ORIENTED." << endl; 
+                }
+
+                //Info << "n = " << n << endl 
+                    //<<  "n0 = " << n0  << endl 
+                    //<< "((n0 & n) / (mag(n0) * mag(n))) = " 
+                    //<< ((n0 & n) / (mag(n0) * mag(n))) << endl 
+                    //<< "maxAngleCos_ =  " << maxAngleCos_  << endl 
+                    //<< "Foam::acos(((n0 & n) / (mag(n0) * mag(n)))) = " 
+                    //<< Foam::acos(((n0 & n) / (mag(n0) * mag(n)))) << endl 
+                    //<< "maxAngle_ = " << maxAngle_ << endl 
+                    //<< "((maxAngle_ * 180.00) / M_PI) = " 
+                    //<< ((maxAngle_ * 180.00) / M_PI)  << endl; 
+
+                //return true; 
+            }
+        }
+    }
 
     return false;
 }
