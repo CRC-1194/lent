@@ -228,8 +228,8 @@ int main(int argc, char *argv[])
     errorFile.precision(4);
 
     // Write header
-    errorFile << "# h [m]\ttime[s]\terror p_total\terror p_partial\t"
-              << "error p_max\n"; 
+    //errorFile << "# h [m]\ttime[s]\terror p_total\terror p_partial\t"
+    //          << "error p_max\n"; 
 
     const scalar radius = args.optionRead<scalar>("radius");
     const vector center = args.optionRead<vector>("center");
