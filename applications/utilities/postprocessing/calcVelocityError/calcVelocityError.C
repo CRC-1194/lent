@@ -136,13 +136,17 @@ int main(int argc, char *argv[])
 
     std::string header = "# h [m]\ttime [s]\tone-norm [m/s]\ttwo-norm [m/s]\tmax-norm [m/s]";
     errorFileCC.open(errorFileNameCCPtr, std::ios_base::app);
+    /* Moved header to script file to avoid duplication
     errorFileCC << "# Cell centered velocities\n"
                 << header
                 << std::endl;
+    */
     errorFileFC.open(errorFileNameFCPtr, std::ios_base::app);
+    /*
     errorFileFC << "# Face centered velocities\n"
                 << header
                 << std::endl;
+    */
 
     // Get the time directories from the simulation folder using time selector
     Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
