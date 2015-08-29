@@ -248,6 +248,18 @@ int main(int argc, char *argv[])
             IOobject::NO_WRITE
         )
     );
+    IOdictionary lentSolutionDict
+    (
+        IOobject
+        (
+            "lentSolution",
+            "system",
+            runTime,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    );
+
     const dimensionedScalar sigma(transportPropertiesDict.lookup("sigma"));
     scalar deltaP_exact = 0;
 
@@ -299,10 +311,27 @@ int main(int argc, char *argv[])
         scalar error_partial = mag(mag(deltaP_partial) - mag(deltaP_exact)) / mag(deltaP_exact);
         scalar error_max = mag(mag(deltaP_max) - mag(deltaP_exact)) / mag(deltaP_exact);
 
+        // Read varying parameters from dictionaries for unique identification
+        // of results
+        const dictionary& transportProperties = 
+            runTime.lookupObject<dictionary>("transportProperties");
+        const dictionary& air = transportProperties.subDict("air");
+        const dimensionedScalar rhoAir = air.lookup("rho");
+
+        const dictionary& lentSolution = 
+            runTime.lookupObject<dictionary>("lentSolution");
+        const dictionary& surfaceTensionForceModel
+            = lentSolution.subDict("surfaceTensionForceModel");
+        const dictionary& curvatureModel
+            = surfaceTensionForceModel.subDict("curvatureModel");
+        const word curvatureField
+            = curvatureModel.lookup("curvatureField");
+
         // Write errors to file, ignore initial condition
         if (timeI > 0)
         {
-            errorFile << h.value() << "\t\t" << runTime.timeName() << "\t"
+            errorFile << curvatureField << "\t" << rhoAir.value() << "\t"
+                      << h.value() << "\t\t" << runTime.timeName() << "\t"
                       << error_total << "\t\t\t" << error_partial << "\t\t\t"
                       << error_max << "\n";
         }
