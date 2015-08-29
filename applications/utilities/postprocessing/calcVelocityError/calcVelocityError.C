@@ -261,13 +261,13 @@ int main(int argc, char *argv[])
 
         if (timeI > 0)
         {
-            errorFileCC << curvatureField << "\t" << rhoAir.value() << "\t"
+            errorFileCC << curvatureField << "\t" << h.value() << "\t"
                         << h.value() << "\t" << runTime.timeName() << "\t\t"
                         << one_norm_cc.value() << "\t\t"<< two_norm_cc.value()
                         << "\t\t" << maximum_norm_cc.value() << std::endl;
 
-            errorFileFC << curvatureField << "\t" << rhoAir.value() << "\t"
-                        << h.value() << "\t" << runTime.timeName() << "\t\t"
+            errorFileFC << curvatureField << "\t" << h.value() << "\t"
+                        << rhoAir.value() << "\t" << runTime.timeName() << "\t\t"
                         << one_norm_fc.value() << "\t\t"<< two_norm_fc.value()
                         << "\t\t" << maximum_norm_fc.value() << "\n";
         }
