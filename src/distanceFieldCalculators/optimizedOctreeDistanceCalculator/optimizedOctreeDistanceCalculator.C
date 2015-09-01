@@ -96,23 +96,7 @@ void optimizedOctreeDistanceCalculator::calcCellsToFrontDistance(
     const triSurfaceFront& front
 )
 {
-    // FIXME: Used for parallelization, needs fixing. TM
-    if (front.size() > 0)
-    {
-        signedDistance = dimensionedScalar(
-            "GREAT",
-            dimLength,
-            GREAT
-        );
-    } else
-    {
-        signedDistance = dimensionedScalar(
-            "-GREAT",
-            dimLength,
-            -GREAT
-        );
-
-    }
+    signedDistance = dimensionedScalar("GREAT", dimLength, GREAT);
 
     const fvMesh& mesh = signedDistance.mesh();
 
@@ -148,15 +132,12 @@ void optimizedOctreeDistanceCalculator::calcCellsToFrontDistance(
         if (h.hit())
         {
             // Set the distance.
-            //auto unitNormal = faceNormals[h.index()] / mag(faceNormals[h.index()]); 
-            const auto& faceNormal = faceNormals[h.index()]; 
+            const auto& normalVector = faceNormals[h.index()]; 
             auto distanceVector = C[I] - h.hitPoint(); 
-            auto distSign = sign(faceNormal & distanceVector); 
+            auto distSign = sign(normalVector & distanceVector); 
             signedDistance[I] = distSign * mag(distanceVector);  
         }
     }
-
-    // TODO: for coupled / processor boundaries
 
     // TODO: GREAT --> make it a controllable configuraton value
     narrowBandTmp_->ensureNarrowBand(signedDistance, GREAT);
@@ -170,14 +151,7 @@ void optimizedOctreeDistanceCalculator::calcPointsToFrontDistance(
 {
     pointSignedDistance.resize(pointSearchDistanceSqr.size());
 
-    // FIXME: Used for parallelization, needs work. TM
-    if (front.size() > 0)
-    {
-        pointSignedDistance = dimensionedScalar("GREAT", dimLength, GREAT);
-    } else
-    {
-        pointSignedDistance = dimensionedScalar("-GREAT", dimLength, -GREAT);
-    }
+    pointSignedDistance = dimensionedScalar("GREAT", dimLength, GREAT);
 
     // Get the cell centres.
     const pointMesh& pMesh = pointSignedDistance.mesh();
@@ -211,10 +185,9 @@ void optimizedOctreeDistanceCalculator::calcPointsToFrontDistance(
         if (h.hit())
         {
             // Set the distance.
-            //auto unitNormal = faceNormals[h.index()] / mag(faceNormals[h.index()]); 
-            const auto& faceNormal = faceNormals[h.index()] / mag(faceNormals[h.index()]); 
+            const auto& normalVector = faceNormals[h.index()];
             auto distanceVector = points[I] - h.hitPoint(); 
-            auto distSign = sign(faceNormal & distanceVector); 
+            auto distSign = sign(normalVector & distanceVector); 
             pointSignedDistance[I] = distSign * mag(distanceVector);  
         }
     }
