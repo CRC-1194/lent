@@ -82,18 +82,16 @@ public:
     TypeName ("Euler");
 
     // Constructors
-
-        eulerFrontMotionSolver(const dictionary& configDict);
+    explicit eulerFrontMotionSolver(const dictionary& configDict);
 
     // Destructor
-        virtual ~eulerFrontMotionSolver();
+    virtual ~eulerFrontMotionSolver() = default;
 
     // Member Functions
-
-        void evolveFront(
-            triSurfaceFront& front,
-            const triSurfaceVectorField& frontVelocity
-        ) const;
+    void evolveFront(
+        triSurfaceFront& front,
+        const triSurfaceVectorField& frontVelocity
+    ) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

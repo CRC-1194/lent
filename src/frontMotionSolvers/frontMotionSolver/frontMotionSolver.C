@@ -97,11 +97,6 @@ frontMotionSolver::New(const dictionary& configDict)
     return tmp<frontMotionSolver> (cstrIter()(configDict));
 }
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-frontMotionSolver::~frontMotionSolver()
-{}
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking

@@ -97,15 +97,14 @@ public:
     );
 
     // Constructors
-
-        frontMotionSolver(const dictionary& configDict);
+        explicit frontMotionSolver(const dictionary& configDict);
 
     // Selectors
 
         static tmp<frontMotionSolver> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~frontMotionSolver();
+        virtual ~frontMotionSolver() = default;
 
     // Member Functions
 

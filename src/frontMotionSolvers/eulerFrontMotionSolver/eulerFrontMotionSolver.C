@@ -98,11 +98,6 @@ void eulerFrontMotionSolver::evolveFront(
     }
 }
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-eulerFrontMotionSolver::~eulerFrontMotionSolver()
-{}
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
