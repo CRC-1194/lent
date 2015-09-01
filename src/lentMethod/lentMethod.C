@@ -261,12 +261,11 @@ bool lentMethod::writeData(Ostream& os) const
 void lentMethod::calcFrontNormals(triSurfaceFront& front) const
 {
     auto& normals = front.storedFaceNormals(); 
-    const auto& points = front.localPoints(); 
-    const auto& faces = front.localFaces(); 
+    const auto& points = front.points(); 
 
     forAll(normals, faceI)
     {
-        normals[faceI] = faces[faceI].normal(points);  
+        normals[faceI] = front[faceI].normal(points);  
         normals[faceI] /= mag(normals[faceI]) + VSMALL;
     }
 }; 
