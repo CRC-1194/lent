@@ -29,6 +29,9 @@ SourceFiles
     frontCurvatureMeyer.C
 
 Author
+    Tobias Tolle bt@lefou-familie.org
+
+Contributors 
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
@@ -83,13 +86,20 @@ public:
     TypeName ("Meyer");
 
     // Constructors
-        frontCurvatureMeyer(const dictionary& configDict);
+    frontCurvatureMeyer(const dictionary& configDict);
 
-        virtual ~frontCurvatureMeyer() = default;  
+    virtual ~frontCurvatureMeyer() = default;  
 
     // Member functions
-        virtual tmp<volScalarField> cellCurvature(const fvMesh&, const triSurfaceMesh&) const; 
-        //virtual tmp<surfaceScalarField> faceCurvature(const fvMesh&, const triSurfaceMesh&) const; 
+    labelList orderVertices(labelledTri& tri, label V) const; 
+
+    scalar getAngle(vector& a, vector& b) const;
+
+    scalar cot(vector a, vector b) const;
+
+    scalar areaHeron(vector& A, vector& B, vector& C) const;
+
+    virtual tmp<volScalarField> cellCurvature(const fvMesh&, const triSurfaceMesh&) const; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
