@@ -214,6 +214,7 @@ public:
             return surfaceTensionForceModelTmp_->curvatureModel();
         };
 
+        void calcFrontNormals(triSurfaceFront& front) const; 
 
         // Empty writer: regIOobject is used only for registry queries.
         bool writeData(Ostream& os) const;

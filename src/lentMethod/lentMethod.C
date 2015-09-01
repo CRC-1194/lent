@@ -244,6 +244,9 @@ void lentMethod::evolveFront(
     );
 
     frontIsReconstructed_ = false;
+
+    // The normals must be calculated.
+    calcFrontNormals(front); 
 }
 
 bool lentMethod::writeData(Ostream& os) const
@@ -254,6 +257,19 @@ bool lentMethod::writeData(Ostream& os) const
 
     return false;
 }
+
+void lentMethod::calcFrontNormals(triSurfaceFront& front) const
+{
+    auto& normals = front.storedFaceNormals(); 
+    const auto& points = front.points(); 
+    const auto& faces = front.localFaces(); 
+
+    forAll(normals, faceI)
+    {
+        normals[faceI] = faces[faceI].normal(points);  
+        normals[faceI] /= mag(normals[faceI]) + VSMALL;
+    }
+}; 
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
 
