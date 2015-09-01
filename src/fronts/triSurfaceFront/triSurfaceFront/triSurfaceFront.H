@@ -107,7 +107,6 @@ public:
     TypeName ("triSurfaceFront");
 
     // Constructors
-
     triSurfaceFront(const IOobject& io, word writeFormat="vtk", label prependZeros=8);
 
     //- Destructor
@@ -115,6 +114,12 @@ public:
 
     // Member Functions
     bool write() const;
+
+    // Return non-const access to face normals.
+    pointField& storedFaceNormals()
+    {
+        return const_cast<pointField&>(faceNormals());
+    } 
 
     bool writeObject
     (
