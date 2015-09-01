@@ -1,5 +1,6 @@
 
 lentTestCurvatureNormal.C
 auxFunctions/auxFunctions.C
+auxFunctions/ellipsoidFunctions.C
 
 EXE = $(FOAM_USER_APPBIN)/lentTestCurvatureNormal

@@ -58,11 +58,11 @@ Description
 #include "pimpleControl.H"
 
 #include "lentMethod.H"
-#include "frontCurvatureMeyer.H"
 
 #include <fstream>
 
 #include "auxFunctions/auxFunctions.H"
+#include "auxFunctions/ellipsoidFunctions.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -264,7 +264,9 @@ void sphereDeviation(const triSurface& front, scalar radius, vector center,
 // Following test exploits the property that the sum of surface tension of
 // closed surface has to be zero. In case of a constant surface tension
 // coefficient the same holds true for the sum of the curvature normals
-void checkGlobalForceBalance(triSurfacePointVectorField& cn)
+void checkGlobalForceBalance(triSurfacePointVectorField& cn,
+                             const triSurface& front,
+                             std::fstream& errorFile)
 {
     vector resultingForce(0.0,0.0,0.0);
 
@@ -274,6 +276,12 @@ void checkGlobalForceBalance(triSurfacePointVectorField& cn)
     }
 
     Info << "Magnitude of resulting force is " << mag(resultingForce) << endl;
+
+    errorFile << "# Global force balance header" << std::endl;
+    errorFile << "# n_points\tn_trias\tforce_sum" << std::endl;
+    errorFile << front.meshPoints().size() << "\t"
+              << front.localFaces().size() << "\t"
+              << mag(resultingForce) << std::endl;
 }
 
 // Compute mean curvature normal from discrete surface force by using
@@ -323,6 +331,9 @@ void meshQuality(const triSurface& front, std::fstream& file)
 
     scalar minArea = 1000.0; 
     scalar maxArea = 0.0; 
+
+    scalar minEdge = 1000.0;
+    scalar maxEdge = 0.0;
 
     forAll(localFaces, T)
     {
@@ -377,6 +388,15 @@ void meshQuality(const triSurface& front, std::fstream& file)
         // area check
         minArea = area < minArea ? area : minArea;
         maxArea = area > maxArea ? area : maxArea;
+
+        // minimum and maximum edge length
+        minEdge = mag(a) < minEdge ? mag(a) : minEdge;
+        minEdge = mag(b) < minEdge ? mag(b) : minEdge;
+        minEdge = mag(c) < minEdge ? mag(c) : minEdge;
+
+        maxEdge = mag(a) > maxEdge ? mag(a) : maxEdge;
+        maxEdge = mag(b) > maxEdge ? mag(b) : maxEdge;
+        maxEdge = mag(c) > maxEdge ? mag(c) : maxEdge;
     }
 
     // Write results
@@ -384,8 +404,11 @@ void meshQuality(const triSurface& front, std::fstream& file)
          << "# Minimum angle = " << 57.3*minAngle << "\n"
          << "# Maximum angle = " << 57.3*maxAngle << "\n"
          << "# Max edge ratio = " << maxRatio << "\n"
+         << "# Min edge length = " << minEdge << "\n"
+         << "# Max edge length = " << maxEdge << "\n"
          << "# Min area = " << minArea << "\n"
-         << "# Max Area = " << maxArea << std::endl;
+         << "# Max Area = " << maxArea << "\n"
+         << "# Area ratio = " << maxArea/minArea << std::endl;
 }
 
 /*****************************************************************************\
@@ -437,7 +460,11 @@ void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
         vector normal = v20 ^ v01;
         normal = normal / mag(normal);
 
-        // Compute contributions according to Tryggvason book
+        // Inverted order of the cross product is due to different labelling
+        // compared to Tryggvason book. With outward facing normals,
+        // the cross product wirtten here reults in an inward "pull"
+        // TODO: surface tension coefficient sigma has to be incorporated
+        // in actual implementation
         cn[l0] += 0.5 * v12 ^ normal;
         cn[l1] += 0.5 * v20 ^ normal;
         cn[l2] += 0.5 * v01 ^ normal;
@@ -445,15 +472,6 @@ void noCurvature(triSurfacePointVectorField& cn, const triSurface& front)
 }
 
 // Method from Meyer et al.
-//
-// Current TODO: Check how much improvement can be achieved if the curvature
-// for one-ring-neighborhoods with obtuse triangles are computed with a more
-// accurate method (for now this is simply the exact curvature for it
-// represents the maximum possible improvement
-//
-// First test indicates that it may improve the L_inf norm for up to 
-// 1e4 triangles by roughly two orders of magnitude. For more
-// triangles the curves begin to converge
 void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
 {
     cn = dimensionedVector("zero",
@@ -483,7 +501,7 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
     forAll(vertices, Vl)
     {
         scalar Amix = 0.0;
-        bool obtuse = false;
+        //bool obtuse = false;
 
         // Get all triangles adjacent to V
         const labelList& oneRingNeighborhood = adjacentFaces[Vl];
@@ -528,7 +546,7 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
                 // Use Heron's formula for now until problem
                 // with vector approach is solved
                 Amix += 0.5 * areaHeron(VQ, VR, QR);
-                obtuse = true;
+                //obtuse = true;
             }
             else
             {
@@ -536,7 +554,7 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
                 // Use Heron's formula for now until problem
                 // with vector approach is solved
                 Amix += 0.25 * areaHeron(VQ, VR, QR);
-                obtuse = true;
+                //obtuse = true;
             }
 
             // Compute mean curvature normal contributions
@@ -544,10 +562,10 @@ void curvatureNormals(triSurfacePointVectorField& cn, const triSurface& front)
         }
         cn[Vl] = cn[Vl] / (2.0 * Amix);
 
-        if(obtuse)
-        {
-            cn[Vl] = 2.0/0.3 * cn[Vl] / mag(cn[Vl]);
-        }
+        //if(obtuse)
+        //{
+        //    cn[Vl] = 2.0/0.3 * cn[Vl] / mag(cn[Vl]);
+        //}
     }
 }
 
@@ -570,6 +588,12 @@ int main(int argc, char *argv[])
     (
         "center",
         "Center of the sphere."    
+    );
+
+    argList::addOption
+    (
+        "ellipsoidAxes",
+        "Vector of ellipsoid axes (a b c) relating to directions (x y z). Use a=b=c for a sphere."
     );
 
     argList::addOption
@@ -605,6 +629,14 @@ int main(int argc, char *argv[])
             << endl << exit(FatalError);
     }
 
+    if (!args.optionFound("ellipsoidAxes"))
+    {
+        FatalErrorIn("main()")
+            << "Please use option '-ellipsoidAxes' to specify the axes of an"
+            << " ellipsoid."
+            << endl << exit(FatalError);
+    }
+
     if (!args.optionFound("reconTimes"))
     {
         FatalErrorIn("main")
@@ -616,15 +648,16 @@ int main(int argc, char *argv[])
     // Read command line arguments
     const scalar radius = args.optionRead<scalar>("radius");
     const vector center = args.optionRead<vector>("center");
+    const vector axes = args.optionRead<vector>("ellipsoidAxes");
     const std::string errorFileNameBase = args.optionRead<fileName>("errorFile");
     const label reconTimes = args.optionRead<label>("reconTimes");
 
     // Respect number of time steps defined in lent reconstruction trest cases
     // for now
-    if (reconTimes < 0 || reconTimes > 3)
+    if (reconTimes < 0 || reconTimes > 6)
     {
         FatalErrorIn("main")
-            << "Option -reconTimes is out of range. Please use n=0...4"
+            << "Option -reconTimes is out of range. Please use n=0...6"
             << endl << exit(FatalError);
     }
 
@@ -666,6 +699,26 @@ int main(int argc, char *argv[])
         case 4:
             frontFileName = "front/front-00000003.vtk";
             break;
+        case 5:
+            frontFileName = "front/front-00000004.vtk";
+            break;
+        case 6:
+            frontFileName = "front/front-00000005.vtk";
+            break;
+    }
+
+    // Determine if sphere or ellpisoid using the axes vector.
+    // Set boolean flag accordingly so the correct methods are called
+    bool sphere = false;
+
+    if (axes[0] == axes[1] && axes[0] == axes[2] && axes[1] == axes[2])
+    {
+        sphere = true;
+        Info << "Using methods for sphere." << endl;
+    }
+    else
+    {
+        Info << "Using methods for ellipsoid." << endl;
     }
 
     Info << "Loading front" << endl;
@@ -695,57 +748,81 @@ int main(int argc, char *argv[])
         )
     );
 
-    // Print number of mesh points and faces
-    Info << "Number of front mesh points: " << front.meshPoints().size() << endl;
-    Info << "Number of front mesh triangles: " << front.localFaces().size() << endl;
-
-    // Finally call the function
-    curvatureNormals(cn, front);
-
-    // Check deviation from sphere
-    meshQuality(front, errorFileSphereDev);
-    sphereDeviation(front, radius, center, errorFileSphereDev);
-
-    // Check curvature
-    meshQuality(front, errorFileCurvature);
-    checkCurvature(cn, front, radius, errorFileCurvature);
-
-    // Check normals
-    meshQuality(front, errorFileNormalVector);
-    checkNormal(cn, front, center, errorFileNormalVector);
-
-    // Check force sum
-    checkGlobalForceBalance(cn);
-
-    // Write curvature normals field for visual inspection
-    // Additionally, write scalar curvature error field
-    triSurfacePointScalarField curvatureError
+    // Initialize field for curvature normals
+    triSurfacePointVectorField uv
     (
         IOobject
         (
-            "curvatureErrors",
+            "curvatureNormals",
             runTime.timeName(),
             runTime,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
         front,
-        dimensionedScalar
+        dimensionedVector
         (
             "zero",
             dimless,
-            0.0
+            vector(0.0,0.0,0.0)
         )
     );
 
-    dimensionedScalar dradius = dimensionedScalar("zero", dimLength, radius);
+    if(!sphere && reconTimes == 0)
+    {
+        // Correct points for ellipsoid
+        computeUV(front, uv, center);
+        correctFront(front, uv, center, axes);
 
-    // Compute difference to exact curvature and relate the difference to
-    // the exact curvature
-    curvatureError = mag(mag(cn) - 2.0/dradius)*dradius/2.0;
+        // write corrected front to use it for reconstruction
+        front.write("front/front_corrected.stl");
+    }
+    else if (!sphere && reconTimes != 0)
+    {
+        // Only compute parameter field, do not modify reconstructed front
+        computeUV(front, uv, center);
+    }
 
-    cn.write();
-    curvatureError.write();
+    // Print number of mesh points and faces
+    Info << "Number of front mesh points: " << front.meshPoints().size() << endl;
+    Info << "Nu mber of front mesh triangles: " << front.localFaces().size() << endl;
+
+    // Finally call the function
+    curvatureNormals(cn, front);
+    //noCurvature(cn, front);
+
+    if (sphere)
+    {
+        // Check deviation from sphere
+        meshQuality(front, errorFileSphereDev);
+        sphereDeviation(front, radius, center, errorFileSphereDev);
+
+        // Check curvature
+        meshQuality(front, errorFileCurvature);
+        // For Tryggvason method: convert force to curvature normal
+        //forceToCurvature(cn, front);
+        checkCurvature(cn, front, radius, errorFileCurvature);
+
+        // Check normals
+        meshQuality(front, errorFileNormalVector);
+        checkNormal(cn, front, center, errorFileNormalVector);
+    }
+    else // Ellipsoid
+    {
+        // Check deviation from ellipsoid
+        meshQuality(front, errorFileSphereDev);
+        ellipsoidDeviation(front, uv, center, axes, errorFileSphereDev);
+
+        // Check curvature
+        meshQuality(front, errorFileCurvature);
+        // For Tryggvason method: convert force to curvature normal
+        //forceToCurvature(cn, front);
+        checkEllipsoidCurvature(cn, front, uv, center, axes, errorFileCurvature);
+
+        // Check normals
+        meshQuality(front, errorFileNormalVector);
+        checkEllipsoidNormal(cn, front, uv, center, axes, errorFileNormalVector);
+    }
 
     errorFileCurvature.close();
     errorFileNormalVector.close();
