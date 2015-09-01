@@ -76,7 +76,7 @@ namespace FrontTracking {
 timeStepFrontReconstructionModel::timeStepFrontReconstructionModel(const dictionary& configDict)
 :
     frontReconstructionModel(configDict),
-    reconstructionInterval_(readLabel(configDict.lookup("reconstructionInterval")))
+    reconstructionInterval_(readLabel(configDict.lookup("value")))
 {}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
