@@ -138,6 +138,7 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
 ) const
 {
     const Time& runTime = mesh.time();  
+
     tmp<volScalarField> cellCurvatureTmp(
         new volScalarField(
             IOobject(
@@ -148,11 +149,15 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
                 IOobject::NO_WRITE
             ), 
             mesh, 
-            dimensionedScalar("zero", pow(dimLength, -1), 0)
+            dimensionedScalar(
+                "zero", 
+                pow(dimLength, -1), 
+                0
+            )
         )
     );
     
-    // TODO: Store cn as data member and resize when topological change occurs. TM.
+    // TODO: Store as data member and resize when topological change occurs. TM.
     triSurfacePointVectorField cn
     (
         IOobject(
@@ -253,6 +258,10 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
         }
         cn[Vl] = cn[Vl] / (2.0 * Amix);
     }
+
+    volScalarField& cellCurvature = cellCurvatureTmp(); 
+
+    //interpolate(cn, cellCurvature); 
 
     return  cellCurvatureTmp; 
 }
