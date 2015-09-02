@@ -79,7 +79,8 @@ namespace FrontTracking {
 
 class lentCommunication
     :
-        public refCount
+        public refCount, 
+        public regIOobject 
 {
     // Indirect triangle->cell map.
     DynamicList<label> triangleToCell_;
@@ -127,6 +128,10 @@ public:
     {
         return triangleToCell_; 
     }
+
+    // Empty writer: regIOobject is used only for registry queries.
+    bool writeData(Ostream& os) const;
+
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

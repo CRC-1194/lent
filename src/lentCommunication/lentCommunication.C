@@ -59,6 +59,7 @@ Description
 
 #include "lentCommunication.H"
 #include "addToRunTimeSelectionTable.H"
+//#include "Time.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -76,6 +77,16 @@ lentCommunication::lentCommunication(
     const fvMesh& mesh
 )
     :
+        refCount(), 
+        regIOobject(
+            IOobject(
+               mesh.name(),
+               mesh.thisDb().instance(),  
+               frontMesh,
+               IOobject::NO_READ, 
+               IOobject::NO_WRITE
+            )
+        ),
         triangleToCell_()
 {}
 
@@ -105,6 +116,18 @@ lentCommunication::New(
     }
 
     return tmp<lentCommunication> (cstrIter()(frontMesh, mesh));
+}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+bool lentCommunication::writeData(Ostream& os) const
+{
+    FatalErrorIn("lentMethod::writeData(Ostream& os)")
+    << "lentMethod is not supposed to be written "
+    << "regIOobject inherited to allow registry queries." << endl;
+
+    return false;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
