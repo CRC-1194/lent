@@ -65,6 +65,11 @@ Description
 #include "autoPtr.H"
 #include "triSurfaceFields.H"
 #include "volFields.H"
+#include "triSurfaceMesh.H"
+#include "lentCommunication.H"
+#include "GeometricField.H"
+#include "fvPatchField.H"
+#include "volMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -106,13 +111,13 @@ public:
     template<typename Type>  
     void interpolate(
         DimensionedField<Type, triSurfaceGeoMesh> const & frontVertexField, 
-        volScalarField& vf
+        GeometricField<Type, fvPatchField, volMesh>& vf 
     ); 
 
     template<typename Type>  
     void interpolate(
-        DimensionedField<Type, triSurfacePointGeoMesh> const & frontVertexField, 
-        volScalarField& vf
+        DimensionedField<Type, triSurfacePointGeoMesh> const & frontField, 
+        GeometricField<Type, fvPatchField, volMesh>& vf 
     ); 
 };
 

@@ -56,10 +56,6 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-
-#ifndef lentInterpolationTemplates_H
-#define lentInterpolationTemplates_H
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
@@ -68,18 +64,22 @@ namespace FrontTracking {
 template<typename Type>  
 void lentInterpolation::interpolate(
     DimensionedField<Type, triSurfaceGeoMesh> const & frontVertexField, 
-    volScalarField& vf
+    GeometricField<Type, fvPatchField, volMesh>& vf
 ) 
 {
+    const triSurfaceMesh& frontMesh = frontVertexField.mesh(); 
+    const fvMesh& mesh = vf.mesh(); 
+    const auto& communication = 
+        frontMesh.lookupObject<lentCommunication>(mesh.name()); 
+
 }
 
 template<typename Type>  
 void lentInterpolation::interpolate(
     DimensionedField<Type, triSurfacePointGeoMesh> const & frontVertexField, 
-    volScalarField& vf
+    GeometricField<Type, fvPatchField, volMesh>& vf
 )
-{
-}
+{}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -90,7 +90,5 @@ void lentInterpolation::interpolate(
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //
