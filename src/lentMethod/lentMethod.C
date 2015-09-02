@@ -174,12 +174,14 @@ void lentMethod::calcSignedDistances(
     const triSurfaceFront& front
 )
 {
+    // FIXME: The distance calculator wrongy re-initializes the frontMesh. TM. 
     distanceFieldCalculatorTmp_->calcCellsToFrontDistance(
         signedDistance,
         searchDistanceSqr,
         front
     );
 
+    // FIXME: The  distance calculator wrongy re-initializes the frontMesh. TM.
     distanceFieldCalculatorTmp_->calcPointsToFrontDistance(
         pointSignedDistance,
         pointSearchDistanceSqr,
