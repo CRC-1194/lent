@@ -84,7 +84,9 @@ int main(int argc, char *argv[])
         )
     );
 
-    lentMethod lent(front, mesh);
+    triSurfaceMesh frontMesh(front);
+
+    lentMethod lent(frontMesh, mesh);
 
     Info << "Calculating the search distance fields...";
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
