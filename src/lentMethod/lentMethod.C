@@ -71,7 +71,7 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 lentMethod::lentMethod(
-    const triSurfaceFront& front,
+    const triSurfaceMesh& frontMesh,
     const fvMesh& mesh,
     word dictName
 )
@@ -85,72 +85,57 @@ lentMethod::lentMethod(
             IOobject::NO_WRITE
         )
     ),
-    elementCells_(),
-    frontIsReconstructed_(false),
     lentControlDict_(
-         IOobject(
-            dictName,
-            "system",
-            mesh.time(),
-            IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::AUTO_WRITE
-         )
-     ),
-     distanceFieldCalculatorTmp_(
-        distanceFieldCalculator::New(
-            lentControlDict_.subDict("distanceCalculator")
+        IOobject(
+           dictName,
+           "system",
+           mesh.time(),
+           IOobject::MUST_READ_IF_MODIFIED,
+           IOobject::AUTO_WRITE
         )
-     ),
-     frontReconstructionModelTmp_(
-        frontReconstructionModel::New(
-            lentControlDict_.subDict("frontReconstructionModel")
+    ),
+    communicationMaps_(frontMesh, mesh),  
+    frontIsReconstructed_(false),
+    distanceFieldCalculatorTmp_(
+       distanceFieldCalculator::New(
+           lentControlDict_.subDict("distanceCalculator")
+       )
+    ),
+    frontReconstructionModelTmp_(
+       frontReconstructionModel::New(
+           lentControlDict_.subDict("frontReconstructionModel")
+       )
+    ),
+    frontReconstructorTmp_(
+       frontReconstructor::New(
+           lentControlDict_.subDict("frontReconstructor")
+       )
+    ),
+    searchAlgorithmTmp_(
+       frontMeshSearch::New(
+           lentControlDict_.subDict("searchAlgorithm")
+       )
+    ),
+    frontVelocityCalculatorTmp_(
+       frontVelocityCalculator::New(
+           lentControlDict_.subDict("frontVelocityCalculator")
+       )
+    ),
+    frontMotionSolverTmp_(
+       frontMotionSolver::New(
+           lentControlDict_.subDict("frontMotionSolver")
+       )
+    ),
+    markerFieldModelTmp_(
+        markerFieldModel::New(
+           lentControlDict_.subDict("markerFieldModel")
         )
-     ),
-     frontReconstructorTmp_(
-        frontReconstructor::New(
-            lentControlDict_.subDict("frontReconstructor")
+    ),
+    surfaceTensionForceModelTmp_(
+        frontSurfaceTensionForceModel::New(
+           lentControlDict_.subDict("surfaceTensionForceModel") 
         )
-     ),
-     searchAlgorithmTmp_(
-        frontMeshSearch::New(
-            lentControlDict_.subDict("searchAlgorithm")
-        )
-     ),
-     frontVelocityCalculatorTmp_(
-        frontVelocityCalculator::New(
-            lentControlDict_.subDict("frontVelocityCalculator")
-        )
-     ),
-     frontMotionSolverTmp_(
-        frontMotionSolver::New(
-            lentControlDict_.subDict("frontMotionSolver")
-        )
-     ),
-     markerFieldModelTmp_(
-         markerFieldModel::New(
-            lentControlDict_.subDict("markerFieldModel")
-         )
-     ),
-     surfaceTensionForceModelTmp_(
-         frontSurfaceTensionForceModel::New(
-            lentControlDict_.subDict("surfaceTensionForceModel") 
-         )
-     )
-{}
-
-lentMethod::lentMethod(const lentMethod& copy)
-:
-    regIOobject(copy),
-    elementCells_(copy.elementCells_),
-    lentControlDict_(copy.lentControlDict_),
-    distanceFieldCalculatorTmp_(copy.distanceFieldCalculatorTmp_),
-    frontReconstructorTmp_(copy.frontReconstructorTmp_),
-    markerFieldModelTmp_(copy.markerFieldModelTmp_)
-{}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-lentMethod::~lentMethod()
+    )
 {}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
@@ -203,10 +188,12 @@ void lentMethod::reconstructFront(
     if (frontReconstructionModelTmp_->reconstructionRequired(front, signedDistance))
     {
         Info << "Reconstructing front..." << endl;
-        elementCells_ = frontReconstructorTmp_->reconstructFront(
-            front,
-            signedDistance,
-            pointSignedDistance
+        communicationMaps_.setTriangleToCell(
+            frontReconstructorTmp_->reconstructFront(
+                front,
+                signedDistance,
+                pointSignedDistance
+            )
         );
 
         frontIsReconstructed_ = true;
@@ -219,19 +206,10 @@ void lentMethod::calcFrontVelocity(
     const volVectorField& U
 )
 {
-    // TM Mar 07 14 : timing-01
-    //if (! frontIsReconstructed_)
-    //{
-        //const triSurfaceFront& front = frontVelocity.mesh();
-        //const fvMesh& mesh = U.mesh();
-        //searchAlgorithmTmp_->updateElementCells(elementCells_, front, mesh);
-
-    //}
-
     frontVelocityCalculatorTmp_->calcFrontVelocity(
         frontVelocity,
         U,
-        elementCells_
+        communicationMaps_.triangleToCell()  // TODO: Port mesh search to the map. TM.
     );
 }
 
@@ -247,7 +225,7 @@ void lentMethod::evolveFront(
 
     frontIsReconstructed_ = false;
 
-    // The normals must be calculated.
+    // The normals must be calculated after motion .
     calcFrontNormals(front); 
 }
 
@@ -274,22 +252,22 @@ void lentMethod::calcFrontNormals(triSurfaceFront& front) const
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
 
-void lentMethod::operator=(const lentMethod& rhs)
-{
-    // Check for assignment to self
-    if (this == &rhs)
-    {
-        FatalErrorIn("lentMethod::operator=(const lentMethod&)")
-            << "Attempted assignment to self"
-            << abort(FatalError);
-    }
+//void lentMethod::operator=(const lentMethod& rhs)
+//{
+    //// Check for assignment to self
+    //if (this == &rhs)
+    //{
+        //FatalErrorIn("lentMethod::operator=(const lentMethod&)")
+            //<< "Attempted assignment to self"
+            //<< abort(FatalError);
+    //}
 
-    elementCells_ = rhs.elementCells_;
-    lentControlDict_ = rhs.lentControlDict_;
-    distanceFieldCalculatorTmp_ = rhs.distanceFieldCalculatorTmp_;
-    frontReconstructorTmp_ = rhs.frontReconstructorTmp_;
-    markerFieldModelTmp_ = rhs.markerFieldModelTmp_;
-}
+    //communicationMaps_= rhs.communicationMaps_; // FIXME Can't assign, because of regIOobject. TM.
+    //lentControlDict_ = rhs.lentControlDict_;
+    //distanceFieldCalculatorTmp_ = rhs.distanceFieldCalculatorTmp_;
+    //frontReconstructorTmp_ = rhs.frontReconstructorTmp_;
+    //markerFieldModelTmp_ = rhs.markerFieldModelTmp_;
+//}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking

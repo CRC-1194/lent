@@ -67,6 +67,7 @@ Description
 #include "fvMesh.H"
 #include "triSurfaceFields.H"
 
+#include "lentCommunication.H"
 #include "triSurfaceFront.H"
 #include "distanceFieldCalculator.H"
 #include "frontReconstructionModel.H"
@@ -86,22 +87,18 @@ namespace FrontTracking {
                          Class lentMethod Declaration
 \*---------------------------------------------------------------------------*/
 
-// TODO: Inherit from objectRegistry, register all method fields and data to
-// lentMethod, let lentMetod control the IO based on its own IOobject arg
-// constructors.  TM. 
-
 class lentMethod
 :
     public regIOobject
 {
-    // Triangles-cells map.
-    DynamicList<label> elementCells_;
+    // Method configuration dictionary.
+    IOdictionary lentControlDict_;
+
+    // Front <-> volume mesh communication maps. 
+    lentCommunication communicationMaps_;   // TODO: Use HashTable for multiphase. TM.
 
     // Front reconstruction flag.
     mutable bool frontIsReconstructed_;
-
-    // Lent method configuration dictionary.
-    IOdictionary lentControlDict_;
 
     // Field calculator
     tmp<distanceFieldCalculator> distanceFieldCalculatorTmp_;
@@ -127,6 +124,9 @@ class lentMethod
     // Surface tension force model.
     tmp<frontSurfaceTensionForceModel> surfaceTensionForceModelTmp_;
 
+    // Member Operators
+        void operator=(const lentMethod&); // FIXME: Private in lentCommunication. TM.
+
 public:
 
     TypeName("lentMethod");
@@ -134,15 +134,15 @@ public:
     // Constructors
 
         lentMethod(
-            const triSurfaceFront& front,
+            const triSurfaceMesh& front,
             const fvMesh& mesh,
             word dictName="lentSolution"
         );
 
-        lentMethod(const lentMethod& copy);
+        lentMethod(const lentMethod& copy) = default;
 
     //- Destructor
-    virtual ~lentMethod();
+    virtual ~lentMethod() = default;
 
     // Member Functions
 
@@ -220,8 +220,8 @@ public:
         bool writeData(Ostream& os) const;
 
     // Member Operators
-    //
-        void operator=(const lentMethod&);
+    
+        //void operator=(const lentMethod&); // FIXME: Private in lentCommunication. TM.
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
