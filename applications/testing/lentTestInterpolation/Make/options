@@ -1,0 +1,34 @@
+EXE_INC = \
+    -std=c++14 \
+    -I$(LENT_PROJECT)/applications/solvers \
+    -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
+    -I$(LIB_SRC)/transportModels \
+    -I$(LIB_SRC)/transportModels/incompressible/lnInclude \
+    -I$(LIB_SRC)/transportModels/interfaceProperties/lnInclude \
+    -I$(LIB_SRC)/transportModels/immiscibleIncompressibleTwoPhaseMixture/lnInclude \
+    -I$(LIB_SRC)/turbulenceModels/incompressible/turbulenceModel \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/triSurface/lnInclude \
+    -I$(LIB_SRC)/sampling/lnInclude \
+    -I$(LENT_PROJECT)/src/lnInclude \
+    -I$(LENT_PROJECT)/third-party/gtest/include \
+    -I$(LENT_PROJECT)/third-party/gtest/include/gtest 
+
+EXE_LIBS = \
+    -L$(FOAM_USER_LIBBIN) \
+    -L$(LENT_PROJECT)/third-party/gtest/build \
+    -ltwoPhaseMixture \
+    -ltwoPhaseProperties \
+    -limmiscibleIncompressibleTwoPhaseMixture \
+    -lincompressibleTransportModels \
+    -lincompressibleTurbulenceModel \
+    -lincompressibleRASModels \
+    -lincompressibleLESModels \
+    -lfiniteVolume \
+    -lmeshTools \
+    -ltriSurface \
+    -lsampling \
+    -llent \
+    -lgtest
+
