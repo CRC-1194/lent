@@ -209,7 +209,7 @@ void lentMethod::calcFrontVelocity(
     frontVelocityCalculatorTmp_->calcFrontVelocity(
         frontVelocity,
         U,
-        communicationMaps_.triangleToCell()  // TODO: Port mesh search to the map. TM.
+        communicationMaps_.triangleToCell()  // TODO: Port mesh search update to the communication class. TM.
     );
 }
 
@@ -225,8 +225,11 @@ void lentMethod::evolveFront(
 
     frontIsReconstructed_ = false;
 
+    // FIXME: update the 
     // The normals must be calculated after motion .
     calcFrontNormals(front); 
+
+    // FIXME: Update the communication map after evolution.
 }
 
 bool lentMethod::writeData(Ostream& os) const
@@ -250,24 +253,6 @@ void lentMethod::calcFrontNormals(triSurfaceFront& front) const
     }
 }; 
 
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-//void lentMethod::operator=(const lentMethod& rhs)
-//{
-    //// Check for assignment to self
-    //if (this == &rhs)
-    //{
-        //FatalErrorIn("lentMethod::operator=(const lentMethod&)")
-            //<< "Attempted assignment to self"
-            //<< abort(FatalError);
-    //}
-
-    //communicationMaps_= rhs.communicationMaps_; // FIXME Can't assign, because of regIOobject. TM.
-    //lentControlDict_ = rhs.lentControlDict_;
-    //distanceFieldCalculatorTmp_ = rhs.distanceFieldCalculatorTmp_;
-    //frontReconstructorTmp_ = rhs.frontReconstructorTmp_;
-    //markerFieldModelTmp_ = rhs.markerFieldModelTmp_;
-//}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking

@@ -66,7 +66,6 @@ Description
 #include "typeInfo.H"
 #include "fvMesh.H"
 #include "triSurfaceFields.H"
-
 #include "lentCommunication.H"
 #include "triSurfaceFront.H"
 #include "distanceFieldCalculator.H"
@@ -218,10 +217,6 @@ public:
 
         // Empty writer: regIOobject is used only for registry queries.
         bool writeData(Ostream& os) const;
-
-    // Member Operators
-    
-        //void operator=(const lentMethod&); // FIXME: Private in lentCommunication. TM.
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
