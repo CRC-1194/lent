@@ -100,7 +100,7 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
 
     const fvMesh& mesh = U.mesh();
 
-    forAll (elementCells, elementI)
+    forAll (elementCells, elementI) // FIXME: Remove the search, update element cells in the lentCommunication class. TM. 
     {
         const triFace& element = elements[elementI];
 
