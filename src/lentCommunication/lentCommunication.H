@@ -60,7 +60,6 @@ Description
 #ifndef lentCommunication_H
 #define lentCommunication_H
 
-#include "refCount.H"
 #include "dictionary.H"
 #include "typeInfo.H"
 #include "autoPtr.H"
@@ -123,7 +122,7 @@ public:
         return triangleToCell_; 
     }
 
-    auto& triangleToCell() // TODO: Remove after removing mesh search from velocity interpolator. TM. 
+    auto& triangleToCell() // TODO: Remove after removing mesh search from the velocity interpolator. Follow through in lentMethod class. TM. 
     {
         return triangleToCell_; 
     }

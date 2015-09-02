@@ -116,7 +116,6 @@ lentCommunication::New(
     return autoPtr<lentCommunication> (cstrIter()(frontMesh, mesh));
 }
 
-
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 bool lentCommunication::writeData(Ostream& os) const
