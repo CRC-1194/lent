@@ -32,7 +32,7 @@ Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Interface for the front motion solution.
+        Front / Mesh communication maps.  
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -65,6 +65,8 @@ Description
 #include "typeInfo.H"
 #include "tmp.H"
 #include "DynamicList.H"
+#include "triSurfaceMesh.H"
+#include "fvMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -79,7 +81,6 @@ class lentCommunication
     :
         public refCount
 {
-
     // Indirect triangle->cell map.
     DynamicList<label> triangleToCell_;
 
@@ -90,18 +91,28 @@ public:
     declareRunTimeSelectionTable (
         tmp,
         lentCommunication,
-        Dictionary,
+        FrontMesh,
         (
-            const dictionary& configDict
+            const triSurfaceMesh& frontMesh,  
+            const fvMesh& mesh
         ),
-        (configDict)
+        (frontMesh, mesh)
     );
 
     // Constructors
-    explicit lentCommunication(const dictionary& configDict);
+    lentCommunication(
+        const triSurfaceMesh& frontMesh, 
+        const fvMesh& mesh
+    );
+
+    lentCommunication(const lentCommunication&) = default; 
 
     // Selectors
-    static tmp<lentCommunication> New(const dictionary& configDict);
+    static tmp<lentCommunication> New(
+        const dictionary& configDict, 
+        const triSurfaceMesh& frontMesh, 
+        const fvMesh& mesh
+    );
 
     // Destructor
     virtual ~lentCommunication() = default;

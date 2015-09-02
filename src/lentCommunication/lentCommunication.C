@@ -32,7 +32,7 @@ Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Interface for the front motion solution.
+        Front / Mesh communication maps. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -66,12 +66,15 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(lentCommunication, 0);
-    defineRunTimeSelectionTable(lentCommunication, Dictionary);
-    addToRunTimeSelectionTable(lentCommunication, lentCommunication, Dictionary);
+    defineRunTimeSelectionTable(lentCommunication, FrontMesh);
+    addToRunTimeSelectionTable(lentCommunication, lentCommunication, FrontMesh);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-lentCommunication::lentCommunication(const dictionary& configDict)
+lentCommunication::lentCommunication(
+    const triSurfaceMesh& frontMesh, 
+    const fvMesh& mesh
+)
     :
         triangleToCell_()
 {}
@@ -79,25 +82,29 @@ lentCommunication::lentCommunication(const dictionary& configDict)
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 tmp<lentCommunication>
-lentCommunication::New(const dictionary& configDict)
+lentCommunication::New(
+        const dictionary& configDict, 
+        const triSurfaceMesh& frontMesh, 
+        const fvMesh& mesh
+)
 {
     const word name = configDict.lookup("type");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    FrontMeshConstructorTable::iterator cstrIter =
+        FrontMeshConstructorTablePtr_->find(name);
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    if (cstrIter == FrontMeshConstructorTablePtr_->end())
     {
         FatalErrorIn (
             "lentCommunication::New(const word& name)"
         )   << "Unknown lentCommunication type "
             << name << nl << nl
             << "Valid lentCommunications are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
+            << FrontMeshConstructorTablePtr_->sortedToc()
             << exit(FatalError);
     }
 
-    return tmp<lentCommunication> (cstrIter()(configDict));
+    return tmp<lentCommunication> (cstrIter()(frontMesh, mesh));
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
