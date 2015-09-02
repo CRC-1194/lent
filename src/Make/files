@@ -42,6 +42,7 @@ frontCurvatureModels/frontCurvatureMeyer/frontCurvatureMeyer.C
 /*frontCurvatureModels/frontAveragingCurvatureModel/frontAveragingCurvatureModel.C*/
 /*frontCurvatureModels/frontExactCircleCurvatureModel/frontExactCircleCurvatureModel.C*/
 
+lentCommunication/lentCommunication.C
 lentMethod/lentMethod.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent

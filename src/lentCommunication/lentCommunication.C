@@ -72,6 +72,8 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 lentCommunication::lentCommunication(const dictionary& configDict)
+    :
+        triangleToCell_()
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //

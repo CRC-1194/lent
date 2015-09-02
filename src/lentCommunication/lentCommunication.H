@@ -64,6 +64,7 @@ Description
 #include "dictionary.H"
 #include "typeInfo.H"
 #include "tmp.H"
+#include "DynamicList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -78,6 +79,9 @@ class lentCommunication
     :
         public refCount
 {
+
+    // Indirect triangle->cell map.
+    DynamicList<label> triangleToCell_;
 
 public:
 
@@ -94,21 +98,24 @@ public:
     );
 
     // Constructors
-        explicit lentCommunication(const dictionary& configDict);
+    explicit lentCommunication(const dictionary& configDict);
 
     // Selectors
-
-        static tmp<lentCommunication> New(const dictionary& configDict);
+    static tmp<lentCommunication> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~lentCommunication() = default;
+    virtual ~lentCommunication() = default;
 
     // Member Functions
+    auto& triangleToCell() 
+    {
+        return triangleToCell_; 
+    }
 
-        //virtual void evolveFront(
-            //triSurfaceFront& front,
-            //const triSurfaceVectorField& frontVelocity
-        //) const = 0;
+    const auto& triangleToCell() const 
+    {
+        return triangleToCell_; 
+    }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
