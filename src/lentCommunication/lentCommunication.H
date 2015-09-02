@@ -63,7 +63,7 @@ Description
 #include "refCount.H"
 #include "dictionary.H"
 #include "typeInfo.H"
-#include "tmp.H"
+#include "autoPtr.H"
 #include "DynamicList.H"
 #include "triSurfaceMesh.H"
 #include "fvMesh.H"
@@ -79,7 +79,6 @@ namespace FrontTracking {
 
 class lentCommunication
     :
-        public refCount, 
         public regIOobject 
 {
     // Indirect triangle->cell map.
@@ -90,7 +89,7 @@ public:
     TypeName("listBased");
 
     declareRunTimeSelectionTable (
-        tmp,
+        autoPtr,
         lentCommunication,
         FrontMesh,
         (
@@ -109,7 +108,7 @@ public:
     lentCommunication(const lentCommunication&) = default; 
 
     // Selectors
-    static tmp<lentCommunication> New(
+    static autoPtr<lentCommunication> New(
         const dictionary& configDict, 
         const triSurfaceMesh& frontMesh, 
         const fvMesh& mesh
@@ -119,19 +118,24 @@ public:
     virtual ~lentCommunication() = default;
 
     // Member Functions
-    auto& triangleToCell() 
-    {
-        return triangleToCell_; 
-    }
-
     const auto& triangleToCell() const 
     {
         return triangleToCell_; 
     }
 
+    auto& triangleToCell() // TODO: Remove after removing mesh search from velocity interpolator. TM. 
+    {
+        return triangleToCell_; 
+    }
+
+    template<typename LabelList> 
+    void setTriangleToCell(LabelList const& l)
+    {
+        triangleToCell_ = l; 
+    }
+
     // Empty writer: regIOobject is used only for registry queries.
     bool writeData(Ostream& os) const;
-
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

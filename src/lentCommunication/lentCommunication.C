@@ -59,7 +59,6 @@ Description
 
 #include "lentCommunication.H"
 #include "addToRunTimeSelectionTable.H"
-//#include "Time.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -77,7 +76,6 @@ lentCommunication::lentCommunication(
     const fvMesh& mesh
 )
     :
-        refCount(), 
         regIOobject(
             IOobject(
                mesh.name(),
@@ -92,7 +90,7 @@ lentCommunication::lentCommunication(
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
-tmp<lentCommunication>
+autoPtr<lentCommunication>
 lentCommunication::New(
         const dictionary& configDict, 
         const triSurfaceMesh& frontMesh, 
@@ -115,7 +113,7 @@ lentCommunication::New(
             << exit(FatalError);
     }
 
-    return tmp<lentCommunication> (cstrIter()(frontMesh, mesh));
+    return autoPtr<lentCommunication> (cstrIter()(frontMesh, mesh));
 }
 
 
