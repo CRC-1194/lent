@@ -32,6 +32,7 @@ Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
+    A registered triSurface that can be used with tmp<>.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -94,20 +95,23 @@ class triSurfaceFront
         const scalar mergeTol=1e-06
     );
 
-    // Write the indexed front file.
+    // Create the file name with IOobject::name, extension and timeIndex
+    // paddeed with zeros. 
     fileName zeroPaddedFileName(word extension) const;
 
     template<class Displacement>
     void executeMovePoints(const Displacement& d);
 
-    fileName existingFrontFileName(const IOobject& io);
+    // Get the actual file name of the stored front. IOobject::name + time
+    // index prepended with zeros + extension. 
+    fileName actualFileName() const;
 
 public:
 
     TypeName ("triSurfaceFront");
 
     // Constructors
-    triSurfaceFront(const IOobject& io, word writeFormat="vtk", label prependZeros=8);
+    triSurfaceFront(const IOobject& io, word writeFormat="stl", label prependZeros=8);
 
     //- Destructor
     virtual ~triSurfaceFront() {};
