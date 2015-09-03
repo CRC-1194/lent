@@ -69,24 +69,21 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
-
     #include "createFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     triSurfaceFront front(
         IOobject(
-            "front.stl",
             "front",
-            runTime,
+            "front",
+            mesh,
             IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         )
     );
 
-    triSurfaceMesh frontMesh(front);
-
-    lentMethod lent(frontMesh, mesh);
+    lentMethod lent(front, mesh);
 
     Info << "Calculating the search distance fields...";
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);

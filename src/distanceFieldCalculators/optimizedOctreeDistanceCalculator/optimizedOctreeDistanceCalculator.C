@@ -100,6 +100,8 @@ void optimizedOctreeDistanceCalculator::calcCellsToFrontDistance(
 
     const fvMesh& mesh = signedDistance.mesh();
 
+    // FIXME: Go away from the triSurfaceMesh copy, build and use the octree
+    // based on the front directly. TM.
     triSurfaceMesh frontMesh(
         IOobject(
             "triSurfaceMesh",

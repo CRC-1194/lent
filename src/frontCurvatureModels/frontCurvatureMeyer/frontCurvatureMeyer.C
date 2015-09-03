@@ -134,7 +134,7 @@ scalar frontCurvatureMeyer::areaHeron(vector& A, vector& B, vector& C) const
 
 tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
     const fvMesh& mesh, 
-    const triSurfaceMesh& frontMesh
+    const triSurfaceFront& frontMesh
 ) const
 {
     const Time& runTime = mesh.time();  
@@ -163,7 +163,7 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
         IOobject(
             "cn", 
             runTime.timeName(), 
-            frontMesh,
+            mesh,
             IOobject::NO_READ, 
             IOobject::NO_WRITE
         ), 

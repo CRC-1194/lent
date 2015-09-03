@@ -560,7 +560,7 @@ int main(int argc, char *argv[])
     switch (reconTimes)
     {
         case 0:
-            frontFileName = "front/front.stl";
+            frontFileName = "front/front";
             break;
         case 1:
             frontFileName = "front/front-00000000.vtk";

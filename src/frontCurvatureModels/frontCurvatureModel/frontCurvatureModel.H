@@ -114,12 +114,12 @@ public:
 
     virtual tmp<volScalarField> cellCurvature(
         const fvMesh&, 
-        const triSurfaceMesh&
+        const triSurfaceFront&
     ) const;  
 
     virtual tmp<surfaceScalarField> faceCurvature(
         const fvMesh&, 
-        const triSurfaceMesh&
+        const triSurfaceFront&
     ) const; 
 
 };

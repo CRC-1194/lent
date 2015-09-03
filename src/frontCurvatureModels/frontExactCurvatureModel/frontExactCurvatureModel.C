@@ -77,7 +77,7 @@ frontExactCurvatureModel::frontExactCurvatureModel(const dictionary& configDict)
 
 tmp<volScalarField> frontExactCurvatureModel::cellCurvature(
     const fvMesh& mesh, 
-    const triSurfaceMesh& frontMesh
+    const triSurfaceFront& frontMesh
 ) const
 {
     const Time& runTime = mesh.time(); 
@@ -130,7 +130,7 @@ tmp<volScalarField> frontExactCurvatureModel::cellCurvature(
 
 tmp<surfaceScalarField> frontExactCurvatureModel::faceCurvature(
     const fvMesh& mesh, 
-    const triSurfaceMesh& frontMesh
+    const triSurfaceFront& frontMesh
 ) const
 {
     const Time& runTime = mesh.time(); 

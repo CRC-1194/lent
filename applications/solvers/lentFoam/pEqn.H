@@ -17,7 +17,7 @@
     surfaceScalarField phig
     (
         (
-            lent.faceSurfaceTensionForce(mesh, frontMesh)
+            lent.faceSurfaceTensionForce(mesh, front)
           - ghf*fvc::snGrad(rho)
         )*rAUf*mesh.magSf()
 
@@ -75,7 +75,7 @@
             // Solve the momentum equaiton for the cell centered velocity. 
             solve
             (
-                UEqn == lent.cellSurfaceTensionForce(mesh, frontMesh)
+                UEqn == lent.cellSurfaceTensionForce(mesh, front)
                     + fvc::reconstruct(
                         (
                           - ghf*fvc::snGrad(rho)

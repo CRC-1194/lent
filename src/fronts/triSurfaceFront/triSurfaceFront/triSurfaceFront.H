@@ -61,7 +61,6 @@ Description
 #define triSurfaceFront_H
 
 #include "isoSurface.H"
-#include "triSurfaceMesh.H"
 #include "error.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -78,7 +77,7 @@ namespace FrontTracking
 class triSurfaceFront
     :
         public refCount,
-        public regIOobject,
+        public regIOobject, // FIXME: inherit from ObjectRegistry for Field Registration. TM
         public triSurface
 {
     // Write format.

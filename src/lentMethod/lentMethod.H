@@ -133,7 +133,7 @@ public:
     // Constructors
 
         lentMethod(
-            const triSurfaceMesh& front,
+            const triSurfaceFront& front,
             const fvMesh& mesh,
             word dictName="lentSolution"
         );
@@ -184,7 +184,7 @@ public:
         
         tmp<surfaceScalarField> faceSurfaceTensionForce(
             const fvMesh& mesh, 
-            const triSurfaceMesh& frontMesh
+            const triSurfaceFront& frontMesh
         ) const
         {
             return surfaceTensionForceModelTmp_->faceSurfaceTensionForce(mesh, frontMesh); 
@@ -192,7 +192,7 @@ public:
 
         tmp<volVectorField> cellSurfaceTensionForce(
             const fvMesh& mesh, 
-            const triSurfaceMesh& frontMesh
+            const triSurfaceFront& frontMesh
         ) const
         {
             return surfaceTensionForceModelTmp_->cellSurfaceTensionForce(mesh, frontMesh); 

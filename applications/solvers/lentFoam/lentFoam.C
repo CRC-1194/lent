@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 
     triSurfaceFront front(
         IOobject(
-            "front.stl",
+            "front",
             "front",
             mesh,
             IOobject::MUST_READ,
@@ -102,17 +102,15 @@ int main(int argc, char *argv[])
         )
     );
 
-    triSurfaceMesh frontMesh(front);
-
     triSurfaceVectorField frontVelocity(
         IOobject(
             "frontVelocity",
             runTime.timeName(),
-            runTime,
+            mesh,
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        frontMesh,
+        front,
         dimensionedVector(
             "zero",
             dimLength / dimTime,

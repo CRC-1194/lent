@@ -63,15 +63,13 @@ int main(int argc, char *argv[])
 
     triSurfaceFront front(
         IOobject(
-            "front.stl",
+            "front",
             "front",
             runTime,
             IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         )
     );
-
-    triSurfaceMesh frontMesh(front); 
 
     lentMethod lent(front, mesh);
 
@@ -85,11 +83,11 @@ int main(int argc, char *argv[])
 
     tmp<frontCurvatureModel> exactCurvatureModelTmp = frontCurvatureModel::New(lentDict.subDict("exactCurvatureModel")); 
     const frontCurvatureModel& exactCurvatureModel = exactCurvatureModelTmp(); 
-    tmp<volScalarField> cellCurvatureExactTmp = exactCurvatureModel.cellCurvature(mesh,frontMesh);  
+    tmp<volScalarField> cellCurvatureExactTmp = exactCurvatureModel.cellCurvature(mesh,front);  
     volScalarField& exactCurvature = cellCurvatureExactTmp();  
 
     const frontCurvatureModel& numericalCurvatureModel = lent.curvatureModel();  
-    tmp<volScalarField> numericalCurvatureTmp = numericalCurvatureModel.cellCurvature(mesh,frontMesh);  
+    tmp<volScalarField> numericalCurvatureTmp = numericalCurvatureModel.cellCurvature(mesh,front);  
     volScalarField& numericalCurvature = numericalCurvatureTmp();  
     numericalCurvature.rename("numericalCurvature"); 
     numericalCurvature.writeOpt() = IOobject::AUTO_WRITE; 

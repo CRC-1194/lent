@@ -99,7 +99,7 @@ public:
 
     scalar areaHeron(vector& A, vector& B, vector& C) const;
 
-    virtual tmp<volScalarField> cellCurvature(const fvMesh&, const triSurfaceMesh&) const; 
+    virtual tmp<volScalarField> cellCurvature(const fvMesh&, const triSurfaceFront&) const; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

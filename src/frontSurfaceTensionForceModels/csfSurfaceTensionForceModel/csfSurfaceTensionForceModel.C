@@ -85,7 +85,7 @@ csfSurfaceTensionForceModel::csfSurfaceTensionForceModel(const dictionary& confi
 
 tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
     const fvMesh& mesh,  
-    const triSurfaceMesh& frontMesh 
+    const triSurfaceFront& frontMesh 
 ) const
 {
     const Time& runTime = mesh.time(); 
@@ -102,7 +102,7 @@ tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
 
 tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
     const fvMesh& mesh,  
-    const triSurfaceMesh& frontMesh 
+    const triSurfaceFront& frontMesh 
 ) const
 {
     return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  

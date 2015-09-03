@@ -66,7 +66,7 @@ Description
 #include "fvMesh.H"
 #include "volFieldsFwd.H"
 #include "surfaceFieldsFwd.H"
-#include "triSurfaceMesh.H"
+#include "triSurfaceFront.H"
 #include "frontCurvatureModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -110,7 +110,7 @@ public:
     // Member Functions
     tmp<volScalarField> cellCurvature(
         const fvMesh& mesh, 
-        const triSurfaceMesh& frontMesh
+        const triSurfaceFront& frontMesh
     ) const
     {
         return curvatureModelTmp_->cellCurvature(mesh, frontMesh);  
@@ -118,7 +118,7 @@ public:
 
     tmp<surfaceScalarField> faceCurvature(
         const fvMesh& mesh, 
-        const triSurfaceMesh& frontMesh
+        const triSurfaceFront& frontMesh
     ) const
     {
         return curvatureModelTmp_->faceCurvature(mesh, frontMesh); 
@@ -136,12 +136,12 @@ public:
     
     virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
         const fvMesh&, 
-        const triSurfaceMesh&
+        const triSurfaceFront&
     ) const = 0;
 
     virtual tmp<volVectorField> cellSurfaceTensionForce(
         const fvMesh&, 
-        const triSurfaceMesh&
+        const triSurfaceFront&
     ) const = 0;  
 };
 

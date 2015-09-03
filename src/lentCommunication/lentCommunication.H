@@ -64,7 +64,7 @@ Description
 #include "typeInfo.H"
 #include "autoPtr.H"
 #include "DynamicList.H"
-#include "triSurfaceMesh.H"
+#include "triSurfaceFront.H"
 #include "fvMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -92,15 +92,15 @@ public:
         lentCommunication,
         FrontMesh,
         (
-            const triSurfaceMesh& frontMesh,  
+            const triSurfaceFront& front,  
             const fvMesh& mesh
         ),
-        (frontMesh, mesh)
+        (front, mesh)
     );
 
     // Constructors
     lentCommunication(
-        const triSurfaceMesh& frontMesh, 
+        const triSurfaceFront& front, 
         const fvMesh& mesh
     );
 
@@ -109,7 +109,7 @@ public:
     // Selectors
     static autoPtr<lentCommunication> New(
         const dictionary& configDict, 
-        const triSurfaceMesh& frontMesh, 
+        const triSurfaceFront& front, 
         const fvMesh& mesh
     );
 

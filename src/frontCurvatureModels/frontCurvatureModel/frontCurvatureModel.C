@@ -112,7 +112,7 @@ frontCurvatureModel::New(const dictionary& configDict)
 
 tmp<volScalarField> frontCurvatureModel::cellCurvature(
     const fvMesh& mesh, 
-    const triSurfaceMesh& frontMesh
+    const triSurfaceFront& frontMesh
 ) const
 {
     const volScalarField& curvatureInputField = 
@@ -143,7 +143,7 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature(
 
 tmp<surfaceScalarField> frontCurvatureModel::faceCurvature(
     const fvMesh& mesh, 
-    const triSurfaceMesh& frontMesh
+    const triSurfaceFront& frontMesh
 ) const
 {
     return fvc::interpolate(cellCurvature(mesh,frontMesh)); 

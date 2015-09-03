@@ -72,15 +72,15 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 lentCommunication::lentCommunication(
-    const triSurfaceMesh& frontMesh, 
+    const triSurfaceFront& front, 
     const fvMesh& mesh
 )
     :
         regIOobject(
             IOobject(
-               mesh.name(),
+               front.name(),
                mesh.thisDb().instance(),  
-               frontMesh,
+               mesh,
                IOobject::NO_READ, 
                IOobject::NO_WRITE
             )
@@ -93,7 +93,7 @@ lentCommunication::lentCommunication(
 autoPtr<lentCommunication>
 lentCommunication::New(
         const dictionary& configDict, 
-        const triSurfaceMesh& frontMesh, 
+        const triSurfaceFront& front, 
         const fvMesh& mesh
 )
 {
@@ -113,7 +113,7 @@ lentCommunication::New(
             << exit(FatalError);
     }
 
-    return autoPtr<lentCommunication> (cstrIter()(frontMesh, mesh));
+    return autoPtr<lentCommunication> (cstrIter()(front, mesh));
 }
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //

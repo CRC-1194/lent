@@ -83,7 +83,7 @@ TEST_F(lentTests, lentReconstruction)
 
     triSurfaceFront front(
         IOobject(
-            "front.stl",
+            "front",
             "front",
             runTime,
             IOobject::MUST_READ,

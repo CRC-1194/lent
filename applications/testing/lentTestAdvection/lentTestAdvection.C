@@ -89,15 +89,13 @@ TEST_F(lentTests, lentReconstruction)
 
     triSurfaceFront front(
         IOobject(
-            "front.stl",
+            "front",
             "front",
             runTime,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         )
     );
-
-    triSurfaceMesh frontMesh(front);
 
     triSurfaceVectorField frontVelocity(
         IOobject(

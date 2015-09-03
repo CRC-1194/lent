@@ -71,7 +71,7 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 lentMethod::lentMethod(
-    const triSurfaceMesh& frontMesh,
+    const triSurfaceFront& front,
     const fvMesh& mesh,
     word dictName
 )
@@ -94,7 +94,7 @@ lentMethod::lentMethod(
            IOobject::AUTO_WRITE
         )
     ),
-    communicationMaps_(frontMesh, mesh),  
+    communicationMaps_(front, mesh),  
     frontIsReconstructed_(false),
     distanceFieldCalculatorTmp_(
        distanceFieldCalculator::New(

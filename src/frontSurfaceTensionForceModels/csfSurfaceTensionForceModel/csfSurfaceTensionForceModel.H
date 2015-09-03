@@ -93,12 +93,12 @@ public:
     
     virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
         const fvMesh& mesh, 
-        const triSurfaceMesh& frontMesh 
+        const triSurfaceFront& frontMesh 
     ) const; 
 
     virtual tmp<volVectorField> cellSurfaceTensionForce(
         const fvMesh& mesh,  
-        const triSurfaceMesh& frontMesh 
+        const triSurfaceFront& frontMesh 
     ) const;  
 
 };

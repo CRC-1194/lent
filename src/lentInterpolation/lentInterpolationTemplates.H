@@ -63,23 +63,26 @@ namespace FrontTracking {
 
 template<typename Type>  
 void lentInterpolation::interpolate(
-    DimensionedField<Type, triSurfaceGeoMesh> const & frontVertexField, 
-    GeometricField<Type, fvPatchField, volMesh>& vf
+    DimensionedField<Type, triSurfaceGeoMesh> const & triangleField, 
+    GeometricField<Type, fvPatchField, volMesh>& cellField 
 ) 
 {
-    const triSurfaceMesh& frontMesh = frontVertexField.mesh(); 
-    const fvMesh& mesh = vf.mesh(); 
+    const fvMesh& mesh = cellField.mesh(); 
     const auto& communication = 
-        frontMesh.lookupObject<lentCommunication>(mesh.name()); 
+        mesh.lookupObject<lentCommunication>(mesh.name()); 
 
 }
 
 template<typename Type>  
 void lentInterpolation::interpolate(
-    DimensionedField<Type, triSurfacePointGeoMesh> const & frontVertexField, 
-    GeometricField<Type, fvPatchField, volMesh>& vf
+    DimensionedField<Type, triSurfacePointGeoMesh> const & vertexField,
+    GeometricField<Type, fvPatchField, volMesh>& cellField 
 )
-{}
+{
+    const fvMesh& mesh = cellField.mesh(); 
+    const auto& communication = 
+        mesh.lookupObject<lentCommunication>(mesh.name()); 
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
