@@ -79,6 +79,7 @@ class maxNormalAngleFrontReconstructionModel
 
     scalar maxAngle_; 
     scalar minAngleCos_;  
+    mutable bool previouslyReconstructed_; 
 
 public:
 
@@ -101,6 +102,11 @@ public:
     scalar minAngleCos() const
     {
         return minAngleCos_;  
+    }
+
+    bool previouslyReconstructed()
+    {
+        return previouslyReconstructed_;
     }
 };
 

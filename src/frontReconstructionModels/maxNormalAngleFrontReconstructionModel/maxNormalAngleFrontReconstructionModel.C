@@ -77,7 +77,8 @@ maxNormalAngleFrontReconstructionModel::maxNormalAngleFrontReconstructionModel(c
 :
     frontReconstructionModel(configDict),
     maxAngle_(readScalar(configDict.lookup("value")) * M_PI / 180.0),
-    minAngleCos_(Foam::cos(maxAngle_))
+    minAngleCos_(Foam::cos(maxAngle_)),
+    previouslyReconstructed_(false)
 {}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
@@ -103,10 +104,15 @@ bool maxNormalAngleFrontReconstructionModel::reconstructionRequired(
         {
             const auto& n = faceNormals[edgeFaces[J]]; 
 
-            if ((n0 & n) < minAngleCos_)
+            if (((n0 & n) < minAngleCos_) && (! previouslyReconstructed_))
+            {
+                previouslyReconstructed_ = true; 
                 return true; 
+            }
         }
     }
+
+    previouslyReconstructed_ = false; 
 
     return false;
 }
