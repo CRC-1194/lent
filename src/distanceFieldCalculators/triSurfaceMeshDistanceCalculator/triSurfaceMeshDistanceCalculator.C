@@ -97,22 +97,22 @@ void triSurfaceMeshDistanceCalculator::calcCellsToFrontDistance(
 )
 {
     // FIXME: Used for parallelization, needs work. TM
-    if (front.size() > 0)
-    {
+    //if (front.size() > 0)
+    //{
         signedDistance = dimensionedScalar(
             "GREAT",
             dimLength,
             GREAT
         );
-    } else
-    {
-        signedDistance = dimensionedScalar(
-            "-GREAT",
-            dimLength,
-            -GREAT
-        );
+    //} else
+    //{
+        //signedDistance = dimensionedScalar(
+            //"-GREAT",
+            //dimLength,
+            //-GREAT
+        //);
 
-    }
+    //}
 
     const fvMesh& mesh = signedDistance.mesh();
 
@@ -182,19 +182,20 @@ void triSurfaceMeshDistanceCalculator::calcPointsToFrontDistance(
     pointSignedDistance.resize(pointSearchDistanceSqr.size());
 
     // FIXME: Used for parallelization, needs work. TM
-    if (front.size() > 0)
-    {
+    //if (front.size() > 0)
+    //{
         pointSignedDistance = dimensionedScalar("GREAT", dimLength, GREAT);
-    } else
-    {
-        pointSignedDistance = dimensionedScalar("-GREAT", dimLength, -GREAT);
-    }
+    //} else
+    //{
+        //pointSignedDistance = dimensionedScalar("-GREAT", dimLength, -GREAT);
+    //}
 
     // Get the cell centres.
     const pointMesh& pMesh = pointSignedDistance.mesh();
 
     const pointField& points = pMesh().points();
 
+    // FIXME: work with octree directly. 
     triSurfaceMesh frontMesh(
         IOobject(
             "triSurfaceMesh",
