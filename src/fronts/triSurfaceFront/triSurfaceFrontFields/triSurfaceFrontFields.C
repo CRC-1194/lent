@@ -29,6 +29,8 @@ License
 
 namespace Foam
 {
+namespace FrontTracking 
+{
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -76,6 +78,7 @@ const word triSurfaceFrontPointTensorField::typeName("triSurfaceFrontPointTensor
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace FrontTracking
 } // End namespace Foam
 
 // ************************************************************************* //

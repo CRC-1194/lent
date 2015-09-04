@@ -63,13 +63,13 @@ Description
 #include "dictionary.H"
 #include "typeInfo.H"
 #include "autoPtr.H"
-#include "triSurfaceFields.H"
 #include "volFields.H"
-#include "triSurfaceMesh.H"
 #include "lentCommunication.H"
 #include "GeometricField.H"
 #include "fvPatchField.H"
 #include "volMesh.H"
+#include "triSurfaceFront.H"
+#include "triSurfaceFrontFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -110,13 +110,13 @@ public:
     // Member Functions
     template<typename Type>  
     void interpolate(
-        DimensionedField<Type, triSurfaceGeoMesh> const & frontVertexField, 
+        DimensionedField<Type, triSurfaceFrontGeoMesh> const & frontVertexField, 
         GeometricField<Type, fvPatchField, volMesh>& vf 
     ); 
 
     template<typename Type>  
     void interpolate(
-        DimensionedField<Type, triSurfacePointGeoMesh> const & frontField, 
+        DimensionedField<Type, triSurfaceFrontPointGeoMesh> const & frontField, 
         GeometricField<Type, fvPatchField, volMesh>& vf 
     ); 
 };

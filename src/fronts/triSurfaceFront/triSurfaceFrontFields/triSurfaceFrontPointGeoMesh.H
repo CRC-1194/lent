@@ -22,10 +22,10 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::triSurfaceGeoMesh
+    Foam::triSurfaceFrontGeoMesh
 
 Description
-    The triSurface  point GeoMesh (for holding vertex fields).
+    The triSurfaceFront  point GeoMesh (for holding vertex fields).
 
     Similar to the volMesh used for the Finite Volume discretization.
 
@@ -35,37 +35,40 @@ Description
 #define triSurfaceFrontPointGeoMesh_H
 
 #include "GeoMesh.H"
-#include "triSurface.H"
+#include "triSurfaceFront.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
+{
+namespace FrontTracking
 {
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 class triSurfaceFrontPointGeoMesh
 :
-    public GeoMesh<triSurface>
+    public GeoMesh<triSurfaceFront>
 {
 
 public:
 
     // Constructors
 
-        //- Construct from triSurface reference
-        explicit triSurfaceFrontPointGeoMesh(const triSurface& mesh)
+        //- Construct from triSurfaceFront reference
+        explicit triSurfaceFrontPointGeoMesh(const triSurfaceFront& mesh)
         :
-            GeoMesh<triSurface>(mesh)
+            GeoMesh<triSurfaceFront>(mesh)
         {}
 
 
     // Member Functions
 
         //- Return size
-        static label size(const triSurface& mesh)
+        static label size(const triSurfaceFront& mesh)
         {
-            return mesh.points().size();
+            const triSurface& surface = mesh;
+            return surface.points().size();
         }
 
         //- Return size
@@ -78,6 +81,7 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace FrontTracking
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

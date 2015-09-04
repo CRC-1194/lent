@@ -41,6 +41,7 @@ Description
 
 namespace Foam
 {
+namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -65,7 +66,8 @@ public:
         //- Return size
         static label size(const triSurfaceFront& mesh)
         {
-            return mesh.size();
+            const triSurface& surface = mesh;  
+            return surface.size();
         }
 
         //- Return size
@@ -78,6 +80,7 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace FrontTracking
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
