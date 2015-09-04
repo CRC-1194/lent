@@ -243,12 +243,16 @@ bool lentMethod::writeData(Ostream& os) const
 
 void lentMethod::calcFrontNormals(triSurfaceFront& front) const
 {
+    // Disambiguate from regIOobject, multiple inheritance issue. TM.
+    // Required for registering fields to the front.
+    const triSurface& frontSurface = front; 
+
     auto& normals = front.storedFaceNormals(); 
     const auto& points = front.points(); 
 
     forAll(normals, faceI)
     {
-        normals[faceI] = front[faceI].normal(points);  
+        normals[faceI] = frontSurface[faceI].normal(points);  
         normals[faceI] /= mag(normals[faceI]) + VSMALL;
     }
 }; 

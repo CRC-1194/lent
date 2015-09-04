@@ -77,9 +77,13 @@ namespace FrontTracking
 class triSurfaceFront
     :
         public refCount,
-        public regIOobject, // FIXME: inherit from ObjectRegistry for Field Registration. TM
+        public objectRegistry, 
+        //public regIOobject, 
         public triSurface
 {
+    // Read format.
+    word readFormat_;
+
     // Write format.
     word writeFormat_;
 
@@ -110,7 +114,7 @@ public:
     TypeName ("triSurfaceFront");
 
     // Constructors
-    triSurfaceFront(const IOobject& io, word writeFormat="stl", label prependZeros=8);
+    triSurfaceFront(const IOobject& io, word readFormat="stl", word writeFormat="vtk", label prependZeros=8);
 
     //- Destructor
     virtual ~triSurfaceFront() {};

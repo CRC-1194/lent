@@ -100,14 +100,9 @@ fileName triSurfaceFront::actualFileName() const
     fileName actualFileName = IOobject::path() + 
         "/" + IOobject::name() + "." + writeFormat_; 
 
-    const Time& runTime = IOobject::time();
-
-    if (runTime.timeIndex() > 0)
-    {
-        // Padd the name with zeros and add extension to the IOobject file name
-        // so that ParaView can open the temporal file sequence.
-        actualFileName = zeroPaddedFileName(writeFormat_);
-    }
+    // Padd the name with zeros and add extension to the IOobject file name
+    // so that ParaView can open the temporal file sequence.
+    actualFileName = zeroPaddedFileName(writeFormat_);
 
     return actualFileName;
 }
@@ -116,20 +111,27 @@ fileName triSurfaceFront::actualFileName() const
 
 triSurfaceFront::triSurfaceFront(
     const IOobject& io,
+    word readFormat,
     word writeFormat,
     label prependZeros
 )
 :
-    regIOobject(io),
+    objectRegistry(io),
+    //regIOobject(io), 
     triSurface(),
+    readFormat_(readFormat),
     writeFormat_(writeFormat),
     prependZeros_(prependZeros)
 {
-    // Get the current file name of the front from the IOobject using runTime.  
-    fileName file = actualFileName();
+
+    // FIXME: Work here to re-start the computation from latestTime.  Get the
+    // current file name of the front from the IOobject using runTime and
+    // readFormat. . TM.  
+    fileName initialFileName = IOobject::path() + 
+        "/" + IOobject::name() + "." + readFormat_; 
 
     // Construct the triSurface from the current file. 
-    static_cast<triSurface&>(*this) = triSurface(file);
+    static_cast<triSurface&>(*this) = triSurface(initialFileName);
 }
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
