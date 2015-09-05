@@ -85,7 +85,9 @@ class lentCommunication
 
 public:
 
-    TypeName("listBased");
+    static word registeredName(const triSurfaceFront& front, const fvMesh& mesh); 
+
+    TypeName("dynamicListCommunication");
 
     declareRunTimeSelectionTable (
         autoPtr,

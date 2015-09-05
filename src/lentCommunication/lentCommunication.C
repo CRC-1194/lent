@@ -69,6 +69,15 @@ namespace FrontTracking {
     defineRunTimeSelectionTable(lentCommunication, FrontMesh);
     addToRunTimeSelectionTable(lentCommunication, lentCommunication, FrontMesh);
 
+    word lentCommunication::registeredName(
+            const triSurfaceFront& front, 
+            const fvMesh& mesh
+    )
+    {
+        return mesh.name() + "-" + front.name() + "-communication"; 
+    } 
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 lentCommunication::lentCommunication(
@@ -78,7 +87,7 @@ lentCommunication::lentCommunication(
     :
         regIOobject(
             IOobject(
-               front.name(),
+               lentCommunication::registeredName(front,mesh), 
                mesh.thisDb().instance(),  
                mesh,
                IOobject::NO_READ, 
