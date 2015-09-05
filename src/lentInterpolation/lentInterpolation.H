@@ -68,7 +68,6 @@ Description
 #include "GeometricField.H"
 #include "fvPatchField.H"
 #include "volMesh.H"
-#include "triSurfaceFront.H"
 #include "triSurfaceFrontFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

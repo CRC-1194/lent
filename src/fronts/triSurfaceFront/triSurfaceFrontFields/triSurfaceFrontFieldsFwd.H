@@ -34,43 +34,46 @@ License
 namespace Foam
 {
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 template<class Type, class GeoMesh>
 class DimensionedField;
 
+namespace FrontTracking {
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 class triSurfaceFrontGeoMesh;
 
-typedef Foam::DimensionedField<label, triSurfaceFrontGeoMesh>
+typedef DimensionedField<label, triSurfaceFrontGeoMesh>
     triSurfaceFrontLabelField;
-typedef Foam::DimensionedField<scalar, triSurfaceFrontGeoMesh>
+typedef DimensionedField<scalar, triSurfaceFrontGeoMesh>
     triSurfaceFrontScalarField;
-typedef Foam::DimensionedField<vector, triSurfaceFrontGeoMesh>
+typedef DimensionedField<vector, triSurfaceFrontGeoMesh>
     triSurfaceFrontVectorField;
-typedef Foam::DimensionedField<sphericalTensor, triSurfaceFrontGeoMesh>
+typedef DimensionedField<sphericalTensor, triSurfaceFrontGeoMesh>
     triSurfaceFrontSphericalTensorField;
-typedef Foam::DimensionedField<symmTensor, triSurfaceFrontGeoMesh>
+typedef DimensionedField<symmTensor, triSurfaceFrontGeoMesh>
     triSurfaceFrontSymmTensorField;
-typedef Foam::DimensionedField<tensor, triSurfaceFrontGeoMesh>
+typedef DimensionedField<tensor, triSurfaceFrontGeoMesh>
     triSurfaceFrontTensorField;
 
 class triSurfaceFrontPointGeoMesh;
 
-typedef Foam::DimensionedField<label, triSurfaceFrontPointGeoMesh>
+typedef DimensionedField<label, triSurfaceFrontPointGeoMesh>
     triSurfaceFrontPointLabelField;
-typedef Foam::DimensionedField<scalar, triSurfaceFrontPointGeoMesh>
+typedef DimensionedField<scalar, triSurfaceFrontPointGeoMesh>
     triSurfaceFrontPointScalarField;
-typedef Foam::DimensionedField<vector, triSurfaceFrontPointGeoMesh>
+typedef DimensionedField<vector, triSurfaceFrontPointGeoMesh>
     triSurfaceFrontPointVectorField;
-typedef Foam::DimensionedField<sphericalTensor, triSurfaceFrontPointGeoMesh>
+typedef DimensionedField<sphericalTensor, triSurfaceFrontPointGeoMesh>
     triSurfaceFrontPointSphericalTensorField;
-typedef Foam::DimensionedField<symmTensor, triSurfaceFrontPointGeoMesh>
+typedef DimensionedField<symmTensor, triSurfaceFrontPointGeoMesh>
     triSurfaceFrontPointSymmTensorField;
-typedef Foam::DimensionedField<tensor, triSurfaceFrontPointGeoMesh>
+typedef DimensionedField<tensor, triSurfaceFrontPointGeoMesh>
     triSurfaceFrontPointTensorField;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace FrontTracking 
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
