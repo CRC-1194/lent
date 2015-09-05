@@ -71,9 +71,6 @@ namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-//lentInterpolation::lentInterpolation()
-//{}
-
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 autoPtr<lentInterpolation>
@@ -100,14 +97,9 @@ lentInterpolation::New(
     return autoPtr<lentInterpolation> (cstrIter()());
 }
 
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

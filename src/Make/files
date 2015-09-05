@@ -43,6 +43,7 @@ frontCurvatureModels/frontCurvatureMeyer/frontCurvatureMeyer.C
 /*frontCurvatureModels/frontExactCircleCurvatureModel/frontExactCircleCurvatureModel.C*/
 
 lentCommunication/lentCommunication.C
+fronts/triSurfaceFront/triSurfaceFrontFields/triSurfaceFrontFields.C
 lentInterpolation/lentInterpolation.C
 lentMethod/lentMethod.C
 

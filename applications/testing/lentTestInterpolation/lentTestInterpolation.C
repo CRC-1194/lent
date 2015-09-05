@@ -58,15 +58,16 @@ Description
 #include "pimpleControl.H"
 #include "lentMethod.H"
 #include "lentInterpolation.H"
-
 #include "lentTests.H"
+
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
 using namespace Test;
 
-TEST_F(lentTests, lentReconstruction)
+TEST_F(lentTests, lentTestInterpolation)
 {
     extern int mainArgc;
     extern char** mainArgv;
@@ -79,7 +80,6 @@ TEST_F(lentTests, lentReconstruction)
     #include "createMesh.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-    
 
     triSurfaceFront front(
         IOobject(
@@ -91,53 +91,51 @@ TEST_F(lentTests, lentReconstruction)
         )
     );
 
-    //lentMethod lent(front, mesh);
+    lentMethod lent(front, mesh);
 
-    //triSurfacePointVectorField vertexVectorSource 
-    //(
-        //IOobject(
-            //"vertexVectorSource", 
-            //runTime.timeName(), 
-            //frontMesh,
-            //IOobject::NO_READ, 
-            //IOobject::NO_WRITE
-        //), 
-        //frontMesh, 
-        //dimensionedVector(
-            //"zero", 
-            //dimless/dimLength, 
-            //vector(1,0,0)
-        //)
-    //);
+    triSurfaceFrontPointVectorField vertexVectorSource 
+    (
+        IOobject(
+            "vertexVectorSource", 
+            runTime.timeName(), 
+            front,
+            IOobject::NO_READ, 
+            IOobject::NO_WRITE
+        ), 
+        front,
+        dimensionedVector(
+            "zero", 
+            dimless/dimLength, 
+            vector(1,0,0)
+        )
+    );
 
-    //// Set the vertexVectorSource to (vertex.x(), 0,0) for testing. 
-    //const pointField& frontVertices = frontMesh.points(); 
+    // Set the vertexVectorSource to (vertex.x(), 0,0) for testing. 
+    const pointField& frontVertices = front.points(); 
+    forAll(frontVertices, vertexI)
+    {
+        vertexVectorSource[vertexI] = vector(frontVertices[vertexI].x(),0,0); 
+    }
 
-    //forAll(frontVertices, vertexI)
-    //{
-        //vertexVectorSource[vertexI] = vector(frontVertices[vertexI].x(),0,0); 
-    //}
+    volVectorField cellVectorTarget(
+        IOobject(
+            "cellVectorTarget", 
+            runTime.timeName(), 
+            mesh,
+            IOobject::NO_READ, 
+            IOobject::AUTO_WRITE
+        ), 
+        mesh, 
+        dimensionedVector(
+            "zero", 
+            dimless/dimLength, 
+            vector(0,0,0)
+        )
+    );
 
-    //volVectorField cellVectorTarget(
-        //IOobject(
-            //"cellVectorTarget", 
-            //runTime.timeName(), 
-            //mesh,
-            //IOobject::NO_READ, 
-            //IOobject::AUTO_WRITE
-        //), 
-        //mesh, 
-        //dimensionedVector(
-            //"zero", 
-            //dimless/dimLength, 
-            //vector(0,0,0)
-        //)
-    //);
-
-    //lentInterpolation interpolation; 
-    //interpolation.interpolate(vertexVectorSource, cellVectorTarget); 
-
-    //cellVectorTarget.write(); 
+    lentInterpolation interpolation; 
+    interpolation.interpolate(vertexVectorSource, cellVectorTarget);
+    cellVectorTarget.write(); 
 
     Info<< "End\n" << endl;
 }

@@ -65,7 +65,6 @@ Description
 #include "regIOobject.H"
 #include "typeInfo.H"
 #include "fvMesh.H"
-#include "triSurfaceFields.H"
 #include "lentCommunication.H"
 #include "triSurfaceFront.H"
 #include "distanceFieldCalculator.H"

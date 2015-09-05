@@ -67,7 +67,6 @@ Description
 #include "lentCommunication.H"
 #include "GeometricField.H"
 #include "fvPatchField.H"
-#include "volMesh.H"
 #include "triSurfaceFrontFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -109,28 +108,28 @@ public:
     // Member Functions
     template<typename Type>  
     void interpolate(
-        DimensionedField<Type, triSurfaceFrontGeoMesh> const & frontVertexField, 
+        const DimensionedField<Type, triSurfaceFrontPointGeoMesh>& vertexField, 
         GeometricField<Type, fvPatchField, volMesh>& vf 
-    ); 
+    );  
 
-    template<typename Type>  
-    void interpolate(
-        DimensionedField<Type, triSurfaceFrontPointGeoMesh> const & frontField, 
-        GeometricField<Type, fvPatchField, volMesh>& vf 
-    ); 
+    //template<typename Type>  
+    //void interpolate(
+        //DimensionedField<Type, triSurfaceFrontGeoMesh> const & frontField, 
+        //GeometricField<Type, fvPatchField, volMesh>& vf 
+    //); 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "lentInterpolationTemplates.H" 
+
+#ifdef NoRepository
+    #include "lentInterpolationTemplates.H" 
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
