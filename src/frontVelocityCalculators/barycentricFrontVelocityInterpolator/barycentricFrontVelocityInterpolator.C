@@ -95,11 +95,16 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
 
     interpolationCellPoint<vector> barycentric(U);
 
+    // FIXME: Replace the barycentricVelocityInterpolator by a derived class of lentInterpolation. TM.
+
     const List<labelledTri>& elements = front.localFaces();
     const pointField& vertices = front.points();
 
     const fvMesh& mesh = U.mesh();
 
+    // Why not triSurfacePointVectorField? 
+    // FIXME: Remove the search. 
+    // FIXME: Investigate theh triSurfaceVectorField are the faces only moved, or the points? 
     forAll (elementCells, elementI) // FIXME: Remove the search, update element cells in the lentCommunication class. TM. 
     {
         const triFace& element = elements[elementI];
