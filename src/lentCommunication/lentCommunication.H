@@ -64,6 +64,7 @@ Description
 #include "typeInfo.H"
 #include "autoPtr.H"
 #include "DynamicList.H"
+#include "frontMeshSearch.H"
 #include "triSurfaceFront.H"
 #include "fvMesh.H"
 
@@ -80,8 +81,20 @@ class lentCommunication
     :
         public regIOobject 
 {
+    // Front constant reference. 
+    const triSurfaceFront& front_; 
+
+    // Mesh constant reference. 
+    const fvMesh& mesh_; 
+
+    // KVS search algorithm used to update the maps.
+    frontMeshSearch searchAlg_; 
+
     // Indirect triangle->cell map.
     DynamicList<label> triangleToCell_;
+
+    // Indirect vertex->cell map.
+    DynamicList<label> vertexToCell_;
 
 public:
 
@@ -129,11 +142,19 @@ public:
         return triangleToCell_; 
     }
 
+    const auto& vertexToCell() const 
+    {
+        return vertexToCell_; 
+    }
+
     template<typename LabelList> 
     void setTriangleToCell(LabelList const& l)
     {
         triangleToCell_ = l; 
     }
+
+    void update();  
+    void updateVertexToCell();  
 
     // Empty writer: regIOobject is used only for registry queries.
     bool writeData(Ostream& os) const;

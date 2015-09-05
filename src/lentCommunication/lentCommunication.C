@@ -94,7 +94,11 @@ lentCommunication::lentCommunication(
                IOobject::NO_WRITE
             )
         ),
-        triangleToCell_()
+        front_(front), 
+        mesh_(mesh), 
+        searchAlg_(),
+        triangleToCell_(front_.nFaces()),
+        vertexToCell_(front_.nPoints())
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -126,6 +130,98 @@ lentCommunication::New(
 }
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+// Update the communicationMaps using the KVS search algorithm. 
+void lentCommunication::update()
+{
+    const List<labelledTri>& triangles = front_.localFaces();
+    const pointField& vertices = front_.points();
+
+    triangleToCell_.resize(front_.nFaces()); 
+    vertexToCell_.resize(front_.nPoints()); 
+
+    forAll (triangleToCell_, triangleI) 
+    {
+        const triFace& triangle = triangles[triangleI];
+
+        forAll (triangle, vertexI)
+        {
+            label foundCell = -1;
+
+            const point& vertex = vertices[triangle[vertexI]]; 
+
+            // If the vertex is within a the triangleToCell cell. 
+            if (searchAlg_.pointIsInCell(vertex, triangleToCell_[triangleI], mesh_)) 
+            {
+                // Set the vertex cell to the same cell.
+                vertexToCell_[triangle[vertexI]] = triangleToCell_[triangleI];
+            } else
+            {
+                // Find the cell that contains the vertex.
+                foundCell = searchAlg_.cellContainingPoint(
+                    vertex,
+                    mesh_,
+                    triangleToCell_[triangleI]
+                );
+
+                // If the cell is found. 
+                if (foundCell > 0)
+                {
+                    // Set the triangle cell to the found cell.
+                    triangleToCell_[triangleI] = foundCell;
+                    // Set the vertex cell to the found cell.
+                    vertexToCell_[triangle[vertexI]] = foundCell;
+                }
+            }
+        }
+    }
+}
+
+// Update vertex to cell only. Reconstructing the front results in setting the
+// triangle->cell map. In this case, only the vertex->cell map needs to be
+// updated. TM 
+void lentCommunication::updateVertexToCell()
+{
+    const List<labelledTri>& triangles = front_.localFaces();
+    const pointField& vertices = front_.points();
+
+    vertexToCell_.resize(front_.nPoints()); 
+
+    // For all triangle->cells.  
+    forAll (triangleToCell_, triangleI) 
+    {
+        const triFace& triangle = triangles[triangleI];
+
+        forAll (triangle, vertexI)
+        {
+            label foundCell = -1;
+
+            const point& vertex = vertices[triangle[vertexI]]; 
+
+            // If the vertex is within a the triangleToCell cell. 
+            if (searchAlg_.pointIsInCell(vertex, triangleToCell_[triangleI], mesh_)) 
+            {
+                // Set the vertex cell to the same cell.
+                vertexToCell_[triangle[vertexI]] = triangleToCell_[triangleI];
+            } else
+            {
+                // Find the cell that contains the vertex.
+                foundCell = searchAlg_.cellContainingPoint(
+                    vertex,
+                    mesh_,
+                    triangleToCell_[triangleI]
+                );
+
+                // If the cell is found. 
+                if (foundCell > 0)
+                {
+                    // Set the vertex cell to the found cell.
+                    vertexToCell_[triangle[vertexI]] = foundCell;
+                }
+            }
+        }
+    }
+}
 
 bool lentCommunication::writeData(Ostream& os) const
 {
