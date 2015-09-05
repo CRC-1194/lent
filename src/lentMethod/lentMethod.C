@@ -188,6 +188,7 @@ void lentMethod::reconstructFront(
     if (frontReconstructionModelTmp_->reconstructionRequired(front, signedDistance))
     {
         Info << "Reconstructing front..." << endl;
+
         communicationMaps_.setTriangleToCell(
             frontReconstructorTmp_->reconstructFront(
                 front,
@@ -195,8 +196,9 @@ void lentMethod::reconstructFront(
                 pointSignedDistance
             )
         );
-
+        communicationMaps_.updateVertexToCell(); 
         frontIsReconstructed_ = true;
+
         Info << "Done." << endl;
     }
 }
@@ -216,7 +218,7 @@ void lentMethod::calcFrontVelocity(
 void lentMethod::evolveFront(
     triSurfaceFront& front,
     const triSurfaceVectorField& frontVelocity
-) const
+) 
 {
     frontMotionSolverTmp_->evolveFront(
         front,
@@ -225,11 +227,9 @@ void lentMethod::evolveFront(
 
     frontIsReconstructed_ = false;
 
-    // FIXME: update the 
     // The normals must be calculated after motion .
     calcFrontNormals(front); 
-
-    // FIXME: Update the communication map after evolution.
+    communicationMaps_.update(); 
 }
 
 bool lentMethod::writeData(Ostream& os) const
