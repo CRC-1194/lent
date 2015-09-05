@@ -78,6 +78,7 @@ TEST_F(lentTests, lentTestInterpolation)
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
+    #include "createFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -92,6 +93,12 @@ TEST_F(lentTests, lentTestInterpolation)
     );
 
     lentMethod lent(front, mesh);
+
+    lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
+
+    lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
+    front.write(); 
 
     triSurfaceFrontPointVectorField vertexVectorSource 
     (
