@@ -67,24 +67,27 @@ void lentInterpolation::interpolate(
     GeometricField<Type, fvPatchField, volMesh>& cellField 
 ) 
 {
-    //const triSurfaceFront& front = triangleField.mesh(); 
-    //const fvMesh& mesh = cellField.mesh(); 
-    //const auto& communication = 
-        //mesh.lookupObject<lentCommunication>(front.name()); 
+    const triSurfaceFront& front = vertexField.mesh(); 
+    const fvMesh& mesh = cellField.mesh(); 
+    const lentCommunication& communication = 
+        mesh.lookupObject<lentCommunication>(
+            lentCommunication::registeredName(front,mesh)
+    ); 
 
+    // Simply transfer values from the nearest vertex. 
+    const auto& vertexToCell = communication.vertexToCell(); 
+    forAll(vertexToCell, vertexI)
+    {
+        cellField[vertexToCell[vertexI]] = vertexField[vertexI]; 
+    }
 }
 
-//template<typename Type>  
+//template<typename Type> // TODO: Finish it using triangleToCell. TM. 
 //void lentInterpolation::interpolate(
-    //DimensionedField<Type, triSurfaceFrontPointGeoMesh> const & vertexField,
+    //DimensionedField<Type, triSurfaceFrontGeoMesh> const & triangleField,
     //GeometricField<Type, fvPatchField, volMesh>& cellField 
 //)
-//{
-    //const triSurfaceFront& front = vertexField.mesh(); 
-    //const fvMesh& mesh = cellField.mesh(); 
-    //const auto& communication = 
-        //mesh.lookupObject<lentCommunication>(front.name()); 
-//}
+//{}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

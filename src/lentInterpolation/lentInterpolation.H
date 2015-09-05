@@ -114,8 +114,8 @@ public:
 
     //template<typename Type>  
     //void interpolate(
-        //DimensionedField<Type, triSurfaceFrontGeoMesh> const & frontField, 
-        //GeometricField<Type, fvPatchField, volMesh>& vf 
+        //DimensionedField<Type, triSurfaceFrontGeoMesh> const & triangleField, 
+        //GeometricField<Type, fvPatchField, volMesh>& cellField 
     //); 
 };
 
