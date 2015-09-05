@@ -122,6 +122,11 @@ public:
     // Member Functions
     bool write() const;
 
+    label nFaces() const 
+    {
+        return localFaces().size(); 
+    }
+
     // Return non-const access to face normals.
     pointField& storedFaceNormals()
     {
