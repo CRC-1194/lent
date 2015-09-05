@@ -267,6 +267,7 @@ int main(int argc, char *argv[])
     const dictionary& air = transportProperties.subDict("air");
     const dimensionedScalar rhoAir = air.lookup("rho");
 
+    /*
     const dictionary& lentSolution = 
         runTime.lookupObject<dictionary>("lentSolution");
     const dictionary& surfaceTensionForceModel
@@ -275,11 +276,7 @@ int main(int argc, char *argv[])
         = surfaceTensionForceModel.subDict("curvatureModel");
     const word curvatureField
         = curvatureModel.lookup("curvatureField");
-
-    const dictionary& frontReconstructionModel =
-        lentSolution.subDict("frontReconstructionModel");
-    const label reconstructed(readLabel(frontReconstructionModel.lookup("value")));
-
+        */
 
     const dimensionedScalar sigma(transportPropertiesDict.lookup("sigma"));
     scalar deltaP_exact = 0;
@@ -335,7 +332,7 @@ int main(int argc, char *argv[])
         // Write errors to file, ignore initial condition
         if (timeI > 0)
         {
-            errorFile << curvatureField << "\t" << reconstructed << "\t"
+            errorFile //<< curvatureField << "\t"
                       << h.value() << "\t"
                       << rhoAir.value() << "\t\t" << runTime.timeName() << "\t"
                       << error_total << "\t\t\t" << error_partial << "\t\t\t"
