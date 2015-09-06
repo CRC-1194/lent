@@ -178,6 +178,7 @@ int main(int argc, char *argv[])
     const dictionary& air = transportProperties.subDict("air");
     const dimensionedScalar rhoAir = air.lookup("rho");
 
+    /*
     const dictionary& lentSolution = 
         runTime.lookupObject<dictionary>("lentSolution");
     const dictionary& surfaceTensionForceModel
@@ -186,6 +187,7 @@ int main(int argc, char *argv[])
         = surfaceTensionForceModel.subDict("curvatureModel");
     const word curvatureField
         = curvatureModel.lookup("curvatureField");
+        */
 
     // Get the time directories from the simulation folder using time selector
     Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
@@ -261,12 +263,14 @@ int main(int argc, char *argv[])
 
         if (timeI > 0)
         {
-            errorFileCC << curvatureField << "\t" << h.value() << "\t"
+            errorFileCC //<< curvatureField << "\t" 
+                        << h.value() << "\t"
                         << rhoAir.value() << "\t" << runTime.timeName() << "\t\t"
                         << one_norm_cc.value() << "\t\t"<< two_norm_cc.value()
                         << "\t\t" << maximum_norm_cc.value() << std::endl;
 
-            errorFileFC << curvatureField << "\t" << h.value() << "\t"
+            errorFileFC //<< curvatureField << "\t"
+                        << h.value() << "\t"
                         << rhoAir.value() << "\t" << runTime.timeName() << "\t\t"
                         << one_norm_fc.value() << "\t\t"<< two_norm_fc.value()
                         << "\t\t" << maximum_norm_fc.value() << std::endl;
