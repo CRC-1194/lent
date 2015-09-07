@@ -66,6 +66,7 @@ Description
 #define frontCurvatureMeyer_H
 
 #include "frontCurvatureModel.H"
+#include "lentInterpolation.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

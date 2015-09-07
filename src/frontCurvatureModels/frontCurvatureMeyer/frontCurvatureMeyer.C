@@ -157,8 +157,8 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
         )
     );
     
-    // TODO: Store as data member and resize when topological change occurs. TM.
-    triSurfacePointVectorField cn
+    // TODO: Store as data member and resize with topological change. TM.
+    triSurfaceFrontPointVectorField cn
     (
         IOobject(
             "cn", 
@@ -261,7 +261,9 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
 
     volScalarField& cellCurvature = cellCurvatureTmp(); 
 
-    //interpolate(cn, cellCurvature); 
+    lentInterpolation interpolation;  // FIXME: Move to a data member. TM. 
+
+    interpolation.interpolate(mag(cn), cellCurvature); 
 
     return  cellCurvatureTmp; 
 }
