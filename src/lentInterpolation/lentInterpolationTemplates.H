@@ -82,6 +82,15 @@ void lentInterpolation::interpolate(
     }
 }
 
+template<typename Type>  
+void lentInterpolation::interpolate(
+    tmp<DimensionedField<Type, triSurfaceFrontPointGeoMesh>> vertexFieldTmp,
+    GeometricField<Type, fvPatchField, volMesh>& cellField 
+) 
+{
+    return interpolate(vertexFieldTmp(), cellField); 
+}
+
 //template<typename Type> // TODO: Finish it using triangleToCell. TM. 
 //void lentInterpolation::interpolate(
     //DimensionedField<Type, triSurfaceFrontGeoMesh> const & triangleField,

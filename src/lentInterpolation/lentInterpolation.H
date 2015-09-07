@@ -68,6 +68,7 @@ Description
 #include "GeometricField.H"
 #include "fvPatchField.H"
 #include "triSurfaceFrontFields.H"
+#include "tmp.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -109,6 +110,12 @@ public:
     template<typename Type>  
     void interpolate(
         const DimensionedField<Type, triSurfaceFrontPointGeoMesh>& vertexField, 
+        GeometricField<Type, fvPatchField, volMesh>& vf 
+    );  
+
+    template<typename Type>  
+    void interpolate(
+        tmp<DimensionedField<Type, triSurfaceFrontPointGeoMesh>> vertexField, 
         GeometricField<Type, fvPatchField, volMesh>& vf 
     );  
 
