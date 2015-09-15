@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
         )
     );
 
-    triSurfaceVectorField frontVelocity(
+    triSurfacePointVectorField frontVelocity(
         IOobject(
             "frontVelocity",
             runTime.timeName(),
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
-        lent.calcFrontVelocity(frontVelocity, U);
+        lent.calcFrontVelocity(frontVelocity, U.oldTime());
 
         lent.evolveFront(front, frontVelocity);
 
