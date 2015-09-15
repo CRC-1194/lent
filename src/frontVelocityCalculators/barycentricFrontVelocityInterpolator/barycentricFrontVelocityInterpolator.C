@@ -93,6 +93,8 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
 
     frontVelocity.resize(front.nPoints());
 
+    frontVelocity = dimensionedVector("zero", dimVelocity, vector(0,0,0)); 
+
     interpolationCellPoint<vector> barycentric(U);
 
     // FIXME: Replace the barycentricVelocityInterpolator by a derived class of lentInterpolation. TM.
@@ -129,7 +131,11 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
                 }
             }
             else
-                foundCell = elementCells[elementI];
+            {
+                FatalErrorIn("barycentricFrontVelocityInterpolator::calcFrontVelocity")
+                    << "Element cell not found." << endl;
+                //foundCell = elementCells[elementI];
+            }
 
             if (foundCell > 0)
             {
