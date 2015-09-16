@@ -91,17 +91,17 @@ TEST_F(lentTests, lentReconstruction)
         IOobject(
             "front",
             "front",
-            runTime,
+            mesh,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         )
     );
 
-    triSurfaceVectorField frontVelocity(
+    triSurfacePointVectorField frontVelocity(
         IOobject(
             "frontVelocity",
             runTime.timeName(),
-            runTime,
+            mesh,
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
@@ -117,9 +117,15 @@ TEST_F(lentTests, lentReconstruction)
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
-    lent.reconstructFront(front, signedDistance, pointSignedDistance);
+    lent.calcSignedDistances(
+        signedDistance,
+        pointSignedDistance,
+        searchDistanceSqr,
+        pointSearchDistanceSqr,
+        front
+    );
 
-    TEST_NORMAL_CONSISTENCY(front);
+    lent.calcMarkerField(markerField);
 
     front.write();
 
@@ -129,13 +135,20 @@ TEST_F(lentTests, lentReconstruction)
 
         runTime++;
 
+        ASSERT_TRUE(triSurfaceNormalsAreConsistent(front)); 
+
         #include "CourantNo.H"
         #include "markerFieldCourantNo.H"
         #include "setDeltaT.H"
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        Pout << "Signed distances...";
+        lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
+        lent.calcFrontVelocity(frontVelocity, U.oldTime());
+
+        lent.evolveFront(front, frontVelocity);
+
         lent.calcSignedDistances(
             signedDistance,
             pointSignedDistance,
@@ -143,25 +156,13 @@ TEST_F(lentTests, lentReconstruction)
             pointSearchDistanceSqr,
             front
         );
-        Pout << "done." << endl;
 
-        Pout << "MarkerField ... ";
         lent.calcMarkerField(markerField);
-        Pout << "done." << endl;
 
-        Pout << "Reconstruction ...";
-        lent.reconstructFront(front, signedDistance, pointSignedDistance);
-        Pout << "done." << endl;
-
-        TEST_NORMAL_CONSISTENCY(front);
-
-        Pout << "Velocity ...";
-        lent.calcFrontVelocity(frontVelocity, U);
-        Pout << "done." << endl;
-
-        Pout << "Evolution ...";
-        lent.evolveFront(front, frontVelocity);
-        Pout << "done." << endl;
+        // Update viscosity. 
+        mixture.correct();
+        // Update density field.
+        rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
         runTime.write();
 
