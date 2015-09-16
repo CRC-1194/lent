@@ -129,7 +129,7 @@ public:
     }
 
     virtual void calcFrontVelocity(
-        triSurfaceVectorField& frontVelocity,
+        triSurfacePointVectorField& frontVelocity,
         const volVectorField& U,
         labelList& elementCells
     ) const = 0;

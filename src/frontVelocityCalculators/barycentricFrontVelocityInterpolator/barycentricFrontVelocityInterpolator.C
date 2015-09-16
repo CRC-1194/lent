@@ -84,7 +84,7 @@ barycentricFrontVelocityInterpolator::barycentricFrontVelocityInterpolator(const
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 void barycentricFrontVelocityInterpolator::calcFrontVelocity(
-    triSurfaceVectorField& frontVelocity,
+    triSurfacePointVectorField& frontVelocity,
     const volVectorField& U,
     labelList& elementCells
 ) const
@@ -97,7 +97,8 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
 
     interpolationCellPoint<vector> barycentric(U);
 
-    // FIXME: Replace the barycentricVelocityInterpolator by a derived class of lentInterpolation. TM.
+    // FIXME: Replace the barycentricVelocityInterpolator by a derived class of 
+    // lentInterpolation. TM.
 
     const List<labelledTri>& elements = front.localFaces();
     const pointField& vertices = front.points();
@@ -106,7 +107,7 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
 
     // Why not triSurfacePointVectorField? 
     // FIXME: Remove the search. 
-    // FIXME: Investigate theh triSurfaceVectorField are the faces only moved, or the points? 
+    // FIXME: Investigate theh triSurfacePointVectorField are the faces only moved, or the points? 
     forAll (elementCells, elementI) // FIXME: Remove the search, update element cells in the lentCommunication class. TM. 
     {
         const triFace& element = elements[elementI];
@@ -132,9 +133,11 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
             }
             else
             {
-                FatalErrorIn("barycentricFrontVelocityInterpolator::calcFrontVelocity")
-                    << "Element cell not found." << endl;
-                //foundCell = elementCells[elementI];
+                // FIXME: Investigate what happens if KVS doesn't locate the point. Move to 
+                // lentCommunication anyway. TM.
+                //FatalErrorIn("barycentricFrontVelocityInterpolator::calcFrontVelocity")
+                    //<< "Element cell not found." << endl;
+                foundCell = elementCells[elementI];
             }
 
             if (foundCell > 0)
