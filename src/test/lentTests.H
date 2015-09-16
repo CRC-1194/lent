@@ -73,8 +73,6 @@ bool triSurfaceNormalsAreConsistent(const triSurface& front)
     const labelListList& edgeFaces = front.edgeFaces();
     const vectorField& faceNormals = front.faceNormals();
 
-    bool normalsAreConsistent = true;
-
     forAll (edgeFaces, I)
     {
         const vector& n0 = faceNormals[edgeFaces[I][0]];
@@ -82,10 +80,10 @@ bool triSurfaceNormalsAreConsistent(const triSurface& front)
 
         if ((n0 & n1) < 0)
         {
-            normalsAreConsistent = false;
+            return false;
         }
     }
-    return normalsAreConsistent;
+    return true;
 }
 
 class triSurfaceSizeChange
