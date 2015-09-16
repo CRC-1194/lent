@@ -110,7 +110,7 @@ public:
 
         virtual void evolveFront(
             triSurfaceFront& front,
-            const triSurfaceVectorField& frontVelocity
+            const triSurfacePointVectorField& frontVelocity
         ) const = 0;
 };
 
