@@ -172,13 +172,13 @@ public:
         }
 
         void calcFrontVelocity(
-            triSurfaceVectorField & frontVelocity,
+            triSurfacePointVectorField & frontVelocity,
             const volVectorField& U
         );
 
         void evolveFront(
             triSurfaceFront& front,
-            const triSurfaceVectorField& frontVelocity
+            const triSurfacePointVectorField& frontVelocity
         );
         
         tmp<surfaceScalarField> faceSurfaceTensionForce(

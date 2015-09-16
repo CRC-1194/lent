@@ -204,7 +204,7 @@ void lentMethod::reconstructFront(
 }
 
 void lentMethod::calcFrontVelocity(
-    triSurfaceVectorField& frontVelocity,
+    triSurfacePointVectorField& frontVelocity,
     const volVectorField& U
 )
 {
@@ -217,7 +217,7 @@ void lentMethod::calcFrontVelocity(
 
 void lentMethod::evolveFront(
     triSurfaceFront& front,
-    const triSurfaceVectorField& frontVelocity
+    const triSurfacePointVectorField& frontVelocity
 ) 
 {
     frontMotionSolverTmp_->evolveFront(
