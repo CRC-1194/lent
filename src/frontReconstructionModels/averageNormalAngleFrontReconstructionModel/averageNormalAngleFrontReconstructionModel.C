@@ -96,7 +96,7 @@ bool averageNormalAngleFrontReconstructionModel::reconstructionRequired(
     const auto& faceNormals = front.faceNormals(); 
 
     double averageAngleCos = 0.0; 
-
+    unsigned int counter = 0; 
     forAll(edges, I)
     {
         const auto& edgeFaces = allEdgeFaces[I];
@@ -106,9 +106,14 @@ bool averageNormalAngleFrontReconstructionModel::reconstructionRequired(
         {
             const auto& n = faceNormals[edgeFaces[J]]; 
             averageAngleCos += (n0 & n); 
+            ++counter; 
         }
     }
-    averageAngleCos /= edges.size(); 
+    averageAngleCos = averageAngleCos / counter; 
+
+    // TODO: Introduce debug. TM.
+    //Info << "average normal angle | min angle " << endl
+        //<<  averageAngleCos << " | " << minAngleCos_ << endl;
 
     if (averageAngleCos < minAngleCos_)
         return true; 
