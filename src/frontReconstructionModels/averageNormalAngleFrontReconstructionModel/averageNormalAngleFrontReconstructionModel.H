@@ -83,7 +83,7 @@ class averageNormalAngleFrontReconstructionModel
 
 public:
 
-    TypeName ("averageNormalAngle");
+    TypeName ("maxAverageNormalAngle");
 
     // Constructors
     explicit averageNormalAngleFrontReconstructionModel(const dictionary& configDict);
