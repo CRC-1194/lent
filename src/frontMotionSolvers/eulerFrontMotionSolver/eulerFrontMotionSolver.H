@@ -90,7 +90,7 @@ public:
     // Member Functions
     void evolveFront(
         triSurfaceFront& front,
-        const triSurfaceVectorField& frontVelocity
+        const triSurfacePointVectorField& frontVelocity
     ) const;
 };
 
