@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
         //timing.stop("Reconstruction");
 
         //timing.start("Velocity Calculation");
-        lent.calcFrontVelocity(frontVelocity, U);
+        lent.calcFrontVelocity(frontVelocity, U.oldTime());
         //timing.stop("Velocity Calculation");
 
         //timing.start("Front Evolution");

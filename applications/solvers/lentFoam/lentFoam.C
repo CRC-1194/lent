@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
         Info << "Done." << endl;
 
         Info << "Calculating front velocity..." << endl;
-        lent.calcFrontVelocity(frontVelocity, U);
+        lent.calcFrontVelocity(frontVelocity, U.oldTime());
         Info << "Done." << endl;
 
         Info << "Evolving the front..." << endl;
