@@ -32,7 +32,7 @@ Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+    Interface for the front surface tension models. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,47 +57,51 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "tryggvasonSurfaceTensionForceModel.H"
+#ifndef tryggvasonSurfaceTensionForceModel_H
+#define tryggvasonSurfaceTensionForceModel_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "frontSurfaceTensionForceModel.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(tryggvasonSurfaceTensionForceModel, 0);
-    defineRunTimeSelectionTable(tryggvasonSurfaceTensionForceModel, Dictionary);
+/*---------------------------------------------------------------------------*\
+                         Class tryggvasonSurfaceTensionForceModel Declaration
+\*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
-//
-tryggvasonSurfaceTensionForceModel::tryggvasonSurfaceTensionForceModel(const dictionary& configDict)
+class tryggvasonSurfaceTensionForceModel
     :
-        filterFieldName_(configDict.lookup("filterField")),
-        curvatureModelTmp_(frontCurvatureModel::New(configDict.subDict("curvatureModel"))) 
-{}
-
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-
-tmp<tryggvasonSurfaceTensionForceModel>
-tryggvasonSurfaceTensionForceModel::New(const dictionary& configDict)
+        public frontSurfaceTensionForceModel
 {
-    const word name = configDict.lookup("type");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+public:
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
-    {
-        FatalErrorIn (
-            "tryggvasonSurfaceTensionForceModel::New(const word& name)"
-        )   << "Unknown tryggvasonSurfaceTensionForceModel type "
-            << name << nl << nl
-            << "Valid tryggvasonSurfaceTensionForceModels are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
-    }
+    TypeName ("CSF");
 
-    return tmp<tryggvasonSurfaceTensionForceModel> (cstrIter()(configDict));
-}
+    // Constructors 
+    
+    tryggvasonSurfaceTensionForceModel() = default;
+    tryggvasonSurfaceTensionForceModel(const dictionary&);  
+
+    // Destructor
+    
+    virtual ~tryggvasonSurfaceTensionForceModel() {};
+
+    // Member Functions
+    
+    virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
+        const fvMesh& mesh, 
+        const triSurfaceFront& frontMesh 
+    ) const; 
+
+    virtual tmp<volVectorField> cellSurfaceTensionForce(
+        const fvMesh& mesh,  
+        const triSurfaceFront& frontMesh 
+    ) const;  
+
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -108,5 +112,7 @@ tryggvasonSurfaceTensionForceModel::New(const dictionary& configDict)
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

@@ -32,7 +32,7 @@ Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Interface for the front surface tension models. 
+    Interface for the front curvature models. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -51,101 +51,65 @@ Description
         Center of Smart Interfaces
         Technische Universitaet Darmstadt
        
+:qa
     If you use this software for your scientific work or your publications,
     please don't forget to acknowledge explicitly the use of it.
 
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef tryggvasonSurfaceTensionForceModel_H
-#define tryggvasonSurfaceTensionForceModel_H
-
-#include "typeInfo.H"
-#include "tmp.H"
-#include "refCount.H"
-#include "fvMesh.H"
-#include "volFieldsFwd.H"
-#include "surfaceFieldsFwd.H"
-#include "triSurfaceFront.H"
-#include "frontCurvatureModel.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "tryggvasonSurfaceTensionForceModel.H"
+#include "addToRunTimeSelectionTable.H"
+#include "volFields.H"
+#include "fvcGrad.H"
+#include "fvcReconstruct.H"
+#include "surfaceInterpolate.H"
+#include "surfaceFields.H"
+#include "fvcDiv.H"
+#include "fvcSnGrad.H"
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class tryggvasonSurfaceTensionForceModel Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(tryggvasonSurfaceTensionForceModel, 0);
+    addToRunTimeSelectionTable(frontSurfaceTensionForceModel, tryggvasonSurfaceTensionForceModel, Dictionary);
 
-class tryggvasonSurfaceTensionForceModel
+// * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * //
+
+tryggvasonSurfaceTensionForceModel::tryggvasonSurfaceTensionForceModel(const dictionary& configDict)
     :
-        public refCount
+        frontSurfaceTensionForceModel(configDict) 
+{}
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+tmp<surfaceScalarField> tryggvasonSurfaceTensionForceModel::faceSurfaceTensionForce(
+    const fvMesh& mesh,  
+    const triSurfaceFront& frontMesh 
+) const
 {
+    const Time& runTime = mesh.time(); 
 
-    word filterFieldName_; 
-    tmp<frontCurvatureModel> curvatureModelTmp_; 
+    const dictionary& transportProperties = 
+        runTime.lookupObject<dictionary>("transportProperties");
 
-public:
-
-    TypeName ("abstract");
-
-    tryggvasonSurfaceTensionForceModel() = default; 
-    explicit tryggvasonSurfaceTensionForceModel(const dictionary& configDict); 
-
-    declareRunTimeSelectionTable (
-        tmp,
-        tryggvasonSurfaceTensionForceModel,
-        Dictionary,
-        (const dictionary& configDict),
-        (configDict)
-    );
-
-    // Selectors
-    static tmp<tryggvasonSurfaceTensionForceModel> New(const dictionary& configDict);
-
-    // Destructor
-    virtual ~tryggvasonSurfaceTensionForceModel() = default;
-
-    // Member Functions
-    tmp<volScalarField> cellCurvature(
-        const fvMesh& mesh, 
-        const triSurfaceFront& frontMesh
-    ) const
-    {
-        return curvatureModelTmp_->cellCurvature(mesh, frontMesh);  
-    }
-
-    tmp<surfaceScalarField> faceCurvature(
-        const fvMesh& mesh, 
-        const triSurfaceFront& frontMesh
-    ) const
-    {
-        return curvatureModelTmp_->faceCurvature(mesh, frontMesh); 
-    }
-
-    const word filterFieldName() const
-    {
-        return filterFieldName_;  
-    } 
-
-    const frontCurvatureModel& curvatureModel() const 
-    {
-        return curvatureModelTmp_();  
-    }
+    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
     
-    virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const = 0;
+    const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
 
-    virtual tmp<volVectorField> cellSurfaceTensionForce(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const = 0;  
-};
+    return fvc::interpolate(sigma * cellCurvature(mesh,frontMesh)) * fvc::snGrad(filterField);
+}
+
+tmp<volVectorField> tryggvasonSurfaceTensionForceModel::cellSurfaceTensionForce(
+    const fvMesh& mesh,  
+    const triSurfaceFront& frontMesh 
+) const
+{
+    return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 
 } // End namespace FrontTracking
 
@@ -154,7 +118,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //
