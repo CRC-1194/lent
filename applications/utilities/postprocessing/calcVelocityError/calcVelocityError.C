@@ -136,13 +136,58 @@ int main(int argc, char *argv[])
 
     std::string header = "# h [m]\ttime [s]\tone-norm [m/s]\ttwo-norm [m/s]\tmax-norm [m/s]";
     errorFileCC.open(errorFileNameCCPtr, std::ios_base::app);
+    /* Moved header to script file to avoid duplication
     errorFileCC << "# Cell centered velocities\n"
                 << header
                 << std::endl;
+    */
     errorFileFC.open(errorFileNameFCPtr, std::ios_base::app);
+    /*
     errorFileFC << "# Face centered velocities\n"
                 << header
                 << std::endl;
+    */
+
+    // Read varying parameters from dictionaries for unique identification
+    // of results
+    IOdictionary transportPropertiesDict
+    (
+        IOobject
+        (
+            "transportProperties",
+            "constant",
+            runTime,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    );
+    IOdictionary lentSolutionDict
+    (
+        IOobject
+        (
+            "lentSolution",
+            "system",
+            runTime,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    );
+
+    const dictionary& transportProperties = 
+        runTime.lookupObject<dictionary>("transportProperties");
+    const dictionary& air = transportProperties.subDict("air");
+    const dimensionedScalar rhoAir = air.lookup("rho");
+
+    /*
+    const dictionary& lentSolution = 
+        runTime.lookupObject<dictionary>("lentSolution");
+    const dictionary& surfaceTensionForceModel
+        = lentSolution.subDict("surfaceTensionForceModel");
+    const dictionary& curvatureModel
+        = surfaceTensionForceModel.subDict("curvatureModel");
+    const word curvatureField
+        = curvatureModel.lookup("curvatureField");
+        */
 
     // Get the time directories from the simulation folder using time selector
     Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
@@ -218,13 +263,17 @@ int main(int argc, char *argv[])
 
         if (timeI > 0)
         {
-            errorFileCC << h.value() << "\t" << runTime.timeName() << "\t\t"
+            errorFileCC //<< curvatureField << "\t" 
+                        << h.value() << "\t"
+                        << rhoAir.value() << "\t" << runTime.timeName() << "\t\t"
                         << one_norm_cc.value() << "\t\t"<< two_norm_cc.value()
                         << "\t\t" << maximum_norm_cc.value() << std::endl;
 
-            errorFileFC << h.value() << "\t" << runTime.timeName() << "\t\t"
+            errorFileFC //<< curvatureField << "\t"
+                        << h.value() << "\t"
+                        << rhoAir.value() << "\t" << runTime.timeName() << "\t\t"
                         << one_norm_fc.value() << "\t\t"<< two_norm_fc.value()
-                        << "\t\t" << maximum_norm_fc.value() << "\n";
+                        << "\t\t" << maximum_norm_fc.value() << std::endl;
         }
     }
 
