@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
         )
     );
 
-    triSurfaceVectorField frontVelocity(
+    triSurfacePointVectorField frontVelocity(
         IOobject(
             "frontVelocity",
             runTime.timeName(),
