@@ -78,7 +78,7 @@ class tryggvasonSurfaceTensionForceModel
 
 public:
 
-    TypeName ("CSF");
+    TypeName ("Tryggvason");
 
     // Constructors 
     
