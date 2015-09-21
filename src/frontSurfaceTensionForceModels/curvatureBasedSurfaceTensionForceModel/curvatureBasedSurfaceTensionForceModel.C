@@ -23,10 +23,10 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::csfSurfaceTensionForceModel
+    Foam::curvatureBasedSurfaceTensionForceModel
 
 SourceFiles
-    csfSurfaceTensionForceModel.C
+    curvatureBasedSurfaceTensionForceModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
@@ -51,65 +51,31 @@ Description
         Center of Smart Interfaces
         Technische Universitaet Darmstadt
        
-:qa
     If you use this software for your scientific work or your publications,
     please don't forget to acknowledge explicitly the use of it.
 
 \*---------------------------------------------------------------------------*/
 
 
-#include "csfSurfaceTensionForceModel.H"
+#include "curvatureBasedSurfaceTensionForceModel.H"
 #include "addToRunTimeSelectionTable.H"
-#include "volFields.H"
-#include "fvcGrad.H"
-#include "fvcReconstruct.H"
-#include "surfaceInterpolate.H"
-#include "surfaceFields.H"
-#include "fvcDiv.H"
-#include "fvcSnGrad.H"
+
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(csfSurfaceTensionForceModel, 0);
-    addToRunTimeSelectionTable(frontSurfaceTensionForceModel, csfSurfaceTensionForceModel, Dictionary);
+    defineTypeNameAndDebug(curvatureBasedSurfaceTensionForceModel, 0);
 
-// * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
+//
 
-csfSurfaceTensionForceModel::csfSurfaceTensionForceModel(const dictionary& configDict)
+curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(const dictionary& configDict)
     :
-        curvatureBasedSurfaceTensionForceModel(configDict) 
+        curvatureModelTmp_(frontCurvatureModel::New(configDict.subDict("curvatureModel"))) 
 {}
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
-    const fvMesh& mesh,  
-    const triSurfaceFront& frontMesh 
-) const
-{
-    const Time& runTime = mesh.time(); 
-
-    const dictionary& transportProperties = 
-        runTime.lookupObject<dictionary>("transportProperties");
-
-    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
-    
-    const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
-
-    return fvc::interpolate(sigma * cellCurvature(mesh,frontMesh)) * fvc::snGrad(filterField);
-}
-
-tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
-    const fvMesh& mesh,  
-    const triSurfaceFront& frontMesh 
-) const
-{
-    return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
-}
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 
 } // End namespace FrontTracking
 

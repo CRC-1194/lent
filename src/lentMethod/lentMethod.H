@@ -207,11 +207,6 @@ public:
             return surfaceTensionForceModelTmp_();  
         }
 
-        const frontCurvatureModel& curvatureModel() const
-        {
-            return surfaceTensionForceModelTmp_->curvatureModel();
-        };
-
         void calcFrontNormals(triSurfaceFront& front) const; 
 
         // Empty writer: regIOobject is used only for registry queries.

@@ -86,7 +86,8 @@ int main(int argc, char *argv[])
     tmp<volScalarField> cellCurvatureExactTmp = exactCurvatureModel.cellCurvature(mesh,front);  
     volScalarField& exactCurvature = cellCurvatureExactTmp();  
 
-    const frontCurvatureModel& numericalCurvatureModel = lent.curvatureModel();  
+    tmp<frontCurvatureModel> numericalCurvatureModelTmp = frontCurvatureModel::New(lentDict.subDict("curvatureModel"));  
+    const frontCurvatureModel& numericalCurvatureModel = numericalCurvatureModelTmp(); 
     tmp<volScalarField> numericalCurvatureTmp = numericalCurvatureModel.cellCurvature(mesh,front);  
     volScalarField& numericalCurvature = numericalCurvatureTmp();  
     numericalCurvature.rename("numericalCurvature"); 

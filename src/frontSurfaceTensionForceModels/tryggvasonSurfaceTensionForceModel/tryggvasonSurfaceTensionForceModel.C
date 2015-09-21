@@ -93,11 +93,11 @@ tmp<surfaceScalarField> tryggvasonSurfaceTensionForceModel::faceSurfaceTensionFo
     const dictionary& transportProperties = 
         runTime.lookupObject<dictionary>("transportProperties");
 
-    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+    //const dimensionedScalar sigma = transportProperties.lookup("sigma");  
     
-    const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
+    //const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
 
-    return fvc::interpolate(sigma * cellCurvature(mesh,frontMesh)) * fvc::snGrad(filterField);
+    //return fvc::interpolate(sigma * cellCurvature(mesh,frontMesh)) * fvc::snGrad(filterField);
 }
 
 tmp<volVectorField> tryggvasonSurfaceTensionForceModel::cellSurfaceTensionForce(

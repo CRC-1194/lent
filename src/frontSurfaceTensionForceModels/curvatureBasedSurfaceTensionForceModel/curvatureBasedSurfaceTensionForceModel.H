@@ -23,16 +23,16 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::csfSurfaceTensionForceModel
+    Foam::curvatureBasedSurfaceTensionForceModel
 
 SourceFiles
-    csfSurfaceTensionForceModel.C
+    curvatureBasedSurfaceTensionForceModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+    Interface for the front surface tension models. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -51,65 +51,78 @@ Description
         Center of Smart Interfaces
         Technische Universitaet Darmstadt
        
-:qa
     If you use this software for your scientific work or your publications,
     please don't forget to acknowledge explicitly the use of it.
 
 \*---------------------------------------------------------------------------*/
 
 
-#include "csfSurfaceTensionForceModel.H"
-#include "addToRunTimeSelectionTable.H"
-#include "volFields.H"
-#include "fvcGrad.H"
-#include "fvcReconstruct.H"
-#include "surfaceInterpolate.H"
-#include "surfaceFields.H"
-#include "fvcDiv.H"
-#include "fvcSnGrad.H"
+#ifndef curvatureBasedSurfaceTensionForceModel_H
+#define curvatureBasedSurfaceTensionForceModel_H
+
+#include "frontSurfaceTensionForceModel.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(csfSurfaceTensionForceModel, 0);
-    addToRunTimeSelectionTable(frontSurfaceTensionForceModel, csfSurfaceTensionForceModel, Dictionary);
+/*---------------------------------------------------------------------------*\
+                         Class curvatureBasedSurfaceTensionForceModel Declaration
+\*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * //
-
-csfSurfaceTensionForceModel::csfSurfaceTensionForceModel(const dictionary& configDict)
+class curvatureBasedSurfaceTensionForceModel
     :
-        curvatureBasedSurfaceTensionForceModel(configDict) 
-{}
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
-    const fvMesh& mesh,  
-    const triSurfaceFront& frontMesh 
-) const
+        public frontSurfaceTensionForceModel
 {
-    const Time& runTime = mesh.time(); 
 
-    const dictionary& transportProperties = 
-        runTime.lookupObject<dictionary>("transportProperties");
+    tmp<frontCurvatureModel> curvatureModelTmp_; 
 
-    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+public:
+
+    TypeName ("abstract");
+
+    // Constructors
+    curvatureBasedSurfaceTensionForceModel() = default; 
+    explicit curvatureBasedSurfaceTensionForceModel(const dictionary& configDict); 
+
+    // Destructor
+    virtual ~curvatureBasedSurfaceTensionForceModel() = default;
+
+    // Member Functions
+    tmp<volScalarField> cellCurvature(
+        const fvMesh& mesh, 
+        const triSurfaceFront& frontMesh
+    ) const
+    {
+        return curvatureModelTmp_->cellCurvature(mesh, frontMesh);  
+    }
+
+    tmp<surfaceScalarField> faceCurvature(
+        const fvMesh& mesh, 
+        const triSurfaceFront& frontMesh
+    ) const
+    {
+        return curvatureModelTmp_->faceCurvature(mesh, frontMesh); 
+    }
+
+    const frontCurvatureModel& curvatureModel() const 
+    {
+        return curvatureModelTmp_();  
+    }
     
-    const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
+    virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
+        const fvMesh&, 
+        const triSurfaceFront&
+    ) const = 0;
 
-    return fvc::interpolate(sigma * cellCurvature(mesh,frontMesh)) * fvc::snGrad(filterField);
-}
-
-tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
-    const fvMesh& mesh,  
-    const triSurfaceFront& frontMesh 
-) const
-{
-    return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
-}
+    virtual tmp<volVectorField> cellSurfaceTensionForce(
+        const fvMesh&, 
+        const triSurfaceFront&
+    ) const = 0;  
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 
 } // End namespace FrontTracking
 
@@ -118,5 +131,7 @@ tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

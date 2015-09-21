@@ -84,7 +84,6 @@ class frontSurfaceTensionForceModel
 {
 
     word filterFieldName_; 
-    tmp<frontCurvatureModel> curvatureModelTmp_; 
 
 public:
 
@@ -107,32 +106,10 @@ public:
     // Destructor
     virtual ~frontSurfaceTensionForceModel() = default;
 
-    // Member Functions
-    tmp<volScalarField> cellCurvature(
-        const fvMesh& mesh, 
-        const triSurfaceFront& frontMesh
-    ) const
-    {
-        return curvatureModelTmp_->cellCurvature(mesh, frontMesh);  
-    }
-
-    tmp<surfaceScalarField> faceCurvature(
-        const fvMesh& mesh, 
-        const triSurfaceFront& frontMesh
-    ) const
-    {
-        return curvatureModelTmp_->faceCurvature(mesh, frontMesh); 
-    }
-
     const word filterFieldName() const
     {
         return filterFieldName_;  
     } 
-
-    const frontCurvatureModel& curvatureModel() const 
-    {
-        return curvatureModelTmp_();  
-    }
     
     virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
         const fvMesh&, 

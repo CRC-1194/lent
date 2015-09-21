@@ -60,7 +60,7 @@ Description
 #ifndef csfSurfaceTensionForceModel_H
 #define csfSurfaceTensionForceModel_H
 
-#include "frontSurfaceTensionForceModel.H"
+#include "curvatureBasedSurfaceTensionForceModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -73,7 +73,7 @@ namespace FrontTracking {
 
 class csfSurfaceTensionForceModel
     :
-        public frontSurfaceTensionForceModel
+        public curvatureBasedSurfaceTensionForceModel 
 {
 
 public:

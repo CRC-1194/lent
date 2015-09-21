@@ -71,8 +71,7 @@ namespace FrontTracking {
 //
 frontSurfaceTensionForceModel::frontSurfaceTensionForceModel(const dictionary& configDict)
     :
-        filterFieldName_(configDict.lookup("filterField")),
-        curvatureModelTmp_(frontCurvatureModel::New(configDict.subDict("curvatureModel"))) 
+        filterFieldName_(configDict.lookup("filterField"))
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
