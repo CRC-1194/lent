@@ -228,8 +228,8 @@ int main(int argc, char *argv[])
     errorFile.precision(4);
 
     // Write header
-    errorFile << "# h [m]\ttime[s]\terror p_total\terror p_partial\t"
-              << "error p_max\n"; 
+    //errorFile << "# h [m]\ttime[s]\terror p_total\terror p_partial\t"
+    //          << "error p_max\n"; 
 
     const scalar radius = args.optionRead<scalar>("radius");
     const vector center = args.optionRead<vector>("center");
@@ -248,6 +248,36 @@ int main(int argc, char *argv[])
             IOobject::NO_WRITE
         )
     );
+    //
+    // Read varying parameters from dictionaries for unique identification
+    // of results
+    IOdictionary lentSolutionDict
+    (
+        IOobject
+        (
+            "lentSolution",
+            "system",
+            runTime,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    );
+    const dictionary& transportProperties = 
+        runTime.lookupObject<dictionary>("transportProperties");
+    const dictionary& air = transportProperties.subDict("air");
+    const dimensionedScalar rhoAir = air.lookup("rho");
+
+    /*
+    const dictionary& lentSolution = 
+        runTime.lookupObject<dictionary>("lentSolution");
+    const dictionary& surfaceTensionForceModel
+        = lentSolution.subDict("surfaceTensionForceModel");
+    const dictionary& curvatureModel
+        = surfaceTensionForceModel.subDict("curvatureModel");
+    const word curvatureField
+        = curvatureModel.lookup("curvatureField");
+        */
+
     const dimensionedScalar sigma(transportPropertiesDict.lookup("sigma"));
     scalar deltaP_exact = 0;
 
@@ -302,7 +332,9 @@ int main(int argc, char *argv[])
         // Write errors to file, ignore initial condition
         if (timeI > 0)
         {
-            errorFile << h.value() << "\t\t" << runTime.timeName() << "\t"
+            errorFile //<< curvatureField << "\t"
+                      << h.value() << "\t"
+                      << rhoAir.value() << "\t\t" << runTime.timeName() << "\t"
                       << error_total << "\t\t\t" << error_partial << "\t\t\t"
                       << error_max << "\n";
         }
