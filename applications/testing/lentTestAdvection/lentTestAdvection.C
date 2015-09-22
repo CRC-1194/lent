@@ -87,6 +87,7 @@ TEST_F(lentTests, lentReconstruction)
 
     Info<< "\nStarting time loop\n" << endl;
 
+    Info << "Reading the front..." << endl;
     triSurfaceFront front(
         IOobject(
             "front",
@@ -96,6 +97,9 @@ TEST_F(lentTests, lentReconstruction)
             IOobject::AUTO_WRITE
         )
     );
+
+    ASSERT_TRUE(triSurfaceNormalsAreConsistent(front)); 
+    Info << "Done." << endl;
 
     triSurfacePointVectorField frontVelocity(
         IOobject(
@@ -135,7 +139,6 @@ TEST_F(lentTests, lentReconstruction)
 
         runTime++;
 
-        ASSERT_TRUE(triSurfaceNormalsAreConsistent(front)); 
 
         #include "CourantNo.H"
         #include "markerFieldCourantNo.H"
@@ -143,12 +146,20 @@ TEST_F(lentTests, lentReconstruction)
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
+        Info << "Reconstructing the front..." << endl;
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
+        ASSERT_TRUE(triSurfaceNormalsAreConsistent(front)); 
+        Info << "Done." << endl;
 
+        Info << "Calculating front velocity..." << endl;
         lent.calcFrontVelocity(frontVelocity, U.oldTime());
+        Info << "Done. " << endl;
 
+        Info << "Evolving the front..." << endl;
         lent.evolveFront(front, frontVelocity);
+        Info << "Done." << endl;
 
+        Info << "Calculating distance fields..." << endl;
         lent.calcSignedDistances(
             signedDistance,
             pointSignedDistance,
@@ -156,8 +167,11 @@ TEST_F(lentTests, lentReconstruction)
             pointSearchDistanceSqr,
             front
         );
+        Info << "Done." << endl;
 
+        Info << "Calculating the marker field..." << endl;
         lent.calcMarkerField(markerField);
+        Info << "Done." << endl;
 
         // Update viscosity. 
         mixture.correct();
