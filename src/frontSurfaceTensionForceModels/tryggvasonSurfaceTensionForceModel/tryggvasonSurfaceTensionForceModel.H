@@ -81,16 +81,13 @@ public:
     TypeName ("Tryggvason");
 
     // Constructors 
-    
     tryggvasonSurfaceTensionForceModel() = default;
     tryggvasonSurfaceTensionForceModel(const dictionary&);  
 
     // Destructor
-    
     virtual ~tryggvasonSurfaceTensionForceModel() {};
 
     // Member Functions
-    
     virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
         const fvMesh& mesh, 
         const triSurfaceFront& frontMesh 

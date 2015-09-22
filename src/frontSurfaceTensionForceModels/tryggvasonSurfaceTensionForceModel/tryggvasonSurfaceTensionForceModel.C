@@ -61,12 +61,10 @@ Description
 #include "tryggvasonSurfaceTensionForceModel.H"
 #include "addToRunTimeSelectionTable.H"
 #include "volFields.H"
-#include "fvcGrad.H"
-#include "fvcReconstruct.H"
-#include "surfaceInterpolate.H"
 #include "surfaceFields.H"
-#include "fvcDiv.H"
 #include "fvcSnGrad.H"
+#include "surfaceInterpolate.H"
+#include "lentInterpolation.H"
 
 namespace Foam {
 namespace FrontTracking {
@@ -88,16 +86,8 @@ tmp<surfaceScalarField> tryggvasonSurfaceTensionForceModel::faceSurfaceTensionFo
     const triSurfaceFront& frontMesh 
 ) const
 {
-    const Time& runTime = mesh.time(); 
-
-    const dictionary& transportProperties = 
-        runTime.lookupObject<dictionary>("transportProperties");
-
-    //const dimensionedScalar sigma = transportProperties.lookup("sigma");  
-    
-    //const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
-
-    //return fvc::interpolate(sigma * cellCurvature(mesh,frontMesh)) * fvc::snGrad(filterField);
+    tmp<surfaceVectorField> SfHat = mesh.Sf() / mesh.magSf(); 
+    return fvc::interpolate(cellSurfaceTensionForce(mesh,frontMesh)) & SfHat; 
 }
 
 tmp<volVectorField> tryggvasonSurfaceTensionForceModel::cellSurfaceTensionForce(
@@ -105,7 +95,105 @@ tmp<volVectorField> tryggvasonSurfaceTensionForceModel::cellSurfaceTensionForce(
     const triSurfaceFront& frontMesh 
 ) const
 {
-    return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
+    const Time& runTime = mesh.time(); 
+
+    const dictionary& transportProperties = 
+        runTime.lookupObject<dictionary>("transportProperties");
+
+    tmp<volVectorField> fSigmaCellTmp(
+        new volVectorField(
+            IOobject(
+                "fSigmaCell", 
+                runTime.timeName(), 
+                mesh, 
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ), 
+            mesh, 
+            dimensionedVector(
+                "zero", 
+                dimForce / dimVolume, 
+                vector(0,0,0)
+            )
+        )
+    );
+
+    // TODO: Store as data member and resize with topological change. TM.
+    triSurfaceFrontPointVectorField fSigmaFront
+    (
+        IOobject(
+            "fSigmaFront", 
+            runTime.timeName(), 
+            mesh,
+            IOobject::NO_READ, 
+            IOobject::NO_WRITE
+        ), 
+        frontMesh, 
+        dimensionedVector(
+            "zero", 
+            dimForce / dimVolume, // Necessary for interpolation. TM. 
+            vector(0.0,0.0,0.0)
+        )
+    );
+
+
+    // Get necessary references
+    const pointField& vertices = frontMesh.localPoints();
+    const List<labelledTri>& triangles = frontMesh.localFaces();
+
+    // Iterate over all triangles and compute the contribution to each of
+    // its vertices
+    forAll(triangles, Tl)
+    {
+        labelledTri T = triangles[Tl];
+
+        // Get vertex labels
+        label l0 = T[0];
+        label l1 = T[1];
+        label l2 = T[2];
+
+        // Get vertices
+        point v0 = vertices[l0];
+        point v1 = vertices[l1];
+        point v2 = vertices[l2];
+
+        // Set edge vectors. They oriented in such a way that they follow
+        // the rotational direction of the triangle normal vector. Since
+        // the normal vectors are consistently defined (see lentFOAM paper) 
+        // this ensures consistency in the direction of the contributions
+        vector v01 = v1 - v0;
+        vector v12 = v2 - v1;
+        vector v20 = v0 - v2;
+
+        // The order is inverted compared to the lentFOAM paper to factor in
+        // the inverted direction of vector v20
+        vector normal = v20 ^ v01;
+        normal = normal / mag(normal);
+
+        // Inverted order of the cross product is due to different labelling
+        // compared to Tryggvason book. With outward facing normals, the cross
+        // product wirtten here reults in an inward "pull" 
+        fSigmaFront[l0] += 0.5 * v12 ^ normal;
+        fSigmaFront[l1] += 0.5 * v20 ^ normal;
+        fSigmaFront[l2] += 0.5 * v01 ^ normal;
+    }
+
+    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+    fSigmaFront *= sigma; 
+
+    lentInterpolation interpolation; // FIXME: Data member, RTS alternatives. TM.
+
+    volVectorField& fSigmaCell = fSigmaCellTmp(); 
+    interpolation.interpolate(fSigmaFront,fSigmaCell); 
+
+    // Avoid dimension check when dividing by mesh.V(); 
+    const scalarField& V = mesh.V(); 
+    forAll(fSigmaCell, cellI)
+    {
+        fSigmaCell[cellI] /= V[cellI]; 
+    }
+
+    return fSigmaCellTmp; 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
