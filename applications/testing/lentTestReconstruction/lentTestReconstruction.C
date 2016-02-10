@@ -54,7 +54,7 @@ Description
 #include "fvCFD.H"
 #include "interfaceProperties.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
-#include "turbulenceModel.H"
+#include "turbulentTransportModel.H"
 #include "pimpleControl.H"
 #include "lentMethod.H"
 
@@ -127,7 +127,7 @@ TEST_F(lentTests, lentReconstruction)
     }
 
     Info<< "End\n" << endl;
-}
+};
 
 int mainArgc;
 char** mainArgv;
