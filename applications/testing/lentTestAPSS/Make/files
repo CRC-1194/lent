@@ -1,7 +1,0 @@
-
-lentTestAPSS.C
-auxFunctions/auxFunctions.C
-auxFunctions/errorMetrics.C
-auxFunctions/ellipsoidFunctions.C
-
-EXE = $(FOAM_USER_APPBIN)/lentTestAPSS
