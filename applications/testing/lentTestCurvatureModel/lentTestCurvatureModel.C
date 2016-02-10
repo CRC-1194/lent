@@ -25,7 +25,6 @@ Application
     lentTestCurvatureModels 
 
 Description
-
     Test LENT curvature models against the exact curvature. 
 
 Authors
@@ -35,8 +34,8 @@ Authors
 
 #include "fvCFD.H"
 #include "pointFields.H"
-#include "incompressibleTwoPhaseMixture.H"
-#include "turbulenceModel.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
+#include "turbulentTransportModel.H"
 #include "lentMethod.H"
 #include "volMesh.H"
 #include "map.H"
