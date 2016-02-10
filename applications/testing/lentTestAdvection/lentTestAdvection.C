@@ -54,7 +54,7 @@ Description
 #include "fvCFD.H"
 #include "interfaceProperties.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
-#include "turbulenceModel.H"
+#include "turbulentTransportModel.H"
 #include "pimpleControl.H"
 
 #include "lentMethod.H"
@@ -77,6 +77,7 @@ TEST_F(lentTests, lentReconstruction)
     #include "createTime.H"
     #include "createMesh.H"
 
+    #include "createTimeControls.H"
     #include "initContinuityErrs.H"
     #include "createFields.H"
     #include "readTimeControls.H"
@@ -148,7 +149,7 @@ TEST_F(lentTests, lentReconstruction)
 
         Info << "Reconstructing the front..." << endl;
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
-        ASSERT_TRUE(triSurfaceNormalsAreConsistent(front)); 
+        EXPECT_TRUE(triSurfaceNormalsAreConsistent(front)); 
         Info << "Done." << endl;
 
         Info << "Calculating front velocity..." << endl;
