@@ -54,7 +54,7 @@ Description
 #include "triSurfaceFields.H"
 #include "interfaceProperties.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
-#include "turbulenceModel.H"
+#include "turbulentTransportModel.H"
 #include "pimpleControl.H"
 
 #include "lentMethod.H"
