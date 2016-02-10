@@ -55,7 +55,7 @@ Description
 #include "dynamicFvMesh.H"
 #include "interfaceProperties.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
-#include "turbulenceModel.H"
+#include "turbulentTransportModel.H"
 #include "pimpleControl.H"
 #include "lentMethod.H"
 
@@ -244,6 +244,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createDynamicFvMesh.H"
 
+    #include "createTimeControls.H"
     #include "initContinuityErrs.H"
     #include "createFields.H"
     #include "readTimeControls.H"
