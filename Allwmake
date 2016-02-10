@@ -1,5 +1,39 @@
 #!/bin/sh
 cd ${0%/*} || exit 1    # run from this directory
 
-src/Allwmake
-applications/Allwmake
+if [ "$LENT_PROJECT" != "" ]; 
+then
+    # Build gtest
+
+    LENT_THIRD_PARTY=$LENT_PROJECT/third-party
+    mkdir -p $LENT_THIRD_PARTY
+
+    LENT_GTEST=$LENT_THIRD_PARTY/gtest
+
+    echo "svn checkout http://googletest.googlecode.com/svn/trunk/ $LENT_GTEST" 
+    svn checkout http://googletest.googlecode.com/svn/trunk/ $LENT_GTEST
+
+    LENT_GTEST_BUILD=$LENT_GTEST/build
+
+    if [ ! -d $LENT_GTEST_BUILD ]; 
+    then
+        mkdir $LENT_GTEST_BUILD
+    fi
+
+    #cmake -B/path/to/my/build/folder -H/path/to/my/source/folder
+    cmake -B $LENT_GTEST_BUILD  -H $LENT_GTEST \
+        -DBUILD_SHARED_LIBS=ON -Dgtest_build_samples=ON -G"Unix Makefiles"
+
+    make -C $LENT_GTEST_BUILD 
+
+    # Build lent
+
+    src/Allwmake
+    applications/Allwmake
+
+else
+    echo "The LENT project is not configured properly. Source the project's etc/bashrc file." 
+fi
+ 
+
+
