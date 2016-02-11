@@ -27,11 +27,7 @@ Application
 Description
     Calculate three pressure errors as defined in the paper of Francois
     (see http://dx.doi.org/10.1016/j.jcp.2005.08.004) for every time step
-
-    TODO:
-        * Way to distinguish between circle and sphere without user input
-          --> based on presence of empty patches?
-          For now an user argument is used
+    anf write them to a text file
 
 Author
     Tobias Tolle tobias.tolle@stud.tu-darmstadt.de
@@ -102,8 +98,6 @@ scalar calc_deltaP_partial(volScalarField& P, const volVectorField& cellCenters,
     scalar n_trans_cells = 0;
     vector distance (0, 0, 0);
 
-    // Sum up pressure for averaging, distinguish between drop and background
-    // fluid. Cells in the transition region are not considered in this case
     forAll(P, I)
     {
         distance = center - cellCenters[I];
@@ -147,6 +141,20 @@ scalar calc_deltaP_max(volScalarField& P)
     dimensionedScalar deltaP_max = max(P) - min(P);
 
     return deltaP_max.value();
+}
+
+// Test if file is empty: for an empty file the current position in a stream in
+// append-mode is 0
+bool fileIsEmpty(std::fstream& file)
+{
+    if (file.tellg() == 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -226,10 +234,14 @@ int main(int argc, char *argv[])
     std::fstream errorFile;
     errorFile.open(errorFileNamePtr, std::ios_base::app);
     errorFile.precision(4);
+    errorFile << std::scientific;
 
     // Write header
-    //errorFile << "# h [m]\ttime[s]\terror p_total\terror p_partial\t"
-    //          << "error p_max\n"; 
+    if (fileIsEmpty(errorFile))
+    {
+        errorFile << "# h \t\tdensity ratio\ttime\terror p_total\terror p_partial\t"
+                  << "error p_max\n"; 
+    }
 
     const scalar radius = args.optionRead<scalar>("radius");
     const vector center = args.optionRead<vector>("center");
@@ -248,7 +260,7 @@ int main(int argc, char *argv[])
             IOobject::NO_WRITE
         )
     );
-    //
+    
     // Read varying parameters from dictionaries for unique identification
     // of results
     IOdictionary lentSolutionDict
@@ -265,23 +277,15 @@ int main(int argc, char *argv[])
     const dictionary& transportProperties = 
         runTime.lookupObject<dictionary>("transportProperties");
     const dictionary& air = transportProperties.subDict("air");
+    const dictionary& water = transportProperties.subDict("water");
     const dimensionedScalar rhoAir = air.lookup("rho");
-
-    /*
-    const dictionary& lentSolution = 
-        runTime.lookupObject<dictionary>("lentSolution");
-    const dictionary& surfaceTensionForceModel
-        = lentSolution.subDict("surfaceTensionForceModel");
-    const dictionary& curvatureModel
-        = surfaceTensionForceModel.subDict("curvatureModel");
-    const word curvatureField
-        = curvatureModel.lookup("curvatureField");
-        */
-
+    const dimensionedScalar rhoWater = water.lookup("rho");
+    const scalar densityRatio = rhoWater.value()/rhoAir.value();
+    
     const dimensionedScalar sigma(transportPropertiesDict.lookup("sigma"));
     scalar deltaP_exact = 0;
 
-    // Set pressure jump according to selected shape
+    // Exact pressure jump depends on shape
     if (shape == "circle")
     {
         deltaP_exact = sigma.value() / radius;
@@ -292,8 +296,11 @@ int main(int argc, char *argv[])
     }
     else
     {
-        Info << "Shape " << shape << "unknown, assuming circle\n" << endl;
-        deltaP_exact = sigma.value() / radius;
+        FatalErrorIn
+        (
+            "main()"
+        )   << "Shape " << shape << " is unknown. Use 'circle' or 'sphere'"
+            << endl << exit(FatalError);
     }
 
     // Get the time directories from the simulation folder using time selector
@@ -332,18 +339,14 @@ int main(int argc, char *argv[])
         // Write errors to file, ignore initial condition
         if (timeI > 0)
         {
-            errorFile //<< curvatureField << "\t"
-                      << h.value() << "\t"
-                      << rhoAir.value() << "\t\t" << runTime.timeName() << "\t"
-                      << error_total << "\t\t\t" << error_partial << "\t\t\t"
+            errorFile << h.value() << "\t"
+                      << densityRatio << "\t" << runTime.timeName() << "\t"
+                      << error_total << "\t" << error_partial << "\t"
                       << error_max << "\n";
         }
-
     }
 
-    // Close errorFile
     errorFile.close();
-
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< "\nEnd\n" << endl;
