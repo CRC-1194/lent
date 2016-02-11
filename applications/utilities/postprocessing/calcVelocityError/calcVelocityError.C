@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) held by original authors
+   \\    /   O peration     | Version:  2.2.x                               
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    OpenFOAM is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.
 
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -19,10 +19,12 @@ License
     for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+    along with OpenFOAM; if not, write to the Free Software Foundation,
+    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-Application
-    calcVelocityError
+Authors
+    Tobias Tolle tolle@mathematik.tu-darmstadt.de
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
     Calculates various norms of the velocity field for each time step.
@@ -36,8 +38,28 @@ Description
     For testcases of the "stationary droplet"-group these norms also 
     represent a measure for the error in velocity.
 
-Authors
-    Tobias Tolle tobias.tolle@stud.tu-darmstadt.de
+    See also the paper of Francois et al.:
+    (http://dx.doi.org/10.1016/j.jcp.2005.08.004)
+
+    You may refer to this software as :
+    //- full bibliographic data to be provided
+
+    This code has been developed by :
+        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
+    under the project supervision of :
+        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
+    
+    Method Development and Intellectual Property :
+    	Tomislav Maric maric@csi.tu-darmstadt.de
+    	Holger Marschall <marschall@csi.tu-darmstadt.de>
+    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
+
+        Mathematical Modeling and Analysis
+        Center of Smart Interfaces
+        Technische Universitaet Darmstadt
+       
+    If you use this software for your scientific work or your publications,
+    please don't forget to acknowledge explicitly the use of it.
 
 \*---------------------------------------------------------------------------*/
 
@@ -98,6 +120,19 @@ dimensionedScalar calc_maximum_norm_fc(const surfaceScalarField& Uf)
     return maximum_norm;
 }
 
+// Test if file is empty
+bool fileIsEmpty(std::fstream& file)
+{
+    if (file.tellg() == 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Main program:
 
@@ -134,19 +169,29 @@ int main(int argc, char *argv[])
     std::fstream errorFileCC;
     std::fstream errorFileFC;
 
-    std::string header = "# h [m]\ttime [s]\tone-norm [m/s]\ttwo-norm [m/s]\tmax-norm [m/s]";
+    std::string header = "# h\t\tdensity ratio\ttime\t\tone-norm\ttwo-norm\tmax-norm";
+
     errorFileCC.open(errorFileNameCCPtr, std::ios_base::app);
-    /* Moved header to script file to avoid duplication
-    errorFileCC << "# Cell centered velocities\n"
-                << header
-                << std::endl;
-    */
+    if (fileIsEmpty(errorFileCC))
+    {
+        errorFileCC << "# Cell centered velocities\n"
+                    << header
+                    << std::endl;
+    }
+
     errorFileFC.open(errorFileNameFCPtr, std::ios_base::app);
-    /*
-    errorFileFC << "# Face centered velocities\n"
-                << header
-                << std::endl;
-    */
+    if (fileIsEmpty(errorFileFC))
+    {
+        errorFileFC << "# Face centered velocities\n"
+                    << header
+                    << std::endl;
+    }
+
+    // Set consistent number format
+    errorFileCC.precision(4);
+    errorFileCC << std::scientific;
+    errorFileFC.precision(4);
+    errorFileFC << std::scientific;
 
     // Read varying parameters from dictionaries for unique identification
     // of results
@@ -177,17 +222,10 @@ int main(int argc, char *argv[])
         runTime.lookupObject<dictionary>("transportProperties");
     const dictionary& air = transportProperties.subDict("air");
     const dimensionedScalar rhoAir = air.lookup("rho");
+    const dictionary& water = transportProperties.subDict("water");
+    const dimensionedScalar rhoWater = water.lookup("rho");
 
-    /*
-    const dictionary& lentSolution = 
-        runTime.lookupObject<dictionary>("lentSolution");
-    const dictionary& surfaceTensionForceModel
-        = lentSolution.subDict("surfaceTensionForceModel");
-    const dictionary& curvatureModel
-        = surfaceTensionForceModel.subDict("curvatureModel");
-    const word curvatureField
-        = curvatureModel.lookup("curvatureField");
-        */
+    const scalar densityRatio = rhoWater.value() / rhoAir.value();
 
     // Get the time directories from the simulation folder using time selector
     Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
@@ -263,24 +301,20 @@ int main(int argc, char *argv[])
 
         if (timeI > 0)
         {
-            errorFileCC //<< curvatureField << "\t" 
-                        << h.value() << "\t"
-                        << rhoAir.value() << "\t" << runTime.timeName() << "\t\t"
-                        << one_norm_cc.value() << "\t\t"<< two_norm_cc.value()
-                        << "\t\t" << maximum_norm_cc.value() << std::endl;
+            errorFileCC << h.value() << "\t"
+                        << densityRatio << "\t" << runTime.timeName() << "\t\t"
+                        << one_norm_cc.value() << "\t"<< two_norm_cc.value()
+                        << "\t" << maximum_norm_cc.value() << std::endl;
 
-            errorFileFC //<< curvatureField << "\t"
-                        << h.value() << "\t"
-                        << rhoAir.value() << "\t" << runTime.timeName() << "\t\t"
-                        << one_norm_fc.value() << "\t\t"<< two_norm_fc.value()
-                        << "\t\t" << maximum_norm_fc.value() << std::endl;
+            errorFileFC << h.value() << "\t"
+                        << densityRatio << "\t" << runTime.timeName() << "\t\t"
+                        << one_norm_fc.value() << "\t"<< two_norm_fc.value()
+                        << "\t" << maximum_norm_fc.value() << std::endl;
         }
     }
 
-    // Close and write file
     errorFileCC.close();
     errorFileFC.close();
-
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< "\nEnd\n" << endl;
