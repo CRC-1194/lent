@@ -59,7 +59,7 @@ Description
 #include "CrankNicolsonDdtScheme.H"
 #include "subCycle.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
-#include "turbulenceModel.H"
+#include "turbulentTransportModel.H"
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
@@ -79,11 +79,11 @@ int main(int argc, char *argv[])
 
     #include "initContinuityErrs.H"
     #include "createFields.H"
+    #include "createMRF.H"
+    #include "createFvOptions.H"
 
-    fv::IOoptionList fvOptions(mesh);
-
+    #include "createTimeControls.H"
     #include "readTimeControls.H"
-    #include "createPrghCorrTypes.H"
     #include "correctPhi.H"
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
