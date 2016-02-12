@@ -56,8 +56,8 @@ Description
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulentTransportModel.H"
 #include "pimpleControl.H"
-#include "lentMethod.H"
 
+#include "lentMethod.H"
 #include "lentTests.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

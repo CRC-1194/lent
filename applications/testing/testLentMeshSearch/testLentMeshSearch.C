@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 
     label seedCell = mesh.findCell(seedPoint);
 
-    // Uncomment when frontMeshSearch debugging code is uncommented.
+    // FIXME: Introduce flag: check frontMeshSearch code for debugging parts. TM
     //frontMeshSearch ls(runTime);
 
     frontMeshSearch ls;
