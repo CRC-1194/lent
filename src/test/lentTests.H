@@ -59,6 +59,7 @@ Description
 #ifndef lentTests_H
 #define lentTests_H
 
+#include "fvCFD.H"
 #include "triSurface.H"
 #include "gtest.h"
 
@@ -124,6 +125,51 @@ class triSurfaceSizeChange
         }
 };
 
+// Auxilliary functions for testing marker field models
+bool isBounded(const volScalarField& markerField, scalar lowerBound,
+               scalar upperBound)
+{
+    bool bounded = true;
+
+    forAll(markerField, I)
+    {
+        if (markerField[I] < lowerBound || markerField[I] > upperBound)
+        {
+            bounded = false;
+        }
+    }
+
+    return bounded;
+}
+
+scalar computeMarkerFieldVolume(const volScalarField& markerField)
+{
+    dimensionedScalar volume = 0.0;
+
+    const fvMesh& mesh = markerField.mesh();
+
+    forAll(markerField, I)
+    {
+        volume += markerField[I] * mesh.V()[I];
+    }
+
+    return volume.value();
+}
+
+scalar computeMeshVolume(const volScalarField& markerField)
+{
+    dimensionedScalar volume = 0.0;
+
+    const fvMesh& mesh = markerField.mesh();
+
+    forAll(mesh.V(), I)
+    {
+        volume += mesh.V()[I];
+    }
+
+    return volume.value();
+}
+
 // Classes for testing the application code.
 
 class lentTests : public ::testing::Test
@@ -134,6 +180,19 @@ class lentTests : public ::testing::Test
         {
             ASSERT_TRUE(triSurfaceNormalsAreConsistent(front));
         }
+
+        // Marker field model tests
+        void TEST_MARKERFIELD_BOUNDS(const volScalarField& markerField)
+        {
+            ASSERT_TRUE(isBounded(markerField, 0.0, 1.0));
+        }
+
+        void TEST_MARKERFIELD_GLOBAL_VOLUME(const volScalarField& markerField,
+                                            const triSurfaceFront& front)
+        {
+            // To be implemented
+        }
+
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

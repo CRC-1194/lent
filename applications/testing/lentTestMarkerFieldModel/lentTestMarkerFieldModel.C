@@ -107,6 +107,8 @@ TEST_F(lentTests, lentMarkerFieldModel)
 
     lent.calcMarkerField(markerField);
 
+    TEST_MARKERFIELD_BOUNDS(markerField);
+
     Info<< "\nEnd\n" << endl;
 };
 
