@@ -142,9 +142,9 @@ bool isBounded(const volScalarField& markerField, scalar lowerBound,
     return bounded;
 }
 
-scalar computeMarkerFieldVolume(const volScalarField& markerField)
+scalar markerFieldVolume(const volScalarField& markerField)
 {
-    dimensionedScalar volume = 0.0;
+    scalar volume = 0.0;
 
     const fvMesh& mesh = markerField.mesh();
 
@@ -153,21 +153,94 @@ scalar computeMarkerFieldVolume(const volScalarField& markerField)
         volume += markerField[I] * mesh.V()[I];
     }
 
-    return volume.value();
+    return volume;
 }
 
-scalar computeMeshVolume(const volScalarField& markerField)
+scalar meshVolume(const volScalarField& markerField)
 {
-    dimensionedScalar volume = 0.0;
+    dimensionedScalar volume(
+        "zero",
+        pow(dimLength, 3),
+        0.0
+    );
 
     const fvMesh& mesh = markerField.mesh();
 
-    forAll(mesh.V(), I)
-    {
-        volume += mesh.V()[I];
-    }
+    volume = sum(mesh.V());
 
     return volume.value();
+}
+
+point innerPoint(const triSurfaceFront& front)
+{
+    // FIXME: works only for convex shapes
+    point lowerRef(GREAT, GREAT, GREAT);
+    point upperRef(0.0, 0.0, 0.0);
+
+    const Field<point>& vertices = front.localPoints();
+
+    forAll(vertices, I)
+    {
+        forAll(vertices[I], K)
+        {
+            if (vertices[I][K] < lowerRef[K])
+            {
+                lowerRef[K] = vertices[I][K];
+            }
+
+            if (vertices[I][K] > upperRef[K])
+            {
+                upperRef[K] = vertices[I][K];
+            }
+        }
+    }
+    
+    return 0.5*(lowerRef + upperRef);
+}
+
+scalar tetrahedralVolume(const labelledTri& face, const Field<point>& vertices,
+                         point innerPoint)
+{
+    // use property of scalar triple product
+    return fabs(1.0/6.0 * ((vertices[face[1]] - vertices[face[0]]) ^ 
+                    (vertices[face[2]] - vertices[face[0]]))
+                    & (innerPoint - vertices[face[0]]));
+}
+
+scalar frontVolume(const triSurfaceFront& front)
+{
+    scalar volume = 0.0;
+
+    point pseudoCentre = innerPoint(front);
+    const List<labelledTri>& faces = front.localFaces();
+    const Field<point>& vertices = front.localPoints();
+
+    forAll(faces, I)
+    {
+        volume += tetrahedralVolume(faces[I], vertices, pseudoCentre);
+    }
+
+    return volume;
+}
+
+scalar relativeVolumeDifference(const triSurfaceFront& front,
+                                const volScalarField& markerField)
+{
+    scalar meshVol = meshVolume(markerField);
+    scalar markerFieldVol = markerFieldVolume(markerField);
+    scalar frontVol = frontVolume(front);
+
+    // Ensure correct comparison of volumes --> markerField can assume 1 
+    // inside or outside of the front
+    if (   fabs(meshVol - markerFieldVol - frontVol)
+         < fabs(markerFieldVol - frontVol))
+    {
+        return fabs(meshVol - markerFieldVol - frontVol) / frontVol;
+    }
+    else
+    {
+        return fabs(markerFieldVol - frontVol) / frontVol;
+    }
 }
 
 // Classes for testing the application code.
@@ -187,10 +260,11 @@ class lentTests : public ::testing::Test
             ASSERT_TRUE(isBounded(markerField, 0.0, 1.0));
         }
 
+        // This test is bound to fail...
         void TEST_MARKERFIELD_GLOBAL_VOLUME(const volScalarField& markerField,
                                             const triSurfaceFront& front)
         {
-            // To be implemented
+            EXPECT_EQ(relativeVolumeDifference(front, markerField), 0.0);
         }
 
 };

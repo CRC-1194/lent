@@ -108,6 +108,7 @@ TEST_F(lentTests, lentMarkerFieldModel)
     lent.calcMarkerField(markerField);
 
     TEST_MARKERFIELD_BOUNDS(markerField);
+    TEST_MARKERFIELD_GLOBAL_VOLUME(markerField, front);
 
     Info<< "\nEnd\n" << endl;
 };
