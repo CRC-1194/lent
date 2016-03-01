@@ -170,7 +170,7 @@ lentMarkerfieldTest::~lentMarkerfieldTest()
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-void lentMarkerfieldTest::boundedness() const
+bool lentMarkerfieldTest::boundedness() const
 {
     bool bounded = true;
 
@@ -192,9 +192,11 @@ void lentMarkerfieldTest::boundedness() const
         Info << "Marker field exceeds bounds (alpha < 0.0 || aplha > 1.0"
              << endl;
     }
+
+    return bounded;
 }
 
-void lentMarkerfieldTest::globalVolume() const
+scalar lentMarkerfieldTest::globalVolume() const
 {
     scalar relativeDifference = 0.0;
 
@@ -212,6 +214,8 @@ void lentMarkerfieldTest::globalVolume() const
 
     Info << "Relative difference between front volume and markerfield "
          << "volume is " << relativeDifference << endl;
+
+    return relativeDifference;
 }
 
 void lentMarkerfieldTest::localVolume() const

@@ -121,8 +121,8 @@ public:
     // Member Functions
 
         // Tests
-        void boundedness() const;
-        void globalVolume() const;
+        bool boundedness() const;
+        scalar globalVolume() const;
         void localVolume() const;
 };
 

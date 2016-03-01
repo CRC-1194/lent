@@ -50,7 +50,8 @@ Description
     please don't forget to acknowledge explicitly the use of it.
 
 \*---------------------------------------------------------------------------*/
-
+#include <fstream>
+#include <string>
 
 #include "fvCFD.H"
 #include "interfaceProperties.H"
@@ -61,6 +62,20 @@ Description
 #include "lentMethod.H"
 #include "lentMarkerfieldTest.H"
 
+// Test if file is empty: for an empty file the current position in a stream in
+// append-mode is 0
+bool fileIsEmpty(std::fstream& file)
+{
+    if (file.tellg() == 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
@@ -68,6 +83,12 @@ using namespace FrontTracking;
 
 int main(int argc, char *argv[])
 {
+    argList::addOption
+    (
+        "errorFile",
+        "Path and name of the file to write the output to"
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -75,6 +96,30 @@ int main(int argc, char *argv[])
     #include "createFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+    if (!args.optionFound("errorFile"))
+    {
+        FatalErrorIn
+        (
+            "main()"
+        )   << "Please use option '-errorFile' to set the path and file for "
+            << "output." << endl << exit(FatalError);
+    }
+    
+    // Open errorFile in append mode
+    const std::string errorFileName = args.optionRead<fileName>("errorFile");
+    const char* errorFileNamePtr = errorFileName.c_str();
+
+    std::fstream errorFile;
+    errorFile.open(errorFileNamePtr, std::ios_base::app);
+    errorFile.precision(4);
+    errorFile << std::scientific;
+
+    // Write header
+    if (fileIsEmpty(errorFile))
+    {
+        errorFile << "# h\t\tbounded\tglobal_volume_error" << std::endl;
+    }
 
     triSurfaceFront front(
         IOobject(
@@ -104,12 +149,17 @@ int main(int argc, char *argv[])
 
     lentMarkerfieldTest test(markerField, front);
 
-    test.boundedness();
-    test.globalVolume();
+    bool bounded = test.boundedness();
+    scalar globalVolumeError = test.globalVolume();
     test.localVolume();
 
     Info << "\nTest finished" << endl;
 
+    dimensionedScalar h = max(mag(mesh.delta()));
+    errorFile << h.value() << '\t' << bounded << '\t'
+              << globalVolumeError << std::endl;
+
+    errorFile.close();
     Info<< "\nEnd\n" << endl;
     return 0;
 };
