@@ -59,22 +59,15 @@ Description
 #include "pimpleControl.H"
 
 #include "lentMethod.H"
-#include "lentTests.H"
+#include "lentMarkerfieldTest.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
-using namespace Test;
 
 
-TEST_F(lentTests, lentMarkerFieldModel)
+int main(int argc, char *argv[])
 {
-    extern int mainArgc;
-    extern char** mainArgv;
-
-    int argc = mainArgc;
-    char** argv = mainArgv;
-
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -107,25 +100,18 @@ TEST_F(lentTests, lentMarkerFieldModel)
 
     lent.calcMarkerField(markerField);
 
-    TEST_MARKERFIELD_BOUNDS(markerField);
-    TEST_MARKERFIELD_GLOBAL_VOLUME(markerField, front);
+    Info << "Start tests...\n" << endl;
+
+    lentMarkerfieldTest test(markerField, front);
+
+    test.boundedness();
+    test.globalVolume();
+    test.localVolume();
+
+    Info << "\nTest finished" << endl;
 
     Info<< "\nEnd\n" << endl;
-};
-
-int mainArgc;
-char** mainArgv;
-
-int main(int argc, char **argv)
-{
-    ::testing::InitGoogleTest(&argc, argv);
-
-    mainArgc = argc;
-    mainArgv = argv;
-
-    return RUN_ALL_TESTS();
-
     return 0;
-}
+};
 
 // ************************************************************************* //

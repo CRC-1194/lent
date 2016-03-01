@@ -48,4 +48,6 @@ fronts/triSurfaceFront/triSurfaceFrontFields/triSurfaceFrontFields.C
 lentInterpolation/lentInterpolation.C
 lentMethod/lentMethod.C
 
+test/lentMarkerfieldTest/lentMarkerfieldTest.C
+
 LIB = $(FOAM_USER_LIBBIN)/liblent

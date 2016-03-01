@@ -23,15 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::lentTests
+    Foam::lentMarkerfieldTest
 
 SourceFiles
+    lentMarkerfieldTest.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    Test functions for the LENT algorithm.
+    This class provides all tests related to the marker field model
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -55,90 +57,77 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef lentMarkerfieldTest_H
+#define lentMarkerfieldTest_H
 
-#ifndef lentTests_H
-#define lentTests_H
+#include "fvCFD.H"
 
-#include "triSurface.H"
-#include "gtest.h"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-namespace Foam {
-    namespace FrontTracking {
-        namespace Test {
-
-bool triSurfaceNormalsAreConsistent(const triSurface& front)
-{
-    const labelListList& edgeFaces = front.edgeFaces();
-    const vectorField& faceNormals = front.faceNormals();
-
-    forAll (edgeFaces, I)
-    {
-        const vector& n0 = faceNormals[edgeFaces[I][0]];
-        const vector& n1 = faceNormals[edgeFaces[I][1]];
-
-        if ((n0 & n1) < 0)
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-class triSurfaceSizeChange
-{
-    int lastSize_;
-
-    const triSurface& t_;
-
-    double allowedChange_;
-
-    public:
-
-        triSurfaceSizeChange(const triSurface& t, double allowedChange=0.2)
-            :
-                lastSize_(0),
-                t_(t),
-                allowedChange_(allowedChange)
-        {}
-
-        void operator()()
-        {
-            label triSurfaceSize = t_.localFaces().size();
-
-            if (lastSize_ > 0)
-            {
-                if (((double(lastSize_) - triSurfaceSize) / lastSize_) > allowedChange_)
-                {
-                    Info << "TEST : triSurfaceSizeChange " << allowedChange_ * 100
-                        << " % : FAIL " << endl;
-                }
-                else
-                {
-                    Info << "TEST : triSurfaceSizeChange : PASS " << endl;
-                }
-            }
-
-            lastSize_ = triSurfaceSize;
-        }
-};
-
-// Classes for testing the application code.
-
-class lentTests : public ::testing::Test
-{
-    protected:
-        template<typename Front>
-        void TEST_NORMAL_CONSISTENCY(Front const & front)
-        {
-            ASSERT_TRUE(triSurfaceNormalsAreConsistent(front));
-        }
-};
+#include "triSurfaceFront.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace Test
+namespace Foam
+{
+namespace FrontTracking
+{
+
+// Forward declaration of friend functions and operators
+class lentMarkerfieldTest;
+
+/*---------------------------------------------------------------------------*\
+                         Class lentMarkerfieldTest Declaration
+\*---------------------------------------------------------------------------*/
+
+class lentMarkerfieldTest
+{
+    // Private data
+    const volScalarField& markerField_;
+    const triSurfaceFront& front_;
+    scalar meshVol_;
+    scalar markerfieldVol_;
+    scalar frontVol_;
+    point innerPoint_;
+
+    // Private Member Functions
+        void markerfieldVolume();
+        void meshVolume();
+        void frontVolume();
+
+        void innerPoint();
+        scalar tetrahedralVolume(const labelledTri& face,
+                                 const Field<point>& vertices);
+
+        // Foam default template stuff
+        //- Disallow default bitwise copy construct
+        lentMarkerfieldTest(const lentMarkerfieldTest&);
+
+        //- Disallow default bitwise assignment
+        void operator=(const lentMarkerfieldTest&);
+
+
+public:
+
+    // Constructors
+
+        //- Construct from components
+        lentMarkerfieldTest(const volScalarField& markerField,
+                            const triSurfaceFront& front);
+
+
+    //- Destructor
+    ~lentMarkerfieldTest();
+
+
+    // Member Functions
+
+        // Tests
+        void boundedness() const;
+        void globalVolume() const;
+        void localVolume() const;
+};
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
 
