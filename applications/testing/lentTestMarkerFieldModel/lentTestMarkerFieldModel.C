@@ -118,7 +118,8 @@ int main(int argc, char *argv[])
     // Write header
     if (fileIsEmpty(errorFile))
     {
-        errorFile << "# h\t\tbounded\tglobal_volume_error" << std::endl;
+        errorFile << "#grid_spacing\tbounded\tglobal_volume_error\t" 
+                  << "global_volume_error_normalized"<< std::endl;
     }
 
     triSurfaceFront front(
@@ -151,13 +152,15 @@ int main(int argc, char *argv[])
 
     bool bounded = test.boundedness();
     scalar globalVolumeError = test.globalVolume();
+    scalar globalVolumeErrorNorm = test.globalVolumeNormalized();
     test.localVolume();
 
-    Info << "\nTest finished" << endl;
+    Info << "\nTests finished" << endl;
 
     dimensionedScalar h = max(mag(mesh.delta()));
     errorFile << h.value() << '\t' << bounded << '\t'
-              << globalVolumeError << std::endl;
+              << globalVolumeError << "\t\t"
+              << globalVolumeErrorNorm << std::endl;
 
     errorFile.close();
     Info<< "\nEnd\n" << endl;

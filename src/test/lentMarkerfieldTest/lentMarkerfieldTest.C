@@ -61,24 +61,39 @@ Description
 
 #include "lentMarkerfieldTest.H"
 
+#include <utility>
+
 namespace Foam
 {
-namespace FrontTracking
-{
+    namespace FrontTracking
+    {
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-void lentMarkerfieldTest::markerfieldVolume()
+void lentMarkerfieldTest::markerfieldVolumes()
 {
-    scalar volume = 0.0;
+    phase0BulkVol_ = 0.0;
+    phase0InterfaceVol_ = 0.0;
+    phase1BulkVol_ = 0.0;
+    phase1InterfaceVol_ = 0.0;
 
     const fvMesh& mesh = markerField_.mesh();
 
     forAll(markerField_, I)
     {
-        volume += markerField_[I] * mesh.V()[I];
+        if (markerField_[I] == 1.0)
+        { 
+            phase0BulkVol_ += mesh.V()[I];
+        }
+        else if (markerField_[I] > 0.0 && markerField_[I] < 1.0)
+        {
+            phase0InterfaceVol_ += markerField_[I] * mesh.V()[I];
+            phase1InterfaceVol_ += (1.0 - markerField_[I]) * mesh.V()[I];
+        }
+        else
+        {
+            phase1BulkVol_ += mesh.V()[I];
+        }
     }
-
-    markerfieldVol_ = volume;
 }
 
 void lentMarkerfieldTest::meshVolume()
@@ -98,17 +113,29 @@ void lentMarkerfieldTest::meshVolume()
 
 void lentMarkerfieldTest::frontVolume()
 {
-    scalar volume = 0.0;
+    frontVolGeometric_ = 0.0;
 
     const List<labelledTri>& faces = front_.localFaces();
     const Field<point>& vertices = front_.localPoints();
 
     forAll(faces, I)
     {
-        volume += tetrahedralVolume(faces[I], vertices);
+        frontVolGeometric_ += tetrahedralVolume(faces[I], vertices);
+    }
+}
+
+void lentMarkerfieldTest::ensureFrontPhaseIsZero()
+{
+    scalar phase0Vol = phase0BulkVol_ + phase0InterfaceVol_;
+
+    if (fabs(meshVol_ - phase0Vol - frontVolGeometric_)
+        < fabs(phase0Vol - frontVolGeometric_))
+    {
+        std::swap(phase0BulkVol_, phase1BulkVol_);
+        std::swap(phase0InterfaceVol_, phase1InterfaceVol_);
     }
 
-    frontVol_ = volume;
+    frontVolMarkerField_ = phase0BulkVol_ + phase0InterfaceVol_;
 }
 
 void lentMarkerfieldTest::innerPoint()
@@ -156,10 +183,11 @@ lentMarkerfieldTest::lentMarkerfieldTest(const volScalarField& markerField,
     markerField_(markerField),
     front_(front)
 {
-    markerfieldVolume();
+    markerfieldVolumes();
     meshVolume();
     innerPoint();
     frontVolume();
+    ensureFrontPhaseIsZero();
 }
 
 
@@ -182,52 +210,31 @@ bool lentMarkerfieldTest::boundedness() const
         }
     }
 
-    // For now, simply print results to screen
-    if (bounded)
-    {
-        Info << "Marker field is bounded (0.0 < apha < 1.0)" <<endl;
-    }
-    else
-    {
-        Info << "Marker field exceeds bounds (alpha < 0.0 || aplha > 1.0"
-             << endl;
-    }
-
     return bounded;
 }
 
 scalar lentMarkerfieldTest::globalVolume() const
 {
-    scalar relativeDifference = 0.0;
+    return fabs(frontVolMarkerField_ - frontVolGeometric_) / frontVolGeometric_;
+}
 
-    // Ensure correct comparison of volumes --> markerField can assume 1 
-    // inside or outside of the front
-    if (   fabs(meshVol_ - markerfieldVol_ - frontVol_)
-         < fabs(markerfieldVol_ - frontVol_))
-    {
-        relativeDifference = fabs(meshVol_ - markerfieldVol_ - frontVol_) / frontVol_;
-    }
-    else
-    {
-        relativeDifference = fabs(markerfieldVol_ - frontVol_) / frontVol_;
-    }
+scalar lentMarkerfieldTest::globalVolumeNormalized() const
+{
+    scalar result;
 
-    Info << "Relative difference between front volume and markerfield "
-         << "volume is " << relativeDifference << endl;
+    scalar interfaceVolFraction = (phase0InterfaceVol_ + phase1InterfaceVol_)
+                                    / meshVol_;
+    
+    result = fabs(frontVolMarkerField_ - frontVolGeometric_)
+              / (frontVolGeometric_ * interfaceVolFraction);
 
-    return relativeDifference;
+    return result;
 }
 
 void lentMarkerfieldTest::localVolume() const
 {
     Info << "Implement me!" << endl;
 }
-
-
-// * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -68,8 +68,8 @@ Description
 
 namespace Foam
 {
-namespace FrontTracking
-{
+    namespace FrontTracking
+    {
 
 // Forward declaration of friend functions and operators
 class lentMarkerfieldTest;
@@ -83,21 +83,29 @@ class lentMarkerfieldTest
     // Private data
     const volScalarField& markerField_;
     const triSurfaceFront& front_;
+
     scalar meshVol_;
-    scalar markerfieldVol_;
-    scalar frontVol_;
+
+    scalar phase0BulkVol_;
+    scalar phase0InterfaceVol_;
+    scalar phase1BulkVol_;
+    scalar phase1InterfaceVol_;
+
+    scalar frontVolMarkerField_;
+    scalar frontVolGeometric_;
+
     point innerPoint_;
 
     // Private Member Functions
-        void markerfieldVolume();
+        void markerfieldVolumes();
         void meshVolume();
         void frontVolume();
 
+        void ensureFrontPhaseIsZero();
         void innerPoint();
         scalar tetrahedralVolume(const labelledTri& face,
                                  const Field<point>& vertices);
 
-        // Foam default template stuff
         //- Disallow default bitwise copy construct
         lentMarkerfieldTest(const lentMarkerfieldTest&);
 
@@ -123,9 +131,9 @@ public:
         // Tests
         bool boundedness() const;
         scalar globalVolume() const;
+        scalar globalVolumeNormalized() const;
         void localVolume() const;
 };
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
