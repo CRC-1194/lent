@@ -50,5 +50,6 @@ lentMethod/lentMethod.C
 
 test/lentMarkerfieldTest/lentMarkerfieldTest.C
 fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
+fronts/analyticalSurfaces/analyticalSurface/analyticalPlane.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent
