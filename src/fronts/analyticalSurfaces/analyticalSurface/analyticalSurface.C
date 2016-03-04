@@ -75,7 +75,6 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 analyticalSurface::analyticalSurface(const dictionary& configDict)
-:
 {}
 
 

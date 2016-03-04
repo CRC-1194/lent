@@ -65,6 +65,7 @@ Description
 #include "typeInfo.H"
 #include "tmp.H"
 #include "refCount.H"
+#include "fvMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -96,7 +97,6 @@ public:
     );
 
     // Selectors
-    // TODO: continue here, take frontSurfaceTensionForceModel as example
     static tmp<analyticalSurface> New(const dictionary& configDict);
 
     // Destructor
