@@ -49,5 +49,6 @@ lentInterpolation/lentInterpolation.C
 lentMethod/lentMethod.C
 
 test/lentMarkerfieldTest/lentMarkerfieldTest.C
+fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent
