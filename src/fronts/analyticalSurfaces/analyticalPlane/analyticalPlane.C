@@ -39,35 +39,42 @@ analyticalPlane::analyticalPlane(const dictionary& configDict)
 :
     analyticalSurface(configDict)
 {
-    refPoint_ = point(0.0, 0.0, 0.0);
-    unitNormal_ = vector(1.0, 0.0, 0.0);
+    refPoint_ = configDict.lookup("referencePoint");
+    unitNormal_ = configDict.lookup("normalVector");
+    unitNormal_ = unitNormal_ / mag(unitNormal_);
+    distanceOrigin_ = unitNormal_ & refPoint_;
 }
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 scalar analyticalPlane::distance(const point& trialPoint) const
 {
-    Info << "Implement me!" << endl;
-    return 0.0;
+    return fabs(signedDistance(trialPoint));
 }
 
 scalar analyticalPlane::signedDistance(const point& trialPoint) const
 {
-    Info << "Implement me!" << endl;
-    return 0.0;
+    return (trialPoint & unitNormal_) - distanceOrigin_;
 }
 
-void analyticalPlane::normalProjectionToSurface(point& trialPoint) const
+point analyticalPlane::normalProjectionToSurface(point& trialPoint) const
 {
-    Info << "Implement me! (normalProjectionToSurface)" << endl;
+    point projected(0.0, 0.0, 0.0);
+
+    scalar projectedDistanceToOrigin = unitNormal_ & trialPoint;
+
+    projected = projectedDistanceToOrigin / distanceOrigin_ * trialPoint;
+
+    return projected;
 }
 
 vector analyticalPlane::normalToPoint(const point& trialPoint) const
 {
-    Info << "Implement me!" << endl;
-    return vector(0.0, 0.0, 0.0);
+    return unitNormal_;
 }
 
+//TODO: for intersection: use distance weighted blending of edge points
+//      to obtain intersection with plane (analogue normalProjection)
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

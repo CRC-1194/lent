@@ -136,13 +136,15 @@ int main(int argc, char *argv[])
     lentMethod lent(front, mesh);
 
     // Test analytical surface skeleton / dummy
-    Info << "Before intialization of object and pointer" << endl;
     tmp<analyticalSurface> analyticalSurfaceTmp( 
         analyticalSurface::New(lent.dict().subDict("analyticalSurface"))
     );
 
-    point testPoint(0.0, 0.0, 0.0);
-    analyticalSurfaceTmp->normalProjectionToSurface(testPoint);
+    point testPoint(-3.0, -4.0, 0.0);
+    Info << "Distance to plane: " 
+         << analyticalSurfaceTmp->signedDistance(testPoint) << endl;
+    Info << "Projection to Plane: "
+         << analyticalSurfaceTmp->normalProjectionToSurface(testPoint) << endl;
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 

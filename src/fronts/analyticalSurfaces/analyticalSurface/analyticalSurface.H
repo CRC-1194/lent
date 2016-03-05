@@ -105,7 +105,7 @@ public:
     // Member functions
     virtual scalar distance(const point&) const = 0;
     virtual scalar signedDistance(const point&) const = 0;
-    virtual void normalProjectionToSurface(point&) const = 0;
+    virtual point normalProjectionToSurface(point&) const = 0;
     virtual vector normalToPoint(const point&) const = 0;
 };
 

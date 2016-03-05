@@ -54,6 +54,7 @@ class analyticalPlane
     // Private data
     point refPoint_;
     vector unitNormal_;
+    scalar distanceOrigin_;
 
 public:
 
@@ -70,7 +71,7 @@ public:
     // Member Functions
     virtual scalar distance(const point&) const;
     virtual scalar signedDistance(const point&) const;
-    virtual void normalProjectionToSurface(point&) const;
+    virtual point normalProjectionToSurface(point&) const;
     virtual vector normalToPoint(const point&) const;
 };
 
