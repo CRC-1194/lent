@@ -37,9 +37,9 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 analyticalPlane::analyticalPlane(const dictionary& configDict)
 :
-    analyticalSurface(configDict),
+    analyticalSurface(configDict)
 {
-    refPoint_ = point(0,0, 0.0, 0.0);
+    refPoint_ = point(0.0, 0.0, 0.0);
     unitNormal_ = vector(1.0, 0.0, 0.0);
 }
 
@@ -57,12 +57,12 @@ scalar analyticalPlane::signedDistance(const point& trialPoint) const
     return 0.0;
 }
 
-void normalProjectionToSurface(point& trialPoint) const
+void analyticalPlane::normalProjectionToSurface(point& trialPoint) const
 {
-    Info << "Implement me!" << endl;
+    Info << "Implement me! (normalProjectionToSurface)" << endl;
 }
 
-vector normalToPoint(const point& trialPoint) const
+vector analyticalPlane::normalToPoint(const point& trialPoint) const
 {
     Info << "Implement me!" << endl;
     return vector(0.0, 0.0, 0.0);

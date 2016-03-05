@@ -98,8 +98,7 @@ tmp<analyticalSurface> analyticalSurface::New(const dictionary& configDict)
             << exit(FatalError);
     }
 
-
-    return tmp<analyticalSurface> (cstrIter() (configDict));
+    return tmp<analyticalSurface> (cstrIter()(configDict));
 }
 
 

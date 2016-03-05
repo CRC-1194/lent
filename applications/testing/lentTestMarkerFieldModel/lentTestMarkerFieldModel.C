@@ -60,6 +60,7 @@ Description
 #include "pimpleControl.H"
 
 #include "lentMethod.H"
+#include "analyticalSurface.H"
 #include "lentMarkerfieldTest.H"
 
 // Test if file is empty: for an empty file the current position in a stream in
@@ -133,6 +134,15 @@ int main(int argc, char *argv[])
     );
 
     lentMethod lent(front, mesh);
+
+    // Test analytical surface skeleton / dummy
+    Info << "Before intialization of object and pointer" << endl;
+    tmp<analyticalSurface> analyticalSurfaceTmp( 
+        analyticalSurface::New(lent.dict().subDict("analyticalSurface"))
+    );
+
+    point testPoint(0.0, 0.0, 0.0);
+    analyticalSurfaceTmp->normalProjectionToSurface(testPoint);
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
