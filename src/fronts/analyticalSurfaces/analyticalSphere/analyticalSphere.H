@@ -22,18 +22,17 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::analyticalPlane
+    Foam::analyticalSphere
 
 Description
-    Specializes the analyticalSurface class for a plane
 
 SourceFiles
-    analyticalPlane.C
+    analyticalSphere.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef analyticalPlane_H
-#define analyticalPlane_H
+#ifndef analyticalSphere_H
+#define analyticalSphere_H
 
 #include "analyticalSurface.H"
 
@@ -43,28 +42,27 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class analyticalPlane Declaration
+                         Class analyticalSphere Declaration
 \*---------------------------------------------------------------------------*/
 
-class analyticalPlane
+class analyticalSphere
 :
     public analyticalSurface
 {
     // Private data
-    point refPoint_;
-    vector unitNormal_;
-    scalar distanceOrigin_;
+    point centre_;
+    scalar radius_;
 
 public:
 
-    TypeName ("Plane");
+    TypeName ("Sphere");
 
     // Constructors
-    analyticalPlane() = default;
-    analyticalPlane(const dictionary& configDict);
+    analyticalSphere() = default;
+    analyticalSphere(const dictionary& configDict);
 
     //- Destructor
-    virtual ~analyticalPlane() {};
+    virtual ~analyticalSphere() {};
 
 
     // Member Functions

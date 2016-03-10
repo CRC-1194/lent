@@ -21,59 +21,53 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::analyticalPlane
-
-Description
-    Specializes the analyticalSurface class for a plane
-
-SourceFiles
-    analyticalPlane.C
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef analyticalPlane_H
-#define analyticalPlane_H
-
-#include "analyticalSurface.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "analyticalSphere.H"
+#include "addToRunTimeSelectionTable.H"
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class analyticalPlane Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(analyticalSphere, 0);
+    addToRunTimeSelectionTable(analyticalSurface, analyticalSphere, Dictionary);
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-class analyticalPlane
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+analyticalSphere::analyticalSphere(const dictionary& configDict)
 :
-    public analyticalSurface
+    analyticalSurface(configDict)
 {
-    // Private data
-    point refPoint_;
-    vector unitNormal_;
-    scalar distanceOrigin_;
-
-public:
-
-    TypeName ("Plane");
-
-    // Constructors
-    analyticalPlane() = default;
-    analyticalPlane(const dictionary& configDict);
-
-    //- Destructor
-    virtual ~analyticalPlane() {};
+    centre_ = configDict.lookupOrDefault<vector>("centre", centre_);
+    radius_ = configDict.lookupOrDefault<scalar>("radius", radius_);
+}
 
 
-    // Member Functions
-    virtual scalar distance(const point&) const;
-    virtual scalar signedDistance(const point&) const;
-    virtual point normalProjectionToSurface(point&) const;
-    virtual vector normalToPoint(const point&) const;
-};
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+scalar analyticalSphere::distance(const point& trialPoint) const
+{
+    return fabs(signedDistance(trialPoint));
+}
 
+scalar analyticalSphere::signedDistance(const point& trialPoint) const
+{
+    return mag(trialPoint - centre_) - radius_;
+}
+
+point analyticalSphere::normalProjectionToSurface(point& trialPoint) const
+{
+    point projected(0.0, 0.0, 0.0);
+    vector normalizedDirection = (trialPoint - centre_)
+                                    / mag(trialPoint - centre_);
+    return radius_*normalizedDirection + centre_;
+}
+
+vector analyticalSphere::normalToPoint(const point& trialPoint) const
+{
+    vector normal(trialPoint - centre_);
+    return normal/mag(normal);
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -84,7 +78,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
         analyticalSurface::New(lent.dict().subDict("analyticalSurface"))
     );
 
-    point testPoint(-3.0, -4.0, 0.0);
+    point testPoint(0.5, 0.0, 0.0);
     Info << "Distance to plane: " 
          << analyticalSurfaceTmp->signedDistance(testPoint) << endl;
     Info << "Projection to Plane: "
