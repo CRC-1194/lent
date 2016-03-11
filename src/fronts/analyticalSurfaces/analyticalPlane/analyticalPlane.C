@@ -73,8 +73,19 @@ vector analyticalPlane::normalToPoint(const point& trialPoint) const
     return unitNormal_;
 }
 
-//TODO: for intersection: use distance weighted blending of edge points
-//      to obtain intersection with plane (analogue normalProjection)
+point analyticalPlane::intersection(const point& pointA, const point& pointB) const
+{
+        point intersect(0.0, 0.0, 0.0);
+
+        scalar distanceRatio = distance(pointA) / (distance(pointA)
+                                 + distance(pointB));
+
+        // In essence, use (distance weighted) central differencing scheme to
+        // find intersetion with plane
+        intersect = distanceRatio*pointB + (1.0 - distanceRatio) * pointA;
+
+        return intersect;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

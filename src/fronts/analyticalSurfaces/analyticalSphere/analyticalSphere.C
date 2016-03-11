@@ -26,6 +26,8 @@ License
 #include "analyticalSphere.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include <cmath>
+
 namespace Foam {
 namespace FrontTracking {
 
@@ -67,6 +69,35 @@ vector analyticalSphere::normalToPoint(const point& trialPoint) const
 {
     vector normal(trialPoint - centre_);
     return normal/mag(normal);
+}
+
+point analyticalSphere::intersection(const point& pointA,
+                                     const point& pointB) const
+{
+    // Basic idea for intersection:
+    // 1) reduce to planar problem by intersecting the sphere with the plane
+    //      (centre_, pointA, pointB)
+    //      --> results in circle with same radius as sphere
+    // 2) exploit fact that the intersection will always have a distance 
+    //      to the centre equivalent to the radius 
+    // 3) use trigenometry to determine the distance ratio in which the segement
+    //      pointA--pointB is intersected
+    // 4) compute intersection using inverse distance weighted interpolation
+    point intersect(0.0, 0.0, 0.0);
+
+    // TODO: determine which point lies inside the sphere and ensure that 
+    // it is used inthe following
+    scalar distanceCA = mag(pointA - centre_);
+    scalar distanceAB = mag(pointA - pointB);
+
+    // Angle enclosed by centre_ --> pointA and centre_ --> intersection
+    scalar alpha = std::acos(distanceCA / radius_);
+
+    scalar distanceRatio = std::sin(alpha)*radius_ / distanceAB;
+
+    intersect = distanceRatio*pointB + (1.0 - distanceRatio)*pointA;
+
+    return intersect;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
