@@ -59,10 +59,24 @@ scalar analyticalSphere::signedDistance(const point& trialPoint) const
 
 point analyticalSphere::normalProjectionToSurface(point& trialPoint) const
 {
+    // TODO: projection does not work if trialPoint coincides with
+    //       centre_
     point projected(0.0, 0.0, 0.0);
-    vector normalizedDirection = (trialPoint - centre_)
-                                    / mag(trialPoint - centre_);
-    return radius_*normalizedDirection + centre_;
+
+    // Ensure sufficient distance between trialPoint and centre_
+    if (magSqr(trialPoint - centre_) > SMALL)
+    {
+        vector normalizedDirection = (trialPoint - centre_)
+                                      / mag(trialPoint - centre_);
+        return radius_*normalizedDirection + centre_;
+    }
+    else
+    {
+        Info << "Warning: point " << trialPoint << "coincides with "
+             << "centre.\n"
+             << "Cannot project, using centre instead" << endl;
+        return centre_;
+    }
 }
 
 vector analyticalSphere::normalToPoint(const point& trialPoint) const
@@ -85,19 +99,75 @@ point analyticalSphere::intersection(const point& pointA,
     // 4) compute intersection using inverse distance weighted interpolation
     point intersect(0.0, 0.0, 0.0);
 
-    // TODO: determine which point lies inside the sphere and ensure that 
-    // it is used inthe following
-    scalar distanceCA = mag(pointA - centre_);
-    scalar distanceAB = mag(pointA - pointB);
+    // Determine inner and outer point to ensure correctness of 
+    // intersection method
+    point innerPoint = pointA;
+    point outerPoint = pointB;
 
-    // Angle enclosed by centre_ --> pointA and centre_ --> intersection
-    scalar alpha = std::acos(distanceCA / radius_);
+    if (signedDistance(pointA) > 0.0)
+    {
+        innerPoint = pointB;
+        outerPoint = pointA;
+    } 
 
-    scalar distanceRatio = std::sin(alpha)*radius_ / distanceAB;
+    // Catch exceptional case in which the inner point coincides with
+    // the centre_ and aforementioned algorithm fails
+    if (mag(innerPoint - centre_) > SMALL)
+    {
+        scalar distanceCI = mag(centre_ - innerPoint);
+        scalar distanceInOut = mag(innerPoint - outerPoint);
+        scalar cosAlpha = (centre_ - innerPoint) & (outerPoint - innerPoint)
+                            / (distanceCI * distanceInOut);
 
-    intersect = distanceRatio*pointB + (1.0 - distanceRatio)*pointA;
+        // Exploit cosine rule for an arbitrary triangle and solve
+        // for the sought-after distance between the innerPoint and the
+        // intersection using the pq-formula. Note, that the factor 0.5
+        // cancels out. Only addition of the root term yields geometrically
+        // valid results.
+        scalar p = -distanceCI * cosAlpha;
+        scalar q = sqr(distanceCI) - sqr(radius_);
+        scalar distanceIintersect = -p + sqrt(sqr(p) - q);
+        scalar distanceRatio = distanceIintersect / distanceInOut;
+
+        intersect = distanceRatio * outerPoint +
+                        (1.0 - distanceRatio) * innerPoint;
+    }
+    else
+    {
+        intersect = centre_ + radius_ * (outerPoint - centre_)
+                        / mag(outerPoint - centre_);
+    }
 
     return intersect;
+}
+
+
+// * * * * * * * * * * * * * * Self Test * * * * * * * * * * * * * * * * * * //
+void analyticalSphere::selfTest()
+{
+    Info << "\nStarting selftest of class analyticalSphere...\n" << endl;
+
+    point testPointA(-1.0, 0.0, 0.0);
+    point testPointB = centre_ + 0.5*radius_*point(0.0, 1.0, 0.0);
+
+    Info << "Trial point: " << testPointA << endl;
+    Info << "Signed distance: " << signedDistance(testPointA) << endl;
+    Info << "Normal projection: " << normalProjectionToSurface(testPointA)
+         << "\n\t distance to centre: "
+         << mag(normalProjectionToSurface(testPointA) - centre_)
+         << endl;
+    Info << "Normal to point: " << normalToPoint(testPointA) << endl;
+    Info << "Intersection: " << intersection(testPointA, testPointB)
+         << "\n\t distance to centre: "
+         << mag(intersection(testPointA, testPointB) - centre_)
+         << "\n\t alignment: point A --> point B = "
+         << (testPointB - testPointA) / mag(testPointB - testPointA)
+         << "\n\t\t point A --> intersection = "
+         << (intersection(testPointA, testPointB) - testPointA) /
+             mag(intersection(testPointA, testPointB) - testPointA)
+         << endl;
+    
+    Info << "Finished tests\n" << endl;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

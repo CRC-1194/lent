@@ -140,11 +140,7 @@ int main(int argc, char *argv[])
         analyticalSurface::New(lent.dict().subDict("analyticalSurface"))
     );
 
-    point testPoint(0.5, 0.0, 0.0);
-    Info << "Distance to plane: " 
-         << analyticalSurfaceTmp->signedDistance(testPoint) << endl;
-    Info << "Projection to Plane: "
-         << analyticalSurfaceTmp->normalProjectionToSurface(testPoint) << endl;
+    analyticalSurfaceTmp->selfTest();
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 

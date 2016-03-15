@@ -61,9 +61,18 @@ point analyticalPlane::normalProjectionToSurface(point& trialPoint) const
 {
     point projected(0.0, 0.0, 0.0);
 
-    scalar projectedDistanceToOrigin = unitNormal_ & trialPoint;
+    // Projection method fails for zero vector, thus provide 
+    // alternative method for this case
+    if (fabs(trialPoint & trialPoint) > SMALL)
+    {
+        scalar projectedDistanceToOrigin = unitNormal_ & trialPoint;
 
-    projected = projectedDistanceToOrigin / distanceOrigin_ * trialPoint;
+        projected = projectedDistanceToOrigin / distanceOrigin_ * trialPoint;
+    }
+    else
+    {
+        projected = distanceOrigin_ * unitNormal_;
+    }
 
     return projected;
 }
@@ -86,6 +95,28 @@ point analyticalPlane::intersection(const point& pointA, const point& pointB) co
 
         return intersect;
 }
+
+
+// * * * * * * * * * * * * * * Self Test * * * * * * * * * * * * * * * * * * //
+void analyticalPlane::selfTest()
+{
+    Info << "\nStarting selftest of class analyticalPlane...\n" << endl;
+
+    point testPointA(0.0, 0.0, 0.0);
+    point testPointB(1000.0, 500.0, 1000.0);
+
+    Info << "Trial point A: " << testPointA
+         << "; trial point B: " << testPointB
+         << endl;
+    Info << "Signed distance: " << signedDistance(testPointA) << endl;
+    Info << "Normal projection: " << normalProjectionToSurface(testPointA)
+         << endl;
+    Info << "Normal to point: " << normalToPoint(testPointA) << endl;
+    Info << "Intersection: " << intersection(testPointA, testPointB) << endl;
+    
+    Info << "Finished tests\n" << endl;
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

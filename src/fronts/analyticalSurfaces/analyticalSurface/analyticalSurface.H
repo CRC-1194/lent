@@ -108,6 +108,9 @@ public:
     virtual point normalProjectionToSurface(point&) const = 0;
     virtual vector normalToPoint(const point&) const = 0;
     virtual point intersection(const point&, const point&) const = 0;
+
+    // Self Test
+    virtual void selfTest() = 0;
 };
 
 

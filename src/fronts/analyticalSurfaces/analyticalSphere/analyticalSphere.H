@@ -71,6 +71,9 @@ public:
     virtual point normalProjectionToSurface(point&) const;
     virtual vector normalToPoint(const point&) const;
     virtual point intersection(const point&, const point&) const;
+
+    // Self Test
+    void virtual selfTest();
 };
 
 
