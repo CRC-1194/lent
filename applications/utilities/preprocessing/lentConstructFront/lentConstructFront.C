@@ -95,10 +95,10 @@ void orderIntersects(labelList& pointIDs, const pointField& points,
     for(label I = 0; I < pointIDs.size()-1; I++)
     {
         refEdge = points[pointIDs[I]] - centre;
-        minAngle = 0.0;
+        minAngle = -1.1; // Has to be smaller the the minmal cosine value
         minPosition = I;
 
-        for(label K = I+1; K < pointIDs.size()-1; K++)
+        for(label K = I+1; K < pointIDs.size(); K++)
         {
             testEdge = points[pointIDs[K]] - centre;
             currentAngle = refEdge & testEdge /(mag(refEdge) * mag(testEdge));
@@ -308,6 +308,18 @@ int main(int argc, char *argv[])
     // Create and write the front...
     triSurface impendingDoom(frontTriangles, intersections);
     impendingDoom.write("impendingDoom.stl");
+
+    forAll(intersections, I)
+    {
+        scalar distance = analyticalSurfaceTmp->signedDistance(intersections[I]);
+
+        if (fabs(distance > SMALL))
+        {
+            Info << "Point " << intersections[I] << " with label "
+                 << I << " has distance of " << distance
+                 << " to surface." << endl;
+        }
+    }
 
     Info<< "\nEnd\n" << endl;
     return 0;
