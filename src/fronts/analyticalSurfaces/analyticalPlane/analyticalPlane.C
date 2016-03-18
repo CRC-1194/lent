@@ -45,6 +45,16 @@ analyticalPlane::analyticalPlane(const dictionary& configDict)
     distanceOrigin_ = unitNormal_ & refPoint_;
 }
 
+analyticalPlane::analyticalPlane(const point& refPoint, const vector& normal)
+:
+    analyticalSurface()
+{
+    refPoint_ = refPoint;
+    unitNormal_ = normal;
+    unitNormal_ /= mag(unitNormal_);
+    distanceOrigin_ = unitNormal_ & refPoint_;
+}
+
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 scalar analyticalPlane::distance(const point& trialPoint) const
@@ -94,6 +104,19 @@ point analyticalPlane::intersection(const point& pointA, const point& pointB) co
         intersect = distanceRatio*pointB + (1.0 - distanceRatio) * pointA;
 
         return intersect;
+}
+
+
+// * * * * * * * * * * * * * * Member Operators* * * * * * * * * * * * * * //
+analyticalPlane& analyticalPlane::operator=(const analyticalPlane& plane) 
+{
+    if (this != &plane)
+    {
+        refPoint_ = plane.refPoint_;
+        unitNormal_ = plane.unitNormal_;
+    }
+
+    return *this;
 }
 
 

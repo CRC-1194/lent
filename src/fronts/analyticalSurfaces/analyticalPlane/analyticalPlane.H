@@ -62,6 +62,7 @@ public:
     // Constructors
     analyticalPlane() = default;
     analyticalPlane(const dictionary& configDict);
+    analyticalPlane(const point& refPoint, const vector& normal);
 
     //- Destructor
     virtual ~analyticalPlane() {};
@@ -73,6 +74,14 @@ public:
     virtual point normalProjectionToSurface(point&) const;
     virtual vector normalToPoint(const point&) const;
     virtual point intersection(const point&, const point&) const;
+
+    virtual vector normal() const
+    {
+        return unitNormal_;
+    }
+
+    // Member operators
+    virtual analyticalPlane& operator=(const analyticalPlane&);
 
     // Self Test
     virtual void selfTest();

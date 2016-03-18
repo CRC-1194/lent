@@ -32,8 +32,11 @@ Description
 
 #include "lentMethod.H"
 #include "analyticalSurface.H"
+#include "analyticalPlane.H"
 
 #include <utility>
+
+using namespace FrontTracking;
 
 bool differentSign(scalar a, scalar b)
 {
@@ -80,12 +83,23 @@ point geoCentre(const labelList& pointIDs, const pointField& points)
     return centre;
 }
 
-void orderIntersects(labelList& pointIDs, const pointField& points,
+void orderPointsAngle(labelList& pointIDs, const pointField& points,
                      const point& centre)
 {
+    // This is probably the most naive approach, yet it is computationally
+    // cheap
+    //
     // Remember: angles are not measured in radian, but as the cosine
     // value of the angle [ cos(angle) = <a,b>/(|a||b|) ]
     // Should work as long as polygons are sufficiently convex
+    //
+    // TODO: potential source of error identified:
+    // Angle measurement using the cosine only works reliably if no angles
+    // greater than pi are involved. Thus think about a solution to identify
+    // angles greater than pi
+    // Approach: use a plane and the signed distance of the points to
+    // distinguish angles < pi and angles > pi. The plane is spanned by
+    // the vector centre --> first point and the normal at the centre
     vector refEdge;
     vector testEdge;
     scalar minAngle;
@@ -111,6 +125,99 @@ void orderIntersects(labelList& pointIDs, const pointField& points,
         }
 
         std::swap(pointIDs[I+1], pointIDs[minPosition]);
+    }
+}
+
+bool insidePrism(const point& intersect, const point& centre,
+                 const point& refPoint, const vector& normalToAxis)
+{
+    bool inside = true;
+
+    vector unitNormal = normalToAxis / mag(normalToAxis);
+
+    // Use projected distance along unitNormal
+    if ( ((intersect - centre) & unitNormal) >
+            ((refPoint - centre) & unitNormal) )
+    {
+        inside = false;
+    }
+
+    return inside;
+}
+
+void orderPointsPlaneLock(labelList& pointIDs, const pointField& points,
+                          const point& centre, const vector& refNormal)
+{
+    // More elaborate approach. Maybe it works, maybe not...
+    // TODO: add more detailled description
+    // FIXME: bugged, results are worse than the naive angle approach
+    scalarListList signedDistances(pointIDs.size());
+    List<analyticalPlane> planes(pointIDs.size());
+
+    vector centreToP;
+
+    // Construct plane for each point, spanned by Pi, centre and the normal
+    // direction of the analytical surface
+    forAll(pointIDs, I)
+    {
+        point p = points[pointIDs[I]];
+        centreToP = p - centre;
+        planes[I] = analyticalPlane(p, (centreToP ^ refNormal));
+    }
+
+    // Compute signed distance matrix
+    forAll(pointIDs, I)
+    {
+        scalarList dist(pointIDs.size());
+        forAll(planes, K)
+        {
+            dist[K] = planes[K].signedDistance(points[pointIDs[I]]);
+        }
+        signedDistances[I] = dist;
+    }
+
+    // Now order points
+    for (label I = 0; I < pointIDs.size() - 1; I++)
+    {
+        label swapPointID = I;
+
+        for (label K = I+1; K < pointIDs.size(); K++)
+        {
+            bool doSwap = true;
+
+            // Check if and how the point pair I,K intersect the planes.
+            // On this basis it is decided if K is a suitable candidate for
+            // swapping
+            for (label L = 0; L < pointIDs.size(); L++)
+            {
+                if (differentSign(signedDistances[I][L], signedDistances[K][L]))
+                {
+                    point intersect =
+                        planes[L].intersection(points[pointIDs[I]], 
+                                points[pointIDs[K]]);
+                    // Check if intersection is inside the prism (meaning located
+                    // between the centre and the refPoint of plane L)
+                    // or outside. In the latter case the intersection does
+                    // not invalidate the suitability for swapping
+                    vector refDirection = refNormal ^ planes[L].normal();
+                    
+                    if (insidePrism(intersect, centre, points[pointIDs[L]],
+                                    refDirection))
+                    {
+                        doSwap = false;
+                    }
+                }
+            }
+
+            // Cancel here, if point K has passed the above test
+            if (doSwap)
+            {
+                swapPointID = K;
+                break;
+            }
+        }
+
+        std::swap(pointIDs[I+1], pointIDs[swapPointID]);
     }
 }
 
@@ -224,6 +331,7 @@ int main(int argc, char *argv[])
         }
     }
 
+
     // Step 2: compute intersections
     pointField intersections(intersectedEdges.size());
 
@@ -237,13 +345,10 @@ int main(int argc, char *argv[])
         intersections[I] = analyticalSurfaceTmp->intersection(
                 pointA, pointB);
     }
-    // Everything above works fine
-
     
-    // Everything below may be fucked up
-    const labelListList& edgeToCell = mesh.edgeCells();
 
     // Create list of all intersected cells from intersected edges
+    const labelListList& edgeToCell = mesh.edgeCells();
     labelList intersectedCells(0, 0);
 
     forAll(intersectedEdges, I)
@@ -260,6 +365,7 @@ int main(int argc, char *argv[])
             }
         }
     }
+
 
     // Now it's time to create the per-cell triangulation of the surface
     const labelListList& cellToEdge = mesh.cellEdges();
@@ -289,11 +395,16 @@ int main(int argc, char *argv[])
 
         // Compute geometrical centre and move to the surface
         tmp = geoCentre(intersectsPerCell, intersections);
-        tmp = analyticalSurfaceTmp->normalProjectionToSurface(tmp);
-        intersections.append(tmp);
 
         // Avoid overlapping triangles
-        orderIntersects(intersectsPerCell, intersections, tmp);
+        //orderPointsAngle(intersectsPerCell, intersections, tmp);
+        orderPointsPlaneLock(intersectsPerCell, intersections, tmp,
+                             analyticalSurfaceTmp->normalToPoint(tmp));
+
+        // Projection the centre after ordering should improve stability
+        // of ordering
+        tmp = analyticalSurfaceTmp->normalProjectionToSurface(tmp);
+        intersections.append(tmp);
 
         // Ensure correct orientation
         vector surfaceNormal = analyticalSurfaceTmp->
@@ -309,15 +420,24 @@ int main(int argc, char *argv[])
     triSurface impendingDoom(frontTriangles, intersections);
     impendingDoom.write("impendingDoom.stl");
 
-    forAll(intersections, I)
+    forAll(frontTriangles, I)
     {
-        scalar distance = analyticalSurfaceTmp->signedDistance(intersections[I]);
+        triFace tmp = frontTriangles[I];
 
-        if (fabs(distance > SMALL))
+        point p0 = intersections[tmp[0]];
+        point p1 = intersections[tmp[1]];
+        point p2 = intersections[tmp[2]];
+
+        point centre = (p0 + p1 + p2) / 3.0;
+        vector refNormal = analyticalSurfaceTmp->normalToPoint(centre);
+        vector triNormal = (p1-p0) ^ (p2-p0);
+        scalar cosine = (refNormal & triNormal) /
+                        (mag(refNormal) * mag(triNormal));
+
+        if ((cosine) < 0.9)
         {
-            Info << "Point " << intersections[I] << " with label "
-                 << I << " has distance of " << distance
-                 << " to surface." << endl;
+            Info << "Fucked up triangles: "
+                 << cosine << endl;
         }
     }
 
