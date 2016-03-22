@@ -45,6 +45,14 @@ analyticalSphere::analyticalSphere(const dictionary& configDict)
     radius_ = configDict.lookupOrDefault<scalar>("radius", radius_);
 }
 
+analyticalSphere::analyticalSphere(const point& centre, const scalar radius)
+:
+   analyticalSurface()
+{
+    centre_ = centre;
+    radius_ = radius;
+} 
+
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 scalar analyticalSphere::distance(const point& trialPoint) const
@@ -141,6 +149,18 @@ point analyticalSphere::intersection(const point& pointA,
     return intersect;
 }
 
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+analyticalSphere& analyticalSphere::operator=(const analyticalSphere& sphere)
+{
+    if (this != &sphere)
+    {
+        centre_ = sphere.centre_;
+        radius_ = sphere.radius_;
+    }
+
+    return *this;
+}
 
 // * * * * * * * * * * * * * * Self Test * * * * * * * * * * * * * * * * * * //
 void analyticalSphere::selfTest()

@@ -60,6 +60,7 @@ public:
     // Constructors
     analyticalSphere() = default;
     analyticalSphere(const dictionary& configDict);
+    analyticalSphere(const point& centre, const scalar radius);
 
     //- Destructor
     virtual ~analyticalSphere() {};
@@ -71,6 +72,19 @@ public:
     virtual point normalProjectionToSurface(point&) const;
     virtual vector normalToPoint(const point&) const;
     virtual point intersection(const point&, const point&) const;
+
+    virtual point centre() const
+    {
+        return centre_;
+    }
+
+    virtual scalar radius() const
+    {
+        return radius_;
+    }
+
+    // Member operators
+    virtual analyticalSphere& operator=(const analyticalSphere&);
 
     // Self Test
     void virtual selfTest();

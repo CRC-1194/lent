@@ -80,6 +80,11 @@ public:
         return unitNormal_;
     }
 
+    virtual point referencePoint() const
+    {
+        return refPoint_;
+    }
+
     // Member operators
     virtual analyticalPlane& operator=(const analyticalPlane&);
 

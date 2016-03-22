@@ -107,7 +107,7 @@ point analyticalPlane::intersection(const point& pointA, const point& pointB) co
 }
 
 
-// * * * * * * * * * * * * * * Member Operators* * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
 analyticalPlane& analyticalPlane::operator=(const analyticalPlane& plane) 
 {
     if (this != &plane)

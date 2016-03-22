@@ -83,51 +83,56 @@ point geoCentre(const labelList& pointIDs, const pointField& points)
     return centre;
 }
 
-void orderPointsAngle(labelList& pointIDs, const pointField& points,
-                     const point& centre)
+scalar angle(const vector& a, const vector& b, scalar signedDistance)
 {
-    // This is probably the most naive approach, yet it is computationally
-    // cheap
-    //
-    // Remember: angles are not measured in radian, but as the cosine
-    // value of the angle [ cos(angle) = <a,b>/(|a||b|) ]
-    // Should work as long as polygons are sufficiently convex
-    //
-    // TODO: potential source of error identified:
-    // Angle measurement using the cosine only works reliably if no angles
-    // greater than pi are involved. Thus think about a solution to identify
-    // angles greater than pi
-    // Approach: use a plane and the signed distance of the points to
-    // distinguish angles < pi and angles > pi. The plane is spanned by
-    // the vector centre --> first point and the normal at the centre
-    vector refEdge;
-    vector testEdge;
-    scalar minAngle;
-    scalar currentAngle;
-    label minPosition;
+    scalar angle = std::acos(a & b / (mag(a) * mag(b)));
 
-    for(label I = 0; I < pointIDs.size()-1; I++)
+    if (signedDistance < 0.0)
     {
-        refEdge = points[pointIDs[I]] - centre;
-        minAngle = -1.1; // Has to be smaller the the minmal cosine value
-        minPosition = I;
+        angle = 2*Foam::constant::mathematical::pi - angle;
+    }
+    
+    return angle;
+}
 
-        for(label K = I+1; K < pointIDs.size(); K++)
+// TODO: at least template this function or replace it with an appropriate
+// function from the STL
+void linkedSort(scalarList& reference, labelList& dependent)
+{
+    // Note: sorts in ascending order
+    for (label I = 0; I < reference.size() - 1; I++)
+    {
+        for (label K = I+1; K < reference.size(); K++)
         {
-            testEdge = points[pointIDs[K]] - centre;
-            currentAngle = refEdge & testEdge /(mag(refEdge) * mag(testEdge));
-
-            if (currentAngle > minAngle)
+            if (reference[I] > reference[K])
             {
-                minAngle = currentAngle;
-                minPosition = K;
+                std::swap(reference[I], reference[K]);
+                std::swap(dependent[I], dependent[K]);
             }
         }
-
-        std::swap(pointIDs[I+1], pointIDs[minPosition]);
     }
 }
 
+void orderPointsAngle(labelList& pointIDs, const pointField& points,
+                     const point& centre, const vector& surfaceNormal)
+{
+    vector refEdge = points[pointIDs[0]];
+    vector testEdge;
+    point testPoint;
+    scalarList angles(pointIDs.size(), 0.0);
+    analyticalPlane refPlane(centre, (refEdge ^ surfaceNormal));
+
+    for(label I = 0; I < pointIDs.size(); I++)
+    {
+        testPoint = points[pointIDs[I]];
+        testEdge = testPoint - centre;
+        angles[I] = angle(refEdge, testEdge, refPlane.signedDistance(testPoint));
+    }
+
+    linkedSort(angles, pointIDs);
+}
+
+/*
 bool insidePrism(const point& intersect, const point& centre,
                  const point& refPoint, const vector& normalToAxis)
 {
@@ -220,6 +225,7 @@ void orderPointsPlaneLock(labelList& pointIDs, const pointField& points,
         std::swap(pointIDs[I+1], pointIDs[swapPointID]);
     }
 }
+*/
 
 // Order intersection points in such a way that the rotational direction
 // aligns with the normal of the analytical surface
@@ -397,12 +403,13 @@ int main(int argc, char *argv[])
         tmp = geoCentre(intersectsPerCell, intersections);
 
         // Avoid overlapping triangles
-        //orderPointsAngle(intersectsPerCell, intersections, tmp);
-        orderPointsPlaneLock(intersectsPerCell, intersections, tmp,
-                             analyticalSurfaceTmp->normalToPoint(tmp));
+        orderPointsAngle(intersectsPerCell, intersections, tmp,
+                         analyticalSurfaceTmp->normalToPoint(tmp));
 
         // Projection the centre after ordering should improve stability
         // of ordering
+        // FIXME: projection is turned of for now as it introduces kinks
+        // in curved surfaces
         tmp = analyticalSurfaceTmp->normalProjectionToSurface(tmp);
         intersections.append(tmp);
 
@@ -420,26 +427,8 @@ int main(int argc, char *argv[])
     triSurface impendingDoom(frontTriangles, intersections);
     impendingDoom.write("impendingDoom.stl");
 
-    forAll(frontTriangles, I)
-    {
-        triFace tmp = frontTriangles[I];
-
-        point p0 = intersections[tmp[0]];
-        point p1 = intersections[tmp[1]];
-        point p2 = intersections[tmp[2]];
-
-        point centre = (p0 + p1 + p2) / 3.0;
-        vector refNormal = analyticalSurfaceTmp->normalToPoint(centre);
-        vector triNormal = (p1-p0) ^ (p2-p0);
-        scalar cosine = (refNormal & triNormal) /
-                        (mag(refNormal) * mag(triNormal));
-
-        if ((cosine) < 0.9)
-        {
-            Info << "Fucked up triangles: "
-                 << cosine << endl;
-        }
-    }
+    // Print some stats
+    Info << "Front created: " << frontTriangles.size() << " triangles" << endl;
 
     Info<< "\nEnd\n" << endl;
     return 0;
