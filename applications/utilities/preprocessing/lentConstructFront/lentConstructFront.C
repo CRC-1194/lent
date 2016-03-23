@@ -229,6 +229,8 @@ void orderPointsPlaneLock(labelList& pointIDs, const pointField& points,
 
 // Order intersection points in such a way that the rotational direction
 // aligns with the normal of the analytical surface
+// FIXME: this functionality can be incorporated in the new ordering
+// approach in a natural way --> obsolete
 void orientToNormal(labelList& pointIDs, const pointField& points,
                     const point& centre, const vector& refNormal)
 {
