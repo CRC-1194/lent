@@ -1,4 +1,0 @@
-
-testLentMeshSearch.C
-
-EXE = $(FOAM_APPBIN)/testLentMeshSearch
