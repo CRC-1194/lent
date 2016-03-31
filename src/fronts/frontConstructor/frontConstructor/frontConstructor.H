@@ -27,9 +27,7 @@ Class
 Description
 
 SourceFiles
-    frontConstructorI.H
     frontConstructor.C
-    frontConstructorIO.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -40,8 +38,7 @@ SourceFiles
 
 #include "analyticalSurface.H"
 #include "analyticalPlane.H"
-
-#include <utility>
+#include "faceTriangulator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -56,38 +53,27 @@ namespace FrontTracking {
 class frontConstructor
 {
     // Private data
-    List<triFace> frontTriangles_;
-    labelList intersectedEdges_;
-    labelList intersectedCells_;
-    pointField frontVertices_;
-    // TODO: there has to be a mapping relating each cell to a list of 
-    // contained triangles. Preferable way is to use the lentCommunication
-    // somehow
-    // TODO: add the faceTriangulation class as private data when available
+        List<triFace> frontTriangles_;
+        labelList intersectedEdges_;
+        labelList intersectedCells_;
+        pointField frontVertices_;
 
-    const tmp<analyticalSurface> surfaceTmp_;
-    const fvMesh& mesh_;
+        const tmp<analyticalSurface> surfaceTmp_;
+        const fvMesh& mesh_;
 
 
     // Private Member Functions
-    bool differentSign(scalar, scalar) const;
-    bool notInList(label, labelList&) const;
-    label pointIndex(label, labelList&) const;
-    void createTriangles(const labelList&, const label&);
-    void signedDistance();
+        bool differentSign(scalar, scalar) const;
+        bool notInList(label, labelList&) const;
+        label pointIndex(label, const labelList&) const;
+        void signedDistance();
 
-    void findIntersectedEdges();
-    void findIntersectedCells();
-    void computeIntersections();
+        void findIntersectedEdges();
+        void findIntersectedCells();
+        void computeIntersections();
+        void cellIntersections(const labelList&, labelList&) const;
+        void createTriangles();
 
-    // These belong to the to-be-created faceTriangulation class
-    /*
-    point geometricCentre(const labelList&, const pointField&) const;
-    scalar angle(const vector&, const vector&, scalar) const;
-    void linkedSort(scalarList&, labelList&) const;
-    void orderPoints(labelList&, const pointField&, const point&,
-                        const vector&) const;
-    */
 
 public:
     
@@ -105,18 +91,33 @@ public:
 
 
     // Member Functions
-        const labelList& intersectedEdges()
+        const labelList& intersectedEdges() const
         {
             return intersectedEdges_;
         }
 
-        const labelList& intersectedCells()
+        const labelList& intersectedCells() const
         {
             return intersectedCells_;
         }
 
+        // TODO: figure out a sensible and efficient way to contruct
+        // a triSurfaceFront and pass it
+        // FIXME: following functions are only temporary for testing purposes
+        void workWork()
+        {
+            createTriangles();
+        }
 
+        const List<triFace>& triangles()
+        {
+            return frontTriangles_;
+        }
 
+        const pointField& vertices()
+        {
+            return frontVertices_;
+        }
 };
 
 

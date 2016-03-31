@@ -33,6 +33,7 @@ Description
 #include "lentMethod.H"
 #include "analyticalSurface.H"
 #include "analyticalPlane.H"
+#include "frontConstructor.H"
 
 #include <utility>
 
@@ -412,7 +413,7 @@ int main(int argc, char *argv[])
         // of ordering
         // FIXME: projection is turned of for now as it introduces kinks
         // in curved surfaces
-        tmp = analyticalSurfaceTmp->normalProjectionToSurface(tmp);
+        //tmp = analyticalSurfaceTmp->normalProjectionToSurface(tmp);
         intersections.append(tmp);
 
         // Ensure correct orientation
@@ -431,6 +432,16 @@ int main(int argc, char *argv[])
 
     // Print some stats
     Info << "Front created: " << frontTriangles.size() << " triangles" << endl;
+    Info << "No. intersected cells: " << intersectedCells.size() << endl;
+
+    Info << "\nNow test teh new class!" << endl;
+
+    frontConstructor testingFacility(analyticalSurfaceTmp, mesh);
+    testingFacility.workWork();
+    triSurface cataclysm(testingFacility.triangles(), testingFacility.vertices());
+
+    cataclysm.write("cataclysm.stl");
+    Info << "Front created: " << testingFacility.triangles().size() << " triangles" << endl;
 
     Info<< "\nEnd\n" << endl;
     return 0;

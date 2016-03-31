@@ -12,6 +12,7 @@ markerFieldModels/harmonicMarkerFieldModel/harmonicMarkerFieldModel.C
 markerFieldModels/sharpMarkerFieldModel/sharpMarkerFieldModel.C
 markerFieldModels/twoCellHarmonicMarkerFieldModel/twoCellHarmonicMarkerFieldModel.C
 markerFieldModels/singleCellHarmonicMarkerFieldModel/singleCellHarmonicMarkerFieldModel.C
+markerFieldModels/relativeVolumeMarkerFieldModel/relativeVolumeMarkerFieldModel.C
 
 frontReconstructionModels/frontReconstructionModel/frontReconstructionModel.C
 frontReconstructionModels/timeStepFrontReconstructionModel/timeStepFrontReconstructionModel.C
@@ -52,6 +53,8 @@ test/lentMarkerfieldTest/lentMarkerfieldTest.C
 fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
 fronts/analyticalSurfaces/analyticalPlane/analyticalPlane.C
 fronts/analyticalSurfaces/analyticalSphere/analyticalSphere.C
-fronts/frontConstructor/frontConstructor.C
+fronts/frontConstructor/frontConstructor/frontConstructor.C
+fronts/frontConstructor/faceTriangulator/faceTriangulator.C
+fronts/frontMeshIntersection/cutCellVolumeCalculator/cutCellVolumeCalculator.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent

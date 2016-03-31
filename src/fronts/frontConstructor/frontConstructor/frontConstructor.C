@@ -48,7 +48,7 @@ bool frontConstructor::notInList(label ID, labelList& list) const
     return true;
 }
 
-label frontConstructor::pointIndex(label ID, labelList& list) const
+label frontConstructor::pointIndex(label ID, const labelList& list) const
 {
     label result = -1;
 
@@ -60,10 +60,48 @@ label frontConstructor::pointIndex(label ID, labelList& list) const
     return result;
 }
 
-void frontConstructor::createTriangles(const labelList& pointIDs,
-                                       const label& centreID)
+void frontConstructor::cellIntersections(const labelList& cellEdges,
+                                         labelList& intersections) const
 {
-    // Implement when structure of the faceTriangulation class is clearer
+    forAll(cellEdges, K)
+    {
+        // Remember: the position of an edge in the list
+        // 'intersectedEdges_' corresponds to the position of the
+        // intersecting point stored in 'frontVertices_'
+        label pointID = pointIndex(cellEdges[K], intersectedEdges_);
+
+        if (pointID > -1)
+        {
+            intersections.append(pointID);
+        }
+    }
+}
+
+void frontConstructor::createTriangles()
+{
+    findIntersectedEdges();
+    computeIntersections();
+    findIntersectedCells();
+
+    const labelListList& cellToEdge = mesh_.cellEdges();
+    labelList intersections(0);
+
+    faceTriangulator triangulation_(frontVertices_, frontTriangles_,
+                                    surfaceTmp_);
+
+    forAll(intersectedCells_, I)
+    {
+        const labelList& cellEdges = cellToEdge[intersectedCells_[I]];
+        intersections.clear();
+
+        cellIntersections(cellEdges, intersections);
+        triangulation_.triangulateFace(intersections);
+        // This would be the place to capture the mapping between
+        // triangles and the cell I
+        // TODO: No mapping is created here as it would only be useful for
+        // a first time step. Thus save line and simply use the
+        // functionality of lentCommunication to etablish the mapping
+    }
 }
 
 void frontConstructor::signedDistance()
