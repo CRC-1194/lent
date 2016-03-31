@@ -23,16 +23,16 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::eulerFrontMotionSolver
+    Foam::rkSecondFrontMotionSolver
 
 SourceFiles
-    diffuseInterfaceProperties.C
+    rkSecondFrontMotionSolver.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Evolve the front using the first order accurate Euler temporal discretization
+    Evolve the front using the second order accurate Runge-Kutta temporal discretization
     scheme.
 
     You may refer to this software as :
@@ -58,45 +58,42 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "eulerFrontMotionSolver.H"
-#include "addToRunTimeSelectionTable.H"
+#ifndef rkSecondFrontMotionSolver_H
+#define rkSecondFrontMotionSolver_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "eulerFrontMotionSolver.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(eulerFrontMotionSolver, 0);
+/*---------------------------------------------------------------------------*\
+                         Class rkSecondFrontMotionSolver Declaration
+\*---------------------------------------------------------------------------*/
 
-    addToRunTimeSelectionTable(
-        frontMotionSolver,
-        eulerFrontMotionSolver,
-        Dictionary
-    );
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-eulerFrontMotionSolver::eulerFrontMotionSolver(const dictionary& configDict)
-:
-    frontMotionSolver(configDict)
-{}
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-void eulerFrontMotionSolver::evolveFront(
-    triSurfaceFront& front,
-    const triSurfacePointVectorField& frontVelocity
-) const
+class rkSecondFrontMotionSolver
+    :
+        public eulerFrontMotionSolver 
 {
-    pointField& frontPoints = const_cast<pointField&> (front.localPoints());
 
-    const Time& runTime = frontVelocity.time();
+public:
 
-    forAll (frontPoints, I)
-    {
-        frontPoints[I] += (frontVelocity[I] * runTime.deltaT().value());
-    }
-}
+    TypeName ("RK2");
+
+    // Constructors
+    explicit rkSecondFrontMotionSolver(const dictionary& configDict);
+
+    // Destructor
+    virtual ~rkSecondFrontMotionSolver() = default;
+
+    // Member Functions
+    void evolveFront(
+        triSurfaceFront& front,
+        triSurfacePointVectorField& frontVelocity, 
+        volVectorField& fluidVelocity
+    ) const;
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -107,5 +104,7 @@ void eulerFrontMotionSolver::evolveFront(
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

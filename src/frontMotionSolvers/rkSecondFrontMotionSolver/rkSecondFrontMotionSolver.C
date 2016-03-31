@@ -23,7 +23,7 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::eulerFrontMotionSolver
+    Foam::rkSecondFrontMotionSolver
 
 SourceFiles
     diffuseInterfaceProperties.C
@@ -32,7 +32,7 @@ Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Evolve the front using the first order accurate Euler temporal discretization
+    Evolve the front using the second order accurate Runge-Kutta temporal discretization
     scheme.
 
     You may refer to this software as :
@@ -58,44 +58,51 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "eulerFrontMotionSolver.H"
+#include "rkSecondFrontMotionSolver.H"
 #include "addToRunTimeSelectionTable.H"
+#include "fvcDdt.H"
+#include "fvcGrad.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(eulerFrontMotionSolver, 0);
+    defineTypeNameAndDebug(rkSecondFrontMotionSolver, 0);
 
     addToRunTimeSelectionTable(
         frontMotionSolver,
-        eulerFrontMotionSolver,
+        rkSecondFrontMotionSolver,
         Dictionary
     );
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-eulerFrontMotionSolver::eulerFrontMotionSolver(const dictionary& configDict)
+rkSecondFrontMotionSolver::rkSecondFrontMotionSolver(const dictionary& configDict)
 :
-    frontMotionSolver(configDict)
+    eulerFrontMotionSolver(configDict)
 {}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void eulerFrontMotionSolver::evolveFront(
+void rkSecondFrontMotionSolver::evolveFront(
     triSurfaceFront& front,
-    const triSurfacePointVectorField& frontVelocity
+    triSurfacePointVectorField& frontVelocity
+    const volVectorField& frontVelocity
 ) const
 {
-    pointField& frontPoints = const_cast<pointField&> (front.localPoints());
+    // Calculate theh current front velocity.  
 
-    const Time& runTime = frontVelocity.time();
+    // Calculate
+    
+    //pointField& frontPoints = const_cast<pointField&> (front.points());
 
-    forAll (frontPoints, I)
-    {
-        frontPoints[I] += (frontVelocity[I] * runTime.deltaT().value());
-    }
+    //const Time& runTime = frontVelocity.time();
+
+    //forAll (frontPoints, I)
+    //{
+        //frontPoints[I] += (frontVelocity[I] * runTime.deltaT().value());
+    //}
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
