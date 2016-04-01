@@ -39,6 +39,8 @@ SourceFiles
 #include "lentCommunication.H"
 #include "faceTriangulator.H"
 
+#include <assert.h>
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
@@ -71,6 +73,11 @@ class cutCellVolumeCalculator
                            const List<triFace>& triangles) const;
 
     point geometricCentre(const pointField& points) const;
+    void frontFragment(const labelList& frontTriangleIDs,
+                       pointField& fragmentVertices,
+                       List<triFace>& fragmentTriangles) const;
+    label facePosition(const face& cellFace,
+                       const pointScalarField& distance) const;
 
 public:
 

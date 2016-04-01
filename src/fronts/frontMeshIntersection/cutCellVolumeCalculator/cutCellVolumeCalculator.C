@@ -92,24 +92,64 @@ scalar cutCellVolumeCalculator::cutCellVolume(const label& cellID) const
     // and the cell vertices with a negative signed distance
     scalar volume = 0.0;
 
-    // Big steps:
-    // 1) Find cell vertices with sd < 0
-    // 2) Find faces completely located on negative side of front
-    // 3) Reconstruct topology using edge vectors
-    //      --> test if intesection point is on edge
     const volScalarField& signedDistance = 
         mesh_.lookupObject<volScalarField>(cellDistFieldName_);
     const pointScalarField& pointSignedDistance =
         mesh_.lookupObject<pointScalarField>(pointDistFieldName_);
+    const faceList& faces = mesh_.faces();
+    const pointField& meshVertices = mesh_.points();
+    const surfaceVectorField& faceNormals = mesh_.Sf();
     
     if (cellToTria_.found(cellID))
     {
-        const faceList& faces = 
         pointField vertices(0);
         List<triFace> triangles(0);
-        // Shit just got serious
-        // ...
-        //
+
+        // Composition of the polyhedra is performed in three steps:
+        // 1) Add the triangles of the front located in the given cell
+        // 2) Triangulate and add faces of the cell which are completely
+        //    located on the "negative" side (signed distance of all vertices
+        //    < 0)
+        // 3) Triangulate and add the intersected faces
+        
+        // Part 1
+        frontFragment(cellToTria_[cellID], vertices, triangles);
+
+        // Part 2 + 3
+        labelList cellFaces = cellToFace_[cellID];
+        //faceTriangulator triangulator(vertices, triangles);
+
+        // NOTE: duplication of points in the following is intended as it
+        // removes the necessity to establish a mapping between the gloabl
+        // point list and the temporary local one
+        forAll(cellFaces, I)
+        {
+            face cellFace = faces[cellFaces[I]];
+            
+            label facePos = facePosition(cellFace, pointSignedDistance);
+
+            if (facePos == -1)
+            {
+                // triangulate complete face
+                labelList pointIDs(cellFace.size());
+
+                forAll(cellFace, I)
+                {
+                    vertices.append(meshVertices[cellFace[I]]);
+                    pointIDs[I] = vertices.size() - 1;
+                }
+
+                //triangulator.triangulateFace(pointIDs, faceNormals[cellFaces[I]])
+            }
+            else if (facePos == 0)
+            {
+                // Set up face fraction and triangulate it
+                
+                //triangulator.triangulateFace(pointIDs, faceNormals[cellFaces[I]])
+            }
+        }
+        
+
         volume = polyhedraVolume(vertices, triangles);
     }
     else
@@ -160,6 +200,67 @@ point cutCellVolumeCalculator::geometricCentre(const pointField& points) const
     }
 
     return centre/points.size();
+}
+
+void cutCellVolumeCalculator::frontFragment(const labelList& frontTriangleIDs,
+                                        pointField& fragmentVertices,
+                                        List<triFace>& fragmentTriangles) const
+{
+    const pointField& refVertices = front_.localPoints();
+    const List<labelledTri>& frontTriangles = front_.localFaces();
+    Map<label> pointToPoint(frontTriangleIDs.size());
+
+    // Set up mapping of global point list to local point list
+    // and copy the triangles with the new point IDs
+    forAll(frontTriangleIDs, I)
+    {
+        labelledTri T = frontTriangles[frontTriangleIDs[I]];
+
+        forAll(T, K)
+        {
+            if (!pointToPoint.found(T[K]))
+            {
+                fragmentVertices.append(refVertices[T[K]]);
+                pointToPoint[T[K]] = fragmentVertices.size() - 1;
+            }
+        }
+
+        fragmentTriangles.append
+        (
+            triFace(pointToPoint[T[0]], pointToPoint[T[1]], pointToPoint[T[2]])
+        );
+    }
+}
+
+label cutCellVolumeCalculator::facePosition(const face& cellFace,
+                                    const pointScalarField& distance) const
+{
+    // Checks a face for three possible states:
+    // 1) located on the positive side of the front (return 1)
+    // 2) intersecting the front (return 0)
+    // 3 located on the negative side of the front (return -1)
+    bool hasPositiveVertex = false;
+    bool hasNegativeVertex = false;
+    
+    forAll(cellFace, K)
+    {
+        // TODO: add special treatment for points coinciding with the front.
+        // Currently this case is not covered and funny things may happen
+        if (distance[cellFace[K]] < 0.0)
+        {
+            hasNegativeVertex = true;
+        }
+        else
+        {
+            hasPositiveVertex = true;
+        }
+    }
+
+    assert (hasPositiveVertex || hasNegativeVertex);
+
+    if (hasPositiveVertex && !hasNegativeVertex) return 1;
+    else if (hasPositiveVertex && hasNegativeVertex) return 0;
+    else return -1;
 }
 
 
