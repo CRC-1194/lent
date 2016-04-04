@@ -140,7 +140,11 @@ int main(int argc, char *argv[])
         analyticalSurface::New(lent.dict().subDict("analyticalSurface"))
     );
 
-    analyticalSurfaceTmp->selfTest();
+    // Construct front mesh from analytical surface
+    frontConstructor frontCon(analyticalSurfaceTmp, mesh);
+    front = frontCon.createTriSurface();
+
+    //analyticalSurfaceTmp->selfTest();
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 

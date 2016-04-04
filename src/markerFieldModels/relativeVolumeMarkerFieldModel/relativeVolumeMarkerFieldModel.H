@@ -60,7 +60,7 @@ public:
     TypeName ("relativeVolume");
 
     // Constructors
-    using markerFieldModel::markerFieldModel;
+    using sharpMarkerFieldModel::sharpMarkerFieldModel;
 
     // Member Functions
     virtual void calcMarkerField(volScalarField& markerField) const;

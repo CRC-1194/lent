@@ -32,6 +32,9 @@ License
 namespace Foam {
 namespace FrontTracking {
 
+    defineTypeNameAndDebug(relativeVolumeMarkerFieldModel, 0);
+    addToRunTimeSelectionTable(markerFieldModel, relativeVolumeMarkerFieldModel, Dictionary);
+
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 

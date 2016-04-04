@@ -35,6 +35,7 @@ SourceFiles
 #define frontConstructor_H
 
 #include "fvCFD.H"
+#include "triSurface.H"
 
 #include "analyticalSurface.H"
 #include "analyticalPlane.H"
@@ -117,6 +118,14 @@ public:
         const pointField& vertices()
         {
             return frontVertices_;
+        }
+
+        // FIXME: first shot at construction of a triSurface object.
+        // Test if it works
+        triSurface createTriSurface()
+        {
+            createTriangles();
+            return triSurface(frontTriangles_, frontVertices_);
         }
 };
 
