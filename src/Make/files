@@ -54,7 +54,7 @@ fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
 fronts/analyticalSurfaces/analyticalPlane/analyticalPlane.C
 fronts/analyticalSurfaces/analyticalSphere/analyticalSphere.C
 fronts/frontConstructor/frontConstructor/frontConstructor.C
-fronts/frontConstructor/faceTriangulator/faceTriangulator.C
+fronts/faceTriangulators/simpleTriangulator/simpleTriangulator.C
 fronts/frontMeshIntersection/cutCellVolumeCalculator/cutCellVolumeCalculator.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent

@@ -86,8 +86,7 @@ void frontConstructor::createTriangles()
     const labelListList& cellToEdge = mesh_.cellEdges();
     labelList intersections(0);
 
-    faceTriangulator triangulation_(frontVertices_, frontTriangles_,
-                                    surfaceTmp_);
+    simpleTriangulator triangulation(frontVertices_, frontTriangles_);
 
     forAll(intersectedCells_, I)
     {
@@ -95,7 +94,7 @@ void frontConstructor::createTriangles()
         intersections.clear();
 
         cellIntersections(cellEdges, intersections);
-        triangulation_.triangulateFace(intersections);
+        triangulation.triangulateFace(intersections, surfaceTmp_);
         // This would be the place to capture the mapping between
         // triangles and the cell I
         // TODO: No mapping is created here as it would only be useful for

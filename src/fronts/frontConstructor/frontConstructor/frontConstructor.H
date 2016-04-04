@@ -38,7 +38,7 @@ SourceFiles
 
 #include "analyticalSurface.H"
 #include "analyticalPlane.H"
-#include "faceTriangulator.H"
+#include "simpleTriangulator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

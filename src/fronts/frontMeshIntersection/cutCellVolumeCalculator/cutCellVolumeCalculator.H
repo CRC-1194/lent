@@ -37,7 +37,7 @@ SourceFiles
 #include "pointFields.H"
 
 #include "lentCommunication.H"
-#include "faceTriangulator.H"
+#include "simpleTriangulator.H"
 
 #include <assert.h>
 

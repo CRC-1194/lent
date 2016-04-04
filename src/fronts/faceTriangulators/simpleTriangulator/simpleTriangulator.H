@@ -22,17 +22,17 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::faceTriangulator
+    Foam::simpleTriangulator
 
 Description
 
 SourceFiles
-    faceTriangulator.C
+    simpleTriangulator.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef faceTriangulator_H
-#define faceTriangulator_H
+#ifndef simpleTriangulator_H
+#define simpleTriangulator_H
 
 #include "fvCFD.H"
 
@@ -48,15 +48,14 @@ namespace FrontTracking {
 
 
 /*---------------------------------------------------------------------------*\
-                         Class faceTriangulator Declaration
+                         Class simpleTriangulator Declaration
 \*---------------------------------------------------------------------------*/
 
-class faceTriangulator
+class simpleTriangulator
 {
     // Private data
         pointField& vertices_;
         List<triFace>& triangles_;
-        tmp<analyticalSurface> surfaceTmp_;
 
 
     // Private Member Functions
@@ -78,15 +77,14 @@ public:
     // Constructors
 
         //- Construct null
-        faceTriangulator() = default;
+        simpleTriangulator() = default;
 
         //- Construct from components
-        explicit faceTriangulator(pointField& vertices, List<triFace>& triangles,
-                                  tmp<analyticalSurface> surfaceTmp);
+        explicit simpleTriangulator(pointField& vertices, List<triFace>& triangles);
 
 
     //- Destructor
-    virtual ~faceTriangulator();
+    virtual ~simpleTriangulator();
 
 
     // Member Functions
@@ -94,14 +92,11 @@ public:
         // Access
         void setVertices(pointField& vertices);
         void setTriangleList(List<triFace>& triangles);
-        void setSurface(tmp<analyticalSurface> surfaceTmp);
 
         // Operation
         void triangulateFace(labelList& facePointIDs, const vector& faceNormal);
-        void triangulateFace(labelList& facePointIDs);
-
-    // Member Operators
-
+        void triangulateFace(labelList& facePointIDs, 
+                             tmp<analyticalSurface> surfaceTmp);
 
 };
 
