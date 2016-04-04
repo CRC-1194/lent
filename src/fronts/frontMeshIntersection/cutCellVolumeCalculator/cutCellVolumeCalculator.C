@@ -86,6 +86,7 @@ void cutCellVolumeCalculator::cellToFace()
     }
 }
 
+// TODO: refactor this abomination of a function...
 scalar cutCellVolumeCalculator::cutCellVolume(const label& cellID) const
 {
     // Note: this function computes the volume enclosed by the front
@@ -105,6 +106,9 @@ scalar cutCellVolumeCalculator::cutCellVolume(const label& cellID) const
         pointField vertices(0);
         List<triFace> triangles(0);
 
+        const labelListList& faceToEdges = mesh_.faceEdges();
+        const edgeList& edges = mesh_.edges();
+
         // Composition of the polyhedra is performed in three steps:
         // 1) Add the triangles of the front located in the given cell
         // 2) Triangulate and add faces of the cell which are completely
@@ -114,10 +118,13 @@ scalar cutCellVolumeCalculator::cutCellVolume(const label& cellID) const
         
         // Part 1
         frontFragment(cellToTria_[cellID], vertices, triangles);
+        // It is necessary to be able to distinguish between front vertices
+        // and cell vertices for the correct set up of the intersected faces
+        label numFrontVertices = vertices.size();
 
         // Part 2 + 3
         labelList cellFaces = cellToFace_[cellID];
-        //faceTriangulator triangulator(vertices, triangles);
+        simpleTriangulator triangulator(vertices, triangles);
 
         // NOTE: duplication of points in the following is intended as it
         // removes the necessity to establish a mapping between the gloabl
@@ -133,22 +140,50 @@ scalar cutCellVolumeCalculator::cutCellVolume(const label& cellID) const
                 // triangulate complete face
                 labelList pointIDs(cellFace.size());
 
-                forAll(cellFace, I)
+                forAll(cellFace, K)
                 {
-                    vertices.append(meshVertices[cellFace[I]]);
-                    pointIDs[I] = vertices.size() - 1;
+                    vertices.append(meshVertices[cellFace[K]]);
+                    pointIDs[K] = vertices.size() - 1;
                 }
 
-                //triangulator.triangulateFace(pointIDs, faceNormals[cellFaces[I]])
+                triangulator.triangulateFace(pointIDs,
+                                             faceNormals[cellFaces[I]]);
             }
             else if (facePos == 0)
             {
                 // Set up face fraction and triangulate it
+                labelList pointIDs(0);
+                labelList faceEdges = faceToEdges[cellFaces[I]];
+
+                // Add front vertices to point set which are located on
+                // the current face
+                forAll(faceEdges, K)
+                {
+                    edge E = edges[faceEdges[K]];
+
+                    // intersected Edge
+                    if (pointSignedDistance[E[0]]*pointSignedDistance[E[1]] < 0)
+                    {
+                       pointIDs.append(intersectionID(meshVertices[E[0]], 
+                                        meshVertices[E[1]], vertices,
+                                        numFrontVertices));
+                    }
+                }
+
+                // Add all face vertices with negative signed distance
+                forAll(cellFace, K)
+                {
+                    if (pointSignedDistance[cellFace[K]] < 0)
+                    {
+                        vertices.append(meshVertices[cellFace[K]]);
+                        pointIDs.append(vertices.size() - 1);
+                    }
+                }
                 
-                //triangulator.triangulateFace(pointIDs, faceNormals[cellFaces[I]])
+                triangulator.triangulateFace(pointIDs,
+                                             faceNormals[cellFaces[I]]);
             }
         }
-        
 
         volume = polyhedraVolume(vertices, triangles);
     }
@@ -261,6 +296,34 @@ label cutCellVolumeCalculator::facePosition(const face& cellFace,
     if (hasPositiveVertex && !hasNegativeVertex) return 1;
     else if (hasPositiveVertex && hasNegativeVertex) return 0;
     else return -1;
+}
+
+label cutCellVolumeCalculator::intersectionID(const point& a, const point& b,
+                         const pointField& vertices, const label limit) const
+{
+    label intersectID = -1;
+    vector ab = b - a;
+    vector aToVertex;
+
+    for (label I = 0; I < limit; I++)
+    {
+        aToVertex = vertices[I] - a;
+        
+        if (vectorsParallel(ab, aToVertex))
+        {
+            intersectID = I;
+            break;
+        }
+    }
+
+    assert (intersectID > -1);
+    return intersectID;
+}
+
+bool cutCellVolumeCalculator::vectorsParallel(const vector& a, vector b) const
+{
+    if ((a & b) / (mag(a)*mag(b)) - 1 < SMALL) return true;
+    else return false;
 }
 
 

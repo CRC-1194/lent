@@ -78,6 +78,9 @@ class cutCellVolumeCalculator
                        List<triFace>& fragmentTriangles) const;
     label facePosition(const face& cellFace,
                        const pointScalarField& distance) const;
+    label intersectionID(const point& a, const point& b,
+                         const pointField& vertices, const label limit) const;
+    bool vectorsParallel(const vector& a, vector b) const;
 
 public:
 
@@ -95,8 +98,6 @@ public:
     // Member Functions
     scalar cellVolumePositivePhase(const label& cellIndex) const;
     scalar cellVolumeNegativePhase(const label& cellIndex) const;
-
-
 };
 
 
