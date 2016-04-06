@@ -75,12 +75,15 @@ bool triSurfaceNormalsAreConsistent(const triSurface& front)
 
     forAll (edgeFaces, I)
     {
-        const vector& n0 = faceNormals[edgeFaces[I][0]];
-        const vector& n1 = faceNormals[edgeFaces[I][1]];
-
-        if ((n0 & n1) < 0)
+        if (edgeFaces[I].size() > 1)
         {
-            return false;
+            const vector& n0 = faceNormals[edgeFaces[I][0]];
+            const vector& n1 = faceNormals[edgeFaces[I][1]];
+
+            if ((n0 & n1) < 0)
+            {
+                return false;
+            }
         }
     }
     return true;
@@ -125,14 +128,13 @@ class triSurfaceSizeChange
 };
 
 // Classes for testing the application code.
-
 class lentTests : public ::testing::Test
 {
     protected:
         template<typename Front>
-        void TEST_NORMAL_CONSISTENCY(Front const & front)
+        bool NORMALS_ARE_CONSISTENT(Front const & front)
         {
-            ASSERT_TRUE(triSurfaceNormalsAreConsistent(front));
+            return(triSurfaceNormalsAreConsistent(front));
         }
 };
 
