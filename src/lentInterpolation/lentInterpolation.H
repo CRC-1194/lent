@@ -67,7 +67,7 @@ Description
 #include "lentCommunication.H"
 #include "GeometricField.H"
 #include "fvPatchField.H"
-#include "triSurfaceFrontFields.H"
+#include "triSurfaceFrontFields.H" 
 #include "tmp.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -107,23 +107,34 @@ public:
     virtual ~lentInterpolation() = default;
 
     // Member Functions
+    
+    // Interpolate front vertex field onto cell centered volume field.  
     template<typename Type>  
     void interpolate(
         const DimensionedField<Type, triSurfaceFrontPointGeoMesh>& vertexField, 
-        GeometricField<Type, fvPatchField, volMesh>& vf 
+        GeometricField<Type, fvPatchField, volMesh>& cellField 
     );  
 
+    // Interpolate tmp front vertex field onto cell centered volume field.  
     template<typename Type>  
     void interpolate(
-        tmp<DimensionedField<Type, triSurfaceFrontPointGeoMesh>> vertexField, 
-        GeometricField<Type, fvPatchField, volMesh>& vf 
+        tmp<DimensionedField<Type, triSurfaceFrontPointGeoMesh>> vertexFieldTmp, 
+        GeometricField<Type, fvPatchField, volMesh>& cellField 
     );  
 
-    //template<typename Type>  
-    //void interpolate(
-        //DimensionedField<Type, triSurfaceFrontGeoMesh> const & triangleField, 
-        //GeometricField<Type, fvPatchField, volMesh>& cellField 
-    //); 
+    // Interpolate cell centered volume field onto front vertex field.  
+    template<typename Type>  
+    void interpolate(
+        const GeometricField<Type, fvPatchField, volMesh>& cellField, 
+        DimensionedField<Type, triSurfaceFrontPointGeoMesh>& vertexField 
+    );  
+
+    // Interpolate tmp cell centered volume field onto front vertex field.  
+    template<typename Type>  
+    void interpolate(
+        tmp<GeometricField<Type, fvPatchField, volMesh>> cellFieldTmp, 
+        DimensionedField<Type, triSurfaceFrontPointGeoMesh>& vertexField
+    );  
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
