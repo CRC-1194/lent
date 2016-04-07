@@ -164,10 +164,10 @@ bool triSurfaceFront::writeObject
 
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
 
-void triSurfaceFront::operator=(const isoSurface& rhs)
+void triSurfaceFront::operator=(const triSurface& rhs)
 {
 
-    static_cast<triSurface*>(this)->operator=(static_cast<const triSurface&> (rhs));
+    static_cast<triSurface*>(this)->operator=(rhs);
 }
 
 // ************************************************************************* //
