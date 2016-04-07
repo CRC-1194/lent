@@ -63,6 +63,7 @@ Description
 #include "fvCFD.H"
 
 #include "triSurfaceFront.H"
+#include "cutCellVolumeCalculator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -83,6 +84,7 @@ class lentMarkerfieldTest
     // Private data
     const volScalarField& markerField_;
     const triSurfaceFront& front_;
+    const dictionary& configDict_;
 
     scalar meshVol_;
 
@@ -119,7 +121,8 @@ public:
 
         //- Construct from components
         lentMarkerfieldTest(const volScalarField& markerField,
-                            const triSurfaceFront& front);
+                            const triSurfaceFront& front,
+                            const dictionary& configDict);
 
 
     //- Destructor

@@ -39,7 +39,7 @@ void cutCellVolumeCalculator::addToMap(const label& cellID,
     }
     else
     {
-        map[cellID] = List<label>(1, mappedID);
+        map(cellID) = List<label>(1, mappedID);
     }
 }
 
@@ -52,6 +52,7 @@ void cutCellVolumeCalculator::cellToTriangle()
     ); 
 
     const auto& triaToCell = communication.triangleToCell();
+    assert (triaToCell.size() > 0);
 
     forAll(triaToCell, I)
     {
@@ -99,8 +100,28 @@ scalar cutCellVolumeCalculator::cutCellVolume(const label& cellID) const
         mesh_.lookupObject<pointScalarField>(pointDistFieldName_);
     const faceList& faces = mesh_.faces();
     const pointField& meshVertices = mesh_.points();
-    const surfaceVectorField& faceNormals = mesh_.Sf();
-    
+
+    // TODO: remove after tests
+    const labelListList& cellToPoints = mesh_.cellPoints();
+    Info << "Size of point dist field: " << pointSignedDistance.size()
+         << endl;
+    label count = 0;
+    forAll(pointSignedDistance, I)
+    {
+       if (meshVertices[I][0] < 0.625 && pointSignedDistance[I] > 0.0)
+       {
+           Info << "Something is rotten..." << endl;
+           count ++;
+       }
+
+       if (meshVertices[I][0] > 0.625 && pointSignedDistance[I] < 0.0)
+       {
+           Info << "Something is rotten..." << endl;
+           count ++;
+       }
+    }
+    Info << "# rotten point info: " << count << endl;
+
     if (cellToTria_.found(cellID))
     {
         pointField vertices(0);
@@ -147,7 +168,7 @@ scalar cutCellVolumeCalculator::cutCellVolume(const label& cellID) const
                 }
 
                 triangulator.triangulateFace(pointIDs,
-                                             faceNormals[cellFaces[I]]);
+                                         provideNormal(cellFace, meshVertices));
             }
             else if (facePos == 0)
             {
@@ -181,11 +202,23 @@ scalar cutCellVolumeCalculator::cutCellVolume(const label& cellID) const
                 }
                 
                 triangulator.triangulateFace(pointIDs,
-                                             faceNormals[cellFaces[I]]);
+                                          provideNormal(cellFace, meshVertices));
             }
         }
 
         volume = polyhedraVolume(vertices, triangles);
+
+        assert (volume >= 0.0);
+        assert (volume < mesh_.V()[cellID]);
+        assert (isBoxBounded(minPoint(cellToPoints[cellID], meshVertices),
+                    maxPoint(cellToPoints[cellID], meshVertices),
+                    vertices));
+        
+        Info << "Cut cell volume = " << volume << endl; 
+
+        triSurface test(triangles, vertices);
+        std::string fname = "gnampf" + std::to_string(cellID) + ".stl";
+        test.write(fname);
     }
     else
     {
@@ -207,7 +240,7 @@ scalar cutCellVolumeCalculator::tetVolume(const pointField& points,
                                           const point& top) const
 {
     return mag((points[base[0]] - top) &
-               ((points[base[1]] - top) ^ (points[base[2]])))/6.0;
+               ((points[base[1]] - top) ^ (points[base[2]] - top)))/6.0;
 }
 
 scalar cutCellVolumeCalculator::polyhedraVolume(const pointField& points,
@@ -256,7 +289,7 @@ void cutCellVolumeCalculator::frontFragment(const labelList& frontTriangleIDs,
             if (!pointToPoint.found(T[K]))
             {
                 fragmentVertices.append(refVertices[T[K]]);
-                pointToPoint[T[K]] = fragmentVertices.size() - 1;
+                pointToPoint(T[K]) = fragmentVertices.size() - 1;
             }
         }
 
@@ -265,6 +298,11 @@ void cutCellVolumeCalculator::frontFragment(const labelList& frontTriangleIDs,
             triFace(pointToPoint[T[0]], pointToPoint[T[1]], pointToPoint[T[2]])
         );
     }
+
+    // Test mapping: first point of the the first triangle of each
+    // triangle set has to be identical
+    assert (refVertices[frontTriangles[frontTriangleIDs[0]][0]] 
+            == fragmentVertices[fragmentTriangles[0][0]]);
 }
 
 label cutCellVolumeCalculator::facePosition(const face& cellFace,
@@ -326,6 +364,70 @@ bool cutCellVolumeCalculator::vectorsParallel(const vector& a, vector b) const
     else return false;
 }
 
+vector cutCellVolumeCalculator::provideNormal(const face& cellFace,
+                                              const pointField& vertices) const
+{
+    return (vertices[cellFace[1]] - vertices[cellFace[0]])
+             ^ (vertices[cellFace[2]] - vertices[cellFace[0]]);
+}
+
+// Methods for self-test
+point cutCellVolumeCalculator::minPoint(const labelList& cellPointIDs,
+                                        const pointField& points) const
+{
+    point min(points[cellPointIDs[0]]);
+    point tmp;
+
+    forAll(cellPointIDs, I)
+    {
+        tmp = points[cellPointIDs[I]];
+
+        forAll(tmp, I)
+        {
+            if (tmp[I] < min[I]) min[I] = tmp[I];
+        }
+    }
+
+    return min;
+}
+
+point cutCellVolumeCalculator::maxPoint(const labelList& cellPointIDs,
+                                        const pointField& points) const
+{
+    point max(points[cellPointIDs[0]]);
+    point tmp;
+
+    forAll(cellPointIDs, I)
+    {
+        tmp = points[cellPointIDs[I]];
+
+        forAll(tmp, I)
+        {
+            if (tmp[I] > max[I]) max[I] = tmp[I];
+        }
+    }
+
+    return max;
+}
+
+bool cutCellVolumeCalculator::isBoxBounded(const point& min, const point& max,
+                                           const pointField& points) const
+{
+    point tmp;
+
+    forAll(points, I)
+    {
+        tmp = points[I];
+
+        forAll(tmp, K)
+        {
+            if (tmp[K] < min[K] || max[K] < tmp[K]) return false;
+        }
+    }
+
+    return true;
+}
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 cutCellVolumeCalculator::cutCellVolumeCalculator(const fvMesh& mesh,
@@ -342,6 +444,8 @@ cutCellVolumeCalculator::cutCellVolumeCalculator(const fvMesh& mesh,
 {
     cellToTriangle();
     cellToFace();
+
+    Info << "# intersected cells: " << cellToTria_.toc().size() << endl;
 }
 
 

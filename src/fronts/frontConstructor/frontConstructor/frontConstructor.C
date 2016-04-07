@@ -92,14 +92,16 @@ void frontConstructor::createTriangles()
     {
         const labelList& cellEdges = cellToEdge[intersectedCells_[I]];
         intersections.clear();
+        label previousSize = frontTriangles_.size();
 
         cellIntersections(cellEdges, intersections);
         triangulation.triangulateFace(intersections, surfaceTmp_);
-        // This would be the place to capture the mapping between
-        // triangles and the cell I
-        // TODO: No mapping is created here as it would only be useful for
-        // a first time step. Thus save line and simply use the
-        // functionality of lentCommunication to etablish the mapping
+
+        // Save mapping triangle --> cell
+        for (label K = previousSize; K < frontTriangles_.size(); K++)
+        {
+            triaToCell_.append(intersectedCells_[I]);
+        }
     }
 }
 
@@ -118,6 +120,9 @@ void frontConstructor::findIntersectedEdges()
 
     forAll(edges, I)
     {
+        // TODO: possible improvement: compute a pointSignedDistance
+        // field and store the vertex based distances instead of
+        // recomputing them again and again...
         edge E = edges[I];
         scalar distPointA = surfaceTmp_->signedDistance(vertices[E[0]]);
         scalar distPointB = surfaceTmp_->signedDistance(vertices[E[1]]);
@@ -178,6 +183,28 @@ void frontConstructor::computeIntersections()
     }
 }
 
+void frontConstructor::cellDistance(volScalarField& signedDistance) const
+{
+    const fvMesh& mesh = signedDistance.mesh();
+    const volVectorField& centres = mesh.C();
+
+    forAll(signedDistance, I)
+    {
+        signedDistance[I] = surfaceTmp_->signedDistance(centres[I]);
+    }
+}
+
+void frontConstructor::pointDistance(pointScalarField& signedDistance) const
+{
+    const pointMesh& pmesh = signedDistance.mesh();
+    const pointField& points = pmesh().points();
+
+    forAll(signedDistance, I)
+    {
+        signedDistance[I] = surfaceTmp_->signedDistance(points[I]);
+    }
+}
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -190,7 +217,10 @@ frontConstructor::frontConstructor(const tmp<analyticalSurface> surfaceTmp,
     frontTriangles_ = List<triFace>(0);
     intersectedEdges_ = labelList(0);
     intersectedCells_ = labelList(0);
+    triaToCell_ = labelList(0);
     frontVertices_ = pointField(0);
+
+    createTriangles();
 }
 
 

@@ -40,6 +40,7 @@ SourceFiles
 #include "simpleTriangulator.H"
 
 #include <assert.h>
+#include <string>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -81,6 +82,13 @@ class cutCellVolumeCalculator
     label intersectionID(const point& a, const point& b,
                          const pointField& vertices, const label limit) const;
     bool vectorsParallel(const vector& a, vector b) const;
+    vector provideNormal(const face& cellFace, const pointField& vertices) const;
+
+    // Methods for self-test
+    point minPoint(const labelList& cellPointIDs, const pointField& points) const;
+    point maxPoint(const labelList& cellPointIDs, const pointField& points) const;
+    bool isBoxBounded(const point& min, const point& max,
+                      const pointField& points) const;
 
 public:
 

@@ -207,6 +207,12 @@ public:
             return surfaceTensionForceModelTmp_();  
         }
 
+        // FIXME: think of a more reasonable solution for this
+        void setTriangleCellMapping(const labelList& l)
+        {
+            communicationMaps_.setTriangleToCell(l);
+        }
+
         void calcFrontNormals(triSurfaceFront& front) const; 
 
         // Empty writer: regIOobject is used only for registry queries.

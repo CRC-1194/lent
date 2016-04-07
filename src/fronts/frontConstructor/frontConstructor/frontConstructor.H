@@ -35,6 +35,7 @@ SourceFiles
 #define frontConstructor_H
 
 #include "fvCFD.H"
+#include "pointMesh.H"
 #include "triSurface.H"
 
 #include "analyticalSurface.H"
@@ -57,6 +58,7 @@ class frontConstructor
         List<triFace> frontTriangles_;
         labelList intersectedEdges_;
         labelList intersectedCells_;
+        labelList triaToCell_;
         pointField frontVertices_;
 
         const tmp<analyticalSurface> surfaceTmp_;
@@ -92,41 +94,28 @@ public:
 
 
     // Member Functions
-        const labelList& intersectedEdges() const
-        {
-            return intersectedEdges_;
-        }
+    const labelList& intersectedEdges() const
+    {
+        return intersectedEdges_;
+    }
 
-        const labelList& intersectedCells() const
-        {
-            return intersectedCells_;
-        }
+    const labelList& intersectedCells() const
+    {
+        return intersectedCells_;
+    }
 
-        // TODO: figure out a sensible and efficient way to contruct
-        // a triSurfaceFront and pass it
-        // FIXME: following functions are only temporary for testing purposes
-        void workWork()
-        {
-            createTriangles();
-        }
+    const labelList& triangleToCell() const
+    {
+        return triaToCell_;
+    }
 
-        const List<triFace>& triangles()
-        {
-            return frontTriangles_;
-        }
+    triSurface createTriSurface()
+    {
+        return triSurface(frontTriangles_, frontVertices_);
+    }
 
-        const pointField& vertices()
-        {
-            return frontVertices_;
-        }
-
-        // FIXME: first shot at construction of a triSurface object.
-        // Test if it works
-        triSurface createTriSurface()
-        {
-            createTriangles();
-            return triSurface(frontTriangles_, frontVertices_);
-        }
+    void cellDistance(volScalarField& signedDistance) const;
+    void pointDistance(pointScalarField& signedDistance) const;
 };
 
 

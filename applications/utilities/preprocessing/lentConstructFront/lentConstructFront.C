@@ -436,12 +436,14 @@ int main(int argc, char *argv[])
 
     Info << "\nNow test teh new class!" << endl;
 
+    /*
     frontConstructor testingFacility(analyticalSurfaceTmp, mesh);
     testingFacility.workWork();
     triSurface cataclysm(testingFacility.triangles(), testingFacility.vertices());
 
     cataclysm.write("cataclysm.stl");
     Info << "Front created: " << testingFacility.triangles().size() << " triangles" << endl;
+    */
 
     Info<< "\nEnd\n" << endl;
     return 0;

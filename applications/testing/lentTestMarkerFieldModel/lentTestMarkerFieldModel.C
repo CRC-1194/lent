@@ -143,11 +143,17 @@ int main(int argc, char *argv[])
     // Construct front mesh from analytical surface
     frontConstructor frontCon(analyticalSurfaceTmp, mesh);
     front = frontCon.createTriSurface();
+    front.write();
+    lent.setTriangleCellMapping(frontCon.triangleToCell());
+    frontCon.cellDistance(signedDistance);
+    frontCon.pointDistance(pointSignedDistance);
+    signedDistance.write();
 
     //analyticalSurfaceTmp->selfTest();
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
+    /*
     lent.calcSignedDistances(
         signedDistance,
         pointSignedDistance,
@@ -155,24 +161,25 @@ int main(int argc, char *argv[])
         pointSearchDistanceSqr,
         front
     );
+    */
 
     lent.calcMarkerField(markerField);
 
     Info << "Start tests...\n" << endl;
 
-    lentMarkerfieldTest test(markerField, front);
+    lentMarkerfieldTest test(markerField, front, lent.dict().subDict("markerFieldModel"));
 
     bool bounded = test.boundedness();
-    scalar globalVolumeError = test.globalVolume();
-    scalar globalVolumeErrorNorm = test.globalVolumeNormalized();
+    //scalar globalVolumeError = test.globalVolume();
+    //scalar globalVolumeErrorNorm = test.globalVolumeNormalized();
     test.localVolume();
 
     Info << "\nTests finished" << endl;
 
     dimensionedScalar h = max(mag(mesh.delta()));
-    errorFile << h.value() << '\t' << bounded << '\t'
-              << globalVolumeError << "\t\t"
-              << globalVolumeErrorNorm << std::endl;
+    //errorFile << h.value() << '\t' << bounded << '\t'
+    //          << globalVolumeError << "\t\t"
+    //          << globalVolumeErrorNorm << std::endl;
 
     errorFile.close();
     Info<< "\nEnd\n" << endl;

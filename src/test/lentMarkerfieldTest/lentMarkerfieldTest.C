@@ -178,10 +178,12 @@ scalar lentMarkerfieldTest::tetrahedralVolume(const labelledTri& face,
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 lentMarkerfieldTest::lentMarkerfieldTest(const volScalarField& markerField,
-                                         const triSurfaceFront& front)
+                                         const triSurfaceFront& front,
+                                         const dictionary& configDict)
     :
     markerField_(markerField),
-    front_(front)
+    front_(front),
+    configDict_(configDict)
 {
     markerfieldVolumes();
     meshVolume();
@@ -233,6 +235,16 @@ scalar lentMarkerfieldTest::globalVolumeNormalized() const
 
 void lentMarkerfieldTest::localVolume() const
 {
+    cutCellVolumeCalculator localVolCalc(markerField_.mesh(), front_,
+            configDict_.lookup("cellDistance"),
+            configDict_.lookupOrDefault<word>("pointDistance",
+                "pointSignedDistance"));
+
+    forAll(markerField_, I)
+    {
+        scalar vol = localVolCalc.cellVolumeNegativePhase(I);
+    }
+
     Info << "Implement me!" << endl;
 }
 
