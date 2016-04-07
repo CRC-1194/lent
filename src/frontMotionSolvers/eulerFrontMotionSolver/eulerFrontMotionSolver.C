@@ -85,15 +85,15 @@ eulerFrontMotionSolver::eulerFrontMotionSolver(const dictionary& configDict)
 
 void eulerFrontMotionSolver::evolveFront(
     triSurfaceFront& front,
-    const triSurfacePointVectorField& frontVelocity
+    const triSurfaceFrontPointVectorField& frontVelocity
 ) const
 {
-    pointField& frontPoints = const_cast<pointField&> (front.localPoints());
+    pointField& frontPoints = const_cast<pointField&> (front.points());
 
     const Time& runTime = frontVelocity.time();
 
     forAll (frontPoints, I)
-    {
+    {                     // Euler.  
         frontPoints[I] += (frontVelocity[I] * runTime.deltaT().value());
     }
 }

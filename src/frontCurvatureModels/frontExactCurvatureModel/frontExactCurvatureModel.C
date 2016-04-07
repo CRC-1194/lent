@@ -97,7 +97,7 @@ tmp<volScalarField> frontExactCurvatureModel::cellCurvature(
         )
     );
 
-    volScalarField& cellCurvature = cellCurvatureTmp(); 
+    volScalarField& cellCurvature = cellCurvatureTmp.ref(); 
 
     const volVectorField& C = mesh.C(); 
     const surfaceVectorField& Cf = mesh.Cf(); 
@@ -148,7 +148,7 @@ tmp<surfaceScalarField> frontExactCurvatureModel::faceCurvature(
         )
     );
 
-    surfaceScalarField& surfaceCurvature = surfaceCurvatureTmp(); 
+    surfaceScalarField& surfaceCurvature = surfaceCurvatureTmp.ref(); 
 
     const surfaceVectorField& Cf = mesh.Cf(); 
 
