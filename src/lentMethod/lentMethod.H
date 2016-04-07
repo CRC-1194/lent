@@ -71,10 +71,12 @@ Description
 #include "frontReconstructionModel.H"
 #include "frontReconstructor.H"
 #include "triSurfaceFields.H"
-#include "frontVelocityCalculator.H"
+//#include "frontVelocityCalculator.H"
 #include "frontMotionSolver.H"
 #include "markerFieldModel.H"
 #include "frontSurfaceTensionForceModel.H"
+#include "lentInterpolation.H"
+#include "triSurfaceFrontFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -111,7 +113,7 @@ class lentMethod
     tmp<frontMeshSearch> searchAlgorithmTmp_;
 
     // Velocity calculator.
-    tmp<frontVelocityCalculator> frontVelocityCalculatorTmp_;
+    //tmp<frontVelocityCalculator> frontVelocityCalculatorTmp_;
 
     //// Front motion solver.
     tmp<frontMotionSolver> frontMotionSolverTmp_;
@@ -172,13 +174,13 @@ public:
         }
 
         void calcFrontVelocity(
-            triSurfacePointVectorField & frontVelocity,
+            triSurfaceFrontPointVectorField & frontVelocity,
             const volVectorField& U
         );
 
         void evolveFront(
             triSurfaceFront& front,
-            const triSurfacePointVectorField& frontVelocity
+            const triSurfaceFrontPointVectorField& frontVelocity
         );
         
         tmp<surfaceScalarField> faceSurfaceTensionForce(

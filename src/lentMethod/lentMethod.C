@@ -116,11 +116,11 @@ lentMethod::lentMethod(
            lentControlDict_.subDict("searchAlgorithm")
        )
     ),
-    frontVelocityCalculatorTmp_(
-       frontVelocityCalculator::New(
-           lentControlDict_.subDict("frontVelocityCalculator")
-       )
-    ),
+    //frontVelocityCalculatorTmp_(
+       //frontVelocityCalculator::New(
+           //lentControlDict_.subDict("frontVelocityCalculator")
+       //)
+    //),
     frontMotionSolverTmp_(
        frontMotionSolver::New(
            lentControlDict_.subDict("frontMotionSolver")
@@ -145,7 +145,7 @@ void lentMethod::calcSearchDistances(
     pointScalarField& pointSearchDistanceSqr
 )
 {
-    distanceFieldCalculator& distanceCalc = distanceFieldCalculatorTmp_();
+    distanceFieldCalculator& distanceCalc = distanceFieldCalculatorTmp_.ref();
 
     distanceCalc.calcCellSearchDistance(searchDistanceSqr);
     distanceCalc.calcPointSearchDistance(pointSearchDistanceSqr, searchDistanceSqr);
@@ -196,7 +196,8 @@ void lentMethod::reconstructFront(
                 pointSignedDistance
             )
         );
-        communicationMaps_.updateVertexToCell(); 
+
+        communicationMaps_.update(); 
         frontIsReconstructed_ = true;
 
         Info << "Done." << endl;
@@ -204,20 +205,28 @@ void lentMethod::reconstructFront(
 }
 
 void lentMethod::calcFrontVelocity(
-    triSurfacePointVectorField& frontVelocity,
+    triSurfaceFrontPointVectorField& frontVelocity,
     const volVectorField& U
 )
 {
-    frontVelocityCalculatorTmp_->calcFrontVelocity(
-        frontVelocity,
-        U,
-        communicationMaps_.triangleToCell()  // TODO: Port mesh search update to the communication class. TM.
-    );
+    Info << "Calculating front velocity...";  
+
+    const triSurface& front = frontVelocity.mesh();
+
+    frontVelocity.resize(front.nPoints());
+    //frontVelocity = dimensionedVector("zero", dimVelocity, vector(0,0,0)); 
+
+    auto oldVelocity(frontVelocity); 
+
+    lentInterpolation interpolation; 
+    interpolation.interpolate(U, frontVelocity); 
+
+    Info << "Done." << endl;
 }
 
 void lentMethod::evolveFront(
     triSurfaceFront& front,
-    const triSurfacePointVectorField& frontVelocity
+    const triSurfaceFrontPointVectorField& frontVelocity
 ) 
 {
     frontMotionSolverTmp_->evolveFront(
@@ -227,9 +236,13 @@ void lentMethod::evolveFront(
 
     frontIsReconstructed_ = false;
 
-    // The normals must be calculated after motion .
+    // Calculate normal vectors after front motion.
     calcFrontNormals(front); 
+    // Update front-mesh communication maps after front motion. 
     communicationMaps_.update(); 
+
+    // Clean up degenerate triangles.
+    front.cleanup(false);
 }
 
 bool lentMethod::writeData(Ostream& os) const
