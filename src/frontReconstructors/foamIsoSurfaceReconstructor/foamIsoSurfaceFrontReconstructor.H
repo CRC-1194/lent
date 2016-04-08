@@ -45,6 +45,11 @@ Description
     
     Method Development and Intellectual Property :
     	Tomislav Maric maric@csi.tu-darmstadt.de
+    lentCommunication& communication = const_cast<lentCommunication&>(
+        mesh.lookupObject<lentCommunication>(
+            lentCommunication::registeredName(front,mesh)
+        ) 
+    );
     	Holger Marschall <marschall@csi.tu-darmstadt.de>
     	Dieter Bothe <bothe@csi.tu-darmstadt.de>
 
@@ -91,7 +96,7 @@ public:
     foamIsoSurfaceFrontReconstructor(const dictionary& configDict);
 
     // Member Functions
-    labelList reconstructFront(
+    virtual void reconstructFront(
         triSurfaceFront& front,
         const volScalarField& signedDistance,
         const pointScalarField& pointSignedDistance

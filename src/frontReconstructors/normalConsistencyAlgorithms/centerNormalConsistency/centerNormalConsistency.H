@@ -96,9 +96,9 @@ public:
     // Member Functions
 
         virtual void makeFrontNormalsConsistent(
-            triSurface& front,
-            const labelList& triangleCells,
-            const volScalarField& signedDistance
+            triSurfaceFront& front,
+            const volScalarField& signedDistance,
+            const pointScalarField& pointSignedDistance // Not used by this alg.
         ) const;
 };
 

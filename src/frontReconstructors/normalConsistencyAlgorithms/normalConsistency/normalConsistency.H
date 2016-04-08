@@ -87,7 +87,7 @@ class normalConsistency
 
 public:
 
-    TypeName ("distanceGradient");
+    TypeName ("cellDistGrad");
 
     declareRunTimeSelectionTable (
         tmp,
@@ -112,9 +112,9 @@ public:
     // Member Functions
 
         virtual void makeFrontNormalsConsistent(
-            triSurface& front,
-            const labelList& elementCells,
-            const volScalarField& signedDistance
+            triSurfaceFront& front,
+            const volScalarField& signedDistance,
+            const pointScalarField& pointSignedDistance // Not used.
         ) const;
 };
 

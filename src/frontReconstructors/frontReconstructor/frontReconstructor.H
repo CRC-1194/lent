@@ -107,7 +107,7 @@ public:
     virtual ~frontReconstructor() = default;
 
     // Member Functions
-    virtual labelList reconstructFront(
+    virtual void reconstructFront(
         triSurfaceFront& front,
         const volScalarField& signedDistance,
         const pointScalarField& pointSignedDistance

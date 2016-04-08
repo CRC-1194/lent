@@ -57,10 +57,10 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-
 #include "centerNormalConsistency.H"
 #include "dictionary.H"
 #include "addToRunTimeSelectionTable.H"
+#include "lentCommunication.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -80,9 +80,9 @@ centerNormalConsistency::centerNormalConsistency(const dictionary& configDict)
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 void centerNormalConsistency::makeFrontNormalsConsistent(
-    triSurface& front,
-    const labelList& triangleCells,
-    const volScalarField& signedDistance
+    triSurfaceFront& front,
+    const volScalarField& signedDistance,
+    const pointScalarField& pointSignedDistance // Not used by this algorithm.
 ) const
 {
     List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);
@@ -91,22 +91,23 @@ void centerNormalConsistency::makeFrontNormalsConsistent(
     const fvMesh& mesh = signedDistance.mesh();
     const pointField& cellCenters = mesh.C();
 
+    const lentCommunication& communication = 
+        mesh.lookupObject<lentCommunication>(
+            lentCommunication::registeredName(front,mesh)
+    ); 
+    const auto& triangleToCell = communication.triangleToCell();  
+
     // For all faces
-    forAll (triangles, E)
+    forAll (triangles, triangleI)
     {
-        point P = frontPoints[triangles[E][0]];
-        label cellI = triangleCells[E];
+        point P = frontPoints[triangles[triangleI][0]];
+        label cellI = triangleToCell[triangleI];
         const point& C = cellCenters[cellI];
-        const vector& n = triangleNormals[E];
-        //n /= mag(n);
+        const vector& n = triangleNormals[triangleI];
 
-        //scalar normalProjection = (C - P) & n;
-
-        //if (((normalCellDistance < 0 && signedDistance[cellI] > 0)  ||
-            //(normalCellDistance > 0 && signedDistance[cellI] < 0)))
         if (((C - P) & n) * signedDistance[cellI] <  0)
         {
-            triangles[E].flip();
+            triangles[triangleI].flip();
         }
     }
 }

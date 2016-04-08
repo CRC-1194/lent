@@ -62,6 +62,7 @@ Description
 #include "addToRunTimeSelectionTable.H"
 //#include "isoSurface.H" // Alternative iso-surface reconstruction.
 #include "isoSurfaceCell.H"
+#include "lentCommunication.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -85,7 +86,7 @@ foamIsoSurfaceFrontReconstructor::foamIsoSurfaceFrontReconstructor(
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-labelList foamIsoSurfaceFrontReconstructor::reconstructFront(
+void foamIsoSurfaceFrontReconstructor::reconstructFront(
     triSurfaceFront& front,
     const volScalarField& signedDistance,
     const pointScalarField& pointSignedDistance
@@ -103,18 +104,23 @@ labelList foamIsoSurfaceFrontReconstructor::reconstructFront(
     // Clean up degenerate triangles. Report the cleanup process.  
     iso.cleanup(true);
 
+    // Update the communication map after reconstruction.
+    const auto& mesh = signedDistance.mesh();
+    auto& communication = const_cast<lentCommunication&>(
+        mesh.lookupObject<lentCommunication>(
+            lentCommunication::registeredName(front,mesh)
+        ) 
+    );
+    communication.setTriangleToCell(iso.meshCells());
+
+    front = static_cast<triSurface&>(iso);
+
     // Make normals consistent. 
     consistencyAlgTmp_->makeFrontNormalsConsistent(
-        iso,
-        iso.meshCells(),
-        signedDistance
+        front,
+        signedDistance, 
+        pointSignedDistance
     );
-
-    const triSurface& isoRef = iso; 
-
-    front = isoRef;
-
-    return iso.meshCells();
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

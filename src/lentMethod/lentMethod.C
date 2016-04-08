@@ -189,15 +189,16 @@ void lentMethod::reconstructFront(
     {
         Info << "Reconstructing front..." << endl;
 
-        communicationMaps_.setTriangleToCell(
-            frontReconstructorTmp_->reconstructFront(
-                front,
-                signedDistance,
-                pointSignedDistance
-            )
+        frontReconstructorTmp_->reconstructFront(
+            front,
+            signedDistance,
+            pointSignedDistance
         );
 
+        // Update the rest of the communication maps after reconstruction. TM.
+        // TODO: trianglesToCell is already updated, extract vertexToCellUpdate. TM.
         communicationMaps_.update(); 
+
         frontIsReconstructed_ = true;
 
         Info << "Done." << endl;
@@ -214,7 +215,8 @@ void lentMethod::calcFrontVelocity(
     const triSurface& front = frontVelocity.mesh();
 
     frontVelocity.resize(front.nPoints());
-    //frontVelocity = dimensionedVector("zero", dimVelocity, vector(0,0,0)); 
+    // More rigorous: in case the search fails, the point stops. TM.
+    frontVelocity = dimensionedVector("zero", dimVelocity, vector(0,0,0)); 
 
     auto oldVelocity(frontVelocity); 
 

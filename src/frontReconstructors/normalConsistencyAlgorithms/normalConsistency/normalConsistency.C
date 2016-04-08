@@ -62,6 +62,7 @@ Description
 #include "dictionary.H"
 #include "addToRunTimeSelectionTable.H"
 #include "fvcGrad.H"
+#include "lentCommunication.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -99,36 +100,43 @@ normalConsistency::New(const dictionary& configDict)
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 void normalConsistency::makeFrontNormalsConsistent(
-    triSurface& front,
-    const labelList& elementCells,
-    const volScalarField& signedDistance
+    triSurfaceFront& front,
+    const volScalarField& signedDistance,
+    const pointScalarField& pointSignedDistance // Not used by this algorithm. TM. 
 ) const
 {
     // Gradient based normal consistency algorithm.
     volVectorField distGrad = fvc::grad(signedDistance);
 
-    List<labelledTri>& elements = static_cast<List<labelledTri>& > (front);
+    List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);
+    const vectorField& triangleNormals = front.faceNormals();
 
-    const vectorField& elementNormals = front.faceNormals();
+    const fvMesh& mesh = signedDistance.mesh(); 
+    const lentCommunication& communication = 
+        mesh.lookupObject<lentCommunication>(
+            lentCommunication::registeredName(front,mesh)
+    ); 
+
+    const auto& triangleToCell = communication.triangleToCell();  
 
     // For all faces
-    forAll (elements, E)
+    forAll (triangles, triangleI)
     {
-        scalar gradMag = mag(distGrad[elementCells[E]]);
+        scalar gradMag = mag(distGrad[triangleToCell[triangleI]]);
 
         if (gradMag >= SMALL)
         {
-            distGrad[elementCells[E]] /= gradMag;
+            distGrad[triangleToCell[triangleI]] /= gradMag;
 
-            scalar normalMag = mag(elementNormals[E]);
+            scalar normalMag = mag(triangleNormals[triangleI]);
 
             if (normalMag > SMALL)
             {
-                vector elementNormal = elementNormals[E] / mag(elementNormals[E]);
+                vector triangleNormal = triangleNormals[triangleI] / mag(triangleNormals[triangleI]);
 
-                if ((elementNormal & distGrad[elementCells[E]]) < 0)
+                if ((triangleNormal & distGrad[triangleToCell[triangleI]]) < 0)
                 {
-                    elements[E].flip();
+                    triangles[triangleI].flip();
                 }
             }
         }
