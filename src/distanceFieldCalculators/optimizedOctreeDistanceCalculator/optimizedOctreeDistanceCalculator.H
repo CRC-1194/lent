@@ -81,13 +81,6 @@ class optimizedOctreeDistanceCalculator
     :
         public distanceFieldCalculator
 {
-
-    //- List of indices to the nearest elements to cells.
-    DynamicList<pointIndexHit> cellsElementNearest_;
-
-    //- List of indices to the nearest elements to points.
-    DynamicList<pointIndexHit> pointsElementNearest_;
-
     //- Narrow band propagator.
     tmp<narrowBandPropagation> narrowBandTmp_;
 
