@@ -101,27 +101,6 @@ scalar cutCellVolumeCalculator::cutCellVolume(const label& cellID) const
     const faceList& faces = mesh_.faces();
     const pointField& meshVertices = mesh_.points();
 
-    // TODO: remove after tests
-    const labelListList& cellToPoints = mesh_.cellPoints();
-    Info << "Size of point dist field: " << pointSignedDistance.size()
-         << endl;
-    label count = 0;
-    forAll(pointSignedDistance, I)
-    {
-       if (meshVertices[I][0] < 0.625 && pointSignedDistance[I] > 0.0)
-       {
-           Info << "Something is rotten..." << endl;
-           count ++;
-       }
-
-       if (meshVertices[I][0] > 0.625 && pointSignedDistance[I] < 0.0)
-       {
-           Info << "Something is rotten..." << endl;
-           count ++;
-       }
-    }
-    Info << "# rotten point info: " << count << endl;
-
     if (cellToTria_.found(cellID))
     {
         pointField vertices(0);
@@ -210,15 +189,6 @@ scalar cutCellVolumeCalculator::cutCellVolume(const label& cellID) const
 
         assert (volume >= 0.0);
         assert (volume < mesh_.V()[cellID]);
-        assert (isBoxBounded(minPoint(cellToPoints[cellID], meshVertices),
-                    maxPoint(cellToPoints[cellID], meshVertices),
-                    vertices));
-        
-        Info << "Cut cell volume = " << volume << endl; 
-
-        triSurface test(triangles, vertices);
-        std::string fname = "gnampf" + std::to_string(cellID) + ".stl";
-        test.write(fname);
     }
     else
     {
@@ -360,7 +330,7 @@ label cutCellVolumeCalculator::intersectionID(const point& a, const point& b,
 
 bool cutCellVolumeCalculator::vectorsParallel(const vector& a, vector b) const
 {
-    if ((a & b) / (mag(a)*mag(b)) - 1 < SMALL) return true;
+    if (fabs((a & b) / (mag(a)*mag(b)) - 1) < SMALL) return true;
     else return false;
 }
 
@@ -372,6 +342,7 @@ vector cutCellVolumeCalculator::provideNormal(const face& cellFace,
 }
 
 // Methods for self-test
+/*
 point cutCellVolumeCalculator::minPoint(const labelList& cellPointIDs,
                                         const pointField& points) const
 {
@@ -427,6 +398,7 @@ bool cutCellVolumeCalculator::isBoxBounded(const point& min, const point& max,
 
     return true;
 }
+*/
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -444,8 +416,6 @@ cutCellVolumeCalculator::cutCellVolumeCalculator(const fvMesh& mesh,
 {
     cellToTriangle();
     cellToFace();
-
-    Info << "# intersected cells: " << cellToTria_.toc().size() << endl;
 }
 
 
