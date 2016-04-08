@@ -57,6 +57,7 @@ Description
 #include "turbulentTransportModel.H"
 #include "pimpleControl.H"
 
+#include "lentTests.H"
 #include "lentMethod.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -90,7 +91,7 @@ int main(int argc, char *argv[])
         )
     );
 
-    triSurfacePointVectorField frontVelocity(
+    triSurfaceFrontPointVectorField frontVelocity(
         IOobject(
             "frontVelocity",
             runTime.timeName(),
@@ -135,6 +136,11 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
+        if (Test::normalsAreInconsistent(front))
+        {
+            Info << "Inconstent front normals." << endl;
+        }
 
         lent.calcFrontVelocity(frontVelocity, U.oldTime());
 
