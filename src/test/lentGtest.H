@@ -56,10 +56,10 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef lentTests_H
-#define lentTests_H
+#ifndef lentGtest_H
+#define lentGtest_H
 
-#include "triSurface.H"
+#include "lentTests.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -67,67 +67,14 @@ namespace Foam {
     namespace FrontTracking {
         namespace Test {
 
-bool normalsAreConsistent(const triSurface& front)
+// Classes for testing the application code.
+class lentTests : public ::testing::Test
 {
-    const labelListList& edgeFaces = front.edgeFaces();
-    const vectorField& faceNormals = front.faceNormals();
-
-    forAll (edgeFaces, I)
-    {
-        if (edgeFaces[I].size() > 1)
+    protected:
+        template<typename Front>
+        bool NORMALS_ARE_CONSISTENT(Front const & front)
         {
-            const vector& n0 = faceNormals[edgeFaces[I][0]];
-            const vector& n1 = faceNormals[edgeFaces[I][1]];
-
-            if ((n0 & n1) < 0)
-            {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool normalsAreInconsistent(const triSurface& front)
-{
-    return ! normalsAreConsistent(front); 
-}
-
-class triSurfaceSizeChange
-{
-    int lastSize_;
-
-    const triSurface& t_;
-
-    double allowedChange_;
-
-    public:
-
-        triSurfaceSizeChange(const triSurface& t, double allowedChange=0.2)
-            :
-                lastSize_(0),
-                t_(t),
-                allowedChange_(allowedChange)
-        {}
-
-        void operator()()
-        {
-            label triSurfaceSize = t_.localFaces().size();
-
-            if (lastSize_ > 0)
-            {
-                if (((double(lastSize_) - triSurfaceSize) / lastSize_) > allowedChange_)
-                {
-                    Info << "TEST : triSurfaceSizeChange " << allowedChange_ * 100
-                        << " % : FAIL " << endl;
-                }
-                else
-                {
-                    Info << "TEST : triSurfaceSizeChange : PASS " << endl;
-                }
-            }
-
-            lastSize_ = triSurfaceSize;
+            return(triSurfaceNormalsAreConsistent(front));
         }
 };
 
