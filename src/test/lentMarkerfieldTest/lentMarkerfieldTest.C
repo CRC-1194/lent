@@ -240,10 +240,17 @@ void lentMarkerfieldTest::localVolume() const
             configDict_.lookupOrDefault<word>("pointDistance",
                 "pointSignedDistance"));
 
+    label count = 0;
     forAll(markerField_, I)
     {
         scalar vol = localVolCalc.cellVolumeNegativePhase(I);
+        if (vol < 0.0009 && vol > 0.0)
+        {
+            Info << "Volume = " << vol << endl;
+            count++;
+        }
     }
+    Info << "# cells with vol fraction = " << count << endl;
 
     Info << "Implement me!" << endl;
 }

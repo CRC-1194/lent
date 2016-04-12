@@ -135,7 +135,6 @@ int main(int argc, char *argv[])
 
     lentMethod lent(front, mesh);
 
-    // Test analytical surface skeleton / dummy
     tmp<analyticalSurface> analyticalSurfaceTmp( 
         analyticalSurface::New(lent.dict().subDict("analyticalSurface"))
     );
@@ -144,24 +143,28 @@ int main(int argc, char *argv[])
     frontConstructor frontCon(analyticalSurfaceTmp, mesh);
     front = frontCon.createTriSurface();
     front.write();
-    lent.setTriangleCellMapping(frontCon.triangleToCell());
-    frontCon.cellDistance(signedDistance);
-    frontCon.pointDistance(pointSignedDistance);
-    signedDistance.write();
 
-    //analyticalSurfaceTmp->selfTest();
+    lent.setTriangleCellMapping(frontCon.triangleToCell());
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
-    /*
-    lent.calcSignedDistances(
-        signedDistance,
-        pointSignedDistance,
-        searchDistanceSqr,
-        pointSearchDistanceSqr,
-        front
-    );
-    */
+    // TODO: remove analytical distance calculation once 
+    // the distance calculation for boundary mesh points is fixed
+    if (analyticalSurfaceTmp->type() == "Plane")
+    {
+        frontCon.cellDistance(signedDistance);
+        frontCon.pointDistance(pointSignedDistance);
+    }
+    else
+    {
+        lent.calcSignedDistances(
+            signedDistance,
+            pointSignedDistance,
+            searchDistanceSqr,
+            pointSearchDistanceSqr,
+            front
+        );
+    }
 
     lent.calcMarkerField(markerField);
 
@@ -182,6 +185,7 @@ int main(int argc, char *argv[])
     //          << globalVolumeErrorNorm << std::endl;
 
     errorFile.close();
+
     Info<< "\nEnd\n" << endl;
     return 0;
 };
