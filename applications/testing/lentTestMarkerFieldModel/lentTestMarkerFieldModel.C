@@ -61,6 +61,7 @@ Description
 
 #include "lentMethod.H"
 #include "analyticalSurface.H"
+#include "errorMetrics.H"
 #include "lentMarkerfieldTest.H"
 
 // Test if file is empty: for an empty file the current position in a stream in
@@ -120,7 +121,11 @@ int main(int argc, char *argv[])
     if (fileIsEmpty(errorFile))
     {
         errorFile << "#grid_spacing\tbounded\tglobal_volume_error\t" 
-                  << "global_volume_error_normalized"<< std::endl;
+                  << "interface_volume_error\t"
+                  << "local_arithmetic_mean\t"
+                  << "local_quadratic_mean\t"
+                  << "local_maximum"
+                  << std::endl;
     }
 
     triSurfaceFront front(
@@ -173,16 +178,23 @@ int main(int argc, char *argv[])
     lentMarkerfieldTest test(markerField, front, lent.dict().subDict("markerFieldModel"));
 
     bool bounded = test.boundedness();
-    //scalar globalVolumeError = test.globalVolume();
-    //scalar globalVolumeErrorNorm = test.globalVolumeNormalized();
-    test.localVolume();
+    scalar globalVolumeError = test.globalVolume();
+    scalar interfaceVolumeError = test.interfaceVolume();
+    List<scalar> localErrors = test.localVolume();
+
+    errorMetrics metrics(localErrors);
+    scalar linDev = metrics.arithmeticMeanError();
+    scalar quadDev = metrics.quadraticMeanError();
+    scalar maxDev = metrics.maximumError();
 
     Info << "\nTests finished" << endl;
 
     dimensionedScalar h = max(mag(mesh.delta()));
-    //errorFile << h.value() << '\t' << bounded << '\t'
-    //          << globalVolumeError << "\t\t"
-    //          << globalVolumeErrorNorm << std::endl;
+    errorFile << h.value() << '\t' << bounded << '\t'
+              << globalVolumeError << "\t\t"
+              << interfaceVolumeError << "\t\t"
+              << linDev << "\t\t" << quadDev << "\t\t" << maxDev
+              << std::endl;
 
     errorFile.close();
 

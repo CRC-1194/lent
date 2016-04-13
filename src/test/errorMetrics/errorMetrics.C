@@ -33,8 +33,9 @@ Author
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    This class provides all tests related to the marker field model.
-
+    Computes various scalar error metrics from a given error set, e.g. the
+    difference between a computed and an exact velocity field.
+    
     You may refer to this software as :
     //- full bibliographic data to be provided
 
@@ -57,68 +58,58 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentMarkerfieldTest_H
-#define lentMarkerfieldTest_H
-
-#include "fvCFD.H"
-
-#include "triSurfaceFront.H"
-#include "cutCellVolumeCalculator.H"
-
-#include <utility>
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "errorMetrics.H"
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class lentMarkerfieldTest Declaration
-\*---------------------------------------------------------------------------*/
-
-class lentMarkerfieldTest
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+scalar errorMetrics::powerMeanError(scalar x) const
 {
-    // Private data
-    const volScalarField& markerField_;
-    const triSurfaceFront& front_;
-    const dictionary& configDict_;
+    scalar result = 0.0;
 
-    cutCellVolumeCalculator localVolCalc_;
+    forAll(errorSet_, I)
+    {
+        result += std::pow(errorSet_[I], x);
+    }
 
-    scalar meshVolume_;
-    scalar interfaceVolume_;
+    result /= errorSet_.size();
 
-    scalar interfaceVolMarkerField_;
-    scalar interfaceVolGeometric_;
-
-    scalar frontVolMarkerField_;
-    scalar frontVolGeometric_;
-
-    // Private Member Functions
-    label numberInterfaceCells() const;
-    void markerFieldVolumes();
-    void meshVolumes();
-    void geometricVolumes();
+    return std::pow(result, 1.0/x);
+}
 
 
-public:
-
-    // Constructors
-    lentMarkerfieldTest(const volScalarField& markerField,
-                        const triSurfaceFront& front,
-                        const dictionary& configDict);
-
-
-    //- Destructor
-    ~lentMarkerfieldTest();
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+errorMetrics::errorMetrics(const List<scalar>& errorSet)
+:
+    errorSet_(errorSet)
+{
+}
 
 
-    // Member Functions aka Tests
-    bool boundedness() const;
-    scalar globalVolume() const;
-    scalar interfaceVolume() const;
-    List<scalar> localVolume() const;
-};
+/*
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+Foam::errorMetrics::~errorMetrics()
+{}
+
+*/
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+scalar errorMetrics::arithmeticMeanError() const
+{
+    return powerMeanError(1.0);
+}
+
+scalar errorMetrics::quadraticMeanError() const
+{
+    return powerMeanError(2.0);
+}
+
+scalar errorMetrics::maximumError() const
+{
+    return max(errorSet_);
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -129,7 +120,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

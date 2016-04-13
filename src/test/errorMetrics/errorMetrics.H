@@ -33,8 +33,9 @@ Author
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    This class provides all tests related to the marker field model.
-
+    Computes various scalar error metrics from a given error set, e.g. the
+    difference between a computed and an exact velocity field.
+    
     You may refer to this software as :
     //- full bibliographic data to be provided
 
@@ -57,15 +58,12 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentMarkerfieldTest_H
-#define lentMarkerfieldTest_H
+#ifndef errorMetrics_H
+#define errorMetrics_H
 
 #include "fvCFD.H"
 
-#include "triSurfaceFront.H"
-#include "cutCellVolumeCalculator.H"
-
-#include <utility>
+#include <cmath>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -73,52 +71,36 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class lentMarkerfieldTest Declaration
+                         Class errorMetrics Declaration
 \*---------------------------------------------------------------------------*/
 
-class lentMarkerfieldTest
+// TODO: make this class a template
+class errorMetrics
 {
     // Private data
-    const volScalarField& markerField_;
-    const triSurfaceFront& front_;
-    const dictionary& configDict_;
-
-    cutCellVolumeCalculator localVolCalc_;
-
-    scalar meshVolume_;
-    scalar interfaceVolume_;
-
-    scalar interfaceVolMarkerField_;
-    scalar interfaceVolGeometric_;
-
-    scalar frontVolMarkerField_;
-    scalar frontVolGeometric_;
+    const List<scalar>& errorSet_;
 
     // Private Member Functions
-    label numberInterfaceCells() const;
-    void markerFieldVolumes();
-    void meshVolumes();
-    void geometricVolumes();
+    scalar powerMeanError(scalar x) const;
 
 
 public:
 
     // Constructors
-    lentMarkerfieldTest(const volScalarField& markerField,
-                        const triSurfaceFront& front,
-                        const dictionary& configDict);
+    errorMetrics(const List<scalar>& errorSet);
 
 
+    // TODO: See if teh compiler generates a destructor
     //- Destructor
-    ~lentMarkerfieldTest();
+    //~errorMetrics(){};
 
 
-    // Member Functions aka Tests
-    bool boundedness() const;
-    scalar globalVolume() const;
-    scalar interfaceVolume() const;
-    List<scalar> localVolume() const;
+    // Member Functions
+    scalar arithmeticMeanError() const;
+    scalar quadraticMeanError() const;
+    scalar maximumError() const;
 };
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -50,6 +50,7 @@ lentInterpolation/lentInterpolation.C
 lentMethod/lentMethod.C
 
 test/lentMarkerfieldTest/lentMarkerfieldTest.C
+test/errorMetrics/errorMetrics.C
 fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
 fronts/analyticalSurfaces/analyticalPlane/analyticalPlane.C
 fronts/analyticalSurfaces/analyticalSphere/analyticalSphere.C

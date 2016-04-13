@@ -57,144 +57,114 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#include "fvCFD.H"
-
 #include "lentMarkerfieldTest.H"
 
-#include <utility>
-
-namespace Foam
-{
-    namespace FrontTracking
-    {
+namespace Foam {
+namespace FrontTracking {
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-void lentMarkerfieldTest::markerfieldVolumes()
+label lentMarkerfieldTest::numberInterfaceCells() const
 {
-    phase0BulkVol_ = 0.0;
-    phase0InterfaceVol_ = 0.0;
-    phase1BulkVol_ = 0.0;
-    phase1InterfaceVol_ = 0.0;
+    label count = 0;
+
+    forAll(markerField_, I)
+    {
+        if (markerField_[I] > 0.0 && markerField_[I] < 1.0)
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+void lentMarkerfieldTest::markerFieldVolumes()
+{
+    interfaceVolMarkerField_ = 0.0;
+    frontVolMarkerField_ = 0.0;
 
     const fvMesh& mesh = markerField_.mesh();
 
     forAll(markerField_, I)
     {
-        if (markerField_[I] == 1.0)
+        if (markerField_[I] == 0.0)
         { 
-            phase0BulkVol_ += mesh.V()[I];
+            frontVolMarkerField_ += mesh.V()[I];
         }
         else if (markerField_[I] > 0.0 && markerField_[I] < 1.0)
         {
-            phase0InterfaceVol_ += markerField_[I] * mesh.V()[I];
-            phase1InterfaceVol_ += (1.0 - markerField_[I]) * mesh.V()[I];
-        }
-        else
-        {
-            phase1BulkVol_ += mesh.V()[I];
+            frontVolMarkerField_ += markerField_[I] * mesh.V()[I];
+            interfaceVolMarkerField_ += markerField_[I] * mesh.V()[I];
         }
     }
 }
 
-void lentMarkerfieldTest::meshVolume()
+void lentMarkerfieldTest::meshVolumes()
 {
-    dimensionedScalar volume(
-        "zero",
-        pow(dimLength, 3),
-        0.0
-    );
+    meshVolume_ = 0.0;
+    interfaceVolume_ = 0.0;
 
     const fvMesh& mesh = markerField_.mesh();
 
-    volume = sum(mesh.V());
+    forAll(markerField_, I)
+    {
+        if (markerField_[I] > 0.0 && markerField_[I] < 1.0)
+        {
+            interfaceVolume_ += mesh.V()[I];
+        }
 
-    meshVol_ = volume.value();
+        meshVolume_ += mesh.V()[I];
+    }
 }
 
-void lentMarkerfieldTest::frontVolume()
+void lentMarkerfieldTest::geometricVolumes()
 {
     frontVolGeometric_ = 0.0;
+    interfaceVolGeometric_ = 0.0;
 
-    const List<labelledTri>& faces = front_.localFaces();
-    const Field<point>& vertices = front_.localPoints();
+    // TODO: create buffer functionality in cutCellVolumeCalculator
+    // to avoid duplicate, expensive computations
+    scalar buffer = 0.0;
 
-    forAll(faces, I)
+    // Iterate over all cells
+    forAll(markerField_, I)
     {
-        frontVolGeometric_ += tetrahedralVolume(faces[I], vertices);
-    }
-}
+        buffer = localVolCalc_.cellVolumeNegativePhase(I);
 
-void lentMarkerfieldTest::ensureFrontPhaseIsZero()
-{
-    scalar phase0Vol = phase0BulkVol_ + phase0InterfaceVol_;
+        frontVolGeometric_ += buffer;
 
-    if (fabs(meshVol_ - phase0Vol - frontVolGeometric_)
-        < fabs(phase0Vol - frontVolGeometric_))
-    {
-        std::swap(phase0BulkVol_, phase1BulkVol_);
-        std::swap(phase0InterfaceVol_, phase1InterfaceVol_);
-    }
-
-    frontVolMarkerField_ = phase0BulkVol_ + phase0InterfaceVol_;
-}
-
-void lentMarkerfieldTest::innerPoint()
-{
-    // FIXME: works only for convex shapes
-    point lowerRef(GREAT, GREAT, GREAT);
-    point upperRef(0.0, 0.0, 0.0);
-
-    const Field<point>& vertices = front_.localPoints();
-
-    forAll(vertices, I)
-    {
-        forAll(vertices[I], K)
+        if (markerField_[I] > 0.0 && markerField_[I] < 1.0)
         {
-            if (vertices[I][K] < lowerRef[K])
-            {
-                lowerRef[K] = vertices[I][K];
-            }
-
-            if (vertices[I][K] > upperRef[K])
-            {
-                upperRef[K] = vertices[I][K];
-            }
+            interfaceVolGeometric_ += buffer;
         }
     }
-    
-    innerPoint_ =  0.5*(lowerRef + upperRef);
 }
 
-scalar lentMarkerfieldTest::tetrahedralVolume(const labelledTri& face,
-                                              const Field<point>& vertices)
-{
-    // use property of scalar triple product
-    return fabs(1.0/6.0 * ((vertices[face[1]] - vertices[face[0]]) ^ 
-                    (vertices[face[2]] - vertices[face[0]]))
-                    & (innerPoint_ - vertices[face[0]]));
-}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
 lentMarkerfieldTest::lentMarkerfieldTest(const volScalarField& markerField,
                                          const triSurfaceFront& front,
                                          const dictionary& configDict)
     :
     markerField_(markerField),
     front_(front),
-    configDict_(configDict)
+    configDict_(configDict),
+    localVolCalc_
+    (
+        markerField.mesh(),
+        front,
+        configDict.lookup("cellDistance"),
+        configDict.lookupOrDefault<word>("pointDistance","pointSignedDistance")
+    )
 {
-    markerfieldVolumes();
-    meshVolume();
-    innerPoint();
-    frontVolume();
-    ensureFrontPhaseIsZero();
+    markerFieldVolumes();
+    meshVolumes();
+    geometricVolumes();
 }
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
 lentMarkerfieldTest::~lentMarkerfieldTest()
 {}
 
@@ -220,44 +190,39 @@ scalar lentMarkerfieldTest::globalVolume() const
     return fabs(frontVolMarkerField_ - frontVolGeometric_) / frontVolGeometric_;
 }
 
-scalar lentMarkerfieldTest::globalVolumeNormalized() const
+scalar lentMarkerfieldTest::interfaceVolume() const
 {
-    scalar result;
-
-    scalar interfaceVolFraction = (phase0InterfaceVol_ + phase1InterfaceVol_)
-                                    / meshVol_;
-    
-    result = fabs(frontVolMarkerField_ - frontVolGeometric_)
-              / (frontVolGeometric_ * interfaceVolFraction);
-
-    return result;
+    return fabs(interfaceVolMarkerField_ - interfaceVolGeometric_)
+                / interfaceVolume_;
 }
 
-void lentMarkerfieldTest::localVolume() const
+List<scalar> lentMarkerfieldTest::localVolume() const
 {
-    cutCellVolumeCalculator localVolCalc(markerField_.mesh(), front_,
-            configDict_.lookup("cellDistance"),
-            configDict_.lookupOrDefault<word>("pointDistance",
-                "pointSignedDistance"));
-
+    // Note: contrary to the other tests of this class, this 
+    // function evaluates differences in terms of relative filling levels
+    // rather than absolute volume differences
+    List<scalar> errorSet(numberInterfaceCells(), 0.0);
     label count = 0;
+    const fvMesh& mesh = markerField_.mesh();
+
     forAll(markerField_, I)
     {
-        scalar vol = localVolCalc.cellVolumeNegativePhase(I);
-        if (vol < 0.0009 && vol > 0.0)
+        if (markerField_[I] > 0.0 && markerField_[I] < 1.0)
         {
-            Info << "Volume = " << vol << endl;
+            errorSet[count] = fabs(markerField_[I] -
+                          localVolCalc_.cellVolumePositivePhase(I) / mesh.V()[I]);
             count++;
         }
     }
-    Info << "# cells with vol fraction = " << count << endl;
 
-    Info << "Implement me!" << endl;
+    return errorSet;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 
