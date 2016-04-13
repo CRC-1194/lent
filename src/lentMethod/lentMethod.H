@@ -180,7 +180,7 @@ public:
 
         void evolveFront(
             triSurfaceFront& front,
-            const triSurfaceFrontPointVectorField& frontVelocity
+            const volVectorField& cellVelocity
         );
         
         tmp<surfaceScalarField> faceSurfaceTensionForce(

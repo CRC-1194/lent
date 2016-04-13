@@ -226,6 +226,8 @@ void lentMethod::calcFrontVelocity(
 
     auto oldVelocity(frontVelocity); 
 
+    // FIXME: Make this an attribute of method and re-use. Enable selection of 
+    // cell->point interpolation. TM.
     lentInterpolation interpolation; 
     interpolation.interpolate(U, frontVelocity); 
 
@@ -234,13 +236,13 @@ void lentMethod::calcFrontVelocity(
 
 void lentMethod::evolveFront(
     triSurfaceFront& front,
-    const triSurfaceFrontPointVectorField& frontVelocity
+    const volVectorField& cellVelocity
 ) 
 {
     Info << "Evolving the front..." << endl;  
     frontMotionSolverTmp_->evolveFront(
         front,
-        frontVelocity
+        cellVelocity
     );
     Info << "Done." << endl;
 

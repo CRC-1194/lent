@@ -23,16 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontMotionSolver
+    Foam::taylorFrontMotionSolver
 
 SourceFiles
-    frontMotionSolver.C
+    taylorFrontMotionSolver.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Interface for the front motion solution.
+    Evolve the front using the first order accurate Euler temporal discretization
+    scheme.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,16 +58,10 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef frontMotionSolver_H
-#define frontMotionSolver_H
+#ifndef taylorFrontMotionSolver_H
+#define taylorFrontMotionSolver_H
 
-#include "typeInfo.H"
-#include "autoPtr.H"
-#include "tmp.H"
-#include "refCount.H"
-#include "volFieldsFwd.H"
-#include "triSurfaceFront.H"
-#include "triSurfaceFrontFields.H"
+#include "frontMotionSolver.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -74,75 +69,27 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class frontMotionSolver Declaration
+                         Class taylorFrontMotionSolver Declaration
 \*---------------------------------------------------------------------------*/
 
-class frontMotionSolver
+class taylorFrontMotionSolver
     :
-        public refCount
+        public frontMotionSolver
 {
-    tmp<volVectorField> cellDisplacementTmp_; 
-    tmp<triSurfaceFrontPointVectorField> frontDisplacementTmp_; 
-
-protected:
-
-    triSurfaceFrontPointVectorField& frontDisplacements() 
-    {
-        return frontDisplacementTmp_.ref();
-    }
-
-    const triSurfaceFrontPointVectorField& frontDisplacements() const 
-    {
-        return frontDisplacementTmp_();
-    }
-
-    volVectorField& cellDisplacements() 
-    {
-        return cellDisplacementTmp_.ref();
-    }
-
-    const volVectorField& cellDisplacements() const
-    {
-        return cellDisplacementTmp_();
-    }
-
-    void initDisplacements(
-        const triSurfaceFront& front, 
-        const volVectorField& cellVelocity
-    ); 
-
-    virtual void calcCellDisplacement(const volVectorField& cellVelocity) = 0;  
 
 public:
 
-    TypeName ("frontMotionSolver");
-
-    declareRunTimeSelectionTable (
-        tmp,
-        frontMotionSolver,
-        Dictionary,
-        (
-            const dictionary& configDict
-        ),
-        (configDict)
-    );
+    TypeName ("Taylor");
 
     // Constructors
-        explicit frontMotionSolver(const dictionary& configDict);
-
-    // Selectors
-        static tmp<frontMotionSolver> New(const dictionary& configDict);
+    explicit taylorFrontMotionSolver(const dictionary& configDict);
 
     // Destructor
-        virtual ~frontMotionSolver() = default;
+    virtual ~taylorFrontMotionSolver() = default;
 
     // Member Functions
-        virtual void evolveFront(
-            triSurfaceFront& front,
-            const volVectorField& cellVelocity 
-        ) final; 
+    virtual void calcCellDisplacement(const volVectorField& cellVelocity);
 };
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
