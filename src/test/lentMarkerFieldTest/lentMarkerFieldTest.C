@@ -23,13 +23,12 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::lentMarkerfieldTest
+    Foam::lentMarkerFieldTest
 
 SourceFiles
-    lentMarkerfieldTest.C
+    lentMarkerFieldTest.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
@@ -57,13 +56,13 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#include "lentMarkerfieldTest.H"
+#include "lentMarkerFieldTest.H"
 
 namespace Foam {
 namespace FrontTracking {
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-label lentMarkerfieldTest::numberInterfaceCells() const
+label lentMarkerFieldTest::numberInterfaceCells() const
 {
     label count = 0;
 
@@ -78,7 +77,7 @@ label lentMarkerfieldTest::numberInterfaceCells() const
     return count;
 }
 
-void lentMarkerfieldTest::markerFieldVolumes()
+void lentMarkerFieldTest::markerFieldVolumes()
 {
     interfaceVolMarkerField_ = 0.0;
     frontVolMarkerField_ = 0.0;
@@ -99,7 +98,7 @@ void lentMarkerfieldTest::markerFieldVolumes()
     }
 }
 
-void lentMarkerfieldTest::meshVolumes()
+void lentMarkerFieldTest::meshVolumes()
 {
     meshVolume_ = 0.0;
     interfaceVolume_ = 0.0;
@@ -117,13 +116,13 @@ void lentMarkerfieldTest::meshVolumes()
     }
 }
 
-void lentMarkerfieldTest::geometricVolumes()
+void lentMarkerFieldTest::geometricVolumes()
 {
     frontVolGeometric_ = 0.0;
     interfaceVolGeometric_ = 0.0;
 
     // TODO: create buffer functionality in cutCellVolumeCalculator
-    // to avoid duplicate, expensive computations
+    // to avoid duplicate, expensive computations (TT)
     scalar buffer = 0.0;
 
     // Iterate over all cells
@@ -143,10 +142,10 @@ void lentMarkerfieldTest::geometricVolumes()
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-lentMarkerfieldTest::lentMarkerfieldTest(const volScalarField& markerField,
+lentMarkerFieldTest::lentMarkerFieldTest(const volScalarField& markerField,
                                          const triSurfaceFront& front,
                                          const dictionary& configDict)
-    :
+:
     markerField_(markerField),
     front_(front),
     configDict_(configDict),
@@ -165,12 +164,12 @@ lentMarkerfieldTest::lentMarkerfieldTest(const volScalarField& markerField,
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-lentMarkerfieldTest::~lentMarkerfieldTest()
+lentMarkerFieldTest::~lentMarkerFieldTest()
 {}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-bool lentMarkerfieldTest::boundedness() const
+bool lentMarkerFieldTest::boundedness() const
 {
     bool bounded = true;
 
@@ -185,18 +184,18 @@ bool lentMarkerfieldTest::boundedness() const
     return bounded;
 }
 
-scalar lentMarkerfieldTest::globalVolume() const
+scalar lentMarkerFieldTest::globalVolume() const
 {
     return fabs(frontVolMarkerField_ - frontVolGeometric_) / frontVolGeometric_;
 }
 
-scalar lentMarkerfieldTest::interfaceVolume() const
+scalar lentMarkerFieldTest::interfaceVolume() const
 {
     return fabs(interfaceVolMarkerField_ - interfaceVolGeometric_)
                 / interfaceVolume_;
 }
 
-List<scalar> lentMarkerfieldTest::localVolume() const
+List<scalar> lentMarkerFieldTest::localVolume() const
 {
     // Note: contrary to the other tests of this class, this 
     // function evaluates differences in terms of relative filling levels

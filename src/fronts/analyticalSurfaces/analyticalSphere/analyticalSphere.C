@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2015 OpenFOAM Foundation
+   \\    /   O peration     | Version:  2.2.x                               
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    OpenFOAM is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.
 
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -19,14 +19,45 @@ License
     for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+    along with OpenFOAM; if not, write to the Free Software Foundation,
+    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+Class
+    Foam::analyticalSphere
+
+SourceFiles
+    analyticalSphere.C
+
+Author
+    Tobias Tolle   tolle@csi.tu-darmstadt.de
+
+Description
+    Specialization of the analyticalSurface class for a sphere.
+
+    You may refer to this software as :
+    //- full bibliographic data to be provided
+
+    This code has been developed by :
+        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
+    under the project supervision of :
+        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
+    
+    Method Development and Intellectual Property :
+    	Tomislav Maric maric@csi.tu-darmstadt.de
+    	Holger Marschall <marschall@csi.tu-darmstadt.de>
+    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
+
+        Mathematical Modeling and Analysis
+        Center of Smart Interfaces
+        Technische Universitaet Darmstadt
+       
+    If you use this software for your scientific work or your publications,
+    please don't forget to acknowledge explicitly the use of it.
 
 \*---------------------------------------------------------------------------*/
 
 #include "analyticalSphere.H"
 #include "addToRunTimeSelectionTable.H"
-
-#include <cmath>
 
 namespace Foam {
 namespace FrontTracking {
@@ -67,7 +98,7 @@ scalar analyticalSphere::signedDistance(const point& trialPoint) const
 
 point analyticalSphere::normalProjectionToSurface(point& trialPoint) const
 {
-    // TODO: projection does not work if trialPoint coincides with
+    // Note: projection does not work if trialPoint coincides with
     //       centre_
     point projected(0.0, 0.0, 0.0);
 
@@ -151,43 +182,15 @@ point analyticalSphere::intersection(const point& pointA,
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-analyticalSphere& analyticalSphere::operator=(const analyticalSphere& sphere)
+analyticalSphere& analyticalSphere::operator=(const analyticalSphere& rhs)
 {
-    if (this != &sphere)
+    if (this != &rhs)
     {
-        centre_ = sphere.centre_;
-        radius_ = sphere.radius_;
+        centre_ = rhs.centre_;
+        radius_ = rhs.radius_;
     }
 
     return *this;
-}
-
-// * * * * * * * * * * * * * * Self Test * * * * * * * * * * * * * * * * * * //
-void analyticalSphere::selfTest()
-{
-    Info << "\nStarting selftest of class analyticalSphere...\n" << endl;
-
-    point testPointA(-1.0, 0.0, 0.0);
-    point testPointB = centre_ + 0.5*radius_*point(0.0, 1.0, 0.0);
-
-    Info << "Trial point: " << testPointA << endl;
-    Info << "Signed distance: " << signedDistance(testPointA) << endl;
-    Info << "Normal projection: " << normalProjectionToSurface(testPointA)
-         << "\n\t distance to centre: "
-         << mag(normalProjectionToSurface(testPointA) - centre_)
-         << endl;
-    Info << "Normal to point: " << normalToPoint(testPointA) << endl;
-    Info << "Intersection: " << intersection(testPointA, testPointB)
-         << "\n\t distance to centre: "
-         << mag(intersection(testPointA, testPointB) - centre_)
-         << "\n\t alignment: point A --> point B = "
-         << (testPointB - testPointA) / mag(testPointB - testPointA)
-         << "\n\t\t point A --> intersection = "
-         << (intersection(testPointA, testPointB) - testPointA) /
-             mag(intersection(testPointA, testPointB) - testPointA)
-         << endl;
-    
-    Info << "Finished tests\n" << endl;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

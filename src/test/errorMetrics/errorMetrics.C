@@ -23,13 +23,12 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::lentMarkerfieldTest
+    Foam::errorMetrics
 
 SourceFiles
-    lentMarkerfieldTest.C
+    errorMetrics.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
@@ -87,13 +86,6 @@ errorMetrics::errorMetrics(const List<scalar>& errorSet)
 }
 
 
-/*
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-Foam::errorMetrics::~errorMetrics()
-{}
-
-*/
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 scalar errorMetrics::arithmeticMeanError() const
 {
@@ -109,7 +101,6 @@ scalar errorMetrics::maximumError() const
 {
     return max(errorSet_);
 }
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

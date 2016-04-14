@@ -23,19 +23,18 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontSurfaceTensionForceModel
+    Foam::analyticalSurface
 
 SourceFiles
-    frontSurfaceTensionForceModel.C
+    analyticalSurface.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    Abstract base class for definition of (simpel) analytical surfaces.
-    Intended for directly constructing a front, thereby alleviating the
-    necessity for a separate front mesh.
+    Abstract base class for definition of (simple) analytical surfaces.
+    Intended for directly constructing a front or setting an exact signed
+    distance field.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -62,10 +61,10 @@ Description
 #ifndef analyticalSurface_H
 #define analyticalSurface_H
 
-#include "typeInfo.H"
-#include "tmp.H"
-#include "refCount.H"
 #include "fvMesh.H"
+#include "refCount.H"
+#include "tmp.H"
+#include "typeInfo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -85,6 +84,7 @@ public:
 
     TypeName ("abstract");
 
+    // Constructors
     analyticalSurface() = default;
     explicit analyticalSurface(const dictionary& configDict);
 
@@ -108,9 +108,6 @@ public:
     virtual point normalProjectionToSurface(point&) const = 0;
     virtual vector normalToPoint(const point&) const = 0;
     virtual point intersection(const point&, const point&) const = 0;
-
-    // Self Test
-    virtual void selfTest() = 0;
 };
 
 

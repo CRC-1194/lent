@@ -12,7 +12,6 @@ markerFieldModels/harmonicMarkerFieldModel/harmonicMarkerFieldModel.C
 markerFieldModels/sharpMarkerFieldModel/sharpMarkerFieldModel.C
 markerFieldModels/twoCellHarmonicMarkerFieldModel/twoCellHarmonicMarkerFieldModel.C
 markerFieldModels/singleCellHarmonicMarkerFieldModel/singleCellHarmonicMarkerFieldModel.C
-markerFieldModels/relativeVolumeMarkerFieldModel/relativeVolumeMarkerFieldModel.C
 
 frontReconstructionModels/frontReconstructionModel/frontReconstructionModel.C
 frontReconstructionModels/timeStepFrontReconstructionModel/timeStepFrontReconstructionModel.C
@@ -49,7 +48,7 @@ fronts/triSurfaceFront/triSurfaceFrontFields/triSurfaceFrontFields.C
 lentInterpolation/lentInterpolation.C
 lentMethod/lentMethod.C
 
-test/lentMarkerfieldTest/lentMarkerfieldTest.C
+test/lentMarkerFieldTest/lentMarkerFieldTest.C
 test/errorMetrics/errorMetrics.C
 fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
 fronts/analyticalSurfaces/analyticalPlane/analyticalPlane.C

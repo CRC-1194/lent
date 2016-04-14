@@ -23,19 +23,18 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontSurfaceTensionForceModel
+    Foam::analyticalSurface
 
 SourceFiles
-    frontSurfaceTensionForceModel.C
+    analyticalSurface.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    Abstract base class for definition of (simpel) analytical surfaces.
-    Intended for directly constructing a front, thereby alleviating the
-    necessity for a separate front mesh.
+    Abstract base class for definition of (simple) analytical surfaces.
+    Intended for directly constructing a front or setting an exact signed
+    distance field.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -61,25 +60,18 @@ Description
 
 #include "analyticalSurface.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
 namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(analyticalSurface, 0);
     defineRunTimeSelectionTable(analyticalSurface, Dictionary);
 
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
 analyticalSurface::analyticalSurface(const dictionary& configDict)
 {}
 
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-
 tmp<analyticalSurface> analyticalSurface::New(const dictionary& configDict)
 {
     const word name = configDict.lookup("type");

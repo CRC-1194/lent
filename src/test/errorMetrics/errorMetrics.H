@@ -23,13 +23,12 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::lentMarkerfieldTest
+    Foam::errorMetrics
 
 SourceFiles
-    lentMarkerfieldTest.C
+    errorMetrics.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
@@ -61,9 +60,9 @@ Description
 #ifndef errorMetrics_H
 #define errorMetrics_H
 
-#include "fvCFD.H"
-
 #include <cmath>
+
+#include "fvCFD.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -74,7 +73,7 @@ namespace FrontTracking {
                          Class errorMetrics Declaration
 \*---------------------------------------------------------------------------*/
 
-// TODO: make this class a template
+// TODO: make this class a template (TT)
 class errorMetrics
 {
     // Private data
@@ -90,17 +89,11 @@ public:
     errorMetrics(const List<scalar>& errorSet);
 
 
-    // TODO: See if teh compiler generates a destructor
-    //- Destructor
-    //~errorMetrics(){};
-
-
     // Member Functions
     scalar arithmeticMeanError() const;
     scalar quadraticMeanError() const;
     scalar maximumError() const;
 };
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -54,15 +54,15 @@ Description
 #include <string>
 
 #include "fvCFD.H"
-#include "interfaceProperties.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
-#include "turbulentTransportModel.H"
+#include "interfaceProperties.H"
 #include "pimpleControl.H"
+#include "turbulentTransportModel.H"
 
-#include "lentMethod.H"
 #include "analyticalSurface.H"
 #include "errorMetrics.H"
-#include "lentMarkerfieldTest.H"
+#include "lentMarkerFieldTest.H"
+#include "lentMethod.H"
 
 // Test if file is empty: for an empty file the current position in a stream in
 // append-mode is 0
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
     // TODO: remove analytical distance calculation once 
-    // the distance calculation for boundary mesh points is fixed
+    // the distance calculation for boundary mesh points is fixed (TT)
     if (analyticalSurfaceTmp->type() == "Plane")
     {
         frontCon.cellDistance(signedDistance);
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 
     Info << "Start tests...\n" << endl;
 
-    lentMarkerfieldTest test(markerField, front, lent.dict().subDict("markerFieldModel"));
+    lentMarkerFieldTest test(markerField, front, lent.dict().subDict("markerFieldModel"));
 
     bool bounded = test.boundedness();
     scalar globalVolumeError = test.globalVolume();

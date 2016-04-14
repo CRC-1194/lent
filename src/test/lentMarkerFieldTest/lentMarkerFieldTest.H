@@ -23,13 +23,12 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::lentMarkerfieldTest
+    Foam::lentMarkerFieldTest
 
 SourceFiles
-    lentMarkerfieldTest.C
+    lentMarkerFieldTest.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
@@ -57,15 +56,15 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentMarkerfieldTest_H
-#define lentMarkerfieldTest_H
+#ifndef lentMarkerFieldTest_H
+#define lentMarkerFieldTest_H
+
+#include <utility>
 
 #include "fvCFD.H"
 
-#include "triSurfaceFront.H"
 #include "cutCellVolumeCalculator.H"
-
-#include <utility>
+#include "triSurfaceFront.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -73,10 +72,10 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class lentMarkerfieldTest Declaration
+                         Class lentMarkerFieldTest Declaration
 \*---------------------------------------------------------------------------*/
 
-class lentMarkerfieldTest
+class lentMarkerFieldTest
 {
     // Private data
     const volScalarField& markerField_;
@@ -104,13 +103,13 @@ class lentMarkerfieldTest
 public:
 
     // Constructors
-    lentMarkerfieldTest(const volScalarField& markerField,
+    lentMarkerFieldTest(const volScalarField& markerField,
                         const triSurfaceFront& front,
                         const dictionary& configDict);
 
 
     //- Destructor
-    ~lentMarkerfieldTest();
+    ~lentMarkerFieldTest();
 
 
     // Member Functions aka Tests

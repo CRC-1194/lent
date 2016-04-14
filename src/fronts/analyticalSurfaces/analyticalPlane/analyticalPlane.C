@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2015 OpenFOAM Foundation
+   \\    /   O peration     | Version:  2.2.x                               
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    OpenFOAM is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.
 
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -19,7 +19,40 @@ License
     for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+    along with OpenFOAM; if not, write to the Free Software Foundation,
+    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+Class
+    Foam::analyticalPlane
+
+SourceFiles
+    analyticalPlane.C
+
+Author
+    Tobias Tolle   tolle@csi.tu-darmstadt.de
+
+Description
+    Specialization of the analyticalSurface class for a plane.
+
+    You may refer to this software as :
+    //- full bibliographic data to be provided
+
+    This code has been developed by :
+        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
+    under the project supervision of :
+        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
+    
+    Method Development and Intellectual Property :
+    	Tomislav Maric maric@csi.tu-darmstadt.de
+    	Holger Marschall <marschall@csi.tu-darmstadt.de>
+    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
+
+        Mathematical Modeling and Analysis
+        Center of Smart Interfaces
+        Technische Universitaet Darmstadt
+       
+    If you use this software for your scientific work or your publications,
+    please don't forget to acknowledge explicitly the use of it.
 
 \*---------------------------------------------------------------------------*/
 
@@ -31,8 +64,6 @@ namespace FrontTracking {
 
     defineTypeNameAndDebug(analyticalPlane, 0);
     addToRunTimeSelectionTable(analyticalSurface, analyticalPlane, Dictionary);
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 analyticalPlane::analyticalPlane(const dictionary& configDict)
@@ -99,7 +130,7 @@ point analyticalPlane::intersection(const point& pointA, const point& pointB) co
         scalar distanceRatio = distance(pointA) / (distance(pointA)
                                  + distance(pointB));
 
-        // In essence, use (distance weighted) central differencing scheme to
+        // In essence, use distance weighted central differencing scheme to
         // find intersetion with plane
         intersect = distanceRatio*pointB + (1.0 - distanceRatio) * pointA;
 
@@ -108,36 +139,15 @@ point analyticalPlane::intersection(const point& pointA, const point& pointB) co
 
 
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
-analyticalPlane& analyticalPlane::operator=(const analyticalPlane& plane) 
+analyticalPlane& analyticalPlane::operator=(const analyticalPlane& rhs) 
 {
-    if (this != &plane)
+    if (this != &rhs)
     {
-        refPoint_ = plane.refPoint_;
-        unitNormal_ = plane.unitNormal_;
+        refPoint_ = rhs.refPoint_;
+        unitNormal_ = rhs.unitNormal_;
     }
 
     return *this;
-}
-
-
-// * * * * * * * * * * * * * * Self Test * * * * * * * * * * * * * * * * * * //
-void analyticalPlane::selfTest()
-{
-    Info << "\nStarting selftest of class analyticalPlane...\n" << endl;
-
-    point testPointA(0.0, 0.0, 0.0);
-    point testPointB(1000.0, 500.0, 1000.0);
-
-    Info << "Trial point A: " << testPointA
-         << "; trial point B: " << testPointB
-         << endl;
-    Info << "Signed distance: " << signedDistance(testPointA) << endl;
-    Info << "Normal projection: " << normalProjectionToSurface(testPointA)
-         << endl;
-    Info << "Normal to point: " << normalToPoint(testPointA) << endl;
-    Info << "Intersection: " << intersection(testPointA, testPointB) << endl;
-    
-    Info << "Finished tests\n" << endl;
 }
 
 
