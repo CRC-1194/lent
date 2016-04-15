@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     );
 
     lent.calcMarkerField(markerField);
-
+    markerField.write(); 
     front.write();
 
     while (runTime.run())
@@ -142,9 +142,7 @@ int main(int argc, char *argv[])
             Info << "Inconstent front normals." << endl;
         }
 
-        lent.calcFrontVelocity(frontVelocity, U.oldTime());
-
-        lent.evolveFront(front, frontVelocity);
+        lent.evolveFront(front, U.oldTime());
 
         lent.calcSignedDistances(
             signedDistance,
