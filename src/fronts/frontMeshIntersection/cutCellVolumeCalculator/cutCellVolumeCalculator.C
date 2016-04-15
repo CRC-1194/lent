@@ -120,120 +120,104 @@ void cutCellVolumeCalculator::cellToFace()
     }
 }
 
-// TODO: refactor this abomination of a function... (TT)
+// TODO: this function should be refactored (TT)
 scalar cutCellVolumeCalculator::cutCellVolume(const label& cellID) const
 {
     // Note: this function computes the volume enclosed by the front
     // and the cell vertices with a negative signed distance
     scalar volume = 0.0;
 
-    const volScalarField& signedDistance = 
-        mesh_.lookupObject<volScalarField>(cellDistFieldName_);
     const pointScalarField& pointSignedDistance =
         mesh_.lookupObject<pointScalarField>(pointDistFieldName_);
     const faceList& faces = mesh_.faces();
     const pointField& meshVertices = mesh_.points();
 
-    if (cellToTria_.found(cellID))
+    pointField vertices(0);
+    List<triFace> triangles(0);
+
+    const labelListList& faceToEdges = mesh_.faceEdges();
+    const edgeList& edges = mesh_.edges();
+
+    // Composition of the polyhedra is performed in three steps:
+    // 1) Add the triangles of the front located in the given cell
+    // 2) Triangulate and add faces of the cell which are completely
+    //    located on the "negative" side (signed distance of all vertices
+    //    < 0)
+    // 3) Triangulate and add the intersected faces
+    
+    // Part 1
+    frontFragment(cellToTria_[cellID], vertices, triangles);
+    // It is necessary to be able to distinguish between front vertices
+    // and cell vertices for the correct set up of the intersected faces
+    label numFrontVertices = vertices.size();
+
+    // Part 2 + 3
+    labelList cellFaces = cellToFace_[cellID];
+    simpleTriangulator triangulator(vertices, triangles);
+
+    // NOTE: duplication of points in the following is intended as it
+    // removes the necessity to establish a mapping between the gloabl
+    // point list and the temporary local one
+    forAll(cellFaces, I)
     {
-        pointField vertices(0);
-        List<triFace> triangles(0);
-
-        const labelListList& faceToEdges = mesh_.faceEdges();
-        const edgeList& edges = mesh_.edges();
-
-        // Composition of the polyhedra is performed in three steps:
-        // 1) Add the triangles of the front located in the given cell
-        // 2) Triangulate and add faces of the cell which are completely
-        //    located on the "negative" side (signed distance of all vertices
-        //    < 0)
-        // 3) Triangulate and add the intersected faces
+        face cellFace = faces[cellFaces[I]];
         
-        // Part 1
-        frontFragment(cellToTria_[cellID], vertices, triangles);
-        // It is necessary to be able to distinguish between front vertices
-        // and cell vertices for the correct set up of the intersected faces
-        label numFrontVertices = vertices.size();
+        label facePos = facePosition(cellFace, pointSignedDistance);
 
-        // Part 2 + 3
-        labelList cellFaces = cellToFace_[cellID];
-        simpleTriangulator triangulator(vertices, triangles);
-
-        // NOTE: duplication of points in the following is intended as it
-        // removes the necessity to establish a mapping between the gloabl
-        // point list and the temporary local one
-        forAll(cellFaces, I)
+        if (facePos == -1)
         {
-            face cellFace = faces[cellFaces[I]];
-            
-            label facePos = facePosition(cellFace, pointSignedDistance);
+            // triangulate complete face
+            labelList pointIDs(cellFace.size());
 
-            if (facePos == -1)
+            forAll(cellFace, K)
             {
-                // triangulate complete face
-                labelList pointIDs(cellFace.size());
+                vertices.append(meshVertices[cellFace[K]]);
+                pointIDs[K] = vertices.size() - 1;
+            }
 
-                forAll(cellFace, K)
+            triangulator.triangulateFace(pointIDs,
+                                     provideNormal(cellFace, meshVertices));
+        }
+        else if (facePos == 0)
+        {
+            // Set up face fraction and triangulate it
+            labelList pointIDs(0);
+            labelList faceEdges = faceToEdges[cellFaces[I]];
+
+            // Add front vertices to point set which are located on
+            // the current face
+            forAll(faceEdges, K)
+            {
+                edge E = edges[faceEdges[K]];
+
+                // intersected Edge
+                if (pointSignedDistance[E[0]]*pointSignedDistance[E[1]] < 0)
+                {
+                   pointIDs.append(intersectionID(meshVertices[E[0]], 
+                                    meshVertices[E[1]], vertices,
+                                    numFrontVertices));
+                }
+            }
+
+            // Add all face vertices with negative signed distance
+            forAll(cellFace, K)
+            {
+                if (pointSignedDistance[cellFace[K]] < 0)
                 {
                     vertices.append(meshVertices[cellFace[K]]);
-                    pointIDs[K] = vertices.size() - 1;
+                    pointIDs.append(vertices.size() - 1);
                 }
-
-                triangulator.triangulateFace(pointIDs,
-                                         provideNormal(cellFace, meshVertices));
             }
-            else if (facePos == 0)
-            {
-                // Set up face fraction and triangulate it
-                labelList pointIDs(0);
-                labelList faceEdges = faceToEdges[cellFaces[I]];
-
-                // Add front vertices to point set which are located on
-                // the current face
-                forAll(faceEdges, K)
-                {
-                    edge E = edges[faceEdges[K]];
-
-                    // intersected Edge
-                    if (pointSignedDistance[E[0]]*pointSignedDistance[E[1]] < 0)
-                    {
-                       pointIDs.append(intersectionID(meshVertices[E[0]], 
-                                        meshVertices[E[1]], vertices,
-                                        numFrontVertices));
-                    }
-                }
-
-                // Add all face vertices with negative signed distance
-                forAll(cellFace, K)
-                {
-                    if (pointSignedDistance[cellFace[K]] < 0)
-                    {
-                        vertices.append(meshVertices[cellFace[K]]);
-                        pointIDs.append(vertices.size() - 1);
-                    }
-                }
-                
-                triangulator.triangulateFace(pointIDs,
-                                          provideNormal(cellFace, meshVertices));
-            }
-        }
-
-        volume = polyhedraVolume(vertices, triangles);
-
-        assert (volume >= 0.0);
-        assert (volume < mesh_.V()[cellID]);
-    }
-    else
-    {
-        if (signedDistance[cellID] < 0.0)
-        {
-            volume = mesh_.V()[cellID];
-        }
-        else
-        {
-            volume = 0.0;
+            
+            triangulator.triangulateFace(pointIDs,
+                                      provideNormal(cellFace, meshVertices));
         }
     }
+
+    volume = polyhedraVolume(vertices, triangles);
+
+    assert (volume >= 0.0);
+    assert (volume < mesh_.V()[cellID]);
 
     return volume;
 }
@@ -314,14 +298,12 @@ label cutCellVolumeCalculator::facePosition(const face& cellFace,
     // Checks a face for three possible states:
     // 1) located on the positive side of the front (return 1)
     // 2) intersecting the front (return 0)
-    // 3 located on the negative side of the front (return -1)
+    // 3) located on the negative side of the front (return -1)
     bool hasPositiveVertex = false;
     bool hasNegativeVertex = false;
     
     forAll(cellFace, K)
     {
-        // TODO: add special treatment for points coinciding with the front.
-        // Currently this case is not covered and funny things may happen (TT)
         if (distance[cellFace[K]] < 0.0)
         {
             hasNegativeVertex = true;
@@ -331,8 +313,6 @@ label cutCellVolumeCalculator::facePosition(const face& cellFace,
             hasPositiveVertex = true;
         }
     }
-
-    assert (hasPositiveVertex || hasNegativeVertex);
 
     if (hasPositiveVertex && !hasNegativeVertex) return 1;
     else if (hasPositiveVertex && hasNegativeVertex) return 0;
@@ -374,65 +354,6 @@ vector cutCellVolumeCalculator::provideNormal(const face& cellFace,
              ^ (vertices[cellFace[2]] - vertices[cellFace[0]]);
 }
 
-// Methods for self-test
-/*
-point cutCellVolumeCalculator::minPoint(const labelList& cellPointIDs,
-                                        const pointField& points) const
-{
-    point min(points[cellPointIDs[0]]);
-    point tmp;
-
-    forAll(cellPointIDs, I)
-    {
-        tmp = points[cellPointIDs[I]];
-
-        forAll(tmp, I)
-        {
-            if (tmp[I] < min[I]) min[I] = tmp[I];
-        }
-    }
-
-    return min;
-}
-
-point cutCellVolumeCalculator::maxPoint(const labelList& cellPointIDs,
-                                        const pointField& points) const
-{
-    point max(points[cellPointIDs[0]]);
-    point tmp;
-
-    forAll(cellPointIDs, I)
-    {
-        tmp = points[cellPointIDs[I]];
-
-        forAll(tmp, I)
-        {
-            if (tmp[I] > max[I]) max[I] = tmp[I];
-        }
-    }
-
-    return max;
-}
-
-bool cutCellVolumeCalculator::isBoxBounded(const point& min, const point& max,
-                                           const pointField& points) const
-{
-    point tmp;
-
-    forAll(points, I)
-    {
-        tmp = points[I];
-
-        forAll(tmp, K)
-        {
-            if (tmp[K] < min[K] || max[K] < tmp[K]) return false;
-        }
-    }
-
-    return true;
-}
-*/
-
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 cutCellVolumeCalculator::cutCellVolumeCalculator(const fvMesh& mesh,
@@ -460,12 +381,29 @@ cutCellVolumeCalculator::~cutCellVolumeCalculator()
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 scalar cutCellVolumeCalculator::cellVolumePositivePhase(const label& cellIndex) const
 {
-    return mesh_.V()[cellIndex] - cutCellVolume(cellIndex);
+    return mesh_.V()[cellIndex] - cellVolumeNegativePhase(cellIndex);
 }
 
 scalar cutCellVolumeCalculator::cellVolumeNegativePhase(const label& cellIndex) const
 {
-    return cutCellVolume(cellIndex);
+    const volScalarField& signedDistance = 
+        mesh_.lookupObject<volScalarField>(cellDistFieldName_);
+
+    if (cellToTria_.found(cellIndex))
+    {
+        return cutCellVolume(cellIndex);
+    }
+    else
+    {
+        if (signedDistance[cellIndex] < 0.0)
+        {
+            return mesh_.V()[cellIndex];
+        }
+        else
+        {
+            return 0.0;
+        }
+    }
 }
 
 
