@@ -121,8 +121,6 @@ void lentMarkerFieldTest::geometricVolumes()
     frontVolGeometric_ = 0.0;
     interfaceVolGeometric_ = 0.0;
 
-    // TODO: create buffer functionality in cutCellVolumeCalculator
-    // to avoid duplicate, expensive computations (TT)
     scalar buffer = 0.0;
 
     // Iterate over all cells
