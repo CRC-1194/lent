@@ -59,7 +59,7 @@ Description
 #include "pimpleControl.H"
 #include "lentMethod.H"
 
-// Time Measurements
+// Time Measurements // FIXME: Compile into lentTests.so. TM.
 //#include <chrono>
 //#include <fstream>
 //#include <algorithm>
@@ -338,12 +338,8 @@ int main(int argc, char *argv[])
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
         //timing.stop("Reconstruction");
 
-        //timing.start("Velocity Calculation");
-        lent.calcFrontVelocity(frontVelocity, U.oldTime());
-        //timing.stop("Velocity Calculation");
-
         //timing.start("Front Evolution");
-        lent.evolveFront(front, frontVelocity);
+        lent.evolveFront(front, U.oldTime());
         //timing.stop("Front Evolution");
 
         //timing.start("Writing");

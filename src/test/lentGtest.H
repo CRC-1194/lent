@@ -60,6 +60,7 @@ Description
 #define lentGtest_H
 
 #include "lentTests.H"
+#include "gtest.h"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -74,7 +75,7 @@ class lentTests : public ::testing::Test
         template<typename Front>
         bool NORMALS_ARE_CONSISTENT(Front const & front)
         {
-            return(triSurfaceNormalsAreConsistent(front));
+            return(normalsAreConsistent(front));
         }
 };
 

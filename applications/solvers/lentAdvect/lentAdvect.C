@@ -119,9 +119,13 @@ int main(int argc, char *argv[])
         front
     );
 
+    lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
     lent.calcMarkerField(markerField);
     markerField.write(); 
     front.write();
+
+    auto markerField0 (markerField);  
 
     while (runTime.run())
     {
