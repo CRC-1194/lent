@@ -47,6 +47,8 @@ frontCurvatureModels/frontCurvatureMeyer/frontCurvatureMeyer.C
 lentCommunication/lentCommunication.C
 fronts/triSurfaceFront/triSurfaceFrontFields/triSurfaceFrontFields.C
 lentInterpolation/lentInterpolation.C
+cellToVertexInterpolation/interpolationCellPointTaylor/makeInterpolationCellPointTaylor.C
+
 lentMethod/lentMethod.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent
