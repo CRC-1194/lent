@@ -74,7 +74,7 @@ frontMotionSolver::frontMotionSolver(const dictionary& configDict)
     :
         cellDisplacementTmp_(),
         frontDisplacementTmp_(),
-        interpolation_()
+        interpolation_(configDict)
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //

@@ -81,6 +81,7 @@ namespace FrontTracking {
 
 class lentInterpolation
 {
+    word cellToVertexInterpType_; 
 
 public:
 
@@ -96,9 +97,11 @@ public:
     );
 
     // Constructors
-    lentInterpolation() = default;
+    lentInterpolation(); 
 
     lentInterpolation(const lentInterpolation&) = default; 
+
+    lentInterpolation(const dictionary& dict); 
 
     // Selectors
     static autoPtr<lentInterpolation> New(const dictionary& configDict);
