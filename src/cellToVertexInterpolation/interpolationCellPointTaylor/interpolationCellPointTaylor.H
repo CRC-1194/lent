@@ -49,6 +49,14 @@ class interpolationCellPointTaylor
 :
     public interpolation<Type>
 {
+    typedef GeometricField
+    <
+        typename outerProduct<vector,Type>::type, 
+        fvPatchField, 
+        volMesh
+    > GradFieldType; 
+
+    //tmp<GradFieldType> psiGrad_;  
 
 public:
 

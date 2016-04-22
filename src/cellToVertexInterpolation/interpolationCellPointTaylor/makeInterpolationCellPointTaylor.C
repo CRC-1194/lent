@@ -29,7 +29,8 @@ License
 
 namespace Foam
 {
-    makeInterpolation(interpolationCellPointTaylor);
+    makeInterpolationType(interpolationCellPointTaylor, scalar)                                              
+    makeInterpolationType(interpolationCellPointTaylor, vector)                                              
 }
 
 // ************************************************************************* //

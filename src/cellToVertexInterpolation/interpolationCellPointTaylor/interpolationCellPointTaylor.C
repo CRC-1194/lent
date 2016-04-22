@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "interpolationCellPointTaylor.H"
+#include "fvcGrad.H"
 
 // * * * * * * * * * * * * * * * * Constructor * * * * * * * * * * * * * * * //
 
@@ -33,7 +34,8 @@ Foam::interpolationCellPointTaylor<Type>::interpolationCellPointTaylor
     const GeometricField<Type, fvPatchField, volMesh>& psi
 )
 :
-    interpolation<Type>(psi)
+    interpolation<Type>(psi)//,
+    //psiGrad_(fvc::grad(psi))
 {}
 
 // ************************************************************************* //
