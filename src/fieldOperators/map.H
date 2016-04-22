@@ -65,7 +65,7 @@ map(
         )
     ); 
 
-    GeometricField<Type, PatchField, Mesh>& result = resultTmp(); 
+    GeometricField<Type, PatchField, Mesh>& result = resultTmp.ref(); 
 
     forAll(vf, cellI)
     {
@@ -94,7 +94,7 @@ map(
     FilterFunction filterFunction
 )
 {
-    return map(vfTmp(), value, filterFunction); 
+    return map(vfTmp.ref(), value, filterFunction); 
 }
 
 } // End namespace Foam 

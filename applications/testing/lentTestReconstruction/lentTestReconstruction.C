@@ -58,7 +58,7 @@ Description
 #include "pimpleControl.H"
 
 #include "lentMethod.H"
-#include "lentTests.H"
+#include "lentGtest.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

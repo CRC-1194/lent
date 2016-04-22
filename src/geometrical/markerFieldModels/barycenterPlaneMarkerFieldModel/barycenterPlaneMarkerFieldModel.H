@@ -23,15 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::lentTests
+    Foam::barycenterPlaneMarkerFieldModel
 
 SourceFiles
+    barycenterPlaneMarkerFieldModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Test functions for the LENT algorithm.
+    Abstract base class for the markerField function calculation from a signed
+    distance field.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,34 +58,52 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef lentGtest_H
-#define lentGtest_H
+#ifndef barycenterPlaneMarkerFieldModel_H
+#define barycenterPlaneMarkerFieldModel_H
 
-#include "lentTests.H"
-#include "gtest.h"
+#include "typeInfo.H"
+#include "autoPtr.H"
+#include "volFieldsFwd.H"
+#include "sharpMarkerFieldModel.H"
+#include "pointFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
-    namespace FrontTracking {
-        namespace Test {
+namespace FrontTracking {
 
-// Classes for testing the application code.
-class lentTests : public ::testing::Test
+/*---------------------------------------------------------------------------*\
+                         Class barycenterPlaneMarkerFieldModel Declaration
+\*---------------------------------------------------------------------------*/
+
+class barycenterPlaneMarkerFieldModel
+    :
+        public sharpMarkerFieldModel 
 {
-    protected:
-        template<typename Front>
-        bool NORMALS_ARE_CONSISTENT(Front const & front)
-        {
-            return(normalsAreConsistent(front));
-        }
+
+    const word pointDistFieldName_; 
+
+public:
+
+    TypeName ("barycenterPlane");
+
+    // Constructors
+    barycenterPlaneMarkerFieldModel(const dictionary& dict); 
+
+    // Member Functions
+    virtual void calcMarkerField(volScalarField& markerField) const;
+
+    word pointDistFieldName() const
+    {
+        return pointDistFieldName_; 
+    }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace Test
-
 } // End namespace FrontTracking
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 

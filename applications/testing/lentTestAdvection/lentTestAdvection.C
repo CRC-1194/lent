@@ -59,6 +59,7 @@ Description
 
 #include "lentMethod.H"
 #include "lentTests.H"
+#include "lentGtest.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -99,7 +100,7 @@ TEST_F(lentTests, lentReconstruction)
         )
     );
 
-    ASSERT_TRUE(triSurfaceNormalsAreConsistent(front)); 
+    ASSERT_TRUE(normalsAreConsistent(front)); 
     Info << "Done." << endl;
 
     triSurfacePointVectorField frontVelocity(
@@ -149,15 +150,11 @@ TEST_F(lentTests, lentReconstruction)
 
         Info << "Reconstructing the front..." << endl;
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
-        EXPECT_TRUE(triSurfaceNormalsAreConsistent(front)); 
+        EXPECT_TRUE(normalsAreConsistent(front)); 
         Info << "Done." << endl;
 
-        Info << "Calculating front velocity..." << endl;
-        lent.calcFrontVelocity(frontVelocity, U.oldTime());
-        Info << "Done. " << endl;
-
         Info << "Evolving the front..." << endl;
-        lent.evolveFront(front, frontVelocity);
+        lent.evolveFront(front, U.oldTime());
         Info << "Done." << endl;
 
         Info << "Calculating distance fields..." << endl;
