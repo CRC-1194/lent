@@ -67,6 +67,7 @@ Description
 #include "volFieldsFwd.H"
 #include "triSurfaceFront.H"
 #include "triSurfaceFrontFields.H"
+#include "lentInterpolation.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -82,7 +83,10 @@ class frontMotionSolver
         public refCount
 {
     tmp<volVectorField> cellDisplacementTmp_; 
+
     tmp<triSurfaceFrontPointVectorField> frontDisplacementTmp_; 
+
+    lentInterpolation interpolation_;  
 
 protected:
 

@@ -59,7 +59,6 @@ Description
 
 #include "frontMotionSolver.H"
 #include "dictionary.H"
-#include "lentInterpolation.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -74,7 +73,8 @@ namespace FrontTracking {
 frontMotionSolver::frontMotionSolver(const dictionary& configDict)
     :
         cellDisplacementTmp_(),
-        frontDisplacementTmp_()
+        frontDisplacementTmp_(),
+        interpolation_()
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -171,9 +171,7 @@ void frontMotionSolver::evolveFront(
     const auto& deltaC = cellDisplacements();
     auto& deltaF = frontDisplacements();
 
-    // FIXME: Make this a private attribute, do not initialize from dict every time step. 
-    lentInterpolation interpolation; 
-    interpolation.interpolate(deltaC, deltaF); 
+    interpolation_.interpolate(deltaC, deltaF); 
 
     // Displace front points with front displacements.  
     pointField& frontPoints = const_cast<pointField&>(front.points());
