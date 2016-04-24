@@ -32,3 +32,4 @@ linux*/
 *.png
 doc
 third-party
+.vscode
