@@ -65,8 +65,10 @@ Description
 #define tetFillingLevelMarkerFieldModel_H
 
 #include "typeInfo.H"
+#include "pointFields.H"
+#include "volFieldsFwd.H"
 
-#include "sharpMarkerFieldModel.H"
+#include "markerFieldModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -79,12 +81,21 @@ namespace FrontTracking {
 
 class tetFillingLevelMarkerFieldModel
 :
-    public sharpMarkerFieldModel
+    public markerFieldModel
 {
     // Private data
+    const word pointDistFieldName_;
 
 
     // Private Member Functions
+    void tagInterfaceCells(volScalarField& markerField) const;
+    void setBulkMarkerField(volScalarField& markerField) const;
+    scalar fillingLevel(const label& cellID, const face& cellFace,
+                        const fvMesh& mesh) const;
+    scalar tetrahedralVolume(const point& pointA, const point& pointB,
+                             const point& pointC, const point& pointD) const;
+    scalar volumeFraction(List<scalar>& d) const;
+    label sortDistances(List<scalar>& distances) const;
 
 
 public:
@@ -92,12 +103,16 @@ public:
     TypeName ("tetFillingLevel");
 
     // Constructors
-    // TODO: see if constructor from sharpMarkerFieldModel can be used
-    using sharpMarkerFieldModel::sharpMarkerFieldModel;
+    tetFillingLevelMarkerFieldModel(const dictionary& configDict);
 
 
     // Member Functions
-    virtual void calcMarkerFieldModel(volScalarField& markerField) const;
+    virtual void calcMarkerField(volScalarField& markerField) const;
+
+    word pointDistFieldName() const
+    {
+        return pointDistFieldName_; 
+    }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
