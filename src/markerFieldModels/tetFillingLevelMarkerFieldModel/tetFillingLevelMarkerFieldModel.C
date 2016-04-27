@@ -62,6 +62,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include <utility>
+#include <cassert>
 
 #include "addToRunTimeSelectionTable.H"
 #include "volFields.H"
@@ -77,14 +78,13 @@ namespace FrontTracking {
     addToRunTimeSelectionTable(markerFieldModel, tetFillingLevelMarkerFieldModel, Dictionary);
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-void tetFillingLevelMarkerFieldModel::tagInterfaceCells(
-                                        volScalarField& markerField) const
+void tetFillingLevelMarkerFieldModel::tagInterfaceCells(volScalarField& markerField) const
 {
     // For clear distinction, set marker field value of bulk cells
     // temporarily to a negative value
     forAll(markerField, cellI)
     {
-        markerField[cellI] = -1.0;
+        markerField[cellI] = -GREAT;
     }
 
     const fvMesh& mesh = markerField.mesh(); 
@@ -114,9 +114,8 @@ void tetFillingLevelMarkerFieldModel::tagInterfaceCells(
                 markerField[cellLabel] = 0.0;
             }
         }
-    } 
+    }
 }
-
 
 void tetFillingLevelMarkerFieldModel::setBulkMarkerField(volScalarField& markerField) const
 {
@@ -127,7 +126,7 @@ void tetFillingLevelMarkerFieldModel::setBulkMarkerField(volScalarField& markerF
 
     forAll(markerField, cellI)
     {
-        if (markerField[cellI] < 0.0)
+        if (markerField[cellI] == -GREAT)
         {
             if (signedDistance[cellI] < 0.0)
             {
@@ -138,23 +137,27 @@ void tetFillingLevelMarkerFieldModel::setBulkMarkerField(volScalarField& markerF
                 markerField[cellI] = 1.0;
             }
         }
+
+        assert (markerField[cellI] >= 0.0);
     }
 }
 
-scalar tetFillingLevelMarkerFieldModel::fillingLevel(const label& cellID,
-                                                     const face& cellFace,
-                                                     const fvMesh& mesh) const
+scalar tetFillingLevelMarkerFieldModel::fillingLevel
+(
+    const label& cellID, const face& cellFace, const fvMesh& mesh
+) const
 {
     const volScalarField& signedDistance =
         mesh.lookupObject<volScalarField>(markerFieldModel::cellDistFieldName());
     const pointScalarField& pointDistance =
         mesh.lookupObject<pointScalarField>(pointDistFieldName()); 
     const pointField& points = mesh.points();
-    edgeList edges = cellFace.edges();
+    const edgeList edges = cellFace.edges();
 
     point cellCentre = mesh.C()[cellID];
     point faceCentre = cellFace.centre(points);
 
+    // Stores the signed distances for a tetrahedron
     List<scalar> distances(4);
 
     scalar absoluteFilling = 0.0;
@@ -162,10 +165,10 @@ scalar tetFillingLevelMarkerFieldModel::fillingLevel(const label& cellID,
 
     // For now, compute the signed distance at the face centre by the
     // arithmetic mean of the vertex values
-    // TODO: check quality and replace with more accurate scheme if required
+    // TODO: check quality and replace with more accurate scheme if required (TT)
     forAll(cellFace, vertexI)
     {
-        distanceFaceCentre += pointDistance[vertexI];
+        distanceFaceCentre += pointDistance[cellFace[vertexI]];
     }
     distanceFaceCentre /= cellFace.size();
 
@@ -198,43 +201,44 @@ scalar tetFillingLevelMarkerFieldModel::tetrahedralVolume
 }
 
 
-scalar tetFillingLevelMarkerFieldModel::volumeFraction
-(
-    List<scalar>& d
-) const
+scalar tetFillingLevelMarkerFieldModel::volumeFraction(List<scalar>& d) const
 {
+    // This function implements the computation of the volume fraction from
+    // the signed distance for a tetrahedron as described by the paper
+    // mentioned in the class description
+    scalar volFraction = 0.0;
     label negativeEntries = sortDistances(d);
 
     if (negativeEntries == 4)
     {
-        return 0.0;
+        volFraction = 0.0;
     }
     else if (negativeEntries == 3)
     {
-        return std::pow(d[3],3) /
+        volFraction = std::pow(d[3],3) /
                ((d[3] - d[0]) * (d[3] - d[1]) * (d[3] - d[2]));
     }
     else if (negativeEntries == 2)
     {
-        return 1.0 - ( d[0]*d[1] * (d[2]*d[2] + d[2]*d[3] + d[3]*d[3])
+        volFraction = 1.0 - ( d[0]*d[1] * (d[2]*d[2] + d[2]*d[3] + d[3]*d[3])
                 + d[2]*d[3] * (d[2]*d[3] - (d[0]+d[1])*(d[2]+d[3])) )
-                / ((d[0] - d[2]) * (d[1]-d[2]) * (d[0]-d[3]) * (d[1]-d[3]));
+                / ((d[0]-d[2]) * (d[1]-d[2]) * (d[0]-d[3]) * (d[1]-d[3]));
     }
     else if (negativeEntries == 1)
     {
-        return 1.0 + std::pow(d[0],3) / 
-                ( (d[1]-d[0]) * (d[2]-d[0]) *(d[3]-d[0]) );
+        volFraction = 1.0 + std::pow(d[0],3) / 
+                ( (d[1]-d[0]) * (d[2]-d[0]) * (d[3]-d[0]) );
     }
     else
     {
-        return 1.0;
+        volFraction = 1.0;
     }
+
+    assert (volFraction >= 0.0);
+    return volFraction;
 }
 
-label tetFillingLevelMarkerFieldModel::sortDistances
-(
-    List<scalar>& distances
-) const
+label tetFillingLevelMarkerFieldModel::sortDistances(List<scalar>& distances) const
 {
     label negativeEntries = 0;
 
@@ -276,32 +280,33 @@ void tetFillingLevelMarkerFieldModel::calcMarkerField(volScalarField& markerFiel
     const labelList& neighbours = mesh.faceNeighbour();
     const faceList& faces = mesh.faces();
 
+    label cellI = -1;
+
     forAll(faces, faceI)
     {
-        label cellI = -1;
-
         // Check if either owner or neighbour cell is an interface cell
+        // If true, perform the barycentric decomposition and computation
+        // of filling level contribution according to the paper mentioned in
+        // the class description
         if (markerField[owners[faceI]] >= 0.0)
         {
             cellI = owners[faceI];
+            markerField[cellI] += fillingLevel(cellI, faces[faceI], mesh);
+            cellI = -1;
         }
-        else if (faceI < neighbours.size())
+
+        if (faceI < neighbours.size())
         {
             if (markerField[neighbours[faceI]] >= 0.0)
             {
                cellI = neighbours[faceI];
+               markerField[cellI] += fillingLevel(cellI, faces[faceI], mesh);
+               cellI = -1;
             }
-        }
-
-        if (cellI > 0)
-        {
-            // Here, the actual work as described in the paper is performed.
-            // However, it is split on a per-face basis.
-            markerField[cellI] += fillingLevel(cellI, faces[faceI], mesh);
         }
     }
 
-    // Normalize value of interface cells
+    // Normalize value of interface cells to acquire actual volume fractions
     forAll(markerField, cellI)
     {
         if (markerField[cellI] > 0.0)
@@ -312,7 +317,6 @@ void tetFillingLevelMarkerFieldModel::calcMarkerField(volScalarField& markerFiel
 
     setBulkMarkerField(markerField);
 }
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

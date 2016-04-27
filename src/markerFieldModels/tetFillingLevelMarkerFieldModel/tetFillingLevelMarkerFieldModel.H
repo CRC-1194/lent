@@ -86,7 +86,6 @@ class tetFillingLevelMarkerFieldModel
     // Private data
     const word pointDistFieldName_;
 
-
     // Private Member Functions
     void tagInterfaceCells(volScalarField& markerField) const;
     void setBulkMarkerField(volScalarField& markerField) const;
@@ -104,7 +103,6 @@ public:
 
     // Constructors
     tetFillingLevelMarkerFieldModel(const dictionary& configDict);
-
 
     // Member Functions
     virtual void calcMarkerField(volScalarField& markerField) const;
