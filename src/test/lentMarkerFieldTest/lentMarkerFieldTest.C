@@ -92,8 +92,8 @@ void lentMarkerFieldTest::markerFieldVolumes()
         }
         else if (markerField_[I] > 0.0 && markerField_[I] < 1.0)
         {
-            frontVolMarkerField_ += markerField_[I] * mesh.V()[I];
-            interfaceVolMarkerField_ += markerField_[I] * mesh.V()[I];
+            frontVolMarkerField_ += (1.0 - markerField_[I]) * mesh.V()[I];
+            interfaceVolMarkerField_ += (1.0 - markerField_[I]) * mesh.V()[I];
         }
     }
 }

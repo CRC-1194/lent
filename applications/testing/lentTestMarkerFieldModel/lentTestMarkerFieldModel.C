@@ -173,6 +173,11 @@ int main(int argc, char *argv[])
 
     lent.calcMarkerField(markerField);
 
+    // Write fields for further manual inspection / posprocessing
+    markerField.write();
+    signedDistance.write();
+    pointSignedDistance.write();
+
     Info << "Start tests...\n" << endl;
 
     lentMarkerFieldTest test(markerField, front, lent.dict().subDict("markerFieldModel"));
