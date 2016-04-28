@@ -138,7 +138,7 @@ void tetFillingLevelMarkerFieldModel::setBulkMarkerField(volScalarField& markerF
             }
         }
 
-        assert (markerField[cellI] >= 0.0);
+        assert (markerField[cellI] >= 0.0 && markerField[cellI] <= 1.0);
     }
 }
 
@@ -220,7 +220,7 @@ scalar tetFillingLevelMarkerFieldModel::volumeFraction(List<scalar>& d) const
     }
     else if (negativeEntries == 2)
     {
-        volFraction = 1.0 - ( d[0]*d[1] * (d[2]*d[2] + d[2]*d[3] + d[3]*d[3])
+        volFraction = ( d[0]*d[1] * (d[2]*d[2] + d[2]*d[3] + d[3]*d[3])
                 + d[2]*d[3] * (d[2]*d[3] - (d[0]+d[1])*(d[2]+d[3])) )
                 / ((d[0]-d[2]) * (d[1]-d[2]) * (d[0]-d[3]) * (d[1]-d[3]));
     }
@@ -234,7 +234,7 @@ scalar tetFillingLevelMarkerFieldModel::volumeFraction(List<scalar>& d) const
         volFraction = 1.0;
     }
 
-    assert (volFraction >= 0.0);
+    assert (volFraction >= 0.0 && volFraction <= 1.0);
     return volFraction;
 }
 
@@ -258,6 +258,10 @@ label tetFillingLevelMarkerFieldModel::sortDistances(List<scalar>& distances) co
         }
     }
 
+    assert (distances[0] <= distances[1]
+                && distances[1] <= distances[2]
+                && distances[2] <= distances[3]);
+
     return negativeEntries;
 }
 
@@ -273,18 +277,18 @@ tetFillingLevelMarkerFieldModel::tetFillingLevelMarkerFieldModel(
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 void tetFillingLevelMarkerFieldModel::calcMarkerField(volScalarField& markerField) const
 {
-    tagInterfaceCells(markerField);
-
     const fvMesh& mesh = markerField.mesh();
     const labelList& owners = mesh.faceOwner();
     const labelList& neighbours = mesh.faceNeighbour();
     const faceList& faces = mesh.faces();
 
+    tagInterfaceCells(markerField);
+
     label cellI = -1;
 
     forAll(faces, faceI)
     {
-        // Check if either owner or neighbour cell is an interface cell
+        // Check if owner or neighbour cell or both are an interface cell.
         // If true, perform the barycentric decomposition and computation
         // of filling level contribution according to the paper mentioned in
         // the class description
@@ -292,7 +296,6 @@ void tetFillingLevelMarkerFieldModel::calcMarkerField(volScalarField& markerFiel
         {
             cellI = owners[faceI];
             markerField[cellI] += fillingLevel(cellI, faces[faceI], mesh);
-            cellI = -1;
         }
 
         if (faceI < neighbours.size())
@@ -301,7 +304,6 @@ void tetFillingLevelMarkerFieldModel::calcMarkerField(volScalarField& markerFiel
             {
                cellI = neighbours[faceI];
                markerField[cellI] += fillingLevel(cellI, faces[faceI], mesh);
-               cellI = -1;
             }
         }
     }
