@@ -61,7 +61,8 @@ Description
 #include "taylorFrontMotionSolver.H"
 #include "addToRunTimeSelectionTable.H"
 #include "fvcDdt.H"
-#include "fvcD2dt2.H"
+#include "fvcGrad.H"
+//#include "fvcD2dt2.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -94,8 +95,8 @@ void taylorFrontMotionSolver::calcCellDisplacement(
     const auto& runTime = cellVelocity.time(); 
 
     deltaC = (cellVelocity * runTime.deltaT())
-        + (fvc::ddt(cellVelocity) * 0.5 * Foam::sqr(runTime.deltaT()))
-        + (fvc::d2dt2(cellVelocity) * (1.0 / 6.0) * Foam::pow(runTime.deltaT(),3));  
+        + ((fvc::ddt(cellVelocity) + (cellVelocity & fvc::grad(cellVelocity))) * 0.5 * Foam::sqr(runTime.deltaT()));
+        //+ (fvc::d2dt2(cellVelocity) * (1.0 / 6.0) * Foam::pow(runTime.deltaT(),3));  
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

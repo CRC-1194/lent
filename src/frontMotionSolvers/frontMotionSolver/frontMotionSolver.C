@@ -153,7 +153,7 @@ void frontMotionSolver::initDisplacements(
     } else
     {
         frontDisplacementTmp_->resize(front.nPoints()); 
-        frontDisplacementTmp_.ref() = zeroDisplacement;  
+        //frontDisplacementTmp_.ref() = zeroDisplacement;  
     }
 }
 
@@ -167,10 +167,9 @@ void frontMotionSolver::evolveFront(
     // Overload this member function for different functionality.
     calcCellDisplacement(cellVelocity); 
 
-    // Interpolate the Eulerian displacement field U*deltaT to displacement.
+    // Interpolate the displacement field from the cell to the front.
     const auto& deltaC = cellDisplacements();
     auto& deltaF = frontDisplacements();
-
     interpolation_.interpolate(deltaC, deltaF); 
 
     // Displace front points with front displacements.  
