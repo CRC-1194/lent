@@ -111,16 +111,6 @@ lentMethod::lentMethod(
            lentControlDict_.subDict("frontReconstructor")
        )
     ),
-    searchAlgorithmTmp_(
-       frontMeshSearch::New(
-           lentControlDict_.subDict("searchAlgorithm")
-       )
-    ),
-    //frontVelocityCalculatorTmp_(
-       //frontVelocityCalculator::New(
-           //lentControlDict_.subDict("frontVelocityCalculator")
-       //)
-    //),
     frontMotionSolverTmp_(
        frontMotionSolver::New(
            lentControlDict_.subDict("frontMotionSolver")
