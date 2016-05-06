@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,35 +23,14 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+#include "interpolationCellPointTaylor.H"
 
-template<class Type>
-inline Type Foam::interpolationCellPointTaylor<Type>::interpolate
-(
-    const vector& position,
-    const label cellI,
-    const label faceI
-) const
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+namespace Foam
 {
-    const GradFieldType& gradPsi_= psiGrad_();  
-    const auto& mesh = gradPsi_.mesh(); 
-    const auto& C = mesh.C(); 
-    const auto delta = position - C[cellI]; 
-
-    return (interpolation<Type>::psi_[cellI] + (gradPsi_[cellI] & delta)); 
+    makeInterpolationType(interpolationCellPointTaylor, scalar)                                              
+    makeInterpolationType(interpolationCellPointTaylor, vector)                                              
 }
-
-
-template<class Type>
-inline Type Foam::interpolationCellPointTaylor<Type>::interpolate
-(
-    const vector& position,
-    const tetIndices& tetIs,
-    const label faceI
-) const
-{
-    return Type(); 
-}
-
 
 // ************************************************************************* //
