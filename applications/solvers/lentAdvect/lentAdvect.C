@@ -77,6 +77,12 @@ int main(int argc, char *argv[])
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
+    // Update the advection velocity from function objects and overwrite 
+    // intial values.  
+    auto& functionObjects = runTime.functionObjects(); 
+    functionObjects.execute(); 
+    U.write(); 
+
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< "\nStarting time loop\n" << endl;
@@ -88,22 +94,6 @@ int main(int argc, char *argv[])
             mesh,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
-        )
-    );
-
-    triSurfaceFrontPointVectorField frontVelocity(
-        IOobject(
-            "frontVelocity",
-            runTime.timeName(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        front,
-        dimensionedVector(
-            "zero",
-            dimLength / dimTime,
-            vector(0,0,0)
         )
     );
 
@@ -121,11 +111,11 @@ int main(int argc, char *argv[])
 
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
+
     lent.calcMarkerField(markerField);
     markerField.write(); 
     front.write();
 
-    auto markerField0 (markerField);  
 
     while (runTime.run())
     {
