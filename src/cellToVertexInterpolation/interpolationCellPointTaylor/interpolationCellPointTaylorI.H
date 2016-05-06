@@ -23,6 +23,8 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include "error.H"
+
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
@@ -33,12 +35,11 @@ inline Type Foam::interpolationCellPointTaylor<Type>::interpolate
     const label faceI
 ) const
 {
-    const GradFieldType& gradPsi_= psiGrad_();  
+    const auto& gradPsi_= psiGrad_();  
     const auto& mesh = gradPsi_.mesh(); 
     const auto& C = mesh.C(); 
-    const auto delta = position - C[cellI]; 
 
-    return (interpolation<Type>::psi_[cellI] + (gradPsi_[cellI] & delta)); 
+    return (this->psi_[cellI] + ((position - C[cellI]) & gradPsi_[cellI])); 
 }
 
 
@@ -50,6 +51,7 @@ inline Type Foam::interpolationCellPointTaylor<Type>::interpolate
     const label faceI
 ) const
 {
+    notImplemented("interpolationCellPointTaylor::interpolate(const vector&, const tetIndices& const label)");
     return Type(); 
 }
 

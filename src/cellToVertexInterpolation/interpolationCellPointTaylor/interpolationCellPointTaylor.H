@@ -96,9 +96,9 @@ public:
             const label faceI = -1
         ) const;
 
-        const GradFieldType& gradFieldRef()
+        const GradFieldType& gradFieldRef() const
         {
-            return psiGrad_.ref(); 
+            return psiGrad_(); 
         }
 };
 
