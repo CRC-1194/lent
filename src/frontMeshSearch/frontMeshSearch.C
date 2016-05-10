@@ -291,6 +291,8 @@ labelList frontMeshSearch::pointCellStencil(
     const fvMesh& mesh
 ) const
 {
+    labelList result;
+
     const faceList& faces = mesh.faces();
     const cellList& cells = mesh.cells();
     const labelListList& pointCells = mesh.pointCells();
@@ -307,8 +309,12 @@ labelList frontMeshSearch::pointCellStencil(
             newNeighborCells.insert(addedNeighborCells[J]);
         }
     }
+    // TODO: Improve efficiency. TM. 
+    result.resize(newNeighborCells.size());
 
-    return labelList(newNeighborCells.begin(), newNeighborCells.end());
+    std::copy(newNeighborCells.begin(), newNeighborCells.end(), result.begin()); 
+
+    return result;
 }
 
 void frontMeshSearch::updateElementCells(
