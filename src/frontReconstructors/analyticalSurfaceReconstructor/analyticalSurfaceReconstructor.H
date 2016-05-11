@@ -60,8 +60,10 @@ Description
 #ifndef analyticalSurfaceReconstructor_H
 #define analyticalSurfaceReconstructor_H
 
+#include "tmp.H"
 #include "typeInfo.H"
 
+#include "analyticalSurface.H"
 #include "frontReconstructor.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -70,7 +72,7 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class analyticalSurfaceReconstructor Declaration
+                Class analyticalSurfaceReconstructor Declaration
 \*---------------------------------------------------------------------------*/
 
 class analyticalSurfaceReconstructor
@@ -78,8 +80,7 @@ class analyticalSurfaceReconstructor
     public frontReconstructor
 {
     // Private data
-
-    // Private Member Functions
+    tmp<analyticalSurface> analyticalSurfaceTmp_;
 
 public:
 

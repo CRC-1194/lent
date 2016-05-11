@@ -140,40 +140,21 @@ int main(int argc, char *argv[])
 
     lentMethod lent(front, mesh);
 
-    tmp<analyticalSurface> analyticalSurfaceTmp( 
-        analyticalSurface::New(lent.dict().subDict("analyticalSurface"))
-    );
-
-    // Construct front mesh from analytical surface
-    frontConstructor frontCon(analyticalSurfaceTmp, mesh);
-    front = frontCon.createTriSurface();
-    front.write();
-
-    lent.setTriangleCellMapping(frontCon.triangleToCell());
+    lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
-    // TODO: remove analytical distance calculation once 
-    // the distance calculation for boundary mesh points is fixed (TT)
-    if (analyticalSurfaceTmp->type() == "Plane")
-    {
-        frontCon.cellDistance(signedDistance);
-        frontCon.pointDistance(pointSignedDistance);
-    }
-    else
-    {
-        lent.calcSignedDistances(
-            signedDistance,
-            pointSignedDistance,
-            searchDistanceSqr,
-            pointSearchDistanceSqr,
-            front
-        );
-    }
+    lent.calcSignedDistances(
+        signedDistance,
+        pointSignedDistance,
+        searchDistanceSqr,
+        pointSearchDistanceSqr,
+        front
+    );
 
     lent.calcMarkerField(markerField);
 
-    // Write fields for further manual inspection / posprocessing
+    // Write fields for further manual inspection / postprocessing
     markerField.write();
     signedDistance.write();
     pointSignedDistance.write();
