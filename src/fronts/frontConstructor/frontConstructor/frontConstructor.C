@@ -232,30 +232,6 @@ frontConstructor::frontConstructor(const tmp<analyticalSurface> surfaceTmp,
 frontConstructor::~frontConstructor()
 {}
 
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-void frontConstructor::cellDistance(volScalarField& signedDistance) const
-{
-    const fvMesh& mesh = signedDistance.mesh();
-    const volVectorField& centres = mesh.C();
-
-    forAll(signedDistance, I)
-    {
-        signedDistance[I] = surfaceTmp_->signedDistance(centres[I]);
-    }
-}
-
-void frontConstructor::pointDistance(pointScalarField& signedDistance) const
-{
-    const pointMesh& pmesh = signedDistance.mesh();
-    const pointField& points = pmesh().points();
-
-    forAll(signedDistance, I)
-    {
-        signedDistance[I] = surfaceTmp_->signedDistance(points[I]);
-    }
-}
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 

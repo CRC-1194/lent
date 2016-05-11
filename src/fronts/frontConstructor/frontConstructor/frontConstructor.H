@@ -129,13 +129,15 @@ public:
         return triaToCell_;
     }
 
+    auto surface() const
+    {
+        return surfaceTmp_;
+    }
+
     triSurface createTriSurface()
     {
         return triSurface(frontTriangles_, frontVertices_);
     }
-
-    void cellDistance(volScalarField& signedDistance) const;
-    void pointDistance(pointScalarField& signedDistance) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
