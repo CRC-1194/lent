@@ -66,6 +66,7 @@ Description
 
 #include "typeInfo.H"
 #include "pointFields.H"
+#include "SortableList.H"
 #include "volFieldsFwd.H"
 
 #include "markerFieldModel.H"
@@ -76,13 +77,13 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class tetFillingLevelMarkerFieldModel Declaration
+                Class tetFillingLevelMarkerFieldModel Declaration
 \*---------------------------------------------------------------------------*/
 
 struct tetrahedron
 {
     FixedList<point, 4> vertex;
-    FixedList<scalar, 4> distance;
+    SortableList<scalar> distance;
 };
 
 class tetFillingLevelMarkerFieldModel
@@ -91,22 +92,6 @@ class tetFillingLevelMarkerFieldModel
 {
     // Private data
     const word pointDistFieldName_;
-
-    // Private Member Functions
-    void tagInterfaceCells(volScalarField& markerField) const;
-    void setBulkMarkerField(volScalarField& markerField) const;
-    // New member functions from refactoring
-    virtual List<tetrahedron> tetDecomposition(const point& cellCentre,
-                                               const face& cellFace,
-                                               const pointField& points,
-                                               const pointScalarField& pointDistance,
-                                               scalar centreDistance) const;
-    scalar fillingLevel(const label& cellID, const face& cellFace,
-                         const fvMesh& mesh) const;
-    scalar tetrahedralVolume(const tetrahedron& tet) const;
-    scalar volumeFraction(FixedList<scalar, 4>& d) const;
-    label sortDistances(FixedList<scalar, 4>& distances) const;
-
 
 public:
 
@@ -117,6 +102,19 @@ public:
 
     // Member Functions
     virtual void calcMarkerField(volScalarField& markerField) const;
+
+    void tagInterfaceCells(volScalarField& markerField) const;
+    void setBulkMarkerField(volScalarField& markerField) const;
+    virtual List<tetrahedron> tetDecomposition(const point& cellCentre,
+                                               const face& cellFace,
+                                               const pointField& points,
+                                               const pointScalarField& pointDistance,
+                                               scalar centreDistance) const;
+    scalar fillingLevel(const label& cellID, const face& cellFace,
+                         const fvMesh& mesh) const;
+    scalar tetrahedralVolume(const tetrahedron& tet) const;
+    scalar volumeFraction(SortableList<scalar>& d) const;
+    label countNegativeEntries(List<scalar>& distance) const;
 
     word pointDistFieldName() const
     {
