@@ -79,6 +79,12 @@ namespace FrontTracking {
                          Class tetFillingLevelMarkerFieldModel Declaration
 \*---------------------------------------------------------------------------*/
 
+struct tetrahedron
+{
+    FixedList<point, 4> vertex;
+    FixedList<scalar, 4> distance;
+};
+
 class tetFillingLevelMarkerFieldModel
 :
     public markerFieldModel
@@ -89,12 +95,17 @@ class tetFillingLevelMarkerFieldModel
     // Private Member Functions
     void tagInterfaceCells(volScalarField& markerField) const;
     void setBulkMarkerField(volScalarField& markerField) const;
+    // New member functions from refactoring
+    virtual List<tetrahedron> tetDecomposition(const point& cellCentre,
+                                               const face& cellFace,
+                                               const pointField& points,
+                                               const pointScalarField& pointDistance,
+                                               scalar centreDistance) const;
     scalar fillingLevel(const label& cellID, const face& cellFace,
-                        const fvMesh& mesh) const;
-    scalar tetrahedralVolume(const point& pointA, const point& pointB,
-                             const point& pointC, const point& pointD) const;
-    scalar volumeFraction(List<scalar>& d) const;
-    label sortDistances(List<scalar>& distances) const;
+                         const fvMesh& mesh) const;
+    scalar tetrahedralVolume(const tetrahedron& tet) const;
+    scalar volumeFraction(FixedList<scalar, 4>& d) const;
+    label sortDistances(FixedList<scalar, 4>& distances) const;
 
 
 public:

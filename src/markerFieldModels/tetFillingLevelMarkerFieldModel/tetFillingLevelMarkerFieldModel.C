@@ -142,11 +142,47 @@ void tetFillingLevelMarkerFieldModel::setBulkMarkerField(volScalarField& markerF
     }
 }
 
+List<tetrahedron> tetFillingLevelMarkerFieldModel::tetDecomposition
+(
+    const point& cellCentre,
+    const face& cellFace,
+    const pointField& points,
+    const pointScalarField& pointDistance,
+    scalar centreDistance
+) const
+{
+    // Perform decomposition using the barycentre of the face
+    List<tetrahedron> tets(cellFace.nEdges());
+
+    point faceCentre = cellFace.centre(points);
+    scalar faceDistance = cellFace.average(points, pointDistance);
+    edgeList edges = cellFace.edges();
+
+    forAll(edges, edgeI)
+    {
+        edge e = edges[edgeI];
+
+        tets[edgeI].vertex[0] = cellCentre;
+        tets[edgeI].vertex[1] = faceCentre;
+        tets[edgeI].vertex[2] = points[e[0]];
+        tets[edgeI].vertex[3] = points[e[1]];
+
+        tets[edgeI].distance[0] = centreDistance;
+        tets[edgeI].distance[1] = faceDistance;
+        tets[edgeI].distance[2] = pointDistance[e[0]];
+        tets[edgeI].distance[3] = pointDistance[e[1]];
+    }
+
+    return tets;
+}
+
 scalar tetFillingLevelMarkerFieldModel::fillingLevel
 (
     const label& cellID, const face& cellFace, const fvMesh& mesh
 ) const
 {
+    scalar absoluteFilling = 0.0;
+
     const volScalarField& signedDistance =
         mesh.lookupObject<volScalarField>(markerFieldModel::cellDistFieldName());
     const pointScalarField& pointDistance =
@@ -155,53 +191,26 @@ scalar tetFillingLevelMarkerFieldModel::fillingLevel
     const edgeList edges = cellFace.edges();
 
     point cellCentre = mesh.C()[cellID];
-    point faceCentre = cellFace.centre(points);
 
-    // Stores the signed distances for a tetrahedron
-    List<scalar> distances(4);
+    List<tetrahedron> tets = tetDecomposition(cellCentre, cellFace, points, pointDistance, signedDistance[cellID]);
 
-    scalar absoluteFilling = 0.0;
-    scalar distanceFaceCentre = 0.0;
-
-    // For now, compute the signed distance at the face centre by the
-    // arithmetic mean of the vertex values
-    // TODO: check quality and replace with more accurate scheme if required (TT)
-    forAll(cellFace, vertexI)
+    forAll(tets, I)
     {
-        distanceFaceCentre += pointDistance[cellFace[vertexI]];
-    }
-    distanceFaceCentre /= cellFace.size();
-
-    forAll(edges, edgeI)
-    {
-        distances[0] = signedDistance[cellID];
-        distances[1] = distanceFaceCentre;
-        distances[2] = pointDistance[edges[edgeI][0]];
-        distances[3] = pointDistance[edges[edgeI][1]];
-
         absoluteFilling +=
-            tetrahedralVolume
-            (
-                cellCentre, faceCentre,
-                points[edges[edgeI][0]], points[edges[edgeI][1]]
-            ) 
-            * volumeFraction(distances);
+            tetrahedralVolume(tets[I]) * volumeFraction(tets[I].distance);
     }
 
     return absoluteFilling;
 }
 
-scalar tetFillingLevelMarkerFieldModel::tetrahedralVolume
-(
-    const point& pointA, const point& pointB, const point& pointC,
-    const point& pointD
-) const
+scalar tetFillingLevelMarkerFieldModel::tetrahedralVolume(const tetrahedron& tet) const
 {
-    return fabs((pointA - pointB) & ((pointC - pointB) ^ (pointD - pointB)))/6.0;
+    return fabs((tet.vertex[1] - tet.vertex[0]) & 
+           ((tet.vertex[2] - tet.vertex[0]) ^ (tet.vertex[3] - tet.vertex[0])))
+           /6.0;
 }
 
-
-scalar tetFillingLevelMarkerFieldModel::volumeFraction(List<scalar>& d) const
+scalar tetFillingLevelMarkerFieldModel::volumeFraction(FixedList<scalar, 4>& d) const
 {
     // This function implements the computation of the volume fraction from
     // the signed distance for a tetrahedron as described by the paper
@@ -238,7 +247,7 @@ scalar tetFillingLevelMarkerFieldModel::volumeFraction(List<scalar>& d) const
     return volFraction;
 }
 
-label tetFillingLevelMarkerFieldModel::sortDistances(List<scalar>& distances) const
+label tetFillingLevelMarkerFieldModel::sortDistances(FixedList<scalar, 4>& distances) const
 {
     label negativeEntries = 0;
 
@@ -264,7 +273,6 @@ label tetFillingLevelMarkerFieldModel::sortDistances(List<scalar>& distances) co
 
     return negativeEntries;
 }
-
 // * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * //
 tetFillingLevelMarkerFieldModel::tetFillingLevelMarkerFieldModel(
                                     const dictionary& configDict)
