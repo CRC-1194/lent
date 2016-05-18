@@ -60,7 +60,7 @@ Description
 
 #include "foamIsoSurfaceFrontReconstructor.H"
 #include "addToRunTimeSelectionTable.H"
-#include "isoSurface.H" 
+#include "taylorIsoSurface.H" 
 //#include "isoSurfaceCell.H"// Alternative iso-surface reconstruction.
 #include "lentCommunication.H"
 
@@ -92,7 +92,7 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
     const pointScalarField& pointSignedDistance
 ) const
 {
-    isoSurface iso(
+    taylorIsoSurface iso(
         signedDistance,
         pointSignedDistance,
         0, // FIXME: Leave as a compile time constant? TM.
@@ -123,6 +123,8 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
     communication.updateVertexToCell();
 
     // Make normals consistent. 
+    // FIXME: Remove consistencyAlgTmp_, not required anymore, 
+    // normals consistently oriented. TM.
     consistencyAlgTmp_->makeFrontNormalsConsistent(
         front,
         signedDistance, 

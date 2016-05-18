@@ -235,9 +235,9 @@ void lentMethod::evolveFront(
     frontIsReconstructed_ = false;
 
     // Clean up degenerate triangles.
-    Info << "Cleaning up degeneracies..." << endl;  
-    front.cleanup(false);
-    Info << "Done." << endl;
+    //Info << "Cleaning up degeneracies..." << endl;  
+    //front.cleanup(false);
+    //Info << "Done." << endl;
 
     // Calculate normal vectors after front motion.
     Info << "Computing triangle normal vectors..." << endl;  
