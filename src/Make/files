@@ -1,4 +1,4 @@
-fronts/triSurfaceFront/triSurfaceFront/triSurfaceFront.C
+./fronts/triSurfaceFront/triSurfaceFront/triSurfaceFront.C
 
 distanceFieldCalculators/distanceFieldCalculator/distanceFieldCalculator.C
 distanceFieldCalculators/triSurfaceMeshDistanceCalculator/triSurfaceMeshDistanceCalculator.C
@@ -48,6 +48,9 @@ lentCommunication/lentCommunication.C
 fronts/triSurfaceFront/triSurfaceFrontFields/triSurfaceFrontFields.C
 lentInterpolation/lentInterpolation.C
 cellToVertexInterpolation/interpolationCellPointTaylor/makeInterpolationCellPointTaylor.C
+cellToVertexInterpolation/interpolationCellPointTaylorExtended/makeInterpolationCellPointTaylorExtended.C
+
+isoSurfaces/taylorIsoSurface/taylorIsoSurface.C
 
 lentMethod/lentMethod.C
 
