@@ -60,8 +60,8 @@ Description
 
 #include "foamIsoSurfaceFrontReconstructor.H"
 #include "addToRunTimeSelectionTable.H"
-//#include "isoSurface.H" // Alternative iso-surface reconstruction.
-#include "isoSurfaceCell.H"
+#include "isoSurface.H" 
+//#include "isoSurfaceCell.H"// Alternative iso-surface reconstruction.
 #include "lentCommunication.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -92,8 +92,7 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
     const pointScalarField& pointSignedDistance
 ) const
 {
-    isoSurfaceCell iso (
-        signedDistance.mesh(),
+    isoSurface iso(
         signedDistance,
         pointSignedDistance,
         0, // FIXME: Leave as a compile time constant? TM.
@@ -102,7 +101,8 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
     );
 
     // Clean up degenerate triangles. Report the cleanup process.  
-    iso.cleanup(true);
+    // FIXME: Investigate this.
+    //iso.cleanup(true);
 
     // Update the communication map after reconstruction.
     const auto& mesh = signedDistance.mesh();
@@ -111,9 +111,16 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
             lentCommunication::registeredName(front,mesh)
         ) 
     );
-    communication.setTriangleToCell(iso.meshCells());
-
+    // Assign the new iso surface mesh to the front.  
     front = static_cast<triSurface&>(iso);
+
+    // Set the triangleToCell using the map produced by the iso-surface
+    // reconstruction algorithm.
+    communication.setTriangleToCell(iso.meshCells());
+    // Update vertex to cell using triangle to cell information.
+    // - NOTE: Nearest information gets completely lost: a completely new
+    // set of triangles is generated!  
+    communication.updateVertexToCell();
 
     // Make normals consistent. 
     consistencyAlgTmp_->makeFrontNormalsConsistent(
