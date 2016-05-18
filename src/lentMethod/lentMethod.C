@@ -191,10 +191,6 @@ void lentMethod::reconstructFront(
             pointSignedDistance
         );
 
-        // Update the rest of the communication maps after reconstruction. TM.
-        // TODO: trianglesToCell is already updated, extract vertexToCellUpdate. TM.
-        communicationMaps_.update(); 
-
         frontIsReconstructed_ = true;
 
         Info << "Done." << endl;
