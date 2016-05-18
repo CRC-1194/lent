@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::interpolationCellPointTaylor
+    Foam::interpolationCellPointTaylorExtended
 
 Description
     Given cell centre values and point (vertex) values decompose into
@@ -30,10 +30,10 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef interpolationCellPointTaylor_H
-#define interpolationCellPointTaylor_H
+#ifndef interpolationCellPointTaylorExtended_H
+#define interpolationCellPointTaylorExtended_H
 
-#include "interpolation.H"
+#include "interpolationCellPointTaylor.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -41,37 +41,25 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                   Class interpolationCellPointTaylor Declaration
+                   Class interpolationCellPointTaylorExtended Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
-class interpolationCellPointTaylor
+class interpolationCellPointTaylorExtended
 :
-    public interpolation<Type>
+    public interpolationCellPointTaylor<Type>
 {
-public: 
-
-    typedef GeometricField
-    <
-        typename outerProduct<vector,Type>::type, 
-        fvPatchField, 
-        volMesh
-    > GradFieldType; 
-
-private: 
-
-    tmp<GradFieldType> psiGrad_;  
 
 public:
 
     //- Runtime type information
-    TypeName("cellPointTaylor");
+    TypeName("cellPointTaylorExtended");
 
 
     // Constructors
 
         //- Construct from components
-        interpolationCellPointTaylor
+        interpolationCellPointTaylorExtended
         (
             const GeometricField<Type, fvPatchField, volMesh>& psi
         );
@@ -86,20 +74,6 @@ public:
             const label cellI,
             const label faceI = -1
         ) const;
-
-        //- Interpolate field to the given point in the tetrahedron
-        //  defined by the given indices.
-        inline Type interpolate
-        (
-            const vector& position,
-            const tetIndices& tetIs,
-            const label faceI = -1
-        ) const;
-
-        const GradFieldType& gradFieldRef()
-        {
-            return psiGrad_.ref(); 
-        }
 };
 
 
@@ -109,12 +83,12 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "interpolationCellPointTaylorI.H"
+#include "interpolationCellPointTaylorExtendedI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "interpolationCellPointTaylor.C"
+    #include "interpolationCellPointTaylorExtended.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

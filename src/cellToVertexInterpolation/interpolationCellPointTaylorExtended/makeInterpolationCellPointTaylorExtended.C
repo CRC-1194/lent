@@ -23,14 +23,14 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "interpolationCellPointTaylor.H"
+#include "interpolationCellPointTaylorExtended.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    makeInterpolationType(interpolationCellPointTaylor, scalar)                                              
-    makeInterpolationType(interpolationCellPointTaylor, vector)                                              
+    makeInterpolationType(interpolationCellPointTaylorExtended, scalar)                                              
+    makeInterpolationType(interpolationCellPointTaylorExtended, vector)                                              
 }
 
 // ************************************************************************* //

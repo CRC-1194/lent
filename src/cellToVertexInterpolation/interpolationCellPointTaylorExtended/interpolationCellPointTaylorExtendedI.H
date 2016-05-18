@@ -26,32 +26,33 @@ License
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
-inline Type Foam::interpolationCellPointTaylor<Type>::interpolate
+inline Type Foam::interpolationCellPointTaylorExtended<Type>::interpolate
 (
     const vector& position,
     const label cellI,
     const label faceI
 ) const
 {
-    const GradFieldType& gradPsi_= psiGrad_();  
+    auto result = pTraits<Type>::zero; 
+
+    const auto& gradPsi_= this->gradFieldRef();  
     const auto& mesh = gradPsi_.mesh(); 
     const auto& C = mesh.C(); 
-    const auto delta = position - C[cellI]; 
+    const auto& cellCells = mesh.cellCells(); 
+    const auto& neighborCells = cellCells[cellI];
 
-    return (interpolation<Type>::psi_[cellI] + (gradPsi_[cellI] & delta)); 
+    forAll (neighborCells, nCellI)
+    {
+        const auto nCell = neighborCells[nCellI]; 
+        const auto nDelta = position - C[nCell]; 
+        result += this->psi_[nCell] + (nDelta & gradPsi_[nCell]);  
+    }
+
+    // Arithmetic average.
+    // TODO: IDW based average? Volume based average? TM.   
+    result /= neighborCells.size(); 
+
+    return result; 
 }
-
-
-template<class Type>
-inline Type Foam::interpolationCellPointTaylor<Type>::interpolate
-(
-    const vector& position,
-    const tetIndices& tetIs,
-    const label faceI
-) const
-{
-    return Type(); 
-}
-
 
 // ************************************************************************* //
