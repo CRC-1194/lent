@@ -83,21 +83,16 @@ eulerFrontMotionSolver::eulerFrontMotionSolver(const dictionary& configDict)
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void eulerFrontMotionSolver::evolveFront(
-    triSurfaceFront& front,
-    const triSurfaceFrontPointVectorField& frontVelocity
-) const
-{
-    pointField& frontPoints = const_cast<pointField&> (front.points());
+void eulerFrontMotionSolver::calcCellDisplacement(
+    const volVectorField& cellVelocity
+)
+{  
+    auto& deltaC = cellDisplacements(); 
 
-    const Time& runTime = frontVelocity.time();
+    const auto& runTime = cellVelocity.time(); 
 
-    forAll (frontPoints, I)
-    {                     // Euler.  
-        frontPoints[I] += (frontVelocity[I] * runTime.deltaT().value());
-    }
+    deltaC = cellVelocity * runTime.deltaT();  
 }
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking

@@ -81,14 +81,14 @@ int main(int argc, char *argv[])
     const dictionary& lentDict = lent.dict(); 
 
     tmp<frontCurvatureModel> exactCurvatureModelTmp = frontCurvatureModel::New(lentDict.subDict("exactCurvatureModel")); 
-    const frontCurvatureModel& exactCurvatureModel = exactCurvatureModelTmp(); 
+    const frontCurvatureModel& exactCurvatureModel = exactCurvatureModelTmp.ref(); 
     tmp<volScalarField> cellCurvatureExactTmp = exactCurvatureModel.cellCurvature(mesh,front);  
-    volScalarField& exactCurvature = cellCurvatureExactTmp();  
+    volScalarField& exactCurvature = cellCurvatureExactTmp.ref();  
 
     tmp<frontCurvatureModel> numericalCurvatureModelTmp = frontCurvatureModel::New(lentDict.subDict("curvatureModel"));  
-    const frontCurvatureModel& numericalCurvatureModel = numericalCurvatureModelTmp(); 
+    const frontCurvatureModel& numericalCurvatureModel = numericalCurvatureModelTmp.ref(); 
     tmp<volScalarField> numericalCurvatureTmp = numericalCurvatureModel.cellCurvature(mesh,front);  
-    volScalarField& numericalCurvature = numericalCurvatureTmp();  
+    volScalarField& numericalCurvature = numericalCurvatureTmp.ref();  
     numericalCurvature.rename("numericalCurvature"); 
     numericalCurvature.writeOpt() = IOobject::AUTO_WRITE; 
 

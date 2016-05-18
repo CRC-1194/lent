@@ -23,16 +23,13 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::foamIsoSurfaceFrontReconstructor
-
-SourceFiles
-    diffuseInterfaceProperties.C
+    Foam::barycenterPlaneMarkerFieldModel
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Abstract base class for the heaviside function calculation from a signed
+    Abstract base class for the markerField function calculation from a signed
     distance field.
 
     You may refer to this software as :
@@ -58,78 +55,73 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "foamIsoSurfaceFrontReconstructor.H"
+#include "barycenterPlaneMarkerFieldModel.H"
 #include "addToRunTimeSelectionTable.H"
-#include "taylorIsoSurface.H" 
-//#include "isoSurfaceCell.H"// Alternative iso-surface reconstruction.
-#include "lentCommunication.H"
+#include "volFields.H"
+#include "mathematicalConstants.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(foamIsoSurfaceFrontReconstructor, 0);
-    addToRunTimeSelectionTable(foamIsoSurfaceFrontReconstructor, foamIsoSurfaceFrontReconstructor, Dictionary);
+    defineTypeNameAndDebug(barycenterPlaneMarkerFieldModel, 0);
+    addToRunTimeSelectionTable(markerFieldModel, barycenterPlaneMarkerFieldModel, Dictionary);
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-foamIsoSurfaceFrontReconstructor::foamIsoSurfaceFrontReconstructor(
-   const dictionary& configDict
-)
-:
-    frontReconstructor(configDict),
-    mergeTolerance_(readScalar(configDict.lookup("mergeTolerance"))),
-    regularize_(configDict.lookup("regularization")),
-    consistencyAlgTmp_(normalConsistency::New(configDict.subDict("normalConsistency")))
+// * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * //
+barycenterPlaneMarkerFieldModel::barycenterPlaneMarkerFieldModel(const dictionary& configDict)
+    :
+        sharpMarkerFieldModel(configDict), 
+        pointDistFieldName_(configDict.lookup("pointDistance"))
 {}
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void foamIsoSurfaceFrontReconstructor::reconstructFront(
-    triSurfaceFront& front,
-    const volScalarField& signedDistance,
-    const pointScalarField& pointSignedDistance
-) const
+void barycenterPlaneMarkerFieldModel::calcMarkerField(volScalarField& markerField) const
 {
-    taylorIsoSurface iso(
-        signedDistance,
-        pointSignedDistance,
-        0, // FIXME: Leave as a compile time constant? TM.
-        bool(regularize_), 
-        mergeTolerance_
-    );
+    const scalar pi = constant::mathematical::pi;
+    const fvMesh& mesh = markerField.mesh(); 
+    const edgeList& meshEdges = mesh.edges(); 
+    const labelListList& meshEdgeCells = mesh.edgeCells();  
 
-    // Clean up degenerate triangles. Report the cleanup process.  
-    // FIXME: Investigate this.
-    //iso.cleanup(true);
+    const volScalarField& searchDistanceSqr = 
+        mesh.lookupObject<volScalarField>(sqrSearchDistFieldName()); 
 
-    // Update the communication map after reconstruction.
-    const auto& mesh = signedDistance.mesh();
-    auto& communication = const_cast<lentCommunication&>(
-        mesh.lookupObject<lentCommunication>(
-            lentCommunication::registeredName(front,mesh)
-        ) 
-    );
-    // Assign the new iso surface mesh to the front.  
-    front = static_cast<triSurface&>(iso);
+    const pointScalarField& pointDistance = 
+        mesh.lookupObject<pointScalarField>(pointDistFieldName()); 
 
-    // Set the triangleToCell using the map produced by the iso-surface
-    // reconstruction algorithm.
-    communication.setTriangleToCell(iso.meshCells());
-    // Update vertex to cell using triangle to cell information.
-    // - NOTE: Nearest information gets completely lost: a completely new
-    // set of triangles is generated!  
-    communication.updateVertexToCell();
+    const volScalarField& signedDistance = 
+        mesh.lookupObject<volScalarField>(cellDistFieldName()); 
 
-    // Make normals consistent. 
-    // FIXME: Remove consistencyAlgTmp_, not required anymore, 
-    // normals consistently oriented. TM.
-    consistencyAlgTmp_->makeFrontNormalsConsistent(
-        front,
-        signedDistance, 
-        pointSignedDistance
-    );
+    // Compute the sharp marker field [0,1] based on the distance sign.
+    sharpMarkerFieldModel::calcMarkerField(markerField); 
+
+    // Find an edge of a cell where the point signed distance switches in sign.
+    // Find the cells that share that edge and set the marker field using the
+    // harmonic model. 
+    forAll(meshEdges, edgeI)
+    {
+        const edge& meshEdge = meshEdges[edgeI]; 
+        auto firstPointDist = pointDistance[meshEdge[0]];
+        auto secondPointDist = pointDistance[meshEdge[1]];
+
+        // If the distance switches sign for an edge of the cell cellI. 
+        if ((firstPointDist * secondPointDist ) < 0)
+        {
+            const labelList& edgeCells = meshEdgeCells[edgeI]; 
+            forAll(edgeCells, edgeJ)
+            {
+                const label cellLabel = edgeCells[edgeJ]; 
+                scalar searchDistance = sqrt(searchDistanceSqr[cellLabel]); 
+
+                markerField[cellLabel] = 0.5 * (
+                    1 + signedDistance[cellLabel] / searchDistance + 1/pi *
+                    sin((pi * signedDistance[cellLabel]) / searchDistance)
+                );
+            }
+        }
+    }
+
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -143,3 +135,4 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // ************************************************************************* //
+

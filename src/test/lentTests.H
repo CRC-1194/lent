@@ -60,7 +60,6 @@ Description
 #define lentTests_H
 
 #include "triSurface.H"
-#include "gtest.h"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -68,7 +67,7 @@ namespace Foam {
     namespace FrontTracking {
         namespace Test {
 
-bool triSurfaceNormalsAreConsistent(const triSurface& front)
+bool normalsAreConsistent(const triSurface& front)
 {
     const labelListList& edgeFaces = front.edgeFaces();
     const vectorField& faceNormals = front.faceNormals();
@@ -87,6 +86,11 @@ bool triSurfaceNormalsAreConsistent(const triSurface& front)
         }
     }
     return true;
+}
+
+bool normalsAreInconsistent(const triSurface& front)
+{
+    return ! normalsAreConsistent(front); 
 }
 
 class triSurfaceSizeChange
@@ -124,17 +128,6 @@ class triSurfaceSizeChange
             }
 
             lastSize_ = triSurfaceSize;
-        }
-};
-
-// Classes for testing the application code.
-class lentTests : public ::testing::Test
-{
-    protected:
-        template<typename Front>
-        bool NORMALS_ARE_CONSISTENT(Front const & front)
-        {
-            return(triSurfaceNormalsAreConsistent(front));
         }
 };
 

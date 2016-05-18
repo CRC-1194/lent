@@ -71,7 +71,6 @@ Description
 #include "frontReconstructionModel.H"
 #include "frontReconstructor.H"
 #include "triSurfaceFields.H"
-//#include "frontVelocityCalculator.H"
 #include "frontMotionSolver.H"
 #include "markerFieldModel.H"
 #include "frontSurfaceTensionForceModel.H"
@@ -95,7 +94,7 @@ class lentMethod
     IOdictionary lentControlDict_;
 
     // Front <-> volume mesh communication maps. 
-    lentCommunication communicationMaps_;   // TODO: Use HashTable for multiphase. TM.
+    lentCommunication communicationMaps_;   
 
     // Front reconstruction flag.
     mutable bool frontIsReconstructed_;
@@ -109,13 +108,7 @@ class lentMethod
     // Front reconstructor.
     tmp<frontReconstructor> frontReconstructorTmp_;
 
-    // Search algorithm.
-    tmp<frontMeshSearch> searchAlgorithmTmp_;
-
-    // Velocity calculator.
-    //tmp<frontVelocityCalculator> frontVelocityCalculatorTmp_;
-
-    //// Front motion solver.
+    // Front motion solver.
     tmp<frontMotionSolver> frontMotionSolverTmp_;
 
     // MarkerField model.
@@ -180,7 +173,7 @@ public:
 
         void evolveFront(
             triSurfaceFront& front,
-            const triSurfaceFrontPointVectorField& frontVelocity
+            const volVectorField& cellVelocity
         );
         
         tmp<surfaceScalarField> faceSurfaceTensionForce(

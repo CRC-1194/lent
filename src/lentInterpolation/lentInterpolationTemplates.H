@@ -65,7 +65,11 @@ namespace FrontTracking {
 
 template<typename Type>  
 void lentInterpolation::interpolate(
-    const DimensionedField<Type, triSurfaceFrontPointGeoMesh>& vertexField,
+    const DimensionedField
+    <
+        Type, 
+        triSurfaceFrontPointGeoMesh
+    >& vertexField,
     GeometricField<Type, fvPatchField, volMesh>& cellField 
 ) 
 {
@@ -87,7 +91,10 @@ void lentInterpolation::interpolate(
 
 template<typename Type>  
 void lentInterpolation::interpolate(
-    tmp<DimensionedField<Type, triSurfaceFrontPointGeoMesh>> vertexFieldTmp,
+    tmp
+    <
+        DimensionedField<Type, triSurfaceFrontPointGeoMesh>
+    > vertexFieldTmp,
     GeometricField<Type, fvPatchField, volMesh>& cellField 
 ) 
 {
@@ -107,13 +114,18 @@ void lentInterpolation::interpolate(
             lentCommunication::registeredName(front,mesh)
     ); 
 
-    interpolationCellPoint<Type> barycentric(cellField);
+    auto interpolationPtr = 
+        interpolation<Type>::New(cellToVertexInterpType_,cellField);  
+
     const auto& vertexToCell = communication.vertexToCell(); 
     const pointField& vertices = front.points();
 
     forAll(vertexToCell, vertexI)
     {
-        vertexField[vertexI] = barycentric.interpolate(
+        // FIXME: Dynamic dispatch overhead used here.
+        // Fix interpolation once we know which type gives best results.
+        // TM. 
+        vertexField[vertexI] = interpolationPtr->interpolate(
             vertices[vertexI],
             vertexToCell[vertexI] 
         );

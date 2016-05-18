@@ -1,0 +1,3 @@
+./markerFieldModels/barycenterPlaneMarkerFieldModel/barycenterPlaneMarkerFieldModel.C
+
+LIB = $(FOAM_USER_LIBBIN)/liblentGeometrical

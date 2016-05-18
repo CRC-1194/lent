@@ -23,10 +23,10 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::eulerFrontMotionSolver
+    Foam::taylorFrontMotionSolver
 
 SourceFiles
-    eulerFrontMotionSolver.C
+    diffuseInterfaceProperties.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
@@ -58,39 +58,46 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef eulerFrontMotionSolver_H
-#define eulerFrontMotionSolver_H
+#include "taylorFrontMotionSolver.H"
+#include "addToRunTimeSelectionTable.H"
+#include "fvcDdt.H"
+#include "fvcGrad.H"
+//#include "fvcD2dt2.H"
 
-#include "frontMotionSolver.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class eulerFrontMotionSolver Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(taylorFrontMotionSolver, 0);
 
-class eulerFrontMotionSolver
-    :
-        public frontMotionSolver
-{
+    addToRunTimeSelectionTable(
+        frontMotionSolver,
+        taylorFrontMotionSolver,
+        Dictionary
+    );
 
-public:
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-    TypeName ("Euler");
+taylorFrontMotionSolver::taylorFrontMotionSolver(const dictionary& configDict)
+:
+    frontMotionSolver(configDict)
+{}
 
-    // Constructors
-    explicit eulerFrontMotionSolver(const dictionary& configDict);
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-    // Destructor
-    virtual ~eulerFrontMotionSolver() = default;
+void taylorFrontMotionSolver::calcCellDisplacement(
+    const volVectorField& cellVelocity // fvc::d2dt2 requires non-const access.
+)
+{  
+    auto& deltaC = cellDisplacements(); 
 
-    // Member Functions
-    virtual void calcCellDisplacement(const volVectorField& cellVelocity);
-};
+    const auto& runTime = cellVelocity.time(); 
 
+    deltaC = (cellVelocity * runTime.deltaT())
+        + ((fvc::ddt(cellVelocity) + (cellVelocity & fvc::grad(cellVelocity))) * 0.5 * Foam::sqr(runTime.deltaT()));
+        //+ (fvc::d2dt2(cellVelocity) * (1.0 / 6.0) * Foam::pow(runTime.deltaT(),3));  
+}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
@@ -100,7 +107,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

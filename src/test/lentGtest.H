@@ -23,17 +23,15 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::eulerFrontMotionSolver
+    Foam::lentTests
 
 SourceFiles
-    eulerFrontMotionSolver.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Evolve the front using the first order accurate Euler temporal discretization
-    scheme.
+    Test functions for the LENT algorithm.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,44 +56,34 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef eulerFrontMotionSolver_H
-#define eulerFrontMotionSolver_H
+#ifndef lentGtest_H
+#define lentGtest_H
 
-#include "frontMotionSolver.H"
+#include "lentTests.H"
+#include "gtest.h"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
-namespace FrontTracking {
+    namespace FrontTracking {
+        namespace Test {
 
-/*---------------------------------------------------------------------------*\
-                         Class eulerFrontMotionSolver Declaration
-\*---------------------------------------------------------------------------*/
-
-class eulerFrontMotionSolver
-    :
-        public frontMotionSolver
+// Classes for testing the application code.
+class lentTests : public ::testing::Test
 {
-
-public:
-
-    TypeName ("Euler");
-
-    // Constructors
-    explicit eulerFrontMotionSolver(const dictionary& configDict);
-
-    // Destructor
-    virtual ~eulerFrontMotionSolver() = default;
-
-    // Member Functions
-    virtual void calcCellDisplacement(const volVectorField& cellVelocity);
+    protected:
+        template<typename Front>
+        bool NORMALS_ARE_CONSISTENT(Front const & front)
+        {
+            return(normalsAreConsistent(front));
+        }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace FrontTracking
+} // End namespace Test
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+} // End namespace FrontTracking
 
 } // End namespace Foam
 

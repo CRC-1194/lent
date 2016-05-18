@@ -23,17 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::eulerFrontMotionSolver
+    Foam::barycenterPlaneMarkerFieldModel
 
 SourceFiles
-    eulerFrontMotionSolver.C
+    barycenterPlaneMarkerFieldModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Evolve the front using the first order accurate Euler temporal discretization
-    scheme.
+    Abstract base class for the markerField function calculation from a signed
+    distance field.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,10 +58,14 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef eulerFrontMotionSolver_H
-#define eulerFrontMotionSolver_H
+#ifndef barycenterPlaneMarkerFieldModel_H
+#define barycenterPlaneMarkerFieldModel_H
 
-#include "frontMotionSolver.H"
+#include "typeInfo.H"
+#include "autoPtr.H"
+#include "volFieldsFwd.H"
+#include "sharpMarkerFieldModel.H"
+#include "pointFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -69,26 +73,30 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class eulerFrontMotionSolver Declaration
+                         Class barycenterPlaneMarkerFieldModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class eulerFrontMotionSolver
+class barycenterPlaneMarkerFieldModel
     :
-        public frontMotionSolver
+        public sharpMarkerFieldModel 
 {
+
+    const word pointDistFieldName_; 
 
 public:
 
-    TypeName ("Euler");
+    TypeName ("barycenterPlane");
 
     // Constructors
-    explicit eulerFrontMotionSolver(const dictionary& configDict);
-
-    // Destructor
-    virtual ~eulerFrontMotionSolver() = default;
+    barycenterPlaneMarkerFieldModel(const dictionary& dict); 
 
     // Member Functions
-    virtual void calcCellDisplacement(const volVectorField& cellVelocity);
+    virtual void calcMarkerField(volScalarField& markerField) const;
+
+    word pointDistFieldName() const
+    {
+        return pointDistFieldName_; 
+    }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

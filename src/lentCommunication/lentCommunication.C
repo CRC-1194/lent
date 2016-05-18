@@ -133,18 +133,16 @@ lentCommunication::New(
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-// Update the communicationMaps using the KVS search algorithm. 
+// Updates both triangle->cell and vertex->cell maps using the KVS search algorithm. 
+// Used after front evolution, does not account for topological changes of the front.
 void lentCommunication::update()
 {
-    triangleToCell_.resize(front_.nFaces()); 
-    vertexToCell_.resize(front_.nPoints()); 
-
-    const List<labelledTri>& triangles = front_.localFaces();
-    const pointField& vertices = front_.points();
+    const auto& triangles = front_.localFaces();
+    const auto& vertices = front_.points();
 
     forAll (triangleToCell_, triangleI) 
     {
-        const triFace& triangle = triangles[triangleI];
+        const auto& triangle = triangles[triangleI];
 
         forAll (triangle, vertexI)
         {
@@ -173,13 +171,49 @@ void lentCommunication::update()
                     triangleToCell_[triangleI] = foundCell;
                     // Set the vertex cell to the found cell.
                     vertexToCell_[triangle[vertexI]] = foundCell;
+                }
+            }
+        }
+    }
+}
 
-                    // Get the found cell.  
-                    //const auto& cell = cells[foundell];  
-                    // Get points from the found cell. 
-                    //auto cellPoints = cell.points()
-                    // Find the point label with minimal distance to vertex.  
-                    // Assign vertexToPoint_. 
+// Reconstruction results in a triangle->cell relationship, regardless which  
+// reconstruction algorithm is used.  
+// Use triangle->cell to update vertex->cell map.
+void lentCommunication::updateVertexToCell()
+{
+    const auto& triangles = front_.localFaces();
+    const auto& vertices = front_.points();
+
+    vertexToCell_.resize(vertices.size(), -1); 
+
+    forAll (triangleToCell_, triangleI) 
+    {
+        const auto& triangle = triangles[triangleI];
+
+        forAll (triangle, vertexI)
+        {
+            const point& vertex = vertices[triangle[vertexI]]; 
+            // If the vertex is within a the triangleToCell cell. 
+            if (searchAlg_.pointIsInCell(vertex, triangleToCell_[triangleI], mesh_)) 
+            {
+                // Set the vertex cell to the found cell.
+                vertexToCell_[triangle[vertexI]] = triangleToCell_[triangleI];
+            }
+            else
+            {
+                // Find the cell that contains the vertex.
+                const label foundCell = searchAlg_.cellContainingPoint(
+                    vertex,
+                    mesh_,
+                    triangleToCell_[triangleI]
+                );
+
+                // If the cell is found. 
+                if (foundCell > 0)
+                {
+                    // Set the vertex cell to the found cell.
+                    vertexToCell_[triangle[vertexI]] = foundCell;
                 }
             }
         }

@@ -23,10 +23,10 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::eulerFrontMotionSolver
+    Foam::taylorFrontMotionSolver
 
 SourceFiles
-    eulerFrontMotionSolver.C
+    taylorFrontMotionSolver.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
@@ -58,8 +58,8 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef eulerFrontMotionSolver_H
-#define eulerFrontMotionSolver_H
+#ifndef taylorFrontMotionSolver_H
+#define taylorFrontMotionSolver_H
 
 #include "frontMotionSolver.H"
 
@@ -69,23 +69,23 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class eulerFrontMotionSolver Declaration
+                         Class taylorFrontMotionSolver Declaration
 \*---------------------------------------------------------------------------*/
 
-class eulerFrontMotionSolver
+class taylorFrontMotionSolver
     :
         public frontMotionSolver
 {
 
 public:
 
-    TypeName ("Euler");
+    TypeName ("Taylor");
 
     // Constructors
-    explicit eulerFrontMotionSolver(const dictionary& configDict);
+    explicit taylorFrontMotionSolver(const dictionary& configDict);
 
     // Destructor
-    virtual ~eulerFrontMotionSolver() = default;
+    virtual ~taylorFrontMotionSolver() = default;
 
     // Member Functions
     virtual void calcCellDisplacement(const volVectorField& cellVelocity);
