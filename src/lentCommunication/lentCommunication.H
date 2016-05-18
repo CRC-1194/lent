@@ -182,7 +182,11 @@ public:
     };
 
 
+    // Update
+    
     void update();  
+
+    void updateVertexToCell();  
 
     // Empty writer: regIOobject is used only for registry queries.
     bool writeData(Ostream& os) const;
