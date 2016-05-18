@@ -39,6 +39,8 @@ Description
         "From level set to volume of fluid and back again at second-order 
          accuracy" Detrixhe and Aslam
 
+    This class uses a barycentric decomposition of the cell faces into triangles.
+
     You may refer to this software as :
     //- full bibliographic data to be provided
 

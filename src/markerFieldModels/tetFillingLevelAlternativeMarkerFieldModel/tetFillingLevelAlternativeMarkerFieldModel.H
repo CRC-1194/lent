@@ -23,10 +23,10 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::tetFillingLevelMarkerFieldModel
+    Foam::tetFillingLevelAlternativeMarkerFieldModel
 
 SourceFiles
-    tetFillingLevelMarkerFieldModel.C
+    tetFillingLevelAlternativeMarkerFieldModel.C
 
 Author
     Tobias Tolle    tolle@csi.tu-darmstadt.de
@@ -39,7 +39,9 @@ Description
         "From level set to volume of fluid and back again at second-order 
          accuracy" Detrixhe and Aslam
 
-    This class uses a barycentric decomposition of the cell faces into triangles.
+    This class uses an alternative approach for the triangulation of the faces
+    which does not introduce additional points and thus avoids interpolation
+    errors regardign the signed distance.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -63,15 +65,12 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef tetFillingLevelMarkerFieldModel_H
-#define tetFillingLevelMarkerFieldModel_H
+#ifndef tetFillingLevelAlternativeMarkerFieldModel_H
+#define tetFillingLevelAlternativeMarkerFieldModel_H
 
 #include "typeInfo.H"
-#include "pointFields.H"
-#include "SortableList.H"
-#include "volFieldsFwd.H"
 
-#include "markerFieldModel.H"
+#include "tetFillingLevelMarkerFieldModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -79,49 +78,27 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                Class tetFillingLevelMarkerFieldModel Declaration
+         Class tetFillingLevelAlternativeMarkerFieldModel Declaration
 \*---------------------------------------------------------------------------*/
 
-struct tetrahedron
-{
-    FixedList<point, 4> vertex;
-    SortableList<scalar> distance;
-};
-
-class tetFillingLevelMarkerFieldModel
+class tetFillingLevelAlternativeMarkerFieldModel
 :
-    public markerFieldModel
+    public tetFillingLevelMarkerFieldModel
 {
-    // Private data
-    const word pointDistFieldName_;
 
 public:
 
-    TypeName ("tetFillingLevel");
+    TypeName ("tetFillingLevelAlternative");
 
     // Constructors
-    tetFillingLevelMarkerFieldModel(const dictionary& configDict);
+    using tetFillingLevelMarkerFieldModel::tetFillingLevelMarkerFieldModel;
 
     // Member Functions
-    virtual void calcMarkerField(volScalarField& markerField) const;
-
-    void tagInterfaceCells(volScalarField& markerField) const;
-    void setBulkMarkerField(volScalarField& markerField) const;
     virtual List<tetrahedron> tetDecomposition(const point& cellCentre,
                                                const face& cellFace,
                                                const pointField& points,
                                                const pointScalarField& pointDistance,
                                                scalar centreDistance) const;
-    scalar fillingLevel(const label& cellID, const face& cellFace,
-                         const fvMesh& mesh) const;
-    scalar tetrahedralVolume(const tetrahedron& tet) const;
-    scalar volumeFraction(SortableList<scalar>& d) const;
-    label countNegativeEntries(List<scalar>& distance) const;
-
-    word pointDistFieldName() const
-    {
-        return pointDistFieldName_; 
-    }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

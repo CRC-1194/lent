@@ -23,10 +23,10 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::tetFillingLevelMarkerFieldModel
+    Foam::tetFillingLevelAlternativeMarkerFieldModel
 
 SourceFiles
-    tetFillingLevelMarkerFieldModel.C
+    tetFillingLevelAlternativeMarkerFieldModel.C
 
 Author
     Tobias Tolle    tolle@csi.tu-darmstadt.de
@@ -39,7 +39,9 @@ Description
         "From level set to volume of fluid and back again at second-order 
          accuracy" Detrixhe and Aslam
 
-    This class uses a barycentric decomposition of the cell faces into triangles.
+    This class uses an alternative approach for the triangulation of the faces
+    which does not introduce additional points and thus avoids interpolation
+    errors regardign the signed distance.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -63,66 +65,54 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef tetFillingLevelMarkerFieldModel_H
-#define tetFillingLevelMarkerFieldModel_H
+#include "addToRunTimeSelectionTable.H"
 
-#include "typeInfo.H"
-#include "pointFields.H"
-#include "SortableList.H"
-#include "volFieldsFwd.H"
+#include "tetFillingLevelAlternativeMarkerFieldModel.H"
 
-#include "markerFieldModel.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                Class tetFillingLevelMarkerFieldModel Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(tetFillingLevelAlternativeMarkerFieldModel, 0);
+    addToRunTimeSelectionTable(markerFieldModel, tetFillingLevelAlternativeMarkerFieldModel, Dictionary);
 
-struct tetrahedron
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+List<tetrahedron> tetFillingLevelAlternativeMarkerFieldModel::tetDecomposition(const point& cellCentre,
+      const face& cellFace,
+      const pointField& points,
+      const pointScalarField& pointDistance,
+      scalar centreDistance) const
 {
-    FixedList<point, 4> vertex;
-    SortableList<scalar> distance;
-};
+    // Perform decomposition by using the first point of the face and
+    // combining it with with each edge which is no direct neighbour of
+    // this point. The result are nEdges-2 triangles.
+    List<tetrahedron> tets(cellFace.nEdges()-2);
 
-class tetFillingLevelMarkerFieldModel
-:
-    public markerFieldModel
-{
-    // Private data
-    const word pointDistFieldName_;
-
-public:
-
-    TypeName ("tetFillingLevel");
-
-    // Constructors
-    tetFillingLevelMarkerFieldModel(const dictionary& configDict);
-
-    // Member Functions
-    virtual void calcMarkerField(volScalarField& markerField) const;
-
-    void tagInterfaceCells(volScalarField& markerField) const;
-    void setBulkMarkerField(volScalarField& markerField) const;
-    virtual List<tetrahedron> tetDecomposition(const point& cellCentre,
-                                               const face& cellFace,
-                                               const pointField& points,
-                                               const pointScalarField& pointDistance,
-                                               scalar centreDistance) const;
-    scalar fillingLevel(const label& cellID, const face& cellFace,
-                         const fvMesh& mesh) const;
-    scalar tetrahedralVolume(const tetrahedron& tet) const;
-    scalar volumeFraction(SortableList<scalar>& d) const;
-    label countNegativeEntries(List<scalar>& distance) const;
-
-    word pointDistFieldName() const
+    forAll(tets, I)
     {
-        return pointDistFieldName_; 
+        tets[I].distance.resize(4);
     }
-};
+
+    edgeList edges = cellFace.edges();
+
+    for(label edgeI=1; edgeI < (edges.size()-1); edgeI++)
+    {
+        edge e = edges[edgeI];
+
+        tets[edgeI-1].vertex[0] = cellCentre;
+        tets[edgeI-1].vertex[1] = points[cellFace[0]];
+        tets[edgeI-1].vertex[2] = points[e[0]];
+        tets[edgeI-1].vertex[3] = points[e[1]];
+
+        tets[edgeI-1].distance[0] = centreDistance;
+        tets[edgeI-1].distance[1] = pointDistance[cellFace[0]];
+        tets[edgeI-1].distance[2] = pointDistance[e[0]];
+        tets[edgeI-1].distance[3] = pointDistance[e[1]];
+    }
+
+    return tets;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -133,7 +123,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //
