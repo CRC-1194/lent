@@ -81,6 +81,8 @@ bool normalsAreConsistent(const triSurface& front)
 
             if ((n0 & n1) < 0)
             {
+                Info << "Inconsistent normals. Faces = " 
+                    << edgeFaces[I][0] << " | " << edgeFaces[I][1] << endl;
                 return false;
             }
         }
