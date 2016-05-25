@@ -183,7 +183,7 @@ tmp<volVectorField> tryggvasonSurfaceTensionForceModel::cellSurfaceTensionForce(
 
     lentInterpolation interpolation; // FIXME: Data member, RTS alternatives. TM.
 
-    volVectorField& fSigmaCell = fSigmaCellTmp(); 
+    volVectorField& fSigmaCell = fSigmaCellTmp.ref(); 
     interpolation.interpolate(fSigmaFront,fSigmaCell); 
 
     // Avoid dimension check when dividing by mesh.V(); 

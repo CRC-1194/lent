@@ -111,16 +111,6 @@ lentMethod::lentMethod(
            lentControlDict_.subDict("frontReconstructor")
        )
     ),
-    searchAlgorithmTmp_(
-       frontMeshSearch::New(
-           lentControlDict_.subDict("searchAlgorithm")
-       )
-    ),
-    frontVelocityCalculatorTmp_(
-       frontVelocityCalculator::New(
-           lentControlDict_.subDict("frontVelocityCalculator")
-       )
-    ),
     frontMotionSolverTmp_(
        frontMotionSolver::New(
            lentControlDict_.subDict("frontMotionSolver")
@@ -145,10 +135,12 @@ void lentMethod::calcSearchDistances(
     pointScalarField& pointSearchDistanceSqr
 )
 {
-    distanceFieldCalculator& distanceCalc = distanceFieldCalculatorTmp_();
+    distanceFieldCalculator& distanceCalc = distanceFieldCalculatorTmp_.ref();
 
+    Info << "Calculating search distances..." << endl;
     distanceCalc.calcCellSearchDistance(searchDistanceSqr);
     distanceCalc.calcPointSearchDistance(pointSearchDistanceSqr, searchDistanceSqr);
+    Info << "Done." << endl; 
 }
 
 void lentMethod::calcSignedDistances(
@@ -160,6 +152,7 @@ void lentMethod::calcSignedDistances(
 )
 {
     // FIXME: The distance calculator wrongy re-initializes the frontMesh. TM. 
+    Info << "Calculating sign distances..." << endl;
     distanceFieldCalculatorTmp_->calcCellsToFrontDistance(
         signedDistance,
         searchDistanceSqr,
@@ -172,11 +165,14 @@ void lentMethod::calcSignedDistances(
         pointSearchDistanceSqr,
         front
     );
+    Info << "Done." << endl; 
 }
 
 void lentMethod::calcMarkerField(volScalarField& markerField) const
 {
+    Info << "Calculating marker field..." << endl;
     markerFieldModelTmp_->calcMarkerField(markerField);
+    Info << "Done." << endl;
 }
 
 void lentMethod::reconstructFront(
@@ -189,14 +185,12 @@ void lentMethod::reconstructFront(
     {
         Info << "Reconstructing front..." << endl;
 
-        communicationMaps_.setTriangleToCell(
-            frontReconstructorTmp_->reconstructFront(
-                front,
-                signedDistance,
-                pointSignedDistance
-            )
+        frontReconstructorTmp_->reconstructFront(
+            front,
+            signedDistance,
+            pointSignedDistance
         );
-        communicationMaps_.updateVertexToCell(); 
+
         frontIsReconstructed_ = true;
 
         Info << "Done." << endl;
@@ -204,32 +198,55 @@ void lentMethod::reconstructFront(
 }
 
 void lentMethod::calcFrontVelocity(
-    triSurfacePointVectorField& frontVelocity,
+    triSurfaceFrontPointVectorField& frontVelocity,
     const volVectorField& U
 )
 {
-    frontVelocityCalculatorTmp_->calcFrontVelocity(
-        frontVelocity,
-        U,
-        communicationMaps_.triangleToCell()  // TODO: Port mesh search update to the communication class. TM.
-    );
+    Info << "Calculating front velocity..." << endl;  
+
+    const triSurface& front = frontVelocity.mesh();
+
+    frontVelocity.resize(front.nPoints());
+    // More rigorous: in case the search fails, the point stops. TM.
+    frontVelocity = dimensionedVector("zero", dimVelocity, vector(0,0,0)); 
+
+    auto oldVelocity(frontVelocity); 
+
+    // FIXME: Make this an attribute of method and re-use. Enable selection of 
+    // cell->point interpolation. TM.
+    lentInterpolation interpolation; 
+    interpolation.interpolate(U, frontVelocity); 
+
+    Info << "Done." << endl;
 }
 
 void lentMethod::evolveFront(
     triSurfaceFront& front,
-    const triSurfacePointVectorField& frontVelocity
+    const volVectorField& cellVelocity
 ) 
 {
+    Info << "Evolving the front..." << endl;  
     frontMotionSolverTmp_->evolveFront(
         front,
-        frontVelocity
+        cellVelocity
     );
+    Info << "Done." << endl;
 
     frontIsReconstructed_ = false;
 
-    // The normals must be calculated after motion .
+    // Clean up degenerate triangles.
+    //Info << "Cleaning up degeneracies..." << endl;  
+    //front.cleanup(false);
+    //Info << "Done." << endl;
+
+    // Calculate normal vectors after front motion.
+    Info << "Computing triangle normal vectors..." << endl;  
     calcFrontNormals(front); 
+    Info << "Done." << endl;
+    // Update front-mesh communication maps after front motion. 
+    Info << "Updating communication maps..." << endl;  
     communicationMaps_.update(); 
+    Info << "Done." << endl;
 }
 
 bool lentMethod::writeData(Ostream& os) const

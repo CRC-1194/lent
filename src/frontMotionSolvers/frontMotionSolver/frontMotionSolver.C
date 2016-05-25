@@ -71,6 +71,10 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontMotionSolver::frontMotionSolver(const dictionary& configDict)
+    :
+        cellDisplacementTmp_(),
+        frontDisplacementTmp_(),
+        interpolation_(configDict)
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -95,6 +99,82 @@ frontMotionSolver::New(const dictionary& configDict)
     }
 
     return tmp<frontMotionSolver> (cstrIter()(configDict));
+}
+
+
+// * * * * * * * * * * * * Member Functions * * * * * * * * * * * * * * //
+
+void frontMotionSolver::initDisplacements(
+    const triSurfaceFront& front,
+    const volVectorField& cellVelocity
+)
+{
+    const auto& mesh = cellVelocity.mesh(); 
+    const auto& runTime = mesh.time(); 
+
+    dimensionedVector zeroDisplacement(
+        "zero",
+        dimLength, 
+        vector(0,0,0)
+    );
+
+    if (cellDisplacementTmp_.empty())
+    {
+        cellDisplacementTmp_ = tmp<volVectorField>(
+            new volVectorField( 
+                IOobject(
+                    "cellDisplacement",
+                    runTime.timeName(),
+                    mesh,
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE
+                ),
+                mesh,
+                zeroDisplacement
+            )
+        );
+    } 
+
+    if (frontDisplacementTmp_.empty())
+    {
+        frontDisplacementTmp_ = tmp<triSurfaceFrontPointVectorField>(
+            new triSurfaceFrontPointVectorField( 
+                IOobject(
+                    "frontDisplacement",
+                    runTime.timeName(),
+                    mesh,
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE
+                ),
+                front,
+                zeroDisplacement
+            )
+        );
+    } else
+    {
+        frontDisplacementTmp_->resize(front.nPoints()); 
+        //frontDisplacementTmp_.ref() = zeroDisplacement;  
+    }
+}
+
+void frontMotionSolver::evolveFront(
+    triSurfaceFront& front,
+    const volVectorField& cellVelocity 
+)
+{
+    initDisplacements(front,cellVelocity); 
+
+    // Overload this member function for different functionality.
+    calcCellDisplacement(cellVelocity); 
+
+    // Interpolate the displacement field from the cell to the front.
+    const auto& deltaC = cellDisplacements();
+    auto& deltaF = frontDisplacements();
+    interpolation_.interpolate(deltaC, deltaF); 
+
+    // Displace front points with front displacements.  
+    pointField& frontPoints = const_cast<pointField&>(front.points());
+    frontPoints += deltaF; 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

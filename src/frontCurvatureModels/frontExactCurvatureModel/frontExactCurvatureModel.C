@@ -97,22 +97,22 @@ tmp<volScalarField> frontExactCurvatureModel::cellCurvature(
         )
     );
 
-    volScalarField& cellCurvature = cellCurvatureTmp(); 
-
-    const volVectorField& C = mesh.C(); 
-    const surfaceVectorField& Cf = mesh.Cf(); 
+    const auto& C = mesh.C(); 
+    const auto& Cf = mesh.Cf(); 
 
     // Set internal cell centered curvature field.
+    auto& cellCurvature = cellCurvatureTmp.ref(); 
     forAll(cellCurvature, I)
     {
         cellCurvature[I] = curvatureAtPoint(C[I]);
     }
 
     // Set the boundary cell centered curvature field
-    forAll(cellCurvature.boundaryField(), I)
+    auto& cellCurvatureBoundaries = cellCurvature.boundaryFieldRef();  
+    forAll(cellCurvatureBoundaries, I)
     {
-        fvPatchScalarField& cellCurvatureBoundary = cellCurvature.boundaryField()[I];
-        const fvsPatchVectorField& CfBoundary = Cf.boundaryField()[I];
+        auto& cellCurvatureBoundary = cellCurvatureBoundaries[I];
+        const auto& CfBoundary = Cf.boundaryField()[I];
 
         forAll(cellCurvatureBoundary, J)
         {
@@ -148,21 +148,22 @@ tmp<surfaceScalarField> frontExactCurvatureModel::faceCurvature(
         )
     );
 
-    surfaceScalarField& surfaceCurvature = surfaceCurvatureTmp(); 
 
     const surfaceVectorField& Cf = mesh.Cf(); 
 
     // Set internal surface centered curvature field.
+    auto& surfaceCurvature = surfaceCurvatureTmp.ref(); 
     forAll(surfaceCurvature, I)
     {
         surfaceCurvature[I] = curvatureAtPoint(Cf[I]);
     }
 
     // Set the boundary surface centered curvature field
-    forAll(surfaceCurvature.boundaryField(), I)
+    auto& surfaceCurvatureBoundaries = surfaceCurvature.boundaryFieldRef(); 
+    forAll(surfaceCurvatureBoundaries, I)
     {
-        fvsPatchScalarField& surfaceCurvatureBoundary = surfaceCurvature.boundaryField()[I];
-        const fvsPatchVectorField& CfBoundary = Cf.boundaryField()[I];
+        auto& surfaceCurvatureBoundary = surfaceCurvatureBoundaries[I];
+        const auto& CfBoundary = Cf.boundaryField()[I];
 
         forAll(surfaceCurvatureBoundary, J)
         {

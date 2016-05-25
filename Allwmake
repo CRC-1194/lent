@@ -10,6 +10,7 @@ then
 
     LENT_GTEST=$LENT_THIRD_PARTY/gtest
 
+    echo "Building Google Test..." 
     echo "svn checkout http://googletest.googlecode.com/svn/trunk/ $LENT_GTEST" 
     svn checkout http://googletest.googlecode.com/svn/trunk/ $LENT_GTEST
 
@@ -20,17 +21,23 @@ then
         mkdir $LENT_GTEST_BUILD
     fi
 
-    #cmake -B/path/to/my/build/folder -H/path/to/my/source/folder
     cmake -B $LENT_GTEST_BUILD  -H $LENT_GTEST \
         -DBUILD_SHARED_LIBS=ON -Dgtest_build_samples=ON -G"Unix Makefiles"
 
     make -C $LENT_GTEST_BUILD 
 
+    echo "Done building Google Test."
     # Build lent
 
-    src/Allwmake
-    applications/Allwmake
-
+    echo "Building LENT..."
+    if [ "$WM_PROJECT_DIR" != "" ]; 
+    then
+        src/Allwmake
+        applications/Allwmake
+        echo "Done building Google Test."
+    else
+        echo "OpenFOAM is not configured properly. Source the project's etc/bashrc file." 
+    fi
 else
     echo "The LENT project is not configured properly. Source the project's etc/bashrc file." 
 fi

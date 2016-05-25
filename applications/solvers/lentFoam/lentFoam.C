@@ -61,7 +61,7 @@ Description
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulentTransportModel.H"
 #include "pimpleControl.H"
-#include "fvIOoptionList.H"
+#include "fvOptions.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
 #include "lentMethod.H"
 
@@ -178,12 +178,8 @@ int main(int argc, char *argv[])
         }
         Info << "Done." << endl;
 
-        Info << "Calculating front velocity..." << endl;
-        lent.calcFrontVelocity(frontVelocity, U.oldTime());
-        Info << "Done." << endl;
-
         Info << "Evolving the front..." << endl;
-        lent.evolveFront(front, frontVelocity);
+        lent.evolveFront(front, U.oldTime());
         Info << "Done." << endl;
 
         runTime.write();

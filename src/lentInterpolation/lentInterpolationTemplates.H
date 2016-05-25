@@ -58,12 +58,18 @@ Description
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+#include "interpolationCellPoint.H"
+
 namespace Foam {
 namespace FrontTracking {
 
 template<typename Type>  
 void lentInterpolation::interpolate(
-    const DimensionedField<Type, triSurfaceFrontPointGeoMesh>& vertexField,
+    const DimensionedField
+    <
+        Type, 
+        triSurfaceFrontPointGeoMesh
+    >& vertexField,
     GeometricField<Type, fvPatchField, volMesh>& cellField 
 ) 
 {
@@ -75,6 +81,7 @@ void lentInterpolation::interpolate(
     ); 
 
     // Simply transfer values from the nearest vertex. 
+    // FIXME: Implement a barycentrid/volume weighted interpolation here! TM. 
     const auto& vertexToCell = communication.vertexToCell(); 
     forAll(vertexToCell, vertexI)
     {
@@ -84,19 +91,55 @@ void lentInterpolation::interpolate(
 
 template<typename Type>  
 void lentInterpolation::interpolate(
-    tmp<DimensionedField<Type, triSurfaceFrontPointGeoMesh>> vertexFieldTmp,
+    tmp
+    <
+        DimensionedField<Type, triSurfaceFrontPointGeoMesh>
+    > vertexFieldTmp,
     GeometricField<Type, fvPatchField, volMesh>& cellField 
 ) 
 {
     return interpolate(vertexFieldTmp(), cellField); 
 }
 
-//template<typename Type> // TODO: Finish it using triangleToCell. TM. 
-//void lentInterpolation::interpolate(
-    //DimensionedField<Type, triSurfaceFrontGeoMesh> const & triangleField,
-    //GeometricField<Type, fvPatchField, volMesh>& cellField 
-//)
-//{}
+template<typename Type>  
+void lentInterpolation::interpolate(
+    const GeometricField<Type, fvPatchField, volMesh>& cellField, 
+    DimensionedField<Type, triSurfaceFrontPointGeoMesh>& vertexField
+) 
+{
+    const triSurfaceFront& front = vertexField.mesh(); 
+    const fvMesh& mesh = cellField.mesh(); 
+    const lentCommunication& communication = 
+        mesh.lookupObject<lentCommunication>(
+            lentCommunication::registeredName(front,mesh)
+    ); 
+
+    auto interpolationPtr = 
+        interpolation<Type>::New(cellToVertexInterpType_,cellField);  
+
+    const auto& vertexToCell = communication.vertexToCell(); 
+    const pointField& vertices = front.points();
+
+    forAll(vertexToCell, vertexI)
+    {
+        // FIXME: Dynamic dispatch overhead used here.
+        // Fix interpolation once we know which type gives best results.
+        // TM. 
+        vertexField[vertexI] = interpolationPtr->interpolate(
+            vertices[vertexI],
+            vertexToCell[vertexI] 
+        );
+    }
+}
+
+template<typename Type>  
+void lentInterpolation::interpolate(
+    tmp<GeometricField<Type, fvPatchField, volMesh>> cellFieldTmp,
+    DimensionedField<Type, triSurfaceFrontPointGeoMesh>& vertexField
+) 
+{
+    return interpolate(cellFieldTmp(), vertexField); 
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

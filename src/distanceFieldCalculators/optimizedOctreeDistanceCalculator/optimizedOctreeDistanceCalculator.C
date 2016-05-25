@@ -61,6 +61,7 @@ Description
 #include "optimizedOctreeDistanceCalculator.H"
 #include "addToRunTimeSelectionTable.H"
 #include "volumeType.H"
+#include "lentCommunication.H"
 
 namespace Foam {
 namespace FrontTracking {
@@ -81,8 +82,6 @@ optimizedOctreeDistanceCalculator::optimizedOctreeDistanceCalculator(
 )
 :
     distanceFieldCalculator(config),
-    cellsElementNearest_(),
-    pointsElementNearest_(),
     narrowBandTmp_(
        narrowBandPropagation::New(config.subDict("narrowBandPropagation"))
     )
@@ -98,10 +97,18 @@ void optimizedOctreeDistanceCalculator::calcCellsToFrontDistance(
 {
     signedDistance = dimensionedScalar("GREAT", dimLength, GREAT);
 
+    // Get the lent communication structure from the registry. 
+    // Get the non-const reference because the nearest maps are modified by 
+    // the distance calculation. TM. 
     const fvMesh& mesh = signedDistance.mesh();
+    lentCommunication& comm = const_cast<lentCommunication&>(
+        mesh.lookupObject<lentCommunication>(
+            lentCommunication::registeredName(front,mesh)
+        )
+    );
 
-    // FIXME: Go away from the triSurfaceMesh copy, build and use the octree
-    // based on the front directly. TM.
+    // Get all data required for distance calculation.
+    // TODO: Check if this is a bottleneck and remove the mesh constructor.  TM.
     triSurfaceMesh frontMesh(
         IOobject(
             "triSurfaceMesh",
@@ -112,36 +119,34 @@ void optimizedOctreeDistanceCalculator::calcCellsToFrontDistance(
         ),
         front
     );
-
-    // Get the cell centres.
     const volVectorField& C = mesh.C();
+    auto& cellsTriangleNearest = comm.cellsTriangleNearest(); 
 
-    // FIXME: Update the cellsElementNearest by the KVS algorithm. TM. 
-    // Use the same list below to compute the distances from the point hit.
+    // TODO: Check this for bottlenecks. Is it possible to update the 
+    // cellsTriangleNearest by the KVS algorithm? TM. 
     frontMesh.findNearest(
         C,
         searchDistanceSqr,
-        cellsElementNearest_
+        cellsTriangleNearest 
     );
 
     const auto& faceNormals = front.faceNormals(); 
     
-    // For all cell-elements.  
-    forAll(cellsElementNearest_, I)
+    // Calculate the distance to the cell center as the distance to the 
+    // nearest front triangle. 
+    forAll(cellsTriangleNearest, cellI)
     {
-        const pointIndexHit& h = cellsElementNearest_[I];
+        const pointIndexHit& h = cellsTriangleNearest[cellI];
 
         if (h.hit())
         {
-            // Set the distance.
             const auto& normalVector = faceNormals[h.index()]; 
-            auto distanceVector = C[I] - h.hitPoint(); 
+            auto distanceVector = C[cellI] - h.hitPoint(); 
             auto distSign = sign(normalVector & distanceVector); 
-            signedDistance[I] = distSign * mag(distanceVector);  
+            signedDistance[cellI] = distSign * mag(distanceVector);  
         }
     }
 
-    // TODO: GREAT --> make it a controllable configuraton value
     narrowBandTmp_->ensureNarrowBand(signedDistance, GREAT);
 }
 
@@ -151,15 +156,25 @@ void optimizedOctreeDistanceCalculator::calcPointsToFrontDistance(
     const triSurfaceFront& front
 )
 {
-    pointSignedDistance.resize(pointSearchDistanceSqr.size());
-
     pointSignedDistance = dimensionedScalar("GREAT", dimLength, GREAT);
+
+    // Get the lent communication structure from the registry. 
+    // Get the non-const reference because the nearest maps are modified by 
+    // the distance calculation. TM. 
+    const polyMesh& mesh = pointSignedDistance.mesh()();
+    lentCommunication& comm = const_cast<lentCommunication&>(
+        mesh.lookupObject<lentCommunication>(
+            lentCommunication::registeredName(front,mesh)
+        )
+    );
 
     // Get the cell centres.
     const pointMesh& pMesh = pointSignedDistance.mesh();
-
     const pointField& points = pMesh().points();
 
+    // Get all data required for distance calculation.
+    // TODO: Check if this is a bottleneck and remove the 
+    // mesh constructor.  TM.
     triSurfaceMesh frontMesh(
         IOobject(
             "triSurfaceMesh",
@@ -170,27 +185,28 @@ void optimizedOctreeDistanceCalculator::calcPointsToFrontDistance(
         ),
         front
     );
+    auto& pointsTriangleNearest = comm.pointsTriangleNearest(); 
 
-    // FIXME: combine with the KVS algorithm. TM. 
     frontMesh.findNearest(
         points,
         pointSearchDistanceSqr,
-        pointsElementNearest_
+        pointsTriangleNearest 
     );
-
-    // For all cell-elements.  
     const auto& faceNormals = front.faceNormals(); 
-    forAll(pointsElementNearest_, I)
+
+    // Calculate the distance to the cell corner point as the distance 
+    // to the nearest front triangle. 
+    forAll(pointsTriangleNearest, pointI)
     {
-        const pointIndexHit& h = pointsElementNearest_[I];
+        const pointIndexHit& h = pointsTriangleNearest[pointI];
 
         if (h.hit())
         {
             // Set the distance.
             const auto& normalVector = faceNormals[h.index()];
-            auto distanceVector = points[I] - h.hitPoint(); 
+            auto distanceVector = points[pointI] - h.hitPoint(); 
             auto distSign = sign(normalVector & distanceVector); 
-            pointSignedDistance[I] = distSign * mag(distanceVector);  
+            pointSignedDistance[pointI] = distSign * mag(distanceVector);  
         }
     }
 

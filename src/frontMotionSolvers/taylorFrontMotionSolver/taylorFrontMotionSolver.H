@@ -23,28 +23,28 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::diffuseInterfaceProperties
+    Foam::taylorFrontMotionSolver
 
 SourceFiles
-    diffuseInterfaceProperties.C
+    taylorFrontMotionSolver.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
-    Mathematical Modeling and Analysis
-    Center of Smart Interfaces, TU Darmstadt
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    
+    Evolve the front using the first order accurate Euler temporal discretization
+    scheme.
+
     You may refer to this software as :
     //- full bibliographic data to be provided
 
     This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de (main developer)
+        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
     under the project supervision of :
         Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
     
     Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
+    	Tomislav Maric maric@csi.tu-darmstadt.de
     	Holger Marschall <marschall@csi.tu-darmstadt.de>
     	Dieter Bothe <bothe@csi.tu-darmstadt.de>
 
@@ -58,58 +58,38 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "centerNormalConsistency.H"
-#include "dictionary.H"
-#include "addToRunTimeSelectionTable.H"
+#ifndef taylorFrontMotionSolver_H
+#define taylorFrontMotionSolver_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "frontMotionSolver.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(centerNormalConsistency, 0);
-    addToRunTimeSelectionTable(normalConsistency, centerNormalConsistency, Dictionary);
+/*---------------------------------------------------------------------------*\
+                         Class taylorFrontMotionSolver Declaration
+\*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-centerNormalConsistency::centerNormalConsistency(const dictionary& configDict)
+class taylorFrontMotionSolver
     :
-        normalConsistency(configDict)
-{}
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-void centerNormalConsistency::makeFrontNormalsConsistent(
-    triSurface& front,
-    const labelList& triangleCells,
-    const volScalarField& signedDistance
-) const
+        public frontMotionSolver
 {
-    List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);
-    const vectorField& triangleNormals = front.faceNormals();
-    const pointField& frontPoints = front.points();
-    const fvMesh& mesh = signedDistance.mesh();
-    const pointField& cellCenters = mesh.C();
 
-    // For all faces
-    forAll (triangles, E)
-    {
-        point P = frontPoints[triangles[E][0]];
-        label cellI = triangleCells[E];
-        const point& C = cellCenters[cellI];
-        const vector& n = triangleNormals[E];
-        //n /= mag(n);
+public:
 
-        //scalar normalProjection = (C - P) & n;
+    TypeName ("Taylor");
 
-        //if (((normalCellDistance < 0 && signedDistance[cellI] > 0)  ||
-            //(normalCellDistance > 0 && signedDistance[cellI] < 0)))
-        if (((C - P) & n) * signedDistance[cellI] <  0)
-        {
-            triangles[E].flip();
-        }
-    }
-}
+    // Constructors
+    explicit taylorFrontMotionSolver(const dictionary& configDict);
+
+    // Destructor
+    virtual ~taylorFrontMotionSolver() = default;
+
+    // Member Functions
+    virtual void calcCellDisplacement(const volVectorField& cellVelocity);
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -120,5 +100,7 @@ void centerNormalConsistency::makeFrontNormalsConsistent(
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

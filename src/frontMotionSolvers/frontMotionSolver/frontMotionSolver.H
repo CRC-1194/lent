@@ -66,7 +66,8 @@ Description
 #include "refCount.H"
 #include "volFieldsFwd.H"
 #include "triSurfaceFront.H"
-#include "triSurfaceFields.H"
+#include "triSurfaceFrontFields.H"
+#include "lentInterpolation.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -81,6 +82,40 @@ class frontMotionSolver
     :
         public refCount
 {
+    tmp<volVectorField> cellDisplacementTmp_; 
+
+    tmp<triSurfaceFrontPointVectorField> frontDisplacementTmp_; 
+
+    lentInterpolation interpolation_;  
+
+protected:
+
+    triSurfaceFrontPointVectorField& frontDisplacements() 
+    {
+        return frontDisplacementTmp_.ref();
+    }
+
+    const triSurfaceFrontPointVectorField& frontDisplacements() const 
+    {
+        return frontDisplacementTmp_();
+    }
+
+    volVectorField& cellDisplacements() 
+    {
+        return cellDisplacementTmp_.ref();
+    }
+
+    const volVectorField& cellDisplacements() const
+    {
+        return cellDisplacementTmp_();
+    }
+
+    void initDisplacements(
+        const triSurfaceFront& front, 
+        const volVectorField& cellVelocity
+    ); 
+
+    virtual void calcCellDisplacement(const volVectorField& cellVelocity) = 0;  
 
 public:
 
@@ -100,19 +135,18 @@ public:
         explicit frontMotionSolver(const dictionary& configDict);
 
     // Selectors
-
         static tmp<frontMotionSolver> New(const dictionary& configDict);
 
     // Destructor
         virtual ~frontMotionSolver() = default;
 
     // Member Functions
-
         virtual void evolveFront(
             triSurfaceFront& front,
-            const triSurfacePointVectorField& frontVelocity
-        ) const = 0;
+            const volVectorField& cellVelocity 
+        ) final; 
 };
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

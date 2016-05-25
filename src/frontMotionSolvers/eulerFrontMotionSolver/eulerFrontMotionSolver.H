@@ -88,10 +88,7 @@ public:
     virtual ~eulerFrontMotionSolver() = default;
 
     // Member Functions
-    void evolveFront(
-        triSurfaceFront& front,
-        const triSurfacePointVectorField& frontVelocity
-    ) const;
+    virtual void calcCellDisplacement(const volVectorField& cellVelocity);
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

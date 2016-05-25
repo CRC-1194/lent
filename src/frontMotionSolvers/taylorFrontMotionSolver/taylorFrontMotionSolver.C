@@ -23,30 +23,28 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::centerNormalConsistency
+    Foam::taylorFrontMotionSolver
 
 SourceFiles
-    centerNormalConsistency.C
+    diffuseInterfaceProperties.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
-    Mathematical Modeling and Analysis
-    Center of Smart Interfaces, TU Darmstadt
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Class encapsulating the algorithm that makes the normals of the iso-surface
-    consistent by using the signed distance values stored in cell centers.
+    Evolve the front using the first order accurate Euler temporal discretization
+    scheme.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
 
     This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de (main developer)
+        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
     under the project supervision of :
         Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
     
     Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
+    	Tomislav Maric maric@csi.tu-darmstadt.de
     	Holger Marschall <marschall@csi.tu-darmstadt.de>
     	Dieter Bothe <bothe@csi.tu-darmstadt.de>
 
@@ -60,48 +58,46 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef centerNormalConsistency_H
-#define centerNormalConsistency_H
+#include "taylorFrontMotionSolver.H"
+#include "addToRunTimeSelectionTable.H"
+#include "fvcDdt.H"
+#include "fvcGrad.H"
+//#include "fvcD2dt2.H"
 
-#include "normalConsistency.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class centerNormalConsistency Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(taylorFrontMotionSolver, 0);
 
-class centerNormalConsistency
-    :
-        public normalConsistency
-{
+    addToRunTimeSelectionTable(
+        frontMotionSolver,
+        taylorFrontMotionSolver,
+        Dictionary
+    );
 
-public:
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-    TypeName ("centerNormal");
+taylorFrontMotionSolver::taylorFrontMotionSolver(const dictionary& configDict)
+:
+    frontMotionSolver(configDict)
+{}
 
-    // Constructors
-        centerNormalConsistency(const dictionary& configDict);
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-    // Selectors
+void taylorFrontMotionSolver::calcCellDisplacement(
+    const volVectorField& cellVelocity // fvc::d2dt2 requires non-const access.
+)
+{  
+    auto& deltaC = cellDisplacements(); 
 
-        static tmp<centerNormalConsistency> New(const dictionary& configDict);
+    const auto& runTime = cellVelocity.time(); 
 
-    // Destructor
-        virtual ~centerNormalConsistency() {};
-
-    // Member Functions
-
-        virtual void makeFrontNormalsConsistent(
-            triSurface& front,
-            const labelList& triangleCells,
-            const volScalarField& signedDistance
-        ) const;
-};
-
+    deltaC = (cellVelocity * runTime.deltaT())
+        + ((fvc::ddt(cellVelocity) + (cellVelocity & fvc::grad(cellVelocity))) * 0.5 * Foam::sqr(runTime.deltaT()));
+        //+ (fvc::d2dt2(cellVelocity) * (1.0 / 6.0) * Foam::pow(runTime.deltaT(),3));  
+}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
@@ -111,7 +107,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

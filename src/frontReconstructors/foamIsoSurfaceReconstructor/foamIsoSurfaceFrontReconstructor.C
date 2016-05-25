@@ -60,8 +60,9 @@ Description
 
 #include "foamIsoSurfaceFrontReconstructor.H"
 #include "addToRunTimeSelectionTable.H"
-#include "isoSurface.H"
-#include "fvcGrad.H"
+#include "taylorIsoSurface.H" 
+//#include "isoSurfaceCell.H"// Alternative iso-surface reconstruction.
+#include "lentCommunication.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -85,69 +86,50 @@ foamIsoSurfaceFrontReconstructor::foamIsoSurfaceFrontReconstructor(
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-labelList foamIsoSurfaceFrontReconstructor::reconstructFront(
+void foamIsoSurfaceFrontReconstructor::reconstructFront(
     triSurfaceFront& front,
     const volScalarField& signedDistance,
     const pointScalarField& pointSignedDistance
 ) const
 {
-    isoSurface iso (
+    taylorIsoSurface iso(
         signedDistance,
         pointSignedDistance,
         0, // FIXME: Leave as a compile time constant? TM.
-        regularize_,
+        bool(regularize_), 
         mergeTolerance_
     );
 
-    consistencyAlgTmp_->makeFrontNormalsConsistent(
-        iso,
-        iso.meshCells(),
-        signedDistance
+    // Clean up degenerate triangles. Report the cleanup process.  
+    // FIXME: Investigate this.
+    //iso.cleanup(true);
+
+    // Update the communication map after reconstruction.
+    const auto& mesh = signedDistance.mesh();
+    auto& communication = const_cast<lentCommunication&>(
+        mesh.lookupObject<lentCommunication>(
+            lentCommunication::registeredName(front,mesh)
+        ) 
     );
+    // Assign the new iso surface mesh to the front.  
+    front = static_cast<triSurface&>(iso);
 
-    front = iso;
+    // Set the triangleToCell using the map produced by the iso-surface
+    // reconstruction algorithm.
+    communication.setTriangleToCell(iso.meshCells());
+    // Update vertex to cell using triangle to cell information.
+    // - NOTE: Nearest information gets completely lost: a completely new
+    // set of triangles is generated!  
+    communication.updateVertexToCell();
 
-    return iso.meshCells();
-}
-void foamIsoSurfaceFrontReconstructor::forceConsistentNormalOrientation(
-    isoSurface& iso,
-    const volScalarField& signedDistance
-) const
-{
-    volVectorField distGrad = fvc::grad(signedDistance);
-
-    // Get non-const access to elements.
-    List<labelledTri>& elements = static_cast<List<labelledTri>& > (iso);
-
-    // Get the cells.
-    const labelList& elementCells = iso.meshCells();
-
-    // Get the element normals.
-    const vectorField& elementNormals = iso.faceNormals();
-
-    // For all faces
-    forAll (elements, E)
-    {
-        // Normalize the distance gradient to get only the direction.
-        scalar gradMag = mag(distGrad[elementCells[E]]);
-
-        if (gradMag >= SMALL)
-        {
-            distGrad[elementCells[E]] /= gradMag;
-
-            scalar normalMag = mag(elementNormals[E]);
-
-            if (normalMag > SMALL)
-            {
-                vector elementNormal = elementNormals[E] / mag(elementNormals[E]);
-
-                if ((elementNormal & distGrad[elementCells[E]]) < 0)
-                {
-                    elements[E].flip();
-                }
-            }
-        }
-    }
+    // Make normals consistent. 
+    // FIXME: Remove consistencyAlgTmp_, not required anymore, 
+    // normals consistently oriented. TM.
+    consistencyAlgTmp_->makeFrontNormalsConsistent(
+        front,
+        signedDistance, 
+        pointSignedDistance
+    );
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

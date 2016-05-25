@@ -58,7 +58,7 @@ Description
 #include "pimpleControl.H"
 
 #include "lentMethod.H"
-#include "lentTests.H"
+#include "lentGtest.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -101,7 +101,7 @@ TEST_F(lentTests, lentReconstruction)
 
     while (runTime.run()) {
 
-        TEST_NORMAL_CONSISTENCY(front);
+        ASSERT_TRUE(NORMALS_ARE_CONSISTENT(front));
 
         runTime++;
 

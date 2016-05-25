@@ -23,31 +23,28 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::normalConsistency
+    Foam::barycenterPlaneMarkerFieldModel
 
 SourceFiles
-    normalConsistency.C
+    barycenterPlaneMarkerFieldModel.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
-    Mathematical Modeling and Analysis
-    Center of Smart Interfaces, TU Darmstadt
+    Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Class encapsulating the algorithm that makes the normals of the iso-surface
-    consistent by using the orientation provided by the signed distance field
-    gradient.
+    Abstract base class for the markerField function calculation from a signed
+    distance field.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
 
     This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de (main developer)
+        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
     under the project supervision of :
         Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
     
     Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
+    	Tomislav Maric maric@csi.tu-darmstadt.de
     	Holger Marschall <marschall@csi.tu-darmstadt.de>
     	Dieter Bothe <bothe@csi.tu-darmstadt.de>
 
@@ -61,15 +58,14 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef normalConsistency_H
-#define normalConsistency_H
+#ifndef barycenterPlaneMarkerFieldModel_H
+#define barycenterPlaneMarkerFieldModel_H
 
 #include "typeInfo.H"
 #include "autoPtr.H"
-#include "tmp.H"
-#include "refCount.H"
 #include "volFieldsFwd.H"
-#include "triSurfaceFront.H"
+#include "sharpMarkerFieldModel.H"
+#include "pointFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -77,45 +73,30 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class normalConsistency Declaration
+                         Class barycenterPlaneMarkerFieldModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class normalConsistency
+class barycenterPlaneMarkerFieldModel
     :
-        public refCount
+        public sharpMarkerFieldModel 
 {
+
+    const word pointDistFieldName_; 
 
 public:
 
-    TypeName ("distanceGradient");
-
-    declareRunTimeSelectionTable (
-        tmp,
-        normalConsistency,
-        Dictionary,
-        (
-            const dictionary& configDict
-        ),
-        (configDict)
-    );
+    TypeName ("barycenterPlane");
 
     // Constructors
-        normalConsistency(const dictionary& configDict) {};
-
-    // Selectors
-
-        static tmp<normalConsistency> New(const dictionary& configDict);
-
-    // Destructor
-        virtual ~normalConsistency() {};
+    barycenterPlaneMarkerFieldModel(const dictionary& dict); 
 
     // Member Functions
+    virtual void calcMarkerField(volScalarField& markerField) const;
 
-        virtual void makeFrontNormalsConsistent(
-            triSurface& front,
-            const labelList& elementCells,
-            const volScalarField& signedDistance
-        ) const;
+    word pointDistFieldName() const
+    {
+        return pointDistFieldName_; 
+    }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

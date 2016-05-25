@@ -259,7 +259,7 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
         cn[Vl] = cn[Vl] / (2.0 * Amix);
     }
 
-    volScalarField& cellCurvature = cellCurvatureTmp(); 
+    volScalarField& cellCurvature = cellCurvatureTmp.ref(); 
 
     lentInterpolation interpolation;  // FIXME: Move to a data member. TM. 
 

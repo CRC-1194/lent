@@ -71,6 +71,16 @@ namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
+lentInterpolation::lentInterpolation()
+    :
+        cellToVertexInterpType_("cellPoint") // Default interpolation. 
+{}
+
+lentInterpolation::lentInterpolation(const dictionary& dict)
+    :
+        cellToVertexInterpType_(dict.lookup("cellToVertexInterpolation"))
+{}
+
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 autoPtr<lentInterpolation>

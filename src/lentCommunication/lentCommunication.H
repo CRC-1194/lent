@@ -90,15 +90,21 @@ class lentCommunication
     // KVS search algorithm used to update the maps.
     frontMeshSearch searchAlg_; 
 
-    // Indirect triangle->cell map.
+    // Triangle -> Cell : triangle vertex in cell.
     DynamicList<label> triangleToCell_;
 
-    // Indirect vertex->cell map.
+    // Vertex -> Cell : vertex in cell. 
     DynamicList<label> vertexToCell_;
+
+    //- Cell -> Nearest Triangle.  
+    DynamicList<pointIndexHit> cellsTriangleNearest_;
+
+    //- Point -> Nearest Triangle.  
+    DynamicList<pointIndexHit> pointsTriangleNearest_;
 
 public:
 
-    static word registeredName(const triSurfaceFront& front, const fvMesh& mesh); 
+    static word registeredName(const triSurfaceFront& front, const polyMesh& mesh); 
 
     TypeName("dynamicListCommunication");
 
@@ -153,7 +159,33 @@ public:
         triangleToCell_ = l; 
     }
 
+    //- Cell -> Nearest Triangle.  
+    const DynamicList<pointIndexHit>& cellsTriangleNearest() const
+    {
+        return cellsTriangleNearest_; 
+    };
+
+    DynamicList<pointIndexHit>& cellsTriangleNearest()
+    {
+        return cellsTriangleNearest_; 
+    };
+
+    //- Point -> Nearest Triangle.  
+    DynamicList<pointIndexHit>& pointsTriangleNearest()
+    {
+        return pointsTriangleNearest_; 
+    };
+
+    const DynamicList<pointIndexHit>& pointsTriangleNearest() const
+    {
+        return pointsTriangleNearest_; 
+    };
+
+
+    // Update
+    
     void update();  
+
     void updateVertexToCell();  
 
     // Empty writer: regIOobject is used only for registry queries.
