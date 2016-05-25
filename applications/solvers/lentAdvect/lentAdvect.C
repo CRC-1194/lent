@@ -131,12 +131,12 @@ int main(int argc, char *argv[])
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
+        lent.evolveFront(front, U.oldTime());
+
         if (Test::normalsAreInconsistent(front))
         {
-            Info << "Inconstent front normals." << endl;
+            Info << "Inconsistent front normals." << endl;
         }
-
-        lent.evolveFront(front, U.oldTime());
 
         lent.calcSignedDistances(
             signedDistance,
