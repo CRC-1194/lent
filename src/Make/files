@@ -20,6 +20,7 @@ frontReconstructionModels/averageNormalAngleFrontReconstructionModel/averageNorm
 
 frontReconstructors/frontReconstructor/frontReconstructor.C
 frontReconstructors/foamIsoSurfaceReconstructor/foamIsoSurfaceFrontReconstructor.C
+frontReconstructors/analyticalSurfaceReconstructor/analyticalSurfaceReconstructor.C
 
 frontReconstructors/normalConsistencyAlgorithms/normalConsistency/normalConsistency.C
 frontReconstructors/normalConsistencyAlgorithms/centerNormalConsistency/centerNormalConsistency.C
@@ -54,5 +55,14 @@ cellToVertexInterpolation/interpolationCellPointTaylorExtended/makeInterpolation
 isoSurfaces/taylorIsoSurface/taylorIsoSurface.C
 
 lentMethod/lentMethod.C
+
+test/lentMarkerFieldTest/lentMarkerFieldTest.C
+test/errorMetrics/errorMetrics.C
+fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
+fronts/analyticalSurfaces/analyticalPlane/analyticalPlane.C
+fronts/analyticalSurfaces/analyticalSphere/analyticalSphere.C
+fronts/frontConstructor/frontConstructor/frontConstructor.C
+fronts/faceTriangulators/simpleTriangulator/simpleTriangulator.C
+fronts/frontMeshIntersection/cutCellVolumeCalculator/cutCellVolumeCalculator.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent
