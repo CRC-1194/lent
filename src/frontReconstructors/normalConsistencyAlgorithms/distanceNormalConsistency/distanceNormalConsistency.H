@@ -81,7 +81,7 @@ class distanceNormalConsistency
 
 public:
 
-    TypeName ("centerNormal");
+    TypeName ("nearestDistance");
 
     // Constructors
         distanceNormalConsistency(const dictionary& configDict);

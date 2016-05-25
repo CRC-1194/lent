@@ -85,31 +85,87 @@ void distanceNormalConsistency::makeFrontNormalsConsistent(
     const pointScalarField& pointSignedDistance // Not used by this algorithm.
 ) const
 {
-    List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);
-    const vectorField& triangleNormals = front.faceNormals();
-    const pointField& frontPoints = front.points();
-    const fvMesh& mesh = signedDistance.mesh();
-    const pointField& cellCenters = mesh.C();
+    auto& triangles = static_cast<List<labelledTri>& > (front);
+    const auto& triangleNormals = front.faceNormals();
+    const auto& frontPoints = front.points();
+    const auto& pointTriangles = front.pointFaces();
+    const auto& mesh = signedDistance.mesh();
+    const auto& meshPoints = mesh.points(); 
+    const auto& cellCenters = mesh.C();
 
-    const lentCommunication& communication = 
+    const auto& communication = 
         mesh.lookupObject<lentCommunication>(
             lentCommunication::registeredName(front,mesh)
     ); 
-    const auto& triangleToCell = communication.triangleToCell();  
 
-    // For all faces
-    forAll (triangles, triangleI)
+    // FIXME: Draft, refactor this and comment the code. TM. 
+
+    const auto& cellsTriangleNearest = communication.cellsTriangleNearest(); 
+    forAll (cellsTriangleNearest, cellI)
     {
-        point P = frontPoints[triangles[triangleI][0]];
-        label cellI = triangleToCell[triangleI];
-        const point& C = cellCenters[cellI];
-        const vector& n = triangleNormals[triangleI];
+        const auto triangleI = cellsTriangleNearest[cellI].index();
 
-        if (((C - P) & n) * signedDistance[cellI] <  0)
+        if (triangleI > -1)
         {
-            triangles[triangleI].flip();
+            if (((cellCenters[cellI] - frontPoints[triangles[triangleI][0]]) &
+                triangleNormals[triangleI]) < 0)
+                triangles[triangleI].flip(); 
+
+            forAll (triangles[triangleI], pointI)
+            {
+                const auto& pTriangles = pointTriangles[triangles[triangleI][pointI]]; 
+
+                forAll (pTriangles, pTriangleI)
+                {
+                    if ((triangleNormals[pTriangles[pTriangleI]] 
+                        & triangleNormals[triangleI]) < 0)
+                        triangles[pTriangles[pTriangleI]].flip(); 
+                }
+            } 
         }
     }
+
+    const auto& pointsTriangleNearest = communication.pointsTriangleNearest(); 
+    forAll (pointsTriangleNearest, pointI)
+    {
+        const auto triangleI = pointsTriangleNearest[pointI].index();
+
+        if (triangleI > -1)
+        {
+            if (((meshPoints[pointI] - frontPoints[triangles[triangleI][0]]) &
+                triangleNormals[triangleI]) < 0)
+                triangles[triangleI].flip(); 
+
+            forAll (triangles[triangleI], pointI)
+            {
+                const auto& pTriangles = pointTriangles[triangles[triangleI][pointI]]; 
+
+                forAll (pTriangles, pTriangleI)
+                {
+                    if ((triangleNormals[pTriangles[pTriangleI]] 
+                        & triangleNormals[triangleI]) < 0)
+                        triangles[pTriangles[pTriangleI]].flip(); 
+                }
+            } 
+        }
+    }
+
+
+    //const auto& triangleToCell = communication.triangleToCell();  
+    // For all faces
+    //forAll (triangles, triangleI)
+    //{
+        //point P = frontPoints[triangles[triangleI][0]];
+        //label cellI = triangleToCell[triangleI];
+        //const point& C = cellCenters[cellI];
+        //const vector& n = triangleNormals[triangleI];
+
+        //if (((C - P) & n) * signedDistance[cellI] <  0)
+        //{
+            //triangles[triangleI].flip();
+        //}
+    //}
+    
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
