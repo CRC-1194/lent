@@ -90,7 +90,7 @@ public:
     analyticalSurfaceReconstructor(const dictionary& configDict);
 
     // Member Functions
-    labelList reconstructFront(
+    virtual void reconstructFront(
         triSurfaceFront& front,
         const volScalarField& signedDistance,
         const pointScalarField& pointSignedDistance
