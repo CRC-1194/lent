@@ -212,7 +212,7 @@ void frontConstructor::computeIntersections()
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-frontConstructor::frontConstructor(const tmp<analyticalSurface> surfaceTmp,
+frontConstructor::frontConstructor(const tmp<analyticalSurface>& surfaceTmp,
                                    const fvMesh& mesh)
 :
     surfaceTmp_(surfaceTmp),

@@ -190,7 +190,7 @@ void simpleTriangulator::triangulateFace(labelList& facePointIDs,
 }
 
 void simpleTriangulator::triangulateFace(labelList& facePointIDs, 
-                                         tmp<analyticalSurface> surfaceTmp)
+                                         const tmp<analyticalSurface>& surfaceTmp)
 {
     point geoCentre = geometricCentre(facePointIDs);
     vector normal = surfaceTmp->normalToPoint(geoCentre);

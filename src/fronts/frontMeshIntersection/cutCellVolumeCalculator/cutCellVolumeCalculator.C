@@ -329,7 +329,7 @@ label cutCellVolumeCalculator::intersectionID(const point& a, const point& b,
     for (label I = 0; I < limit; I++)
     {
         aToVertex = vertices[I] - a;
-        
+
         if (vectorsParallel(ab, aToVertex))
         {
             intersectID = I;
@@ -341,7 +341,7 @@ label cutCellVolumeCalculator::intersectionID(const point& a, const point& b,
     return intersectID;
 }
 
-bool cutCellVolumeCalculator::vectorsParallel(const vector& a, vector b) const
+bool cutCellVolumeCalculator::vectorsParallel(const vector& a, const vector& b) const
 {
     if (fabs((a & b) / (mag(a)*mag(b)) - 1) < SMALL) return true;
     else return false;
