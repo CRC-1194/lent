@@ -112,7 +112,7 @@ public:
     void setVertices(pointField& vertices);
     void setTriangleList(List<triFace>& triangles);
     void triangulateFace(labelList& facePointIDs, const vector& faceNormal);
-    void triangulateFace(labelList& facePointIDs, tmp<analyticalSurface> surfaceTmp);
+    void triangulateFace(labelList& facePointIDs, const tmp<analyticalSurface>& surfaceTmp);
 
 };
 
