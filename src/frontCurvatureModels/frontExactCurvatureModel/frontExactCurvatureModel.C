@@ -108,7 +108,7 @@ tmp<volScalarField> frontExactCurvatureModel::cellCurvature(
     }
 
     // Set the boundary cell centered curvature field
-    auto& cellCurvatureBoundaries = cellCurvature.boundaryFieldRef();  
+    auto& cellCurvatureBoundaries = cellCurvature.boundaryField();  
     forAll(cellCurvatureBoundaries, I)
     {
         auto& cellCurvatureBoundary = cellCurvatureBoundaries[I];
@@ -159,7 +159,7 @@ tmp<surfaceScalarField> frontExactCurvatureModel::faceCurvature(
     }
 
     // Set the boundary surface centered curvature field
-    auto& surfaceCurvatureBoundaries = surfaceCurvature.boundaryFieldRef(); 
+    auto& surfaceCurvatureBoundaries = surfaceCurvature.boundaryField(); 
     forAll(surfaceCurvatureBoundaries, I)
     {
         auto& surfaceCurvatureBoundary = surfaceCurvatureBoundaries[I];

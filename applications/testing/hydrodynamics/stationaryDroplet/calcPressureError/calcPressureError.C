@@ -67,9 +67,9 @@ scalar calc_deltaP_total(volScalarField& P, const volVectorField& cellCenters,
         }
     }
 
-    forAll(P.boundaryFieldRef(), I)
+    forAll(P.boundaryField(), I)
     {
-        scalarField& PBoundaryField = P.boundaryFieldRef()[I];
+        scalarField& PBoundaryField = P.boundaryField()[I];
 
         forAll(PBoundaryField, J)
         {
@@ -117,9 +117,9 @@ scalar calc_deltaP_partial(volScalarField& P, const volVectorField& cellCenters,
         }
     }
 
-    forAll(P.boundaryFieldRef(), I)
+    forAll(P.boundaryField(), I)
     {
-        scalarField& PBoundaryField = P.boundaryFieldRef()[I];
+        scalarField& PBoundaryField = P.boundaryField()[I];
 
         forAll(PBoundaryField, J)
         {
