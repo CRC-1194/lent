@@ -72,6 +72,7 @@ namespace FrontTracking {
 
 curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(const dictionary& configDict)
     :
+        frontSurfaceTensionForceModel(configDict),
         curvatureModelTmp_(frontCurvatureModel::New(configDict.subDict("curvatureModel"))) 
 {}
 
