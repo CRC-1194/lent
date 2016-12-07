@@ -258,6 +258,12 @@ int main(int argc, char *argv[])
 
     forAll(timeDirs, timeI)
     {
+        // Skip evaluation of initial data
+        if (timeI == 0)
+        {
+            continue;
+        }
+
         // Set the time to the current time directory and update time index
         runTime.setTime(timeDirs[timeI], timeI);
 

@@ -311,6 +311,12 @@ int main(int argc, char *argv[])
 
     forAll(timeDirs, timeI)
     {
+        // Skip evaluation of initial data
+        if (timeI == 0)
+        {
+            continue;
+        }
+
         runTime.setTime(timeDirs[timeI], timeI);
 
         // Read pressure field of current time step
