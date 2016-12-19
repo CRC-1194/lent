@@ -61,6 +61,8 @@ Description
 #include "CorrectPhi.H"
 #include "lentMethod.H"
 
+#include "alphaFace.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
@@ -134,7 +136,8 @@ int main(int argc, char *argv[])
 
         runTime++;
 
-        Info<< "Time = " << runTime.timeName() << nl << endl;
+        Info << "Time step = " << runTime.timeIndex() << endl;
+        Info << "Time = " << runTime.timeName() << nl << endl;
 
         lent.calcSignedDistances(
             signedDistance,
@@ -157,7 +160,12 @@ int main(int argc, char *argv[])
         // However, LENT has no ability to compute the volumetric phase flux. 
         // TODO: examine the impact of the momentum flux computation and devise
         // more accurate approach if required (TT)
-        rhoPhi == fvc::interpolate(rho) * phi; 
+        //
+        // old approach
+        // rhoPhi == fvc::interpolate(rho) * phi;
+        // new approach: vol fraction based calculation of rho at the face
+        #include "computeRhoPhi.H"
+        
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
