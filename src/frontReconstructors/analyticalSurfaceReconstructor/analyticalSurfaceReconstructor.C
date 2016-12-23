@@ -58,10 +58,11 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "addToRunTimeSelectionTable.H"
+
 #include "frontConstructor.H"
-#include "analyticalSurfaceReconstructor.H"
 #include "lentCommunication.H"
 
+#include "analyticalSurfaceReconstructor.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -87,22 +88,21 @@ void analyticalSurfaceReconstructor::reconstructFront(
     const pointScalarField& pointSignedDistance
 ) const
 {
+    // Update the communication map after reconstruction.
     const auto& mesh = signedDistance.mesh();
-
-    frontConstructor frontCon(analyticalSurfaceTmp_, mesh);
-    front = frontCon.createTriSurface();
-
     auto& communication = const_cast<lentCommunication&>(
         mesh.lookupObject<lentCommunication>(
             lentCommunication::registeredName(front,mesh)
         ) 
     );
-    // Assign the new iso surface mesh to the front.  
+    frontConstructor frontCon(analyticalSurfaceTmp_, mesh);
+
+    front = frontCon.createTriSurface();
 
     // Set the triangleToCell using the map produced by the iso-surface
     // reconstruction algorithm.
     communication.setTriangleToCell(frontCon.triangleToCell());
-
+    communication.updateVertexToCell();
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

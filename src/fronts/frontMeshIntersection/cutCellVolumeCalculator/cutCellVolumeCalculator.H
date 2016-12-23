@@ -106,7 +106,7 @@ class cutCellVolumeCalculator
                        const pointScalarField& distance) const;
     label intersectionID(const point& a, const point& b,
                          const pointField& vertices, const label limit) const;
-    bool vectorsParallel(const vector& a, vector b) const;
+    bool vectorsParallel(const vector& a, const vector& b) const;
     vector provideNormal(const face& cellFace, const pointField& vertices) const;
 
 
