@@ -2,15 +2,15 @@
     volScalarField rAU("rAU", 1.0/UEqn.A());
     surfaceScalarField rAUf("rAUf", fvc::interpolate(rAU));
 
-    volVectorField HbyA("HbyA", U);
-    HbyA = rAU*UEqn.H();
+    volVectorField HbyA(constrainHbyA(rAU*UEqn.H(), U, p_rgh));
 
     surfaceScalarField phiHbyA
     (
         "phiHbyA",
-        (fvc::interpolate(HbyA) & mesh.Sf())
+        fvc::flux(HbyA)
       + fvc::interpolate(rho*rAU)*fvc::ddtCorr(U, phi)
     );
+
     MRF.makeRelative(phiHbyA);
     adjustPhi(phiHbyA, U, p_rgh);
 
@@ -20,7 +20,6 @@
             lent.faceSurfaceTensionForce(mesh, front)
           - ghf*fvc::snGrad(rho)
         )*rAUf*mesh.magSf()
-
     );
 
     phiHbyA += phig;
@@ -53,6 +52,7 @@
             
             // Assemble the matrix anew. TM.  
             // Update the momentum flux using the volume conservative flux.
+            /*
             rhoPhi == fvc::interpolate(rho) * phi; 
             fvVectorMatrix UEqn
             (
@@ -75,8 +75,8 @@
                           - fvc::snGrad(p_rgh)
                         ) * mesh.magSf()
                     )
-                    - fvc::grad(p_rgh)  // Add the final pressure to the equation.
             );
+            */
 
             U.correctBoundaryConditions();
             fvOptions.correct(U);

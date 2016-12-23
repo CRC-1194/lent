@@ -1183,8 +1183,8 @@ Foam::taylorIsoSurface::taylorIsoSurface
         Pout<< "taylorIsoSurface:" << nl
             << "    isoField      : " << cVals.name() << nl
             << "    cell min/max  : "
-            << min(cVals.primitiveField()) << " / "
-            << max(cVals.primitiveField()) << nl
+            << min(cVals.internalField()) << " / "
+            << max(cVals.internalField()) << nl
             << "    point min/max : "
             << min(pVals_) << " / "
             << max(pVals_) << nl
@@ -1254,7 +1254,7 @@ Foam::taylorIsoSurface::taylorIsoSurface
         }
         else if (isA<emptyPolyPatch>(pp))
         {
-            typedef slicedVolVectorField::Boundary bType;
+            typedef slicedVolVectorField::GeometricBoundaryField bType;
 
             bType& bfld = const_cast<bType&>(meshC.boundaryField());
 

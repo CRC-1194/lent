@@ -67,9 +67,9 @@ scalar calc_deltaP_total(volScalarField& P, const volVectorField& cellCenters,
         }
     }
 
-    forAll(P.boundaryFieldRef(), I)
+    forAll(P.boundaryField(), I)
     {
-        scalarField& PBoundaryField = P.boundaryFieldRef()[I];
+        scalarField& PBoundaryField = P.boundaryField()[I];
 
         forAll(PBoundaryField, J)
         {
@@ -117,9 +117,9 @@ scalar calc_deltaP_partial(volScalarField& P, const volVectorField& cellCenters,
         }
     }
 
-    forAll(P.boundaryFieldRef(), I)
+    forAll(P.boundaryField(), I)
     {
-        scalarField& PBoundaryField = P.boundaryFieldRef()[I];
+        scalarField& PBoundaryField = P.boundaryField()[I];
 
         forAll(PBoundaryField, J)
         {
@@ -311,6 +311,12 @@ int main(int argc, char *argv[])
 
     forAll(timeDirs, timeI)
     {
+        // Skip evaluation of initial data
+        if (timeI == 0)
+        {
+            continue;
+        }
+
         runTime.setTime(timeDirs[timeI], timeI);
 
         // Read pressure field of current time step

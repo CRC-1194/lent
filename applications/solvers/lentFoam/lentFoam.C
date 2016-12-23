@@ -53,17 +53,15 @@ Description
 
 
 #include "fvCFD.H"
-//#include "CMULES.H"
 #include "EulerDdtScheme.H"
-#include "localEulerDdtScheme.H"
-#include "CrankNicolsonDdtScheme.H"
-#include "subCycle.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulentTransportModel.H"
 #include "pimpleControl.H"
 #include "fvOptions.H"
-#include "fixedFluxPressureFvPatchScalarField.H"
+#include "CorrectPhi.H"
 #include "lentMethod.H"
+
+#include "alphaFace.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -77,14 +75,16 @@ int main(int argc, char *argv[])
 
     pimpleControl pimple(mesh);
 
+    #include "createTimeControls.H"
     #include "initContinuityErrs.H"
     #include "createFields.H"
     #include "createMRF.H"
     #include "createFvOptions.H"
-
-    #include "createTimeControls.H"
-    #include "readTimeControls.H"
     #include "correctPhi.H"
+
+    turbulence->validate();
+
+    #include "readTimeControls.H"
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
@@ -136,7 +136,8 @@ int main(int argc, char *argv[])
 
         runTime++;
 
-        Info<< "Time = " << runTime.timeName() << nl << endl;
+        Info << "Time step = " << runTime.timeIndex() << endl;
+        Info << "Time = " << runTime.timeName() << nl << endl;
 
         lent.calcSignedDistances(
             signedDistance,
@@ -150,12 +151,21 @@ int main(int argc, char *argv[])
 
         // Update the viscosity. 
         mixture.correct();
+
         // Update density field.
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
+
         // The momentum flux is computed from MULES as  
         // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
         // However, LENT has no ability to compute the volumetric phase flux. 
-        rhoPhi == fvc::interpolate(rho) * phi; 
+        // TODO: examine the impact of the momentum flux computation and devise
+        // more accurate approach if required (TT)
+        //
+        // old approach
+        // rhoPhi == fvc::interpolate(rho) * phi;
+        // new approach: vol fraction based calculation of rho at the face
+        #include "computeRhoPhi.H"
+        
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 

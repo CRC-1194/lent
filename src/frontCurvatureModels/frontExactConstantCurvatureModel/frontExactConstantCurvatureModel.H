@@ -23,16 +23,25 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::curvatureBasedSurfaceTensionForceModel
+    Foam::frontExactCurvatureModel
 
 SourceFiles
-    curvatureBasedSurfaceTensionForceModel.C
+    frontExactCurvatureModel.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle tolle@mma.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+
+    Curvature model which prescribes a constant curvature in the entire domain.
+    The curvature is specified in the curvature model dictionary.
+    Intended for the examination of the stationary droplet to rule out the
+    curvature as a source of error
+
+    Usage parameters:
+
+        type    constant;
+        value   3.0;
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,26 +65,43 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef frontExactConstantCurvatureModel_H
+#define frontExactConstantCurvatureModel_H
 
-#include "curvatureBasedSurfaceTensionForceModel.H"
-#include "addToRunTimeSelectionTable.H"
+#include "frontExactCurvatureModel.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(curvatureBasedSurfaceTensionForceModel, 0);
+/*---------------------------------------------------------------------------*\
+                         Class frontExactConstantCurvatureModel Declaration
+\*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
-//
+class frontExactConstantCurvatureModel
+:
+    public frontExactCurvatureModel
+{
+    const scalar curvature_;
 
-curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(const dictionary& configDict)
-    :
-        frontSurfaceTensionForceModel(configDict),
-        curvatureModelTmp_(frontCurvatureModel::New(configDict.subDict("curvatureModel"))) 
-{}
+public:
 
+    TypeName ("constantCurvature");
+
+    // Constructors
+    explicit frontExactConstantCurvatureModel(const dictionary& configDict);
+    
+    // Destructor
+    virtual ~frontExactConstantCurvatureModel() = default;
+
+
+    // Member Functions
+    scalar curvatureAtPoint(const point& p) const
+    {
+        return curvature_;
+    }
+};
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
@@ -85,5 +111,7 @@ curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(c
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //
