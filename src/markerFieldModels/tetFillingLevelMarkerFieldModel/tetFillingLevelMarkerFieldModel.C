@@ -200,20 +200,19 @@ void tetFillingLevelMarkerFieldModel::setBulkMarkerField(volScalarField& markerF
             }
         }
 
-        // Round numerical inaccuracies
-        // TODO: discuss threshold with Tomislav (TT)
-        if (markerField[cellI] < 0.0 && markerField[cellI] > -1.0e-10)
+        // Cut off numerical over-/undershoots
+        if (markerField[cellI] < 0.0)
         {
-            Info << "Undershoot: " << markerField[cellI] << endl;
+            Info << "Alpha undershoot in cell " << cellI
+                 << ", value = " << markerField[cellI] << endl;
             markerField[cellI] = 0.0;
         }
-        else if (markerField[cellI] > 1.0 && markerField[cellI] < (1.0 + 1.0e-10))
+        else if (markerField[cellI] > 1.0)
         {
-            Info << "Overshoot: " << markerField[cellI] << endl;
+            Info << "Alpha overshoot in cell " << cellI
+                 << ", value = " << markerField[cellI] << endl;
             markerField[cellI] = 1.0;
         }
-
-        assert (markerField[cellI] >= 0.0 && markerField[cellI] <= 1.0);
     }
 }
 
