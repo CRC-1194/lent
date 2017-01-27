@@ -67,6 +67,7 @@ Description
 #include "frontMeshSearch.H"
 #include "triSurfaceFront.H"
 #include "fvMesh.H"
+#include "pointIndexHit.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -163,11 +163,34 @@ bool triSurfaceFront::writeObject
 }
 
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
-
 void triSurfaceFront::operator=(const triSurface& rhs)
 {
+    triSurface::operator=(rhs);  
+}
 
-    static_cast<triSurface*>(this)->operator=(rhs);
+void triSurfaceFront::operator=(const isoSurface& rhs)
+{
+    this->clearOut(); 
+
+    auto& thisPoints = this->storedPoints(); 
+    auto& thisFaces = this->storedFaces(); 
+
+    const auto& rhsPoints = rhs.localPoints();  
+    const auto& rhsFaces = rhs.localFaces(); 
+
+    thisPoints = rhsPoints; 
+    thisFaces.resize(rhsFaces.size());
+    forAll(rhsFaces, faceI)
+    {
+        auto& thisFace = thisFaces[faceI]; 
+        const auto& rhsFace = rhsFaces[faceI]; 
+        thisFace.resize(rhsFace.size()); 
+        forAll(rhsFace, pointI)
+        {
+            thisFace[pointI] = rhsFace[pointI]; 
+            thisFace.region() = 0;  
+        }
+    }
 }
 
 // ************************************************************************* //
