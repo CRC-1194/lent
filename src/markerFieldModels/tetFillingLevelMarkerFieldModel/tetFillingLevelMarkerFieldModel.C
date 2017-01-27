@@ -160,7 +160,13 @@ void tetFillingLevelMarkerFieldModel::tagInterfaceCells(volScalarField& markerFi
         auto secondPointDist = pointDistance[meshEdge[1]];
 
         // If the distance switches sign for an edge of the cell cellI. 
-        if ((firstPointDist * secondPointDist ) < 0)
+        // Check for LARGE to ensure only actual interface cells are tagged
+        // --> makes this approach more resilient against errors in the 
+        // signed distance propagation hopefully
+        if ((firstPointDist * secondPointDist ) < 0
+            && mag(firstPointDist) < GREAT 
+            && mag(secondPointDist) < GREAT
+           )
         {
             const labelList& edgeCells = meshEdgeCells[edgeI]; 
             forAll(edgeCells, edgeJ)
@@ -192,6 +198,19 @@ void tetFillingLevelMarkerFieldModel::setBulkMarkerField(volScalarField& markerF
             {
                 markerField[cellI] = 1.0;
             }
+        }
+
+        // Round numerical inaccuracies
+        // TODO: discuss threshold with Tomislav (TT)
+        if (markerField[cellI] < 0.0 && markerField[cellI] > -1.0e-10)
+        {
+            Info << "Undershoot: " << markerField[cellI] << endl;
+            markerField[cellI] = 0.0;
+        }
+        else if (markerField[cellI] > 1.0 && markerField[cellI] < (1.0 + 1.0e-10))
+        {
+            Info << "Overshoot: " << markerField[cellI] << endl;
+            markerField[cellI] = 1.0;
         }
 
         assert (markerField[cellI] >= 0.0 && markerField[cellI] <= 1.0);

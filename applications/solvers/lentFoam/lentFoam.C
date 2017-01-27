@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
         // more accurate approach if required (TT)
         //
         // old approach
-        // rhoPhi == fvc::interpolate(rho) * phi;
+        //rhoPhi == fvc::interpolate(rho) * phi;
         // new approach: vol fraction based calculation of rho at the face
         #include "computeRhoPhi.H"
         
@@ -184,6 +184,11 @@ int main(int argc, char *argv[])
             if (pimple.turbCorr())
             {
                 turbulence->correct();
+            }
+
+            if (pimple.finalIter())
+            {
+                #include "U_solveMomentumEq.H"
             }
         }
         Info << "Done." << endl;
