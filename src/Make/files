@@ -55,8 +55,6 @@ lentInterpolation/lentInterpolation.C
 cellToVertexInterpolation/interpolationCellPointTaylor/makeInterpolationCellPointTaylor.C
 cellToVertexInterpolation/interpolationCellPointTaylorExtended/makeInterpolationCellPointTaylorExtended.C
 
-isoSurfaces/taylorIsoSurface/taylorIsoSurface.C
-
 lentMethod/lentMethod.C
 
 test/lentMarkerFieldTest/lentMarkerFieldTest.C

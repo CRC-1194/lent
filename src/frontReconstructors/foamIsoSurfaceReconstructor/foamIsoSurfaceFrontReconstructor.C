@@ -61,7 +61,6 @@ Description
 #include "foamIsoSurfaceFrontReconstructor.H"
 #include "addToRunTimeSelectionTable.H"
 #include "taylorIsoSurface.H" 
-//#include "isoSurfaceCell.H"// Alternative iso-surface reconstruction.
 #include "lentCommunication.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -92,11 +91,12 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
     const pointScalarField& pointSignedDistance
 ) const
 {
-    taylorIsoSurface iso(
+    isoSurface iso(
         signedDistance,
         pointSignedDistance,
         0, // FIXME: Leave as a compile time constant? TM.
         bool(regularize_), 
+        boundBox::greatBox,
         mergeTolerance_
     );
 
@@ -111,8 +111,9 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
             lentCommunication::registeredName(front,mesh)
         ) 
     );
+
     // Assign the new iso surface mesh to the front.  
-    front = static_cast<triSurface&>(iso);
+    front = iso;
 
     // Set the triangleToCell using the map produced by the iso-surface
     // reconstruction algorithm.

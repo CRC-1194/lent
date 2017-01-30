@@ -67,6 +67,7 @@ Description
 #include "surfaceFields.H"
 #include "fvcDiv.H"
 #include "fvcSnGrad.H"
+#include "fvcAverage.H"
 
 namespace Foam {
 namespace FrontTracking {
@@ -97,7 +98,7 @@ tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
     
     const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
 
-    return fvc::interpolate(sigma * cellCurvature(mesh,frontMesh)) * fvc::snGrad(filterField);
+    return fvc::interpolate(sigma * cellCurvature(mesh,frontMesh)) * fvc::snGrad(fvc::average(fvc::interpolate(filterField)));
 }
 
 tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
