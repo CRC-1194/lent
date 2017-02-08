@@ -94,6 +94,7 @@ class tetFillingLevelMarkerFieldModel
 {
     // Private data
     const word pointDistFieldName_;
+    const label nSmoothingSteps_;
 
 public:
 
@@ -117,6 +118,8 @@ public:
     scalar tetrahedralVolume(const tetrahedron& tet) const;
     scalar volumeFraction(SortableList<scalar>& d) const;
     label countNegativeEntries(List<scalar>& distance) const;
+    void smoothMarkerField(volScalarField& markerField) const;
+    void cutOverUnderShoots(volScalarField& markerField) const;
 
     word pointDistFieldName() const
     {

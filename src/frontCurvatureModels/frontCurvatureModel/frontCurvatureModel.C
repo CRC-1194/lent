@@ -138,7 +138,7 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature(
     // Face unit interface normal
     surfaceVectorField curvGradFhat(curvGradF /(mag(curvGradF) + deltaN));
 
-    return fvc::div(curvGradFhat & Sf); 
+    return -fvc::div(curvGradFhat & Sf); 
 }
 
 tmp<surfaceScalarField> frontCurvatureModel::faceCurvature(
@@ -146,7 +146,7 @@ tmp<surfaceScalarField> frontCurvatureModel::faceCurvature(
     const triSurfaceFront& frontMesh
 ) const
 {
-    return -fvc::interpolate(cellCurvature(mesh,frontMesh)); 
+    return fvc::interpolate(cellCurvature(mesh,frontMesh)); 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -1,6 +1,6 @@
 {
-    //rhoPhi == fvc::interpolate(rho) * phi;
-    #include "computeRhoPhi.H"
+    rhoPhi == fvc::interpolate(rho) * phi;
+    //#include "computeRhoPhi.H"
 
     UEqn =
     (

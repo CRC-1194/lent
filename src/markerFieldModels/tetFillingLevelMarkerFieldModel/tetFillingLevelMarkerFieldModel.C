@@ -67,6 +67,8 @@ Description
 #include <cassert>
 
 #include "addToRunTimeSelectionTable.H"
+#include "fvcAverage.H"
+#include "surfaceInterpolate.H"
 #include "volFields.H"
 
 #include "tetFillingLevelMarkerFieldModel.H"
@@ -84,7 +86,8 @@ tetFillingLevelMarkerFieldModel::tetFillingLevelMarkerFieldModel(
                                     const dictionary& configDict)
 :
     markerFieldModel(configDict),
-    pointDistFieldName_(configDict.lookup("pointDistance"))
+    pointDistFieldName_(configDict.lookup("pointDistance")),
+    nSmoothingSteps_(readScalar(configDict.lookup("nSmoothingSteps")))
 {}
 
 
@@ -132,6 +135,8 @@ void tetFillingLevelMarkerFieldModel::calcMarkerField(volScalarField& markerFiel
     }
 
     setBulkMarkerField(markerField);
+    smoothMarkerField(markerField);
+    cutOverUnderShoots(markerField);
 }
 
 void tetFillingLevelMarkerFieldModel::tagInterfaceCells(volScalarField& markerField) const
@@ -198,20 +203,6 @@ void tetFillingLevelMarkerFieldModel::setBulkMarkerField(volScalarField& markerF
             {
                 markerField[cellI] = 1.0;
             }
-        }
-
-        // Cut off numerical over-/undershoots
-        if (markerField[cellI] < 0.0)
-        {
-            Info << "Alpha undershoot in cell " << cellI
-                 << ", value = " << markerField[cellI] << endl;
-            markerField[cellI] = 0.0;
-        }
-        else if (markerField[cellI] > 1.0)
-        {
-            Info << "Alpha overshoot in cell " << cellI
-                 << ", value = " << markerField[cellI] << endl;
-            markerField[cellI] = 1.0;
         }
     }
 }
@@ -340,6 +331,33 @@ label tetFillingLevelMarkerFieldModel::countNegativeEntries(List<scalar>& distan
     }
 
     return negativeEntries;
+}
+
+void tetFillingLevelMarkerFieldModel::smoothMarkerField(volScalarField& markerField) const
+{
+    for (label I = 0; I < nSmoothingSteps_; I++)
+    {
+        markerField = fvc::average(fvc::interpolate(markerField));
+    }
+}
+
+void tetFillingLevelMarkerFieldModel::cutOverUnderShoots(volScalarField& markerField) const
+{
+    forAll(markerField, cellI)
+    {
+        if (markerField[cellI] < 0.0)
+        {
+            Info << "Alpha undershoot in cell " << cellI
+                 << ", value = " << markerField[cellI] << endl;
+            markerField[cellI] = 0.0;
+        }
+        else if (markerField[cellI] > 1.0)
+        {
+            Info << "Alpha overshoot in cell " << cellI
+                 << ", value = " << markerField[cellI] << endl;
+            markerField[cellI] = 1.0;
+        }
+    }
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
