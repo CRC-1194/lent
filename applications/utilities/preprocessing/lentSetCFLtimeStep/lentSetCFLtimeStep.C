@@ -44,7 +44,7 @@ scalar maxCoNum(const auto& phi)
     const auto& mesh = phi.mesh(); 
     const auto& runTime = mesh.time(); 
 
-    #include "geomCourantNo.H"
+    #include "lentCourantNo.H"
 
     Info << "dictionary maxCo = " << maxCo << endl;
 
@@ -63,7 +63,33 @@ int main(int argc, char *argv[])
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     
-    #include "createAdvectionFields.H"
+    volVectorField U 
+    (
+        IOobject
+        (
+            "U", 
+            runTime.timeName(), 
+            mesh, 
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ), 
+        mesh, 
+        dimensionedVector("U", dimLength / dimTime, vector(0,0,0))
+    ); 
+    
+    surfaceScalarField phi
+    (
+        IOobject
+        (
+            "phi", 
+            runTime.timeName(), 
+            mesh, 
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ), 
+        mesh, 
+        dimensionedScalar("phi", dimVolume / dimTime, 0)
+    ); 
 
     IOdictionary controlDict 
     (
