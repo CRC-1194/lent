@@ -240,8 +240,8 @@ void lentMethod::evolveFront(
     //Info << "Done." << endl;
 
     // Calculate normal vectors after front motion.
-    //Info << "Computing triangle normal vectors..." << endl;  
-    //calcFrontNormals(front); 
+    Info << "Computing triangle normal vectors..." << endl;  
+    calcFrontNormals(front); 
     //Info << "Done." << endl;
     // Update front-mesh communication maps after front motion. 
     Info << "Updating communication maps..." << endl;  

@@ -59,6 +59,7 @@ Description
 
 #include "narrowBandPropagation.H"
 #include "pointMesh.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -67,6 +68,7 @@ namespace FrontTracking {
 
     defineTypeNameAndDebug(narrowBandPropagation, 0);
     defineRunTimeSelectionTable(narrowBandPropagation, Dictionary);
+    addToRunTimeSelectionTable(narrowBandPropagation,narrowBandPropagation, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
