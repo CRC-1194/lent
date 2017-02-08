@@ -26,7 +26,7 @@ Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Test application for the interface advection algorithm of the LENT method.
+    Interface advection algorithm of the LENT method.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,23 +57,29 @@ Description
 #include "turbulentTransportModel.H"
 #include "pimpleControl.H"
 
-#include "lentMethod.H"
+// LENT 
 #include "lentTests.H"
-#include "lentGtest.H"
+#include "lentMethod.H"
+
+// Error analysis  
+#include "fieldErrorsVolumeFwd.H"
+#include "fieldErrorL1.H"
+#include "fieldErrorsL1Fwd.H"
+#include "fieldErrorL1normalized.H"
+#include "fieldErrorsL1normalizedFwd.H"
+#include "volScalarFieldErrorBoundedness.H"
+
+// Timing 
+#include <chrono>
+typedef std::chrono::high_resolution_clock Clock;
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
-using namespace Test;
 
-TEST_F(lentTests, lentReconstruction)
+int main(int argc, char *argv[])
 {
-    extern int mainArgc;
-    extern char** mainArgv;
-
-    int argc = mainArgc;
-    char** argv = mainArgv;
-
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -85,11 +91,28 @@ TEST_F(lentTests, lentReconstruction)
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
+    volScalarField markerFieldInitial(
+        IOobject
+        (
+            "alpha.water.initial", 
+            "0",
+            mesh, 
+            IOobject::NO_READ, 
+            IOobject::NO_WRITE
+        ), 
+        markerField 
+    );
+
+    // Update the advection velocity from function objects and overwrite 
+    // intial values.  
+    auto& functionObjects = runTime.functionObjects(); 
+    functionObjects.execute(); 
+    U.write(); 
+
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< "\nStarting time loop\n" << endl;
 
-    Info << "Reading the front..." << endl;
     triSurfaceFront front(
         IOobject(
             "front",
@@ -97,25 +120,6 @@ TEST_F(lentTests, lentReconstruction)
             mesh,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
-        )
-    );
-
-    ASSERT_TRUE(normalsAreConsistent(front)); 
-    Info << "Done." << endl;
-
-    triSurfacePointVectorField frontVelocity(
-        IOobject(
-            "frontVelocity",
-            runTime.timeName(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        front,
-        dimensionedVector(
-            "zero",
-            dimLength / dimTime,
-            vector(0,0,0)
         )
     );
 
@@ -131,9 +135,19 @@ TEST_F(lentTests, lentReconstruction)
         front
     );
 
-    lent.calcMarkerField(markerField);
+    lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
+    lent.calcMarkerField(markerField);
+    markerField.write(); 
     front.write();
+
+    // Set up the file for error output.
+    std::fstream errorFile(args.rootPath() + "/" + args.globalCaseName() 
+                           + "/advectionErrors.dat", std::ios_base::app); 
+    if (Pstream::myProcNo() == 0)
+    {
+        errorFile << "time " <<  "CFL " << "Ev " << "Eb " << "Eg " << "En " << "Te " << "\n"; 
+    }
 
     while (runTime.run())
     {
@@ -141,23 +155,22 @@ TEST_F(lentTests, lentReconstruction)
 
         runTime++;
 
-
         #include "CourantNo.H"
         #include "markerFieldCourantNo.H"
         #include "setDeltaT.H"
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        Info << "Reconstructing the front..." << endl;
+        auto t1 = Clock::now();
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
-        EXPECT_TRUE(normalsAreConsistent(front)); 
-        Info << "Done." << endl;
 
-        Info << "Evolving the front..." << endl;
         lent.evolveFront(front, U.oldTime());
-        Info << "Done." << endl;
 
-        Info << "Calculating distance fields..." << endl;
+        if (Test::normalsAreInconsistent(front))
+        {
+            Info << "Inconsistent front normals." << endl;
+        }
+
         lent.calcSignedDistances(
             signedDistance,
             pointSignedDistance,
@@ -165,16 +178,60 @@ TEST_F(lentTests, lentReconstruction)
             pointSearchDistanceSqr,
             front
         );
-        Info << "Done." << endl;
 
-        Info << "Calculating the marker field..." << endl;
         lent.calcMarkerField(markerField);
-        Info << "Done." << endl;
+        auto t2 = Clock::now();
+        double tTotal = (std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()) / 1000.0;  
+
 
         // Update viscosity. 
         mixture.correct();
         // Update density field.
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
+
+
+        volScalarFieldErrorVolume volumeErrorCalculator; 
+        volumeErrorCalculator.computeError(markerFieldInitial, markerField); 
+
+        volScalarFieldErrorBoundedness boundednessErrorCalculator;
+        boundednessErrorCalculator.computeError(markerFieldInitial, markerField); 
+
+        fieldErrorL1<volScalarField> geometricalErrorCalculator;
+        geometricalErrorCalculator.computeError(markerFieldInitial, markerField); 
+
+        // TEST for the geometrical error E_n.
+        fieldErrorL1normalized<volScalarField> normalizedErrorCalculator;
+        normalizedErrorCalculator.computeError(markerFieldInitial, markerField); 
+
+        if (Pstream::parRun())
+        {
+            // Collect maximal execution time for a process. 
+            auto maxEq = [](scalar& x1, const scalar& x2)
+            {
+                if (x1 > x2)
+                {
+                    x1 = x2; 
+                    return x1; 
+                } 
+                return x2; 
+            };
+
+            Pstream::gather(tTotal,maxEq); 
+            Pstream::scatter(tTotal); 
+        }
+
+        if (Pstream::myProcNo() == 0)
+        {
+            Info << "Ev = " << volumeErrorCalculator.errorValue() << "\n"; 
+
+            errorFile << runTime.timeOutputValue() << " " 
+                << CoNum << " " 
+                << volumeErrorCalculator.errorValue() << " "
+                << boundednessErrorCalculator.errorValue() << " " 
+                << geometricalErrorCalculator.errorValue() << " "
+                << normalizedErrorCalculator.errorValue() << " "
+                << tTotal << "\n";
+        }
 
         runTime.write();
 
@@ -184,19 +241,8 @@ TEST_F(lentTests, lentReconstruction)
     }
 
     Info<< "End\n" << endl;
-}
 
-int mainArgc;
-char** mainArgv;
-
-int main(int argc, char **argv)
-{
-    ::testing::InitGoogleTest(&argc, argv);
-
-    mainArgc = argc;
-    mainArgv = argv;
-
-    return RUN_ALL_TESTS();
+    return 0;
 }
 
 // ************************************************************************* //
