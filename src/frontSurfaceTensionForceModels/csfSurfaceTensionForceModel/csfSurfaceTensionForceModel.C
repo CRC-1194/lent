@@ -98,7 +98,7 @@ tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
     
     const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
 
-    return fvc::interpolate(sigma * cellCurvature(mesh,frontMesh)) * fvc::snGrad(fvc::average(fvc::interpolate(filterField)));
+    return fvc::interpolate(sigma * cellCurvature(mesh,frontMesh)) * fvc::snGrad(filterField);
 }
 
 tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
