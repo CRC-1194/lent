@@ -82,7 +82,7 @@ class narrowBandPropagation
 
 public:
 
-    TypeName("narrowBandPropagation");
+    TypeName("none");
 
     declareRunTimeSelectionTable (
         tmp,
@@ -110,12 +110,14 @@ public:
         virtual void ensureNarrowBand(
             volScalarField& signedDistance,
             scalar L = GREAT
-        ) const = 0;
+        ) const 
+        {} 
 
         virtual void ensureNarrowBand(
             pointScalarField& pointSignedDistance,
             scalar L = GREAT
-        ) const = 0;
+        ) const
+        {} 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
