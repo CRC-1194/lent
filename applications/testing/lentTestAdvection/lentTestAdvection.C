@@ -88,8 +88,6 @@ int main(int argc, char *argv[])
     #include "initContinuityErrs.H"
     #include "createFields.H"
     #include "readTimeControls.H"
-    #include "CourantNo.H"
-    #include "setInitialDeltaT.H"
 
     volScalarField markerFieldInitial(
         IOobject
@@ -155,7 +153,7 @@ int main(int argc, char *argv[])
 
         runTime++;
 
-        #include "CourantNo.H"
+        #include "lentCourantNo.H"
         #include "markerFieldCourantNo.H"
         #include "setDeltaT.H"
 
