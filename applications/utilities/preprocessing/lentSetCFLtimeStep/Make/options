@@ -1,0 +1,21 @@
+EXE_INC = \
+    $(GEOMTRANSPORT_CPP_DIRECTIVE) \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
+    -I$(LIB_SRC)/transportModels \
+    -I$(LIB_SRC)/transportModels/incompressible/lnInclude \
+    -I$(LIB_SRC)/transportModels/interfaceProperties/lnInclude \
+    -I$(LIB_SRC)/turbulenceModels/incompressible/turbulenceModel \
+    -I$(LIB_SRC)/transportModels/immiscibleIncompressibleTwoPhaseMixture/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(GEOMTRANSPORT)/src/lnInclude \
+    -I$(TWO_PHASE_VALIDATION)/src/lnInclude 
+
+EXE_LIBS = \
+    -L$(FOAM_USER_LIBBIN) \
+    -lmeshTools \
+    -limmiscibleIncompressibleTwoPhaseMixture \
+    -lfiniteVolume \
+    -lmeshTools \
+    -ltwoPhaseValidation
