@@ -96,7 +96,6 @@ void taylorFrontMotionSolver::calcCellDisplacement(
 
     deltaC = (cellVelocity * runTime.deltaT())
         + ((fvc::ddt(cellVelocity) + (cellVelocity & fvc::grad(cellVelocity))) * 0.5 * Foam::sqr(runTime.deltaT()));
-        //+ (fvc::d2dt2(cellVelocity) * (1.0 / 6.0) * Foam::pow(runTime.deltaT(),3));  
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
