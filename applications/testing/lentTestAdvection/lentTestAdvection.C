@@ -158,6 +158,7 @@ int main(int argc, char *argv[])
         #include "setDeltaT.H"
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
+        Info<< "deltaT = " << runTime.deltaTValue() << nl << endl;
 
         auto t1 = Clock::now();
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
