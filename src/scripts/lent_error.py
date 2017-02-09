@@ -22,13 +22,19 @@ def table_file_name(templateCase):
         print ("Error: define TABLE_PATH environmental variable where tables are to be stored.")
         return
 
-    tableFile = os.path.join(tableFile,templateCase) 
+    lentSolutionDict = ParsedParameterFile(os.path.join(templateCase,"system/lentSolution"))
+
+    temporal=lentSolutionDict["frontMotionSolver"]["type"]
+    interpol=lentSolutionDict["frontMotionSolver"]["cellToVertexInterpolation"]
+
+
+    tableFile = os.path.join(tableFile,templateCase + "-" + temporal + "-" + interpol)
 
     print(tableFile)
 
     return tableFile
 
-def scientific(v, precision=''):  
+def scientific(v, precision=''):
     """Convert number smaller than 1 to a sientific formatted string."""
 
     if isinstance(v, np.float64) and v < 0.1 and v > 1e-17:
