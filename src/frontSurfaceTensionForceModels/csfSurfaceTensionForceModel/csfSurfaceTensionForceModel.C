@@ -106,7 +106,17 @@ tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
     const triSurfaceFront& frontMesh 
 ) const
 {
-    return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
+    const Time& runTime = mesh.time(); 
+
+    const dictionary& transportProperties = 
+        runTime.lookupObject<dictionary>("transportProperties");
+
+    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+    
+    const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
+
+    return sigma * cellCurvature(mesh,frontMesh) * fvc::grad(filterField);
+    //return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

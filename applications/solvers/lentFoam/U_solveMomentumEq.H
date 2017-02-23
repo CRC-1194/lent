@@ -20,10 +20,11 @@
     solve
     (
         UEqn == lent.cellSurfaceTensionForce(mesh, front)
+            - fvc::grad(p_rgh)
             + fvc::reconstruct(
                 (
                   - ghf*fvc::snGrad(rho)
-                  - fvc::snGrad(p_rgh)
+                  //- fvc::snGrad(p_rgh)
                 ) * mesh.magSf()
             )
     );
