@@ -25,15 +25,17 @@
 
             - fvc::grad(p_rgh)
 
-            +
+            - gh*fvc::grad(rho)
+           //     
+           // +
 
-            fvc::reconstruct
-            (
-                (
-                  - ghf*fvc::snGrad(rho)
-                  //- fvc::snGrad(p_rgh)
-                ) * mesh.magSf()
-            )
+           // fvc::reconstruct
+           // (
+           //     (
+           //       - ghf*fvc::snGrad(rho)
+           //       - fvc::snGrad(p_rgh)
+           //     ) * mesh.magSf()
+           // )
         );
 
         fvOptions.correct(U);

@@ -193,7 +193,6 @@ int main(int argc, char *argv[])
         }
         Info << "Done." << endl;
 
-        Info << "Evolving the front..." << endl;
         lent.evolveFront(front, U.oldTime());
         Info << "Done." << endl;
 
