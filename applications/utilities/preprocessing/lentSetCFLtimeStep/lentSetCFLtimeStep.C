@@ -106,13 +106,9 @@ int main(int argc, char *argv[])
     const scalar CoDict = readScalar(controlDict.lookup("maxCo")); 
     const scalar deltaTdict = readScalar(controlDict.lookup("deltaT")); 
 
-    const dictionary& divFreeDict = controlDict.subDict("functions").\
-                                    subDict("lentAdvect").\
-                                    subDict("divFree");
-
     // Run function objects in case they set the volumetric flux field.
     // Select the divergence free velocity/flux model. 
-    autoPtr<divFreeFieldModel> divFree = divFreeFieldModel::New(runTime,divFreeDict);
+    autoPtr<divFreeFieldModel> divFree = divFreeFieldModel::New(runTime);
     divFree->execute();  
 
     auto CoNum = maxCoNum(phi);  
