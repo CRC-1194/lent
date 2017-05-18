@@ -87,15 +87,16 @@ taylorFrontMotionSolver::taylorFrontMotionSolver(const dictionary& configDict)
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 void taylorFrontMotionSolver::calcCellDisplacement(
-    const volVectorField& cellVelocity // fvc::d2dt2 requires non-const access.
+    const volVectorField& cellVelocity 
 )
 {  
     auto& deltaC = cellDisplacements(); 
 
     const auto& runTime = cellVelocity.time(); 
 
-    deltaC = (cellVelocity * runTime.deltaT())
-        + ((fvc::ddt(cellVelocity) + (cellVelocity & fvc::grad(cellVelocity))) * 0.5 * Foam::sqr(runTime.deltaT()));
+    deltaC = (cellVelocity * runTime.deltaT()) + 
+        ((fvc::ddt(cellVelocity) + (cellVelocity & fvc::grad(cellVelocity))) * 
+         0.5 * Foam::sqr(runTime.deltaT()));
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
