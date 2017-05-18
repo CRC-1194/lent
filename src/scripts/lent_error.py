@@ -24,11 +24,13 @@ def table_file_name(templateCase):
 
     lentSolutionDict = ParsedParameterFile(os.path.join(templateCase,"system/lentSolution"))
 
+    marker=lentSolutionDict["markerFieldModel"]["type"]
     temporal=lentSolutionDict["frontMotionSolver"]["type"]
     interpol=lentSolutionDict["frontMotionSolver"]["cellToVertexInterpolation"]
 
 
-    tableFile = os.path.join(tableFile,templateCase + "-" + temporal + "-" + interpol)
+    tableFile = os.path.join(tableFile,templateCase + "-" + temporal + \
+                             "-" + interpol + "-" + marker)
 
     print(tableFile)
 
