@@ -14,11 +14,11 @@ then
     then
         echo "git clone https://github.com/google/googletest.git  $LENT_THIRD_PARTY/googletest" 
         git clone https://github.com/google/googletest.git  $LENT_THIRD_PARTY/googletest
-    else
-        echo "Pulling changes from https://github.com/google/googletest.git"
-        cd $LENT_THIRD_PARTY/googletest
-        git pull
-        cd $LENT_PROJECT
+    #else
+        #echo "Pulling changes from https://github.com/google/googletest.git"
+        #cd $LENT_THIRD_PARTY/googletest
+        #git pull
+        #cd $LENT_PROJECT
     fi
 
     LENT_GOOGLE_TEST=$LENT_THIRD_PARTY/googletest/googletest
