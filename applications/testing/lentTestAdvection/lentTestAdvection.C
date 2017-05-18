@@ -69,6 +69,9 @@ Description
 #include "fieldErrorsL1normalizedFwd.H"
 #include "volScalarFieldErrorBoundedness.H"
 
+// Advection test field models.
+#include "divFreeFieldModel.H"
+
 // Timing 
 #include <chrono>
 typedef std::chrono::high_resolution_clock Clock;
@@ -88,18 +91,6 @@ int main(int argc, char *argv[])
     #include "initContinuityErrs.H"
     #include "createFields.H"
     #include "readTimeControls.H"
-
-    volScalarField markerFieldInitial(
-        IOobject
-        (
-            "alpha.water.initial", 
-            "0",
-            mesh, 
-            IOobject::NO_READ, 
-            IOobject::NO_WRITE
-        ), 
-        markerField 
-    );
 
     // Update the advection velocity from function objects and overwrite 
     // intial values.  
@@ -139,13 +130,53 @@ int main(int argc, char *argv[])
     markerField.write(); 
     front.write();
 
+    volScalarField markerFieldInitial(
+        IOobject
+        (
+            "alpha.water.initial", 
+            "0",
+            mesh, 
+            IOobject::NO_READ, 
+            IOobject::AUTO_WRITE
+        ), 
+        markerField 
+    );
+
+    // Initialize error calculators
+    volScalarFieldErrorVolume volumeErrorCalculator; 
+    volScalarFieldErrorBoundedness boundednessErrorCalculator;
+    fieldErrorL1<volScalarField> geometricalErrorCalculator;
+    fieldErrorL1normalized<volScalarField> normalizedErrorCalculator;
+
+    volumeErrorCalculator.computeError(markerFieldInitial, markerField); 
+    boundednessErrorCalculator.computeError(markerFieldInitial, markerField); 
+    geometricalErrorCalculator.computeError(markerFieldInitial, markerField); 
+    normalizedErrorCalculator.computeError(markerFieldInitial, markerField); 
+
     // Set up the file for error output.
     std::fstream errorFile(args.rootPath() + "/" + args.globalCaseName() 
                            + "/advectionErrors.dat", std::ios_base::app); 
     if (Pstream::myProcNo() == 0)
     {
         errorFile << "time " <<  "CFL " << "Ev " << "Eb " << "Eg " << "En " << "Te " << "\n"; 
+
+        #include "lentCourantNo.H"
+        #include "markerFieldCourantNo.H"
+        #include "setDeltaT.H"
+
+        errorFile << runTime.timeOutputValue() << " " 
+            << CoNum << " " 
+            << volumeErrorCalculator.errorValue() << " "
+            << boundednessErrorCalculator.errorValue() << " " 
+            << geometricalErrorCalculator.errorValue() << " "
+            << normalizedErrorCalculator.errorValue() << " "
+            << "nan" << "\n";
     }
+
+
+    // Select the divergence free velocity/flux model. 
+    autoPtr<divFreeFieldModel> divFreeMotion = divFreeFieldModel::New(runTime);
+    divFreeMotion->execute(); 
 
     while (runTime.run())
     {
@@ -154,16 +185,14 @@ int main(int argc, char *argv[])
         runTime++;
 
         #include "lentCourantNo.H"
-        #include "markerFieldCourantNo.H"
-        #include "setDeltaT.H"
 
-        Info<< "Time = " << runTime.timeName() << nl << endl;
-        Info<< "deltaT = " << runTime.deltaTValue() << nl << endl;
-
-        auto t1 = Clock::now();
-        lent.reconstructFront(front, signedDistance, pointSignedDistance);
+        Info<< "Time = " << runTime.timeName() << endl;
+        Info<< "deltaT = " << runTime.deltaTValue() << endl;
 
         lent.evolveFront(front, U.oldTime());
+        divFreeMotion->execute(); 
+
+        auto t1 = Clock::now();
 
         if (Test::normalsAreInconsistent(front))
         {
@@ -178,6 +207,8 @@ int main(int argc, char *argv[])
             front
         );
 
+        lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
         lent.calcMarkerField(markerField);
         auto t2 = Clock::now();
         double tTotal = (std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()) / 1000.0;  
@@ -189,17 +220,9 @@ int main(int argc, char *argv[])
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
 
-        volScalarFieldErrorVolume volumeErrorCalculator; 
         volumeErrorCalculator.computeError(markerFieldInitial, markerField); 
-
-        volScalarFieldErrorBoundedness boundednessErrorCalculator;
         boundednessErrorCalculator.computeError(markerFieldInitial, markerField); 
-
-        fieldErrorL1<volScalarField> geometricalErrorCalculator;
         geometricalErrorCalculator.computeError(markerFieldInitial, markerField); 
-
-        // TEST for the geometrical error E_n.
-        fieldErrorL1normalized<volScalarField> normalizedErrorCalculator;
         normalizedErrorCalculator.computeError(markerFieldInitial, markerField); 
 
         if (Pstream::parRun())
@@ -231,6 +254,7 @@ int main(int argc, char *argv[])
                 << normalizedErrorCalculator.errorValue() << " "
                 << tTotal << "\n";
         }
+
 
         runTime.write();
 
