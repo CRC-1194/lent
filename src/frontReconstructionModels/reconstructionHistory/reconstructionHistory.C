@@ -67,7 +67,11 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 void reconstructionHistory::writeHistory() const
 {
-    OFstream historyFile("reconstructionHistory.dat");
+
+    fileName dataFileName = time_.rootPath() + "/" + time_.globalCaseName() + "/"
+        + "reconstructionHistory.dat";
+
+    OFstream historyFile(dataFileName);
 
     historyFile << "# time step number | physical time" << endl;
 
