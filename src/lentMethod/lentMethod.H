@@ -76,6 +76,8 @@ Description
 #include "frontSurfaceTensionForceModel.H"
 #include "lentInterpolation.H"
 #include "triSurfaceFrontFields.H"
+// TODO: move this to a place more suitable, e.g. frontReconstructionModel
+#include "reconstructionHistory.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -116,6 +118,9 @@ class lentMethod
 
     // Surface tension force model.
     tmp<frontSurfaceTensionForceModel> surfaceTensionForceModelTmp_;
+    
+    // Recorder for front reconstructions
+    reconstructionHistory reconstructionHistory_;
 
     // Member Operators
         void operator=(const lentMethod&); // FIXME: Private in lentCommunication. TM.

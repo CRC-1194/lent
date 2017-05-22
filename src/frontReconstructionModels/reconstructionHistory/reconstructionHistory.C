@@ -23,17 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::foamIsoSurfaceFrontReconstructor
+    Foam::FrontTracking::reconstructionHistory
 
 SourceFiles
-    foamIsoSurfaceFrontReconstructor.C
+    reconstructionHistory.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Abstract base class for the heaviside function calculation from a signed
-    distance field.
+    Class that records in which time steps the front is reconstructed
+    and writes this to a log file
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -45,11 +45,6 @@ Description
     
     Method Development and Intellectual Property :
     	Tomislav Maric maric@csi.tu-darmstadt.de
-    lentCommunication& communication = const_cast<lentCommunication&>(
-        mesh.lookupObject<lentCommunication>(
-            lentCommunication::registeredName(front,mesh)
-        ) 
-    );
     	Holger Marschall <marschall@csi.tu-darmstadt.de>
     	Dieter Bothe <bothe@csi.tu-darmstadt.de>
 
@@ -62,60 +57,54 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include "OFstream.H"
 
-#ifndef foamIsoSurfaceFrontReconstructor_H
-#define foamIsoSurfaceFrontReconstructor_H
-
-#include "frontReconstructor.H"
-#include "normalConsistency.H"
-#include "frontSmoother.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "reconstructionHistory.H"
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class foamIsoSurfaceFrontReconstructor Declaration
-\*---------------------------------------------------------------------------*/
-
-class foamIsoSurfaceFrontReconstructor
-    :
-        public frontReconstructor
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+void reconstructionHistory::writeHistory() const
 {
+    OFstream historyFile("reconstructionHistory.dat");
 
-    scalar mergeTolerance_;
-    Switch regularize_;
+    historyFile << "# time step number | physical time" << endl;
 
-    tmp<normalConsistency> consistencyAlgTmp_;
+    for (unsigned int index = 0; index < timeStepNumber_.size(); ++index)
+    {
+        historyFile << timeStepNumber_[index] << ' ' << physicalTime_[index]
+                    << endl;
+    }
+}
 
-    frontSmoother smoother_;
 
-public:
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-    TypeName ("foamIsoSurface");
+reconstructionHistory::reconstructionHistory(const Time& time)
+:
+    time_{time},
+    timeStepNumber_{},
+    physicalTime_{}
+{}
 
-    // Constructors
-    foamIsoSurfaceFrontReconstructor(const dictionary& configDict);
 
-    // Member Functions
-    virtual void reconstructFront(
-        triSurfaceFront& front,
-        const volScalarField& signedDistance,
-        const pointScalarField& pointSignedDistance
-    ) const;
-};
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+void reconstructionHistory::frontReconstructed()
+{
+    timeStepNumber_.push_back(time_.timeIndex());
+    physicalTime_.push_back(time_.timeName());
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    writeHistory();
+}
+
+
+// ************************************************************************* //
 
 } // End namespace FrontTracking
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ************************************************************************* //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

@@ -23,17 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::foamIsoSurfaceFrontReconstructor
+    Foam::FrontTracking::frontSmoother
 
 SourceFiles
-    foamIsoSurfaceFrontReconstructor.C
+    frontSmoother.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Abstract base class for the heaviside function calculation from a signed
-    distance field.
+    Implementation of two volume-conservative smoothing algorithms for
+    triangulated surfaces as proposed by Kuprat et al 2001
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -45,11 +45,6 @@ Description
     
     Method Development and Intellectual Property :
     	Tomislav Maric maric@csi.tu-darmstadt.de
-    lentCommunication& communication = const_cast<lentCommunication&>(
-        mesh.lookupObject<lentCommunication>(
-            lentCommunication::registeredName(front,mesh)
-        ) 
-    );
     	Holger Marschall <marschall@csi.tu-darmstadt.de>
     	Dieter Bothe <bothe@csi.tu-darmstadt.de>
 
@@ -62,49 +57,50 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef frontSmoother_H
+#define frontSmoother_H
 
-#ifndef foamIsoSurfaceFrontReconstructor_H
-#define foamIsoSurfaceFrontReconstructor_H
-
-#include "frontReconstructor.H"
-#include "normalConsistency.H"
-#include "frontSmoother.H"
+#include "volFieldsFwd.H"
+#include "triSurfaceFront.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
+
 /*---------------------------------------------------------------------------*\
-                         Class foamIsoSurfaceFrontReconstructor Declaration
+                         Class frontSmoother Declaration
 \*---------------------------------------------------------------------------*/
 
-class foamIsoSurfaceFrontReconstructor
-    :
-        public frontReconstructor
+class frontSmoother
 {
+    // Private data
+    scalar underrelaxationFactor_;
+    label nSweeps_;
 
-    scalar mergeTolerance_;
-    Switch regularize_;
-
-    tmp<normalConsistency> consistencyAlgTmp_;
-
-    frontSmoother smoother_;
+    // Private Member Functions
+    void updateLocalPoints(triSurface& front) const;
+    void updateGlobalPoints(triSurface& front) const;
+    vector computeA(const label& pointLabel, const triSurface& front) const;
+    vector computeV(const label& edgeLabel, const triSurface& front) const;
+    FixedList<vector,2> smoothEdge(const edge& relaxEdge, const triSurface& front) const;
+    vector normalAtPoint(const label& pointLabel, const triSurface& front) const;
+    vector starBarycentre(const label& pointLabel, const triSurface& front) const;
 
 public:
 
-    TypeName ("foamIsoSurface");
-
     // Constructors
-    foamIsoSurfaceFrontReconstructor(const dictionary& configDict);
+    frontSmoother(const dictionary& configDict);
+
 
     // Member Functions
-    virtual void reconstructFront(
-        triSurfaceFront& front,
-        const volScalarField& signedDistance,
-        const pointScalarField& pointSignedDistance
-    ) const;
+    // Algorithm no. 4 of Kuprat paper
+    void smoothEdges(triSurface& front) const;
+    // Algorithm no. 3 of Kuprat paper
+    void smoothPoints(triSurface& front) const;
 };
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -68,6 +68,7 @@ Description
 #include "triSurfaceFront.H"
 #include "triSurfaceFrontFields.H"
 #include "lentInterpolation.H"
+#include "frontSmoother.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -87,6 +88,9 @@ class frontMotionSolver
     tmp<triSurfaceFrontPointVectorField> frontDisplacementTmp_; 
 
     lentInterpolation interpolation_;  
+
+    frontSmoother smoother_;
+
 
 protected:
 

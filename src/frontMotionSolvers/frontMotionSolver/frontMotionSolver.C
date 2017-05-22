@@ -68,13 +68,17 @@ namespace FrontTracking {
     defineTypeNameAndDebug(frontMotionSolver, 0);
     defineRunTimeSelectionTable(frontMotionSolver, Dictionary);
 
+// * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontMotionSolver::frontMotionSolver(const dictionary& configDict)
     :
         cellDisplacementTmp_(),
         frontDisplacementTmp_(),
-        interpolation_(configDict)
+        interpolation_(configDict),
+        smoother_(configDict.subDict("frontSmoother"))
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -175,6 +179,8 @@ void frontMotionSolver::evolveFront(
     // Displace front points with front displacements.  
     pointField& frontPoints = const_cast<pointField&>(front.points());
     frontPoints += deltaF; 
+
+    smoother_.smoothEdges(front);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

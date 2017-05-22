@@ -125,6 +125,9 @@ lentMethod::lentMethod(
         frontSurfaceTensionForceModel::New(
            lentControlDict_.subDict("surfaceTensionForceModel") 
         )
+    ),
+    reconstructionHistory_(
+        mesh.time()
     )
 {}
 
@@ -192,6 +195,8 @@ void lentMethod::reconstructFront(
         );
 
         frontIsReconstructed_ = true;
+
+        reconstructionHistory_.frontReconstructed();
 
         Info << "Done." << endl;
     }

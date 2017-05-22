@@ -80,7 +80,8 @@ foamIsoSurfaceFrontReconstructor::foamIsoSurfaceFrontReconstructor(
     frontReconstructor(configDict),
     mergeTolerance_(readScalar(configDict.lookup("mergeTolerance"))),
     regularize_(configDict.lookup("regularization")),
-    consistencyAlgTmp_(normalConsistency::New(configDict.subDict("normalConsistency")))
+    consistencyAlgTmp_(normalConsistency::New(configDict.subDict("normalConsistency"))),
+    smoother_(configDict.subDict("frontSmoother"))
 {}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -131,6 +132,10 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
         signedDistance, 
         pointSignedDistance
     );
+
+    smoother_.smoothEdges(front);
+
+    communication.update();
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
