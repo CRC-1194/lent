@@ -57,13 +57,15 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include "lentCommunication.H"
+
 #include "frontSmoother.H"
 
 namespace Foam {
 namespace FrontTracking {
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-void frontSmoother::updateLocalPoints(triSurface& front) const
+void frontSmoother::updateLocalPoints(triSurfaceFront& front) const
 {
     pointField& localPoints = const_cast<pointField&>(front.localPoints());
     const auto& frontPoints = front.points();
@@ -75,7 +77,7 @@ void frontSmoother::updateLocalPoints(triSurface& front) const
     }
 }
 
-void frontSmoother::updateGlobalPoints(triSurface& front) const
+void frontSmoother::updateGlobalPoints(triSurfaceFront& front) const
 {
     pointField& frontPoints = const_cast<pointField&>(front.points());
     const auto& localPoints = front.localPoints();
@@ -87,7 +89,7 @@ void frontSmoother::updateGlobalPoints(triSurface& front) const
     }
 }
 
-vector frontSmoother::computeA(const label& pointLabel, const triSurface& front) const
+vector frontSmoother::computeA(const label& pointLabel, const triSurfaceFront& front) const
 {
     vector A{0,0,0};
 
@@ -105,7 +107,7 @@ vector frontSmoother::computeA(const label& pointLabel, const triSurface& front)
     return A;
 }
 
-vector frontSmoother::computeV(const label& edgeLabel, const triSurface& front) const
+vector frontSmoother::computeV(const label& edgeLabel, const triSurfaceFront& front) const
 {
     vector V{0,0,0};
 
@@ -141,7 +143,7 @@ vector frontSmoother::computeV(const label& edgeLabel, const triSurface& front) 
     return V;
 }
 
-FixedList<vector,2> frontSmoother::smoothEdge(const edge& relaxEdge, const triSurface& front) const
+FixedList<vector,2> frontSmoother::smoothEdge(const edge& relaxEdge, const triSurfaceFront& front) const
 {
     FixedList<vector,2> smoothedPoints{vector{0,0,0}, vector{0,0,0}};
 
@@ -151,28 +153,57 @@ FixedList<vector,2> frontSmoother::smoothEdge(const edge& relaxEdge, const triSu
     return smoothedPoints;
 }
 
-vector frontSmoother::normalAtPoint(const label& pointLabel, const triSurface& front) const
+vector frontSmoother::boundaryNormal(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const
 {
     vector normal{0,0,0};
 
-    const auto& connectedFaces = front.pointFaces()[pointLabel];
-    const auto& faces = front.localFaces();
-    const auto& points = front.localPoints();
+    const auto& frontVertex = front.localPoints()[pointLabel];
+    const auto& globalPointLabel = front.meshPoints()[pointLabel];
+    const auto& communication = mesh.lookupObject<lentCommunication>(
+                                    lentCommunication::registeredName(front,mesh)
+                                ); 
+    const auto& containingCellLabel = communication.vertexToCell()[globalPointLabel];
+    const auto& containingCell = mesh.cells()[containingCellLabel];
+    const auto& faceCentre = mesh.faceCentres();
+    auto nInternalFaces = mesh.nInternalFaces();
 
-    forAll(connectedFaces, index)
+    // Find closest face centre to point --> thats the boundary face we are
+    // looking for
+    scalar minDist{GREAT};
+    label minDistFaceLabel = 0;
+
+    forAll(containingCell, index)
     {
-        const auto& aFace = faces[connectedFaces[index]];
-        normal += (points[aFace[1]] - points[aFace[0]])
-                    ^ (points[aFace[2]] - points[aFace[0]]);
+        // Only boundary faces are viable for computing a boundary normal
+        if (containingCell[index] < nInternalFaces)
+        {
+            continue;
+        }
+        // Assumption: a boundary point of the front is always located at
+        // the boundary of the fvMesh, either because of a 2D simulation
+        // or there is a contact line. Therefore, this boundary point must
+        // be located in a plane spanned by a boundary face. Thus, the distance
+        // between the boundary point and the corresponding face centre should
+        // be zero if projected to the face normal
+        auto vToFaceCentre = frontVertex - faceCentre[containingCell[index]];
+        auto projectedDistance = mag(vToFaceCentre & mesh.faceAreas()[containingCell[index]] / mag(mesh.faceAreas()[containingCell[index]]));
+
+        if (minDist > projectedDistance)
+        {
+            minDist = projectedDistance;
+            minDistFaceLabel = containingCell[index];
+        }
     }
 
-    normal /= (mag(normal) + SMALL);
+    // TODO: ensure these normals are oriented outwards of the mesh
+    // --> think again, for projection the sign of the normal is irrelevant
+    normal = mesh.faceAreas()[minDistFaceLabel];
 
-    return normal;
+    return normal/mag(normal);
 }
 
 
-vector frontSmoother::starBarycentre(const label& pointLabel, const triSurface& front) const
+vector frontSmoother::starBarycentre(const label& pointLabel, const triSurfaceFront& front) const
 {
     vector starBC{0,0,0};
     scalar starArea{0};
@@ -195,6 +226,31 @@ vector frontSmoother::starBarycentre(const label& pointLabel, const triSurface& 
 }
 
 
+void frontSmoother::ensureNormalConsistency(triSurfaceFront& front, const edge& relaxEdge, const vector& normal) const
+{
+    const auto& pointToFace = front.pointFaces();
+    const auto& points = front.localPoints();
+    const auto& faces = front.localFaces();
+
+    forAll(relaxEdge, index)
+    {
+        const auto& pointLabel = relaxEdge[index];
+        const auto& connectedFaces = pointToFace[pointLabel];
+
+        forAll(connectedFaces, I)
+        {
+            const auto& aFace = faces[connectedFaces[I]];
+
+            if ((normal & aFace.normal(points)) < 0)
+            {
+                labelledTri& modFace = const_cast<labelledTri&>(aFace);
+                modFace.flip();
+            }
+        }
+    }
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 frontSmoother::frontSmoother(const dictionary& configDict)
 :
@@ -203,10 +259,22 @@ frontSmoother::frontSmoother(const dictionary& configDict)
 {}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-void frontSmoother::smoothEdges(triSurface& front) const
+void frontSmoother::smoothEdges(triSurfaceFront& front) const
 {
     updateLocalPoints(front);
     pointField& points = const_cast<pointField&>(front.localPoints());
+
+    // Extension for 2D: edges in list returned by edges() are sorted such that
+    // all internal edges come before the boundary ones. This means edges with
+    // a label X >= nInternalEdges() are out of the game, removing edges where
+    // both points are boundary points. However, we still have to eliminate
+    // edges where one point is a boundary point.
+    // Best idea so far: set a flag if case is 2D and use the point coordinates
+    // of the edge to detect whether it is a full interior edge. Other
+    // approaches are probably to costly (to many search operations) with the
+    // available information of the triSurfaceFront class. 
+    // More elegant/robust/general approach yet more involved would be to extend
+    // the triSurfaceFront class to obtain and store this information. 
 
     for(label sweep=0; sweep < nSweeps_; ++sweep)
     {
@@ -239,28 +307,49 @@ void frontSmoother::smoothEdges(triSurface& front) const
                 points[relaxEdge[0]] += dxs0 - h*normal;
                 points[relaxEdge[1]] += dxs1 - h*normal;
             }
+
+            //ensureNormalConsistency(front, relaxEdge, Ai[0] + Ai[1]);
         }
     }
 
     updateGlobalPoints(front);
 }
 
-void frontSmoother::smoothPoints(triSurface& front) const
+void frontSmoother::smoothPoints(triSurfaceFront& front, const fvMesh& mesh) const
 {
     updateLocalPoints(front);
     pointField& points = const_cast<pointField&>(front.localPoints());
     
     for (label sweep = 0; sweep < nSweeps_; sweep++)
     {
+        const auto& boundaryPoints = front.boundaryPoints();
+        label boundaryPointIndex = 0;
+
         forAll(points, pointLabel)
         {
-            auto normal = normalAtPoint(pointLabel, front);
-
+            auto sumAi = computeA(pointLabel, front);
+            // Compute normal at point as area averaged normal of all connected
+            // triangles
+            auto normal = sumAi / (mag(sumAi) + SMALL);
             auto barycentre = starBarycentre(pointLabel, front);
-
             auto dxs = barycentre - points[pointLabel];
 
-            points[pointLabel] += dxs - (dxs & normal) * normal;
+            if (pointLabel == boundaryPoints[boundaryPointIndex])
+            {
+                auto bNormal = boundaryNormal(pointLabel, front, mesh);
+
+                // Project to boundary plane
+                normal = (Identity<scalar>{} - bNormal*bNormal) & normal;
+                normal /= (mag(normal) + SMALL);
+                dxs = (Identity<scalar>{} - bNormal*bNormal) & dxs;
+
+                points[pointLabel] += dxs - (dxs&sumAi)/((normal&sumAi) + SMALL)*normal;
+                ++boundaryPointIndex;
+            }
+            else
+            {
+                points[pointLabel] += dxs - (dxs & normal) * normal;
+            }
         }
     }
 

@@ -180,7 +180,14 @@ void frontMotionSolver::evolveFront(
     pointField& frontPoints = const_cast<pointField&>(front.points());
     frontPoints += deltaF; 
 
-    smoother_.smoothEdges(front);
+    if (front.surfaceType() == triSurface::MANIFOLD)
+    {
+        smoother_.smoothEdges(front);
+    }
+    else
+    {
+        smoother_.smoothPoints(front, deltaC.mesh());
+    }
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

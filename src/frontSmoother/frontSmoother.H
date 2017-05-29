@@ -80,13 +80,14 @@ class frontSmoother
     label nSweeps_;
 
     // Private Member Functions
-    void updateLocalPoints(triSurface& front) const;
-    void updateGlobalPoints(triSurface& front) const;
-    vector computeA(const label& pointLabel, const triSurface& front) const;
-    vector computeV(const label& edgeLabel, const triSurface& front) const;
-    FixedList<vector,2> smoothEdge(const edge& relaxEdge, const triSurface& front) const;
-    vector normalAtPoint(const label& pointLabel, const triSurface& front) const;
-    vector starBarycentre(const label& pointLabel, const triSurface& front) const;
+    void updateLocalPoints(triSurfaceFront& front) const;
+    void updateGlobalPoints(triSurfaceFront& front) const;
+    vector computeA(const label& pointLabel, const triSurfaceFront& front) const;
+    vector computeV(const label& edgeLabel, const triSurfaceFront& front) const;
+    FixedList<vector,2> smoothEdge(const edge& relaxEdge, const triSurfaceFront& front) const;
+    vector boundaryNormal(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
+    vector starBarycentre(const label& pointLabel, const triSurfaceFront& front) const;
+    void ensureNormalConsistency(triSurfaceFront& front, const edge& relaxEdge, const vector& normal) const;
 
 public:
 
@@ -96,9 +97,9 @@ public:
 
     // Member Functions
     // Algorithm no. 4 of Kuprat paper
-    void smoothEdges(triSurface& front) const;
+    void smoothEdges(triSurfaceFront& front) const;
     // Algorithm no. 3 of Kuprat paper
-    void smoothPoints(triSurface& front) const;
+    void smoothPoints(triSurfaceFront& front, const fvMesh& mesh) const;
 };
 
 
