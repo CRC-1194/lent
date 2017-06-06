@@ -89,8 +89,6 @@ class frontMotionSolver
 
     lentInterpolation interpolation_;  
 
-    frontSmoother smoother_;
-
 
 protected:
 

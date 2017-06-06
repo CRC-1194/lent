@@ -80,9 +80,11 @@ class reconstructionHistory
     const Time& time_;
     std::vector<label> timeStepNumber_;
     std::vector<word> physicalTime_;
+    std::vector<word> operation_;
 
     // Private Member Functions
     void writeHistory() const;
+    void addOperation(const word& operation);
 
 public:
 
@@ -92,6 +94,7 @@ public:
 
     // Member Functions
     void frontReconstructed();
+    void frontSmoothed();
 
 };
 

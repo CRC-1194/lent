@@ -101,6 +101,9 @@ class lentMethod
     // Front reconstruction flag.
     mutable bool frontIsReconstructed_;
 
+    // Front smoothing flag
+    mutable bool frontPreviouslySmoothed_;
+
     // Field calculator
     tmp<distanceFieldCalculator> distanceFieldCalculatorTmp_;
 
@@ -119,7 +122,10 @@ class lentMethod
     // Surface tension force model.
     tmp<frontSurfaceTensionForceModel> surfaceTensionForceModelTmp_;
     
-    // Recorder for front reconstructions
+    // Algorithm collection for front smoothing
+    frontSmoother frontSmoother_;
+
+    // Recorder for front reconstructions and smoothing
     reconstructionHistory reconstructionHistory_;
 
     // Member Operators

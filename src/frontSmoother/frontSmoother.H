@@ -100,6 +100,12 @@ public:
     void smoothEdges(triSurfaceFront& front) const;
     // Algorithm no. 3 of Kuprat paper
     void smoothPoints(triSurfaceFront& front, const fvMesh& mesh) const;
+
+    // Temporarily needed: use Algorithm 4 only if the front is manifold
+    // and thus has no boundary edges.
+    // TODO: remove as soon as algorithm for can operate on open surfaces
+    // and make algorithm to be used run time selectable
+    void smoothFront(triSurfaceFront& front, const fvMesh& mesh) const;
 };
 
 

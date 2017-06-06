@@ -356,6 +356,18 @@ void frontSmoother::smoothPoints(triSurfaceFront& front, const fvMesh& mesh) con
     updateGlobalPoints(front);
 }
 
+void frontSmoother::smoothFront(triSurfaceFront& front, const fvMesh& mesh) const
+{
+    if (front.surfaceType() == triSurface::MANIFOLD)
+    {
+        smoothEdges(front);
+    }
+    else
+    {
+        smoothPoints(front, mesh);
+    }
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

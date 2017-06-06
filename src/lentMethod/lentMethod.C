@@ -126,6 +126,9 @@ lentMethod::lentMethod(
            lentControlDict_.subDict("surfaceTensionForceModel") 
         )
     ),
+    frontSmoother_(
+        lentControlDict_.subDict("frontSmoother")
+    ),
     reconstructionHistory_(
         mesh.time()
     )
@@ -186,19 +189,33 @@ void lentMethod::reconstructFront(
 {
     if (frontReconstructionModelTmp_->reconstructionRequired(front, signedDistance))
     {
-        Info << "Reconstructing front..." << endl;
+        // TODO: think of more elegant solution.. (TT)
+        if (frontPreviouslySmoothed_ || signedDistance.time().timeIndex() <= 1)
+        {
+            Info << "Reconstructing front..." << endl;
 
-        frontReconstructorTmp_->reconstructFront(
-            front,
-            signedDistance,
-            pointSignedDistance
-        );
+            frontReconstructorTmp_->reconstructFront(
+                front,
+                signedDistance,
+                pointSignedDistance
+            );
 
-        frontIsReconstructed_ = true;
+            frontIsReconstructed_ = true;
 
-        reconstructionHistory_.frontReconstructed();
+            reconstructionHistory_.frontReconstructed();
 
-        Info << "Done." << endl;
+            Info << "Done." << endl;
+        }
+
+        frontSmoother_.smoothFront(front, signedDistance.mesh());
+
+        frontPreviouslySmoothed_ = true;
+
+        reconstructionHistory_.frontSmoothed();
+    }
+    else
+    {
+        frontPreviouslySmoothed_ = false;
     }
 }
 

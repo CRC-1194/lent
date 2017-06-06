@@ -77,8 +77,7 @@ frontMotionSolver::frontMotionSolver(const dictionary& configDict)
     :
         cellDisplacementTmp_(),
         frontDisplacementTmp_(),
-        interpolation_(configDict),
-        smoother_(configDict.subDict("frontSmoother"))
+        interpolation_(configDict)
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -179,15 +178,6 @@ void frontMotionSolver::evolveFront(
     // Displace front points with front displacements.  
     pointField& frontPoints = const_cast<pointField&>(front.points());
     frontPoints += deltaF; 
-
-    if (front.surfaceType() == triSurface::MANIFOLD)
-    {
-        smoother_.smoothEdges(front);
-    }
-    else
-    {
-        smoother_.smoothPoints(front, deltaC.mesh());
-    }
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

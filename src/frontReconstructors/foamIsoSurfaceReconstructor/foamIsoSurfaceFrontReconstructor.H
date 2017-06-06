@@ -89,8 +89,6 @@ class foamIsoSurfaceFrontReconstructor
 
     tmp<normalConsistency> consistencyAlgTmp_;
 
-    frontSmoother smoother_;
-
 public:
 
     TypeName ("foamIsoSurface");

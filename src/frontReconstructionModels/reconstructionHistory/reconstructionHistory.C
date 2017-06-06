@@ -73,13 +73,23 @@ void reconstructionHistory::writeHistory() const
 
     OFstream historyFile(dataFileName);
 
-    historyFile << "# time step number | physical time" << endl;
+    historyFile << "# time step number | physical time | operation" << endl;
 
     for (unsigned int index = 0; index < timeStepNumber_.size(); ++index)
     {
         historyFile << timeStepNumber_[index] << ' ' << physicalTime_[index]
+                    << ' ' << operation_[index]
                     << endl;
     }
+}
+
+void reconstructionHistory::addOperation(const word& operation)
+{
+    timeStepNumber_.push_back(time_.timeIndex());
+    physicalTime_.push_back(time_.timeName());
+    operation_.push_back(operation);
+
+    writeHistory();
 }
 
 
@@ -96,10 +106,22 @@ reconstructionHistory::reconstructionHistory(const Time& time)
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 void reconstructionHistory::frontReconstructed()
 {
-    timeStepNumber_.push_back(time_.timeIndex());
-    physicalTime_.push_back(time_.timeName());
+    addOperation("reconstruction");
+}
 
-    writeHistory();
+void reconstructionHistory::frontSmoothed()
+{
+    void frontReconstructed();
+    // Do not add entry for smoothing if front has been reconstructed
+    // in the same time step. Reconstruction always implies smoothing
+    if (timeStepNumber_.back() == time_.timeIndex())
+    {
+        // Do nothing
+    }
+    else
+    {
+        addOperation("smoothing");
+    }    
 }
 
 

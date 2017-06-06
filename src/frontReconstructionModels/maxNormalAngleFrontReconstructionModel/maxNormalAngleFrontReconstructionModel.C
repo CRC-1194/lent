@@ -104,7 +104,7 @@ bool maxNormalAngleFrontReconstructionModel::reconstructionRequired(
         {
             const auto& n = faceNormals[edgeFaces[J]]; 
 
-            if (((n0 & n) < minAngleCos_) && (! previouslyReconstructed_))
+            if (((n0 & n) < minAngleCos_) /*&& (! previouslyReconstructed_)*/)
             {
                 previouslyReconstructed_ = true; 
                 return true; 
