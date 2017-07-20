@@ -34,6 +34,8 @@ Author
 Description
     Implementation of two volume-conservative smoothing algorithms for
     triangulated surfaces as proposed by Kuprat et al 2001
+    Both algorithms have been extended so they are applicable to fronts
+    with boundaries, e.g. in 2D cases or contact line problems
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -145,63 +147,15 @@ vector frontSmoother::computeV(const label& edgeLabel, const triSurfaceFront& fr
     return V;
 }
 
-FixedList<vector,2> frontSmoother::smoothEdge(const edge& relaxEdge, const triSurfaceFront& front) const
+vectorTuple frontSmoother::smoothEdge(const edge& relaxEdge, const triSurfaceFront& front) const
 {
-    FixedList<vector,2> smoothedPoints{vector{0,0,0}, vector{0,0,0}};
+    vectorTuple smoothedPoints{vector{0,0,0}, vector{0,0,0}};
 
     smoothedPoints[0] = starBarycentre(relaxEdge[0], front);
     smoothedPoints[1] = starBarycentre(relaxEdge[1], front);
 
     return smoothedPoints;
 }
-
-vector frontSmoother::boundaryNormal(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const
-{
-    vector normal{0,0,0};
-
-    const auto& frontVertex = front.localPoints()[pointLabel];
-    const auto& globalPointLabel = front.meshPoints()[pointLabel];
-    const auto& communication = mesh.lookupObject<lentCommunication>(
-                                    lentCommunication::registeredName(front,mesh)
-                                ); 
-    const auto& containingCellLabel = communication.vertexToCell()[globalPointLabel];
-    const auto& containingCell = mesh.cells()[containingCellLabel];
-    const auto& faceCentre = mesh.faceCentres();
-    auto nInternalFaces = mesh.nInternalFaces();
-
-    // Find closest face centre to point --> thats the boundary face we are
-    // looking for
-    scalar minDist{GREAT};
-    label minDistFaceLabel = 0;
-
-    forAll(containingCell, index)
-    {
-        // Only boundary faces are viable for computing a boundary normal
-        if (containingCell[index] < nInternalFaces)
-        {
-            continue;
-        }
-        // Assumption: a boundary point of the front is always located at
-        // the boundary of the fvMesh, either because of a 2D simulation
-        // or there is a contact line. Therefore, this boundary point must
-        // be located in a plane spanned by a boundary face. Thus, the distance
-        // between the boundary point and the corresponding face centre should
-        // be zero if projected to the face normal
-        auto vToFaceCentre = frontVertex - faceCentre[containingCell[index]];
-        auto projectedDistance = mag(vToFaceCentre & mesh.faceAreas()[containingCell[index]] / mag(mesh.faceAreas()[containingCell[index]]));
-
-        if (minDist > projectedDistance)
-        {
-            minDist = projectedDistance;
-            minDistFaceLabel = containingCell[index];
-        }
-    }
-
-    normal = mesh.faceAreas()[minDistFaceLabel];
-
-    return normal/mag(normal);
-}
-
 
 vector frontSmoother::starBarycentre(const label& pointLabel, const triSurfaceFront& front) const
 {
@@ -224,32 +178,6 @@ vector frontSmoother::starBarycentre(const label& pointLabel, const triSurfaceFr
 
     return starBC;
 }
-
-
-void frontSmoother::ensureNormalConsistency(triSurfaceFront& front, const edge& relaxEdge, const vector& normal) const
-{
-    const auto& pointToFace = front.pointFaces();
-    const auto& points = front.localPoints();
-    const auto& faces = front.localFaces();
-
-    forAll(relaxEdge, index)
-    {
-        const auto& pointLabel = relaxEdge[index];
-        const auto& connectedFaces = pointToFace[pointLabel];
-
-        forAll(connectedFaces, I)
-        {
-            const auto& aFace = faces[connectedFaces[I]];
-
-            if ((normal & aFace.normal(points)) < 0)
-            {
-                labelledTri& modFace = const_cast<labelledTri&>(aFace);
-                modFace.flip();
-            }
-        }
-    }
-}
-
 
 std::vector<label> frontSmoother::singlePointBoundaryEdges(const triSurfaceFront& front) const
 {
@@ -319,6 +247,41 @@ Tensor<scalar> frontSmoother::movementRestriction(const label& pointLabel, const
 {
     Tensor<scalar> restriction{};
 
+    // Find face on which the point is located
+    auto minDistFaceLabel = containingFace(pointLabel, front, mesh);
+
+    // Check if the point coincides with an edge
+    auto edgeWithFrontVertex = containingEdge(pointLabel, minDistFaceLabel, front, mesh);
+
+    // If front vertex coincides with an edge: are both connected faces coplanar?
+    bool facesAreCoplanar = false;
+
+    if (edgeWithFrontVertex > -1)
+    {
+        facesAreCoplanar = boundaryFacesAreCoplanar(edgeWithFrontVertex, front, mesh);
+    }
+
+    if (edgeWithFrontVertex < 0 || facesAreCoplanar)
+    {
+        auto faceNormal = mesh.faceAreas()[minDistFaceLabel];
+        faceNormal /= mag(faceNormal);
+        restriction = Identity<scalar>{} - faceNormal*faceNormal;
+    }
+    else
+    {
+        const auto& frontVertexEdge = front.edges()[edgeWithFrontVertex];
+        auto edgeDirection = frontVertexEdge.vec(front.localPoints());
+        edgeDirection /= mag(edgeDirection);
+        restriction = edgeDirection*edgeDirection;
+    }
+
+    return restriction;
+}
+
+label frontSmoother::containingFace(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const
+{
+    label minDistFaceLabel = -1;
+
     const auto& frontVertex = front.localPoints()[pointLabel];
     const auto& globalPointLabel = front.meshPoints()[pointLabel];
     const auto& communication = mesh.lookupObject<lentCommunication>(
@@ -332,7 +295,6 @@ Tensor<scalar> frontSmoother::movementRestriction(const label& pointLabel, const
     // Find closest face centre to point --> thats the boundary face we are
     // looking for
     scalar minDist{GREAT};
-    label minDistFaceLabel = 0;
 
     forAll(containingCell, index)
     {
@@ -357,17 +319,21 @@ Tensor<scalar> frontSmoother::movementRestriction(const label& pointLabel, const
         }
     }
 
-    auto faceNormal = mesh.faceAreas()[minDistFaceLabel];
-    faceNormal /= mag(faceNormal);
+    return minDistFaceLabel;
+}
 
+label frontSmoother::containingEdge(const label& pointLabel, const label& faceLabel, const triSurfaceFront& front, const fvMesh& mesh) const
+{
+    label edgeWithFrontVertex = -1;
+     
     // Check if the point coincides with an edge
-    const auto& faceEdges = mesh.faceEdges(minDistFaceLabel);
+    const auto& frontVertex = front.localPoints()[pointLabel];
+    const auto& faceEdges = mesh.faceEdges(faceLabel);
     const auto& meshEdges = mesh.edges();
     const auto& meshVertices = mesh.points();
     
     vector edgeDirection{0,0,0};
     vector e0FrontVertexDirection{0,0,0};
-    label edgeWithFrontVertex = -1;
 
     forAll(faceEdges, index)
     {
@@ -385,239 +351,45 @@ Tensor<scalar> frontSmoother::movementRestriction(const label& pointLabel, const
         }
     }
 
-    // If front vertex coincides with an edge: are both connected coplanar?
-    bool facesAreCoplanar = false;
-
-    if (edgeWithFrontVertex > -1)
-    {
-        const auto& edgeFaces = mesh.edgeFaces(edgeWithFrontVertex);
-
-        // Assumption: each boundary edge of the fvMesh is shared by
-        // exactly two boundary faces. The normal of the first face has already
-        // been found above. If this normal is parallel to the normal of
-        // the second face, they are coplanar and the movement of the 
-        // front vertex does not need to be restricted to the edge direction
-        forAll(edgeFaces, index)
-        {
-            const auto& faceLabel = edgeFaces[index];
-
-            if (faceLabel < nInternalFaces || faceLabel == minDistFaceLabel)
-            {
-                continue;
-            }
-            else
-            {
-                auto neighbourFaceNormal = mesh.faceAreas()[faceLabel];
-                neighbourFaceNormal /= mag(neighbourFaceNormal);
-
-                if (mag(1.0 - (faceNormal&neighbourFaceNormal)) < SMALL)
-                {
-                    facesAreCoplanar = true;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (edgeWithFrontVertex < 0 || facesAreCoplanar)
-    {
-        restriction = Identity<scalar>{} - faceNormal*faceNormal;
-    }
-    else
-    {
-        restriction = edgeDirection*edgeDirection;
-    }
-
-    return restriction;
+    return edgeWithFrontVertex;
 }
 
+bool frontSmoother::boundaryFacesAreCoplanar(const label& edgeLabel, const triSurfaceFront& front, const fvMesh& mesh) const
 
-
-// Volume compensation member functions
-//
-FixedList<vector,2> frontSmoother::computeShadowEdge(const edge& relaxEdge, const triSurfaceFront& front) const
 {
-    FixedList<vector,2> shadowEdge{};
+    const auto& edgeFaces = mesh.edgeFaces(edgeLabel);
+    auto nInternalFaces = mesh.nInternalFaces();
+    vectorTuple boundaryFaceNormals{vector{0,0,0}, vector{0,0,0}};
+    label counter = 0;
 
-    shadowEdge[0] = starBarycentre(relaxEdge[0], front);
-    shadowEdge[1] = starBarycentre(relaxEdge[1], front);
-
-    FixedList<vector,2> n{};
-    n[0] = computeA(relaxEdge[0], front);
-    n[1] = computeA(relaxEdge[1], front);
-
-    scalar d = 0.5*(averageStarEdgeLength(relaxEdge[0], front) + averageStarEdgeLength(relaxEdge[1], front));
-
-    scalar sign = 0.0;
-
-    if ((n[0]&(shadowEdge[0] - front.localPoints()[relaxEdge[0]])) > 0.0)
+    // Assumption: each boundary edge of the fvMesh is shared by
+    // exactly two boundary faces.
+    // They are coplanar if their normals are parallel
+    forAll(edgeFaces, index)
     {
-        sign = 1;
-    }
-    else
-    {
-        sign = -1;
-    }
+        const auto& faceLabel = edgeFaces[index];
 
-    shadowEdge[0] += 0.5*sign*d*n[0];
-    shadowEdge[1] += 0.5*sign*d*n[1];
-
-    return shadowEdge;
-}
-
-scalar frontSmoother::averageStarEdgeLength(const label& pointLabel, const triSurfaceFront& front) const
-{
-    scalar averageLength = 0.0;
-
-    const auto& starEdges = front.pointEdges()[pointLabel];
-    const auto& points = front.localPoints();
-
-    forAll(starEdges, index)
-    {
-        const auto& anEdge = front.edges()[starEdges[index]];
-
-        averageLength += mag(points[anEdge[0]] - points[anEdge[1]]);
-    }
-
-    return averageLength/starEdges.size();
-}
-
-scalar frontSmoother::doubleStarVolume
-(
-    const label& edgeLabel,
-    const vectorTuple& shadowEdge,
-    const vectorTuple& edgeDisplacement,
-    const triSurfaceFront& front
-) const
-{
-    scalar volume = 0.0;
-
-    const auto& points = front.localPoints();
-    const auto& relaxEdge = front.edges()[edgeLabel];
-
-    vectorTuple displacedEdge{
-                                points[relaxEdge[0]] + edgeDisplacement[0],
-                                points[relaxEdge[1]] + edgeDisplacement[1]
-                             };
-
-    const auto& edgeFaces = front.edgeFaces()[edgeLabel];
-    const auto& pointToFaces = front.pointFaces();
-
-    const auto& p0Faces = pointToFaces[relaxEdge[0]];
-    auto dx0 = shadowEdge[0] - displacedEdge[0];
-    forAll(p0Faces, index)
-    {
-        if (p0Faces[index] == edgeFaces[0] || p0Faces[index] == edgeFaces[1])
+        if (faceLabel < nInternalFaces)
         {
             continue;
         }
-
-        volume += mag(dx0 & faceAreaNormal(p0Faces[index], front));
-    }
-
-    const auto& p1Faces = pointToFaces[relaxEdge[1]];
-    auto dx1 = shadowEdge[1] - displacedEdge[1];
-    forAll(p1Faces, index)
-    {
-        if (p1Faces[index] == edgeFaces[0] || p1Faces[index] == edgeFaces[1])
+        else
         {
-            continue;
-        }
+            boundaryFaceNormals[counter] = mesh.faceAreas()[faceLabel];
+            boundaryFaceNormals[counter] /= mag(boundaryFaceNormals[counter]);
 
-        volume += mag(dx1 & faceAreaNormal(p1Faces[index], front));
-    }
-
-    // Add 'W8' volume
-    // TODO: clean up and move to separate function, it's a mess...
-    auto v = computeV(edgeLabel, front);
-    auto pointLabels = vPointLabels(edgeLabel, front);
-    auto v0 = points[pointLabels[0]];
-
-    volume += mag(v & ((points[relaxEdge[0]] - v0) ^ (points[relaxEdge[1]] - v0)));
-    volume += mag(v & ((points[relaxEdge[0]] - v0) ^ (shadowEdge[0] - v0)));
-    volume += mag(v & ((shadowEdge[0] - v0) ^ (shadowEdge[1] - v0)));
-    volume += mag(v & ((points[relaxEdge[1]] - v0) ^ (shadowEdge[1] - v0)));
-
-    // Triple product delivers 6 times the volume of the corresponding tetrahedron
-    return volume/6.0;
-}
-
-vector frontSmoother::faceAreaNormal(const label& faceLabel, const triSurfaceFront& front) const
-{
-    const auto& p = front.localPoints();
-    const auto& f = front.localFaces()[faceLabel];
-
-    return ((p[f[1]] - p[f[0]]) ^ (p[f[2]] - p[f[0]]));
-}
-
-labelTuple frontSmoother::vPointLabels(const label& edgeLabel, const triSurfaceFront& front) const
-{
-    labelTuple pointLabels{};
-
-    const auto& relaxEdge = front.edges()[edgeLabel];
-    const auto& connectedFaces = front.edgeFaces()[edgeLabel];
-    const auto& faces = front.localFaces();
-
-    forAll(connectedFaces, index)
-    {
-        const auto& aFace = faces[connectedFaces[index]];
-
-        forAll(aFace, I)
-        {
-            if (aFace[I] != relaxEdge[0] && aFace[I] != relaxEdge[1])
-            {
-                pointLabels[index] = aFace[I];
-            }
+            ++counter;
         }
     }
 
-    return pointLabels;
-}
-
-scalar frontSmoother::localVolumeChange(const label& edgeLabel, const vectorTuple& displacements, const triSurfaceFront& front) const
-{
-    vectorTuple zeroDisplacement{vector{0,0,0}, vector{0,0,0}};
-
-    auto shadowEdge = computeShadowEdge(front.edges()[edgeLabel], front);
-    auto v0 = doubleStarVolume(edgeLabel, shadowEdge, zeroDisplacement, front);
-    auto v1 = doubleStarVolume(edgeLabel, shadowEdge, displacements, front);
-
-    //Info << "Volumes: old = " << v0 << ", new = " << v1 << ", error = "
-    //     << (v1-v0)/v0 << '\n';
-
-    return v1-v0;
-}
-
-scalar frontSmoother::globalFrontVolume(const triSurfaceFront& front) const
-{
-    scalar volume = 0.0;
-
-    const auto& p = front.localPoints();
-
-    vector centre{0,0,0};
-
-    forAll(p, I)
+    if (mag(1.0 - (boundaryFaceNormals[0] & boundaryFaceNormals[1])) < SMALL)
     {
-        centre += p[I];
+        return true;
     }
-
-    centre /= p.size();
-
-    const auto& faces = front.localFaces();
-
-    forAll(faces, I)
+    else
     {
-        const auto& f = faces[I];
-        
-        volume += mag((p[f[0]] - centre) & ((p[f[1]] - p[f[0]]) ^ (p[f[2]] - p[f[0]])));
+        return false;
     }
-
-    return volume;
-}
-
-void frontSmoother::testLocalVolumeComputation(triSurface& front) const
-{
-
 }
 
 
@@ -638,8 +410,6 @@ void frontSmoother::smoothEdges(triSurfaceFront& front, const fvMesh& mesh) cons
     auto singlePointBoundaryEdgeLabels = singlePointBoundaryEdges(front);
     auto internalEdgeLabels = internalEdges(front.nInternalEdges(), singlePointBoundaryEdgeLabels);
 
-    auto oldGlobalVolume = globalFrontVolume(front);
-
     for(label sweep=0; sweep < nSweeps_; ++sweep)
     {
         const auto& edges = front.edges();
@@ -649,7 +419,7 @@ void frontSmoother::smoothEdges(triSurfaceFront& front, const fvMesh& mesh) cons
         {
             const auto& relaxEdge = edges[edgeLabel];
 
-            FixedList<vector,2> Ai{vector{0,0,0}, vector{0,0,0}};
+            vectorTuple Ai{vector{0,0,0}, vector{0,0,0}};
             Ai[0] = computeA(relaxEdge[0], front);
             Ai[1] = computeA(relaxEdge[1], front);
 
@@ -661,26 +431,13 @@ void frontSmoother::smoothEdges(triSurfaceFront& front, const fvMesh& mesh) cons
 
             auto Afinal = Ai[0] + Ai[1] + (v ^ (dxs0 - dxs1));
 
-            // TODO: test different thresholds (TT)
+            // The paper only specifies this threshold as "a tiny number" (TT)
             if (mag(Afinal) > 1.0e-10)
             {
                 auto normal = Afinal / mag(Afinal);
 
                 auto h = -((dxs0 & Ai[0]) + (dxs1 & Ai[1])
                             + (dxs1 & (v ^ dxs0))) / mag(Afinal);
-
-                /*
-                vectorTuple displacements{vector{dxs0 + h*normal}, vector{dxs1 + h*normal}};
-
-                // Compensation idea...
-                auto deltaV = localVolumeChange(edgeLabel, displacements, front);
-                auto dh = -6.0*deltaV / (normal & (Ai[0] + Ai[1]));
-
-                displacements[0] += dh*normal;
-                displacements[1] += dh*normal;
-                auto newDeltaV = localVolumeChange(edgeLabel, displacements, front);
-                Info << "Ratio = " << newDeltaV/deltaV << ", old dV =" << deltaV << ", new dV = " << newDeltaV << '\n';
-                */
 
                 points[relaxEdge[0]] += dxs0 + h*normal;
                 points[relaxEdge[1]] += dxs1 + h*normal;
@@ -692,7 +449,7 @@ void frontSmoother::smoothEdges(triSurfaceFront& front, const fvMesh& mesh) cons
         {
             const auto& relaxEdge = edges[edgeLabel];
 
-            FixedList<vector,2> Ai{vector{0,0,0}, vector{0,0,0}};
+            vectorTuple Ai{vector{0,0,0}, vector{0,0,0}};
             Ai[0] = computeA(relaxEdge[0], front);
             Ai[1] = computeA(relaxEdge[1], front);
 
@@ -700,12 +457,13 @@ void frontSmoother::smoothEdges(triSurfaceFront& front, const fvMesh& mesh) cons
             
             auto smoothedPoints = smoothEdge(relaxEdge, front);
 
-            FixedList<vector,2> dxs{vector{0,0,0}, vector{0,0,0}};
+            vectorTuple dxs{vector{0,0,0}, vector{0,0,0}};
             dxs[0] = underrelaxationFactor_*(smoothedPoints[0] - points[relaxEdge[0]]);
             dxs[1] = underrelaxationFactor_*(smoothedPoints[1] - points[relaxEdge[1]]);
             
             // Determine which point of relaxEdge is on boundary
             auto boundaryPointIndex = determineBoundaryPoint(relaxEdge, front);
+
             // Correct displacement of boundary point so it is aligned with
             // face/edge
             auto moveRestriction = movementRestriction(relaxEdge[boundaryPointIndex], front, mesh);
@@ -713,11 +471,14 @@ void frontSmoother::smoothEdges(triSurfaceFront& front, const fvMesh& mesh) cons
 
             auto Afinal = Ai[0] + Ai[1] + (v ^ (dxs[0] - dxs[1]));
 
+            // The paper only specifies this threshold as "a tiny number" (TT)
             if (mag(Afinal) > 1.0e-10)
             {
-                FixedList<vector,2> normals{vector{Afinal / mag(Afinal)}, vector{Afinal / mag(Afinal)}};
+                vectorTuple normals{vector{Afinal / mag(Afinal)}, vector{Afinal / mag(Afinal)}};
                 normals[boundaryPointIndex] = moveRestriction & normals[boundaryPointIndex];
 
+                // In case both normals are not parallel, solution of a
+                // quadratic equation to obtain h is required
                 scalar h = 0;
                 auto p1 = normals[1] & (v ^ normals[0]);
                 auto p2 = (normals[0]&Ai[0]) + (normals[1]&Ai[1])
@@ -727,6 +488,7 @@ void frontSmoother::smoothEdges(triSurfaceFront& front, const fvMesh& mesh) cons
                 if (p1 > SMALL)
                 {
                     // TODO: determine which sign makes sense for the sqrt term
+                    // only '+' works, figure out why
                     h = (-p2 + Foam::sqrt(p2*p2 - 4*p1*p3)) / (2*p1);
                 }
                 else
@@ -734,30 +496,15 @@ void frontSmoother::smoothEdges(triSurfaceFront& front, const fvMesh& mesh) cons
                     h = -p3/p2;
                 }
 
-                // Compute and compare the volume of the double before and after
-                // smoothing
-                vectorTuple displacements{vector{0,0,0}, vector{0,0,0}};
-                displacements[0] = dxs[0] + h*normals[0];
-                displacements[1] = dxs[1] + h*normals[1];
-
                 points[relaxEdge[0]] += dxs[0] + h*normals[0];
                 points[relaxEdge[1]] += dxs[1] + h*normals[1];
             }
         }
 
-        // Iterate full boundary edges
-        for(label edgeLabel = front.nInternalEdges(); edgeLabel < edges.size(); ++edgeLabel)
-        {
-            // Implement me!
-        }
+        // FIXME: for now do not smooth boundary edges with both points on
+        // the boundary. As so far from the simulations it seems to be
+        // sufficient to smooth the one point boundary edges
     }
-
-    auto newGlobalVolume = globalFrontVolume(front);
-
-    Info << "\nEdges: Global volume delta = "
-         << newGlobalVolume - oldGlobalVolume << ", ratio = "
-         << (newGlobalVolume - oldGlobalVolume)/oldGlobalVolume
-         << '\n';
 
     updateGlobalPoints(front);
 }
@@ -767,9 +514,7 @@ void frontSmoother::smoothPoints(triSurfaceFront& front, const fvMesh& mesh) con
     updateLocalPoints(front);
     pointField& points = const_cast<pointField&>(front.localPoints());
 
-    auto oldGlobalVolume = globalFrontVolume(front);
-
-    for (label sweep = 0; sweep < nSweeps_; sweep++)
+    for (label sweep = 0; sweep < nSweeps_; ++sweep)
     {
         const auto& boundaryPoints = front.boundaryPoints();
         label boundaryPointIndex = 0;
@@ -787,7 +532,7 @@ void frontSmoother::smoothPoints(triSurfaceFront& front, const fvMesh& mesh) con
             {
                 auto moveRestriction = movementRestriction(pointLabel, front, mesh);
 
-                // Project to boundary plane
+                // Project to boundary plane/edge
                 normal = moveRestriction & normal;
                 normal /= (mag(normal) + SMALL);
                 dxs = moveRestriction & dxs;
@@ -800,32 +545,39 @@ void frontSmoother::smoothPoints(triSurfaceFront& front, const fvMesh& mesh) con
                 points[pointLabel] += dxs - (dxs & normal) * normal;
             }
         }
-
     }
-
-    auto newGlobalVolume = globalFrontVolume(front);
-
-    Info << "\nPoints: Global volume delta = "
-         << newGlobalVolume - oldGlobalVolume << ", ratio = "
-         << (newGlobalVolume - oldGlobalVolume)/oldGlobalVolume
-         << "\n";
 
     updateGlobalPoints(front);
 }
 
 void frontSmoother::smoothFront(triSurfaceFront& front, const fvMesh& mesh) const
 {
-    //if (front.surfaceType() == triSurface::MANIFOLD)
+    // TODO: rather implement this as a runtime selectable class hierarchy? (TT)
     if (smoothingType_ == "edges")
     {
         Info << "\nSmoothing edges...\n";
+        smoothEdges(front, mesh);
+    }
+    else if (smoothingType_ == "points")
+    {
+        Info << "\nSmoothing points...\n";
+        smoothPoints(front, mesh);
+    }
+    else if (smoothingType_ == "pointsAndEdges")
+    {
+        Info << "\nSmoothing points and edges...\n";
         smoothPoints(front, mesh);
         smoothEdges(front, mesh);
     }
     else
     {
-        Info << "\nSmoothing points...\n";
-        smoothPoints(front, mesh);
+        FatalErrorIn (
+            "frontSmoother::smoothFront(front, mesh)"
+        )   << "Unknown algorithm type "
+            << smoothingType_
+            << " for the keyword 'smooth'.\n"
+            << "Valid options are 'points', 'edges' or 'pointsAndEdges'."
+            << exit(FatalError);
     }
 }
 

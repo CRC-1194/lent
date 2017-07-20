@@ -34,6 +34,8 @@ Author
 Description
     Implementation of two volume-conservative smoothing algorithms for
     triangulated surfaces as proposed by Kuprat et al 2001
+    Both algorithms have been extended so they are applicable to fronts
+    with boundaries, e.g. in 2D cases or contact line problems
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -75,7 +77,6 @@ namespace FrontTracking {
                          Class frontSmoother Declaration
 \*---------------------------------------------------------------------------*/
 using vectorTuple = FixedList<vector,2>;
-using labelTuple = FixedList<label,2>;
 
 class frontSmoother
 {
@@ -86,37 +87,22 @@ class frontSmoother
     word smoothingType_;
 
     // Private Member Functions
-    void updateLocalPoints(triSurfaceFront& front) const;
-    void updateGlobalPoints(triSurfaceFront& front) const;
     vector computeA(const label& pointLabel, const triSurfaceFront& front) const;
     vector computeV(const label& edgeLabel, const triSurfaceFront& front) const;
-    FixedList<vector,2> smoothEdge(const edge& relaxEdge, const triSurfaceFront& front) const;
-    vector boundaryNormal(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
+    vectorTuple smoothEdge(const edge& relaxEdge, const triSurfaceFront& front) const;
     vector starBarycentre(const label& pointLabel, const triSurfaceFront& front) const;
-    void ensureNormalConsistency(triSurfaceFront& front, const edge& relaxEdge, const vector& normal) const;
-    label determineBoundaryPoint(const edge& relaxEdge, const triSurfaceFront& front) const;
-    Tensor<scalar> movementRestriction(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
 
-    // TODO: this functionality should be moved to the triSurfaceFront class
+    // TODO: this functionality should be moved to the triSurfaceFront class (TT)
     std::vector<label> singlePointBoundaryEdges(const triSurfaceFront& front) const;
     std::vector<label> internalEdges(const label nInternalEdges, const std::vector<label>& boundaryEdges) const;
-    
-    // Functions for checking volume conservation / volume compensation
-    // approach
-    FixedList<vector,2> computeShadowEdge(const edge& relaxEdge, const triSurfaceFront& front) const;
-    scalar averageStarEdgeLength(const label& pointLabel, const triSurfaceFront& front) const;
-    scalar doubleStarVolume
-           (
-            const label& edgeLabel,
-            const vectorTuple& shadowEdge,
-            const vectorTuple& edgeDisplacement,
-            const triSurfaceFront& front
-           ) const;
-    vector faceAreaNormal(const label& faceLabel, const triSurfaceFront& front) const;
-    labelTuple vPointLabels(const label& edgeLabel, const triSurfaceFront& front) const;
-    scalar localVolumeChange(const label& edgeLabel, const vectorTuple& displacements, const triSurfaceFront& front) const;
-    scalar globalFrontVolume(const triSurfaceFront& front) const;
-    void testLocalVolumeComputation(triSurface& front) const;
+    void updateLocalPoints(triSurfaceFront& front) const;
+    void updateGlobalPoints(triSurfaceFront& front) const;
+    label determineBoundaryPoint(const edge& relaxEdge, const triSurfaceFront& front) const;
+    Tensor<scalar> movementRestriction(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
+    label containingFace(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
+    label containingEdge(const label& pointLabel, const label& faceLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
+    bool boundaryFacesAreCoplanar(const label& edgeLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
+
 
 public:
 
@@ -130,10 +116,8 @@ public:
     // Algorithm no. 3 of Kuprat paper
     void smoothPoints(triSurfaceFront& front, const fvMesh& mesh) const;
 
-    // Temporarily needed: use Algorithm 4 only if the front is manifold
-    // and thus has no boundary edges.
-    // TODO: remove as soon as algorithm for can operate on open surfaces
-    // and make algorithm to be used run time selectable
+    // Invokes algorithm 3, algorithm 4 or both of them depending on the
+    // "smooth" keyword specified in the lentSolution dictionary
     void smoothFront(triSurfaceFront& front, const fvMesh& mesh) const;
 };
 
