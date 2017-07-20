@@ -60,6 +60,8 @@ Description
 #ifndef frontSmoother_H
 #define frontSmoother_H
 
+#include <vector>
+
 #include "volFieldsFwd.H"
 #include "triSurfaceFront.H"
 
@@ -72,12 +74,16 @@ namespace FrontTracking {
 /*---------------------------------------------------------------------------*\
                          Class frontSmoother Declaration
 \*---------------------------------------------------------------------------*/
+using vectorTuple = FixedList<vector,2>;
+using labelTuple = FixedList<label,2>;
 
 class frontSmoother
 {
+
     // Private data
     scalar underrelaxationFactor_;
     label nSweeps_;
+    word smoothingType_;
 
     // Private Member Functions
     void updateLocalPoints(triSurfaceFront& front) const;
@@ -88,6 +94,29 @@ class frontSmoother
     vector boundaryNormal(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
     vector starBarycentre(const label& pointLabel, const triSurfaceFront& front) const;
     void ensureNormalConsistency(triSurfaceFront& front, const edge& relaxEdge, const vector& normal) const;
+    label determineBoundaryPoint(const edge& relaxEdge, const triSurfaceFront& front) const;
+    Tensor<scalar> movementRestriction(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
+
+    // TODO: this functionality should be moved to the triSurfaceFront class
+    std::vector<label> singlePointBoundaryEdges(const triSurfaceFront& front) const;
+    std::vector<label> internalEdges(const label nInternalEdges, const std::vector<label>& boundaryEdges) const;
+    
+    // Functions for checking volume conservation / volume compensation
+    // approach
+    FixedList<vector,2> computeShadowEdge(const edge& relaxEdge, const triSurfaceFront& front) const;
+    scalar averageStarEdgeLength(const label& pointLabel, const triSurfaceFront& front) const;
+    scalar doubleStarVolume
+           (
+            const label& edgeLabel,
+            const vectorTuple& shadowEdge,
+            const vectorTuple& edgeDisplacement,
+            const triSurfaceFront& front
+           ) const;
+    vector faceAreaNormal(const label& faceLabel, const triSurfaceFront& front) const;
+    labelTuple vPointLabels(const label& edgeLabel, const triSurfaceFront& front) const;
+    scalar localVolumeChange(const label& edgeLabel, const vectorTuple& displacements, const triSurfaceFront& front) const;
+    scalar globalFrontVolume(const triSurfaceFront& front) const;
+    void testLocalVolumeComputation(triSurface& front) const;
 
 public:
 
@@ -97,7 +126,7 @@ public:
 
     // Member Functions
     // Algorithm no. 4 of Kuprat paper
-    void smoothEdges(triSurfaceFront& front) const;
+    void smoothEdges(triSurfaceFront& front, const fvMesh& mesh) const;
     // Algorithm no. 3 of Kuprat paper
     void smoothPoints(triSurfaceFront& front, const fvMesh& mesh) const;
 
