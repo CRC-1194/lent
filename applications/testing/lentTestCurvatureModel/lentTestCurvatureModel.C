@@ -43,6 +43,20 @@ Authors
 
 using namespace FrontTracking;
 
+// Test if file is empty: for an empty file the current position in a stream in
+// append-mode is 0
+bool fileIsEmpty(std::fstream& file)
+{
+    if (file.tellg() == 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Main program:
 
@@ -85,32 +99,44 @@ int main(int argc, char *argv[])
     tmp<volScalarField> cellCurvatureExactTmp = exactCurvatureModel.cellCurvature(mesh,front);  
     volScalarField& exactCurvature = cellCurvatureExactTmp.ref();  
 
-    tmp<frontCurvatureModel> numericalCurvatureModelTmp = frontCurvatureModel::New(lentDict.subDict("curvatureModel"));  
+    const auto& surfaceTensionDict = lentDict.subDict("surfaceTensionForceModel");
+    tmp<frontCurvatureModel> numericalCurvatureModelTmp = frontCurvatureModel::New(surfaceTensionDict.subDict("curvatureModel"));  
     const frontCurvatureModel& numericalCurvatureModel = numericalCurvatureModelTmp.ref(); 
     tmp<volScalarField> numericalCurvatureTmp = numericalCurvatureModel.cellCurvature(mesh,front);  
     volScalarField& numericalCurvature = numericalCurvatureTmp.ref();  
     numericalCurvature.rename("numericalCurvature"); 
     numericalCurvature.writeOpt() = IOobject::AUTO_WRITE; 
 
-    volScalarField onesFilter (map(markerField, 1.0, [](scalar x) { return (x > 0) && (x < 1); })); 
+    // Use the gradient of the markerField as filter since this gives the cells
+    // where the curvature is used when the CSF model is used for surface tension
+    dimensionedScalar dSMALL("SMALL", pow(dimLength,-1), SMALL);
+    volScalarField onesFilter = pos(mag(fvc::grad(markerField)) - 1e4*dSMALL);
     onesFilter.rename("ones"); 
     onesFilter.writeOpt() = IOobject::AUTO_WRITE; 
     numericalCurvature *= onesFilter; 
     exactCurvature *= onesFilter; 
 
-    Info << max(numericalCurvature).value() << " " << min(numericalCurvature).value() << endl; 
+    Info << "\nMaximum numerical curvature: " << max(numericalCurvature).value()
+         << "\nMinimum numerical curvature: " << min(numericalCurvature).value() << endl; 
 
-    volScalarField LinfField ("LinfCurvatureErr", mag(exactCurvature - numericalCurvature)); 
+    volScalarField LinfField ("LinfCurvatureErr", mag(exactCurvature - numericalCurvature)/(dSMALL + mag(exactCurvature))); 
     LinfField.writeOpt() = IOobject::AUTO_WRITE; 
     dimensionedScalar Linf = max(LinfField);
 
+    // Write results
+    if (fileIsEmpty(errorFile))
+    {
+        errorFile << "# mesh spacing | Linf relative | exact model | numerical model\n";
+    }
+
     dimensionedScalar h = max(mag(mesh.delta())); 
-    errorFile << h.value() << " " << Linf.value() << std::endl;
+    errorFile << h.value() << " " << Linf.value() << " " << exactCurvatureModel.type()
+              << " " << numericalCurvatureModel.type() << std::endl;
 
     front.write();
     runTime.writeNow();
 
-    Info <<"Maximal curvature error = " << Linf.value() << endl;
+    Info <<"Maximal relative curvature error = " << Linf.value() << '\n' << endl;
 
     Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
         << "  ClockTime = " << runTime.elapsedClockTime() << " s"
