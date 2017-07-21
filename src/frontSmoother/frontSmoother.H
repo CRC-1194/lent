@@ -23,17 +23,19 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::foamIsoSurfaceFrontReconstructor
+    Foam::FrontTracking::frontSmoother
 
 SourceFiles
-    foamIsoSurfaceFrontReconstructor.C
+    frontSmoother.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Abstract base class for the heaviside function calculation from a signed
-    distance field.
+    Implementation of two volume-conservative smoothing algorithms for
+    triangulated surfaces as proposed by Kuprat et al 2001
+    Both algorithms have been extended so they are applicable to fronts
+    with boundaries, e.g. in 2D cases or contact line problems
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -45,11 +47,6 @@ Description
     
     Method Development and Intellectual Property :
     	Tomislav Maric maric@csi.tu-darmstadt.de
-    lentCommunication& communication = const_cast<lentCommunication&>(
-        mesh.lookupObject<lentCommunication>(
-            lentCommunication::registeredName(front,mesh)
-        ) 
-    );
     	Holger Marschall <marschall@csi.tu-darmstadt.de>
     	Dieter Bothe <bothe@csi.tu-darmstadt.de>
 
@@ -62,47 +59,68 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef frontSmoother_H
+#define frontSmoother_H
 
-#ifndef foamIsoSurfaceFrontReconstructor_H
-#define foamIsoSurfaceFrontReconstructor_H
+#include <vector>
 
-#include "frontReconstructor.H"
-#include "normalConsistency.H"
-#include "frontSmoother.H"
+#include "volFieldsFwd.H"
+#include "triSurfaceFront.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class foamIsoSurfaceFrontReconstructor Declaration
-\*---------------------------------------------------------------------------*/
 
-class foamIsoSurfaceFrontReconstructor
-    :
-        public frontReconstructor
+/*---------------------------------------------------------------------------*\
+                         Class frontSmoother Declaration
+\*---------------------------------------------------------------------------*/
+using vectorTuple = FixedList<vector,2>;
+
+class frontSmoother
 {
 
-    scalar mergeTolerance_;
-    Switch regularize_;
+    // Private data
+    scalar underrelaxationFactor_;
+    label nSweeps_;
+    word smoothingType_;
 
-    tmp<normalConsistency> consistencyAlgTmp_;
+    // Private Member Functions
+    vector computeA(const label& pointLabel, const triSurfaceFront& front) const;
+    vector computeV(const label& edgeLabel, const triSurfaceFront& front) const;
+    vectorTuple smoothEdge(const edge& relaxEdge, const triSurfaceFront& front) const;
+    vector starBarycentre(const label& pointLabel, const triSurfaceFront& front) const;
+
+    // TODO: this functionality should be moved to the triSurfaceFront class (TT)
+    std::vector<label> singlePointBoundaryEdges(const triSurfaceFront& front) const;
+    std::vector<label> internalEdges(const label nInternalEdges, const std::vector<label>& boundaryEdges) const;
+    void updateLocalPoints(triSurfaceFront& front) const;
+    void updateGlobalPoints(triSurfaceFront& front) const;
+    label determineBoundaryPoint(const edge& relaxEdge, const triSurfaceFront& front) const;
+    Tensor<scalar> movementRestriction(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
+    label containingFace(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
+    label containingEdge(const label& pointLabel, const label& faceLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
+    bool boundaryFacesAreCoplanar(const label& edgeLabel, const triSurfaceFront& front, const fvMesh& mesh) const;
+
 
 public:
 
-    TypeName ("foamIsoSurface");
-
     // Constructors
-    foamIsoSurfaceFrontReconstructor(const dictionary& configDict);
+    frontSmoother(const dictionary& configDict);
+
 
     // Member Functions
-    virtual void reconstructFront(
-        triSurfaceFront& front,
-        const volScalarField& signedDistance,
-        const pointScalarField& pointSignedDistance
-    ) const;
+    // Algorithm no. 4 of Kuprat paper
+    void smoothEdges(triSurfaceFront& front, const fvMesh& mesh) const;
+    // Algorithm no. 3 of Kuprat paper
+    void smoothPoints(triSurfaceFront& front, const fvMesh& mesh) const;
+
+    // Invokes algorithm 3, algorithm 4 or both of them depending on the
+    // "smooth" keyword specified in the lentSolution dictionary
+    void smoothFront(triSurfaceFront& front, const fvMesh& mesh) const;
 };
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

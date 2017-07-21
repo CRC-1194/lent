@@ -26,14 +26,16 @@ Class
     Foam::maxNormalAngleFrontReconstructionModel
 
 SourceFiles
-     maxNormalAngleFrontReconstructionModel.C
+    maxNormalAngleFrontReconstructionModel.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Abstract base class for the heaviside function calculation from a signed
-    distance field.
+    Invoke front reconstruction if the maximum area of a front triangle
+    exceeds a given threshold.
+    Based on the cell volume of the Eulerian Mesh a characteristic area
+    is computed and scaled with user prescribed factor.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,65 +59,70 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include <cmath>
 
-#include "maxNormalAngleFrontReconstructionModel.H"
 #include "addToRunTimeSelectionTable.H"
 #include "volFields.H"
-#include "mathematicalConstants.H"
+
+#include "maxAreaFrontReconstructionModel.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(maxNormalAngleFrontReconstructionModel, 0);
-    addToRunTimeSelectionTable(frontReconstructionModel, maxNormalAngleFrontReconstructionModel, Dictionary);
+    defineTypeNameAndDebug(maxAreaFrontReconstructionModel, 0);
+    addToRunTimeSelectionTable(frontReconstructionModel, maxAreaFrontReconstructionModel, Dictionary);
+
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+void maxAreaFrontReconstructionModel::computeMaxArea(const fvMesh& mesh) const
+{
+    const auto& cellVolumes = mesh.V();
+
+    auto meanCellVolume = (sum(cellVolumes) / cellVolumes.size()).value();
+
+    maxArea_ = scaleFactor_*std::pow(meanCellVolume,2.0/3.0);
+}
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-maxNormalAngleFrontReconstructionModel::maxNormalAngleFrontReconstructionModel(const dictionary& configDict)
+maxAreaFrontReconstructionModel::maxAreaFrontReconstructionModel(const dictionary& configDict)
 :
-    frontReconstructionModel(configDict),
-    maxAngle_(readScalar(configDict.lookup("value")) * M_PI / 180.0),
-    minAngleCos_(Foam::cos(maxAngle_)),
-    previouslyReconstructed_(false)
+    frontReconstructionModel{configDict},
+    maxArea_{0.0},
+    scaleFactor_{readScalar(configDict.lookup("scaleFactor"))}
 {}
+
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-bool maxNormalAngleFrontReconstructionModel::reconstructionRequired(
+bool maxAreaFrontReconstructionModel::reconstructionRequired(
     const triSurfaceFront& front,
     const volScalarField& signedDistance
 ) const
 {
     if (signedDistance.time().timeIndex() <= 1)
-        return true; 
-
-    const auto& edges = front.edges(); 
-    const auto& allEdgeFaces = front.edgeFaces(); 
-    const auto& faceNormals = front.faceNormals(); 
-
-    forAll(edges, I)
     {
-        const auto& edgeFaces = allEdgeFaces[I];
-        const auto& n0 = faceNormals[edgeFaces[0]]; 
-
-        for(label J = 1; J < edgeFaces.size(); ++J)
-        {
-            const auto& n = faceNormals[edgeFaces[J]]; 
-
-            if (((n0 & n) < minAngleCos_) /*&& (! previouslyReconstructed_)*/)
-            {
-                previouslyReconstructed_ = true; 
-                return true; 
-            }
-        }
+        computeMaxArea(signedDistance.mesh());
+        return true;
     }
 
-    previouslyReconstructed_ = false; 
+    const auto& faceAreas = front.magSf();
 
-    return false;
+    auto maxFaceArea = max(faceAreas);
+
+    if (maxFaceArea > maxArea_)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -128,4 +135,3 @@ bool maxNormalAngleFrontReconstructionModel::reconstructionRequired(
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // ************************************************************************* //
-

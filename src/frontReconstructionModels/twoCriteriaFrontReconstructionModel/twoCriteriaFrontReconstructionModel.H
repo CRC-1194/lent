@@ -26,14 +26,14 @@ Class
     Foam::maxNormalAngleFrontReconstructionModel
 
 SourceFiles
-     maxNormalAngleFrontReconstructionModel.C
+    maxNormalAngleFrontReconstructionModel.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Abstract base class for the heaviside function calculation from a signed
-    distance field.
+    Combines two front reconstruction models. Invokes reconstruction if
+    either one of the criteria is fulfilled.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,65 +57,54 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef twoCriteriaFrontReconstructionModel_H
+#define twoCriteriaFrontReconstructionModel_H
 
-#include "maxNormalAngleFrontReconstructionModel.H"
-#include "addToRunTimeSelectionTable.H"
-#include "volFields.H"
-#include "mathematicalConstants.H"
+#include "frontReconstructionModel.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(maxNormalAngleFrontReconstructionModel, 0);
-    addToRunTimeSelectionTable(frontReconstructionModel, maxNormalAngleFrontReconstructionModel, Dictionary);
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+/*---------------------------------------------------------------------------*\
+                         Class twoCriteriaFrontReconstructionModel Declaration
+\*---------------------------------------------------------------------------*/
 
-maxNormalAngleFrontReconstructionModel::maxNormalAngleFrontReconstructionModel(const dictionary& configDict)
+class twoCriteriaFrontReconstructionModel
 :
-    frontReconstructionModel(configDict),
-    maxAngle_(readScalar(configDict.lookup("value")) * M_PI / 180.0),
-    minAngleCos_(Foam::cos(maxAngle_)),
-    previouslyReconstructed_(false)
-{}
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-bool maxNormalAngleFrontReconstructionModel::reconstructionRequired(
-    const triSurfaceFront& front,
-    const volScalarField& signedDistance
-) const
+    public frontReconstructionModel
 {
-    if (signedDistance.time().timeIndex() <= 1)
-        return true; 
+    // Private data
+    tmp<frontReconstructionModel> firstCriterionTmp_;
+    tmp<frontReconstructionModel> secondCriterionTmp_;
 
-    const auto& edges = front.edges(); 
-    const auto& allEdgeFaces = front.edgeFaces(); 
-    const auto& faceNormals = front.faceNormals(); 
 
-    forAll(edges, I)
+public:
+
+    TypeName ("twoCriteria");
+
+    // Constructors
+    explicit twoCriteriaFrontReconstructionModel(const dictionary& configDict);
+    
+    // Member Functions
+    virtual bool reconstructionRequired(
+        const triSurfaceFront& front,
+        const volScalarField& signedDistance
+    ) const;
+
+    word firstCriterion() const
     {
-        const auto& edgeFaces = allEdgeFaces[I];
-        const auto& n0 = faceNormals[edgeFaces[0]]; 
-
-        for(label J = 1; J < edgeFaces.size(); ++J)
-        {
-            const auto& n = faceNormals[edgeFaces[J]]; 
-
-            if (((n0 & n) < minAngleCos_) /*&& (! previouslyReconstructed_)*/)
-            {
-                previouslyReconstructed_ = true; 
-                return true; 
-            }
-        }
+        return firstCriterionTmp_->type();
     }
 
-    previouslyReconstructed_ = false; 
+    word secondCriterion() const
+    {
+        return secondCriterionTmp_->type();
+    }
+};
 
-    return false;
-}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -127,5 +116,6 @@ bool maxNormalAngleFrontReconstructionModel::reconstructionRequired(
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// ************************************************************************* //
+#endif
 
+// ************************************************************************* //

@@ -23,17 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::maxNormalAngleFrontReconstructionModel
+    Foam::FrontTracking::reconstructionHistory
 
 SourceFiles
-     maxNormalAngleFrontReconstructionModel.C
+    reconstructionHistory.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Abstract base class for the heaviside function calculation from a signed
-    distance field.
+    Class that records in which time steps the front is reconstructed
+    and writes this to a log file
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,65 +57,47 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef reconstructionHistory_H
+#define reconstructionHistory_H
 
-#include "maxNormalAngleFrontReconstructionModel.H"
-#include "addToRunTimeSelectionTable.H"
-#include "volFields.H"
-#include "mathematicalConstants.H"
+#include <vector>
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "Time.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(maxNormalAngleFrontReconstructionModel, 0);
-    addToRunTimeSelectionTable(frontReconstructionModel, maxNormalAngleFrontReconstructionModel, Dictionary);
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+/*---------------------------------------------------------------------------*\
+                         Class reconstructionHistory Declaration
+\*---------------------------------------------------------------------------*/
 
-maxNormalAngleFrontReconstructionModel::maxNormalAngleFrontReconstructionModel(const dictionary& configDict)
-:
-    frontReconstructionModel(configDict),
-    maxAngle_(readScalar(configDict.lookup("value")) * M_PI / 180.0),
-    minAngleCos_(Foam::cos(maxAngle_)),
-    previouslyReconstructed_(false)
-{}
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-bool maxNormalAngleFrontReconstructionModel::reconstructionRequired(
-    const triSurfaceFront& front,
-    const volScalarField& signedDistance
-) const
+class reconstructionHistory
 {
-    if (signedDistance.time().timeIndex() <= 1)
-        return true; 
+    // Private data
+    const Time& time_;
+    std::vector<label> timeStepNumber_;
+    std::vector<word> physicalTime_;
+    std::vector<word> operation_;
 
-    const auto& edges = front.edges(); 
-    const auto& allEdgeFaces = front.edgeFaces(); 
-    const auto& faceNormals = front.faceNormals(); 
+    // Private Member Functions
+    void writeHistory() const;
+    void addOperation(const word& operation);
 
-    forAll(edges, I)
-    {
-        const auto& edgeFaces = allEdgeFaces[I];
-        const auto& n0 = faceNormals[edgeFaces[0]]; 
+public:
 
-        for(label J = 1; J < edgeFaces.size(); ++J)
-        {
-            const auto& n = faceNormals[edgeFaces[J]]; 
+    // Constructors
+    reconstructionHistory(const Time& time);
 
-            if (((n0 & n) < minAngleCos_) /*&& (! previouslyReconstructed_)*/)
-            {
-                previouslyReconstructed_ = true; 
-                return true; 
-            }
-        }
-    }
 
-    previouslyReconstructed_ = false; 
+    // Member Functions
+    void frontReconstructed();
+    void frontSmoothed();
 
-    return false;
-}
+};
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -127,5 +109,6 @@ bool maxNormalAngleFrontReconstructionModel::reconstructionRequired(
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// ************************************************************************* //
+#endif
 
+// ************************************************************************* //

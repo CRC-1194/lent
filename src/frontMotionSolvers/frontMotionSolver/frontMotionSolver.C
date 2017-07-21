@@ -68,6 +68,9 @@ namespace FrontTracking {
     defineTypeNameAndDebug(frontMotionSolver, 0);
     defineRunTimeSelectionTable(frontMotionSolver, Dictionary);
 
+// * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontMotionSolver::frontMotionSolver(const dictionary& configDict)

@@ -26,14 +26,14 @@ Class
     Foam::maxNormalAngleFrontReconstructionModel
 
 SourceFiles
-     maxNormalAngleFrontReconstructionModel.C
+    maxNormalAngleFrontReconstructionModel.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Abstract base class for the heaviside function calculation from a signed
-    distance field.
+    Combines two front reconstruction models. Invokes reconstruction if
+    either one of the criteria is fulfilled.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,65 +57,59 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-
-#include "maxNormalAngleFrontReconstructionModel.H"
 #include "addToRunTimeSelectionTable.H"
-#include "volFields.H"
-#include "mathematicalConstants.H"
+
+#include "twoCriteriaFrontReconstructionModel.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(maxNormalAngleFrontReconstructionModel, 0);
-    addToRunTimeSelectionTable(frontReconstructionModel, maxNormalAngleFrontReconstructionModel, Dictionary);
+    defineTypeNameAndDebug(twoCriteriaFrontReconstructionModel, 0);
+    addToRunTimeSelectionTable(frontReconstructionModel, twoCriteriaFrontReconstructionModel, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-maxNormalAngleFrontReconstructionModel::maxNormalAngleFrontReconstructionModel(const dictionary& configDict)
+twoCriteriaFrontReconstructionModel::twoCriteriaFrontReconstructionModel(const dictionary& configDict)
 :
-    frontReconstructionModel(configDict),
-    maxAngle_(readScalar(configDict.lookup("value")) * M_PI / 180.0),
-    minAngleCos_(Foam::cos(maxAngle_)),
-    previouslyReconstructed_(false)
+    frontReconstructionModel{configDict},
+    firstCriterionTmp_{
+        frontReconstructionModel::New(
+            configDict.subDict("firstCriterion")
+        )
+    },
+    secondCriterionTmp_{
+        frontReconstructionModel::New(
+            configDict.subDict("secondCriterion")
+        )
+    }
 {}
+
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-bool maxNormalAngleFrontReconstructionModel::reconstructionRequired(
+bool twoCriteriaFrontReconstructionModel::reconstructionRequired(
     const triSurfaceFront& front,
     const volScalarField& signedDistance
 ) const
 {
-    if (signedDistance.time().timeIndex() <= 1)
-        return true; 
+    bool firstConditionFulfilled =
+        firstCriterionTmp_->reconstructionRequired(front, signedDistance);
 
-    const auto& edges = front.edges(); 
-    const auto& allEdgeFaces = front.edgeFaces(); 
-    const auto& faceNormals = front.faceNormals(); 
+    bool secondConditionFulfilled =
+        secondCriterionTmp_->reconstructionRequired(front, signedDistance);
 
-    forAll(edges, I)
+    if (firstConditionFulfilled || secondConditionFulfilled)
     {
-        const auto& edgeFaces = allEdgeFaces[I];
-        const auto& n0 = faceNormals[edgeFaces[0]]; 
-
-        for(label J = 1; J < edgeFaces.size(); ++J)
-        {
-            const auto& n = faceNormals[edgeFaces[J]]; 
-
-            if (((n0 & n) < minAngleCos_) /*&& (! previouslyReconstructed_)*/)
-            {
-                previouslyReconstructed_ = true; 
-                return true; 
-            }
-        }
+        return true;
     }
-
-    previouslyReconstructed_ = false; 
-
-    return false;
+    else
+    {
+        return false;
+    }
 }
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -128,4 +122,3 @@ bool maxNormalAngleFrontReconstructionModel::reconstructionRequired(
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // ************************************************************************* //
-

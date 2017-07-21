@@ -23,17 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::maxNormalAngleFrontReconstructionModel
+    Foam::FrontTracking::reconstructionHistory
 
 SourceFiles
-     maxNormalAngleFrontReconstructionModel.C
+    reconstructionHistory.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Abstract base class for the heaviside function calculation from a signed
-    distance field.
+    Class that records in which time steps the front is reconstructed
+    and writes this to a log file
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,75 +57,80 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include "OFstream.H"
 
-#include "maxNormalAngleFrontReconstructionModel.H"
-#include "addToRunTimeSelectionTable.H"
-#include "volFields.H"
-#include "mathematicalConstants.H"
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "reconstructionHistory.H"
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(maxNormalAngleFrontReconstructionModel, 0);
-    addToRunTimeSelectionTable(frontReconstructionModel, maxNormalAngleFrontReconstructionModel, Dictionary);
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+void reconstructionHistory::writeHistory() const
+{
+
+    fileName dataFileName = time_.rootPath() + "/" + time_.globalCaseName() + "/"
+        + "reconstructionHistory.dat";
+
+    OFstream historyFile(dataFileName);
+
+    historyFile << "# time step number | physical time | operation" << endl;
+
+    for (unsigned int index = 0; index < timeStepNumber_.size(); ++index)
+    {
+        historyFile << timeStepNumber_[index] << ' ' << physicalTime_[index]
+                    << ' ' << operation_[index]
+                    << endl;
+    }
+}
+
+void reconstructionHistory::addOperation(const word& operation)
+{
+    timeStepNumber_.push_back(time_.timeIndex());
+    physicalTime_.push_back(time_.timeName());
+    operation_.push_back(operation);
+
+    writeHistory();
+}
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-maxNormalAngleFrontReconstructionModel::maxNormalAngleFrontReconstructionModel(const dictionary& configDict)
+reconstructionHistory::reconstructionHistory(const Time& time)
 :
-    frontReconstructionModel(configDict),
-    maxAngle_(readScalar(configDict.lookup("value")) * M_PI / 180.0),
-    minAngleCos_(Foam::cos(maxAngle_)),
-    previouslyReconstructed_(false)
+    time_{time},
+    timeStepNumber_{},
+    physicalTime_{}
 {}
 
+
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-bool maxNormalAngleFrontReconstructionModel::reconstructionRequired(
-    const triSurfaceFront& front,
-    const volScalarField& signedDistance
-) const
+void reconstructionHistory::frontReconstructed()
 {
-    if (signedDistance.time().timeIndex() <= 1)
-        return true; 
-
-    const auto& edges = front.edges(); 
-    const auto& allEdgeFaces = front.edgeFaces(); 
-    const auto& faceNormals = front.faceNormals(); 
-
-    forAll(edges, I)
-    {
-        const auto& edgeFaces = allEdgeFaces[I];
-        const auto& n0 = faceNormals[edgeFaces[0]]; 
-
-        for(label J = 1; J < edgeFaces.size(); ++J)
-        {
-            const auto& n = faceNormals[edgeFaces[J]]; 
-
-            if (((n0 & n) < minAngleCos_) /*&& (! previouslyReconstructed_)*/)
-            {
-                previouslyReconstructed_ = true; 
-                return true; 
-            }
-        }
-    }
-
-    previouslyReconstructed_ = false; 
-
-    return false;
+    addOperation("reconstruction");
 }
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+void reconstructionHistory::frontSmoothed()
+{
+    void frontReconstructed();
+    // Do not add entry for smoothing if front has been reconstructed
+    // in the same time step. Reconstruction always implies smoothing
+    if (timeStepNumber_.back() == time_.timeIndex())
+    {
+        // Do nothing
+    }
+    else
+    {
+        addOperation("smoothing");
+    }    
+}
 
-} // End namespace FrontTracking
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // ************************************************************************* //
 
+} // End namespace FrontTracking
+
+// ************************************************************************* //
+
+} // End namespace Foam
+
+// ************************************************************************* //
