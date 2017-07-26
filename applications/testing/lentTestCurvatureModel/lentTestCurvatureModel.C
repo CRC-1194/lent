@@ -92,6 +92,14 @@ int main(int argc, char *argv[])
 
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
+    lent.calcSignedDistances(
+        signedDistance,
+        pointSignedDistance,
+        searchDistanceSqr,
+        pointSearchDistanceSqr,
+        front
+    );
+
     const dictionary& lentDict = lent.dict(); 
 
     tmp<frontCurvatureModel> exactCurvatureModelTmp = frontCurvatureModel::New(lentDict.subDict("exactCurvatureModel")); 
