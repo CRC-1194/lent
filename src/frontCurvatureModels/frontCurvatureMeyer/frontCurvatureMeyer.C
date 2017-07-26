@@ -261,9 +261,36 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
 
     volScalarField& cellCurvature = cellCurvatureTmp.ref(); 
 
+    // TODO: this kind of interpolation / transfer should be moved to
+    // lentInterpolation or lentCommunication
+    const lentCommunication& communication = 
+        mesh.lookupObject<lentCommunication>(
+            lentCommunication::registeredName(frontMesh,mesh)
+    ); 
+
+    const auto& cellsTriangleNearest = communication.cellsTriangleNearest();
+
+    forAll(cellsTriangleNearest, I)
+    {
+        const auto& hitObject = cellsTriangleNearest[I];
+
+        if (hitObject.hit())
+        {
+            const auto& aFace = localFaces[hitObject.index()];
+
+            forAll(aFace, K)
+            {
+                cellCurvature[I] += mag(cn[aFace[K]]);
+            }
+        }
+    }
+
+    cellCurvature /= 3.0;
+    /*
     lentInterpolation interpolation;  // FIXME: Move to a data member. TM. 
 
-    interpolation.interpolate(mag(cn), cellCurvature); 
+    interpolation.interpolate(mag(cn), cellCurvature);
+    */
 
     return  cellCurvatureTmp; 
 }
