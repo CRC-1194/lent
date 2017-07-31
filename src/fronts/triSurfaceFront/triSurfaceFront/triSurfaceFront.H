@@ -110,6 +110,10 @@ class triSurfaceFront
     // index prepended with zeros + extension. 
     fileName actualFileName() const;
 
+    // Write fields registered to the front to the vtk file to enable visualization
+    // in paraview
+    void writeVTKWithFields(Ostream& os) const;
+
 public:
 
     TypeName ("triSurfaceFront");

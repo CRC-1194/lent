@@ -138,14 +138,29 @@ triSurfaceFront::triSurfaceFront(
 
 bool triSurfaceFront::write() const
 {
-    triSurface::write(actualFileName());
+    if (writeFormat_ == "vtk")
+    {
+        OFstream output(actualFileName());
+        writeVTKWithFields(output);
+    }
+    else
+    {
+        triSurface::write(actualFileName());
+    }
 
     return true;
 }
 
 bool triSurfaceFront::writeData(Foam::Ostream& os) const
 {
-    triSurface::write(os);
+    if (writeFormat_ == "vtk")
+    {
+        writeVTKWithFields(os);
+    }
+    else
+    {
+        triSurface::write(os);
+    }
 
     return true;
 }
@@ -157,7 +172,15 @@ bool triSurfaceFront::writeObject
     IOstream::compressionType cmp
 ) const
 {
-    triSurface::write(actualFileName());
+    if (writeFormat_ == "vtk")
+    {
+        OFstream output(actualFileName());
+        writeVTKWithFields(output);
+    }
+    else
+    {
+        triSurface::write(actualFileName());
+    }
 
     return true;
 }

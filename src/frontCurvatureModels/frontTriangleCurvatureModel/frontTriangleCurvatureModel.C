@@ -74,15 +74,137 @@ namespace FrontTracking {
     addToRunTimeSelectionTable(frontCurvatureModel, frontTriangleCurvatureModel, Dictionary);
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+void frontTriangleCurvatureModel::initializeCurvatureNormal(const fvMesh& mesh, const triSurfaceFront& front) const
+{
+    const Time& runTime = mesh.time();  
+
+    curvatureNormalTmp_ = 
+        tmp<triSurfaceFrontVectorField> 
+        (
+            new triSurfaceFrontVectorField
+            (
+                IOobject(
+                    "curvature_normal", 
+                    runTime.timeName(), 
+                    front,
+                    IOobject::NO_READ, 
+                    IOobject::AUTO_WRITE
+                ), 
+                front, 
+                dimensionedVector(
+                    "zero", 
+                    dimless, 
+                    vector(0.0,0.0,0.0)
+                )
+            )
+        );
+}
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 frontTriangleCurvatureModel::frontTriangleCurvatureModel(const dictionary& configDict)
 :
-    frontCurvatureModel(configDict)
+    frontCurvatureModel{configDict},
+    normalAlgorithm_{configDict.lookup("normals")},
+    curvatureNormalTmp_{}
 {}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-tmp<triSurfaceFrontPointVectorField> frontTriangleCurvatureModel::vertexNormals(const fvMesh& mesh, const triSurfaceFront& front) const
+tmp<triSurfaceFrontPointVectorField> frontTriangleCurvatureModel::sphereNormals(const fvMesh& mesh, const triSurfaceFront& front) const
+{
+
+    const Time& runTime = mesh.time();  
+
+    tmp<triSurfaceFrontPointVectorField> normalsTmp
+    (
+        new triSurfaceFrontPointVectorField
+        (
+            IOobject(
+                "frontNormals", 
+                runTime.timeName(), 
+                front,
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ), 
+            front, 
+            dimensionedVector(
+                "zero", 
+                dimless, 
+                vector(0.0,0.0,0.0)
+            )
+        )
+    );
+
+    auto& normals = normalsTmp.ref();
+    vector centre{0, 0, 0};
+
+    const auto& points = front.localPoints();
+
+    forAll(points, I)
+    {
+        centre += points[I];
+    }
+    centre /= points.size();
+
+    forAll(points, I)
+    {
+        normals[I] = points[I] - centre;
+    }
+    normals /= mag(normals);
+
+    return normalsTmp;
+}
+
+tmp<triSurfaceFrontPointVectorField> frontTriangleCurvatureModel::invDistanceNormals(const fvMesh& mesh, const triSurfaceFront& front) const
+{
+    const Time& runTime = mesh.time();  
+
+    tmp<triSurfaceFrontPointVectorField> normalsTmp
+    (
+        new triSurfaceFrontPointVectorField
+        (
+            IOobject(
+                "frontNormals", 
+                runTime.timeName(), 
+                front,
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ), 
+            front, 
+            dimensionedVector(
+                "zero", 
+                dimless, 
+                vector(0.0,0.0,0.0)
+            )
+        )
+    );
+
+    auto& normals = normalsTmp.ref();
+    const auto& centres = front.Cf();
+    const auto& points = front.localPoints();
+    const auto& pointToFaces = front.pointFaces();
+    const auto& faceNormals = front.Sf();
+    auto w = 1.0;
+
+    forAll(points, I)
+    {
+        const auto& faces = pointToFaces[I];
+
+        forAll(faces, K)
+        {
+            const auto& fl = faces[K];
+            w = 1.0/mag(points[I] - centres[fl]);
+
+            normals[I] += w*faceNormals[fl]/mag(faceNormals[fl]);
+        }
+    }
+
+    normals /= mag(normals);
+
+    return normalsTmp;
+}
+
+tmp<triSurfaceFrontPointVectorField> frontTriangleCurvatureModel::areaAveragedNormals(const fvMesh& mesh, const triSurfaceFront& front) const
 {
     // For now: compute vertex normals as area weighted average of
     // normals of connected triangles
@@ -93,9 +215,9 @@ tmp<triSurfaceFrontPointVectorField> frontTriangleCurvatureModel::vertexNormals(
         new triSurfaceFrontPointVectorField
         (
             IOobject(
-                "cn", 
+                "frontNormals", 
                 runTime.timeName(), 
-                mesh,
+                front,
                 IOobject::NO_READ, 
                 IOobject::NO_WRITE
             ), 
@@ -127,6 +249,30 @@ tmp<triSurfaceFrontPointVectorField> frontTriangleCurvatureModel::vertexNormals(
     return normalsTmp;
 }
 
+tmp<triSurfaceFrontPointVectorField> frontTriangleCurvatureModel::vertexNormals(const fvMesh& mesh, const triSurfaceFront&front) const
+{
+    if (normalAlgorithm_ == "areaAveraged")
+    {
+        return areaAveragedNormals(mesh, front);
+    }
+    else if (normalAlgorithm_ == "inversedDistance")
+    {
+        return invDistanceNormals(mesh, front);
+    }
+    else if (normalAlgorithm_ == "sphere")
+    {
+        return sphereNormals(mesh, front);
+    }
+    else
+    {
+        FatalErrorIn ("frontTriangleCurvatureModel::vertexNormals()")
+            << "Unknown vertex normal algorithm '"
+            << normalAlgorithm_ << "'\n"
+            << "Valid options are: areaAveraged, inversedDistance, sphere"
+            << exit(FatalError);
+    }
+}
+
 tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mesh, const triSurfaceFront& front) const
 {
     const Time& runTime = mesh.time();  
@@ -149,22 +295,12 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mes
         )
     );
     
-    triSurfaceFrontVectorField cn
-    (
-        IOobject(
-            "cn", 
-            runTime.timeName(), 
-            mesh,
-            IOobject::NO_READ, 
-            IOobject::NO_WRITE
-        ), 
-        front, 
-        dimensionedVector(
-            "zero", 
-            dimless/dimLength, 
-            vector(0.0,0.0,0.0)
-        )
-    );
+    if (curvatureNormalTmp_.empty())
+    {
+        initializeCurvatureNormal(mesh, front);
+    }
+
+    auto& cn = curvatureNormalTmp_.ref();
 
     auto frontVertexNormalsTmp = vertexNormals(mesh, front);
     auto& n = frontVertexNormalsTmp.ref();

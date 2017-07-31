@@ -269,6 +269,7 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
     ); 
 
     const auto& cellsTriangleNearest = communication.cellsTriangleNearest();
+    const auto& frontNormals = frontMesh.Sf();
 
     forAll(cellsTriangleNearest, I)
     {
@@ -280,7 +281,8 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
 
             forAll(aFace, K)
             {
-                cellCurvature[I] += mag(cn[aFace[K]]);
+                // TODO: add sign to curvature (TT)
+                cellCurvature[I] += mag(cn[aFace[K]])*sign(cn[aFace[K]]&frontNormals[hitObject.index()]);
             }
         }
     }

@@ -1,4 +1,5 @@
 ./fronts/triSurfaceFront/triSurfaceFront/triSurfaceFront.C
+fronts/triSurfaceFront/triSurfaceFront/VTK/writeVTKWithFields.C
 
 distanceFieldCalculators/distanceFieldCalculator/distanceFieldCalculator.C
 distanceFieldCalculators/triSurfaceMeshDistanceCalculator/triSurfaceMeshDistanceCalculator.C
