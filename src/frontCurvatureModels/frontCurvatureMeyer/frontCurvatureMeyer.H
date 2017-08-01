@@ -82,6 +82,13 @@ class frontCurvatureMeyer
         public frontCurvatureModel 
 {
 
+private:
+    
+    mutable tmp<triSurfaceFrontPointVectorField> curvatureNormalTmp_;
+
+    void initializeCurvatureNormal(const fvMesh&, const triSurfaceFront&) const;
+
+
 public:
 
     TypeName ("Meyer");

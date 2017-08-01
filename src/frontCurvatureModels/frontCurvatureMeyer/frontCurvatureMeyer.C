@@ -71,12 +71,40 @@ namespace FrontTracking {
 
     defineTypeNameAndDebug(frontCurvatureMeyer, 0);
     addToRunTimeSelectionTable(frontCurvatureModel, frontCurvatureMeyer, Dictionary);
+    
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+void frontCurvatureMeyer::initializeCurvatureNormal(const fvMesh& mesh, const triSurfaceFront& front) const
+{
+    const Time& runTime = mesh.time();  
+
+    curvatureNormalTmp_ =
+        tmp<triSurfaceFrontPointVectorField>
+        {
+            new triSurfaceFrontPointVectorField
+            (
+                IOobject(
+                    "curvature_normal", 
+                    runTime.timeName(), 
+                    front,
+                    IOobject::NO_READ, 
+                    IOobject::AUTO_WRITE
+                ), 
+                front, 
+                dimensionedVector(
+                    "zero", 
+                    dimless/dimLength, 
+                    vector(0.0,0.0,0.0)
+                )
+            )
+        };
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontCurvatureMeyer::frontCurvatureMeyer(const dictionary& configDict) 
     :
-        frontCurvatureModel(configDict)
+        frontCurvatureModel{configDict},
+        curvatureNormalTmp_{}
 {}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -157,23 +185,13 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
         )
     );
     
-    // TODO: Store as data member and resize with topological change. TM.
-    triSurfaceFrontPointVectorField cn
-    (
-        IOobject(
-            "cn", 
-            runTime.timeName(), 
-            mesh,
-            IOobject::NO_READ, 
-            IOobject::NO_WRITE
-        ), 
-        frontMesh, 
-        dimensionedVector(
-            "zero", 
-            dimless/dimLength, 
-            vector(0.0,0.0,0.0)
-        )
-    );
+    if (curvatureNormalTmp_.empty())
+    {
+        initializeCurvatureNormal(mesh, frontMesh);
+    }
+
+    auto& cn = curvatureNormalTmp_.ref();
+    cn *= 0.0;
 
     // TODO: modify so that mutliple patches, e.g. in the case of
     // bubble breakup, are supported

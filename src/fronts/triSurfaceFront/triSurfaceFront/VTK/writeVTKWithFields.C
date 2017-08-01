@@ -174,6 +174,57 @@ void triSurfaceFront::writeVTKWithFields(Ostream& os) const
             os << nl;
         }
     }
+
+    // Same procedure for point based vector fields
+    auto frontPointVectorFieldMap = this->lookupClass<triSurfaceFrontPointVectorField>();
+    fieldNames = frontPointVectorFieldMap.toc();
+
+    numFieldsToWrite = 0;
+
+    forAll(fieldNames, I)
+    {
+        const auto& frontField = frontPointVectorFieldMap[fieldNames[I]];
+
+        if (frontField->writeOpt() != IOobject::NO_WRITE)
+        {
+            numFieldsToWrite++;
+        }
+    }
+
+    // Header for cell (triangle) based data
+    os << "POINT_DATA " << this->localFaces().size() << nl
+           << "FIELD frontTriangleFields " << numFieldsToWrite << nl;
+
+    forAll(fieldNames, I)
+    {
+        const auto& frontFieldPtr = frontPointVectorFieldMap[fieldNames[I]];
+
+        if (frontFieldPtr->writeOpt() != IOobject::NO_WRITE)
+        {
+            const auto& frontField = *frontFieldPtr;
+
+            // Field header
+            // FIXME: 3 only valid for vector quantities. Scalar quantities need 1
+            os << frontField.name() << " 3 " << frontField.size() << " float" << nl;
+
+            forAll(frontField, K)
+            {
+                if (K > 0 && (K % 10) == 0)
+                {
+                    os << nl;
+                }
+                else
+                {
+                    os << ' ';
+                }
+                os << frontField[K][0] << ' '
+                       << frontField[K][1] << ' '
+                       << frontField[K][2];
+            }
+
+            os << nl;
+        }
+    }
     /*
     if (writeSorted)
     {

@@ -301,6 +301,7 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mes
     }
 
     auto& cn = curvatureNormalTmp_.ref();
+    cn *= 0.0;
 
     auto frontVertexNormalsTmp = vertexNormals(mesh, front);
     auto& n = frontVertexNormalsTmp.ref();
@@ -346,7 +347,6 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mes
 
     return cellCurvatureTmp;
 }
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
