@@ -60,6 +60,9 @@ Description
 #ifndef lentCommunication_H
 #define lentCommunication_H
 
+#include <vector>
+#include <map>
+
 #include "dictionary.H"
 #include "typeInfo.H"
 #include "autoPtr.H"
@@ -96,6 +99,12 @@ class lentCommunication
 
     // Vertex -> Cell : vertex in cell. 
     DynamicList<label> vertexToCell_;
+
+    // Interface cell -> contained triangles (inverse of triangleToCell_)
+    std::map<label, std::vector<label>> interfaceCellToTriangles_;
+
+    // Interface cell -> contained vertices (inverse of vertexToCell_)
+    std::map<label, std::vector<label>> interfaceCellToVertices_;
 
     //- Cell -> Nearest Triangle.  
     DynamicList<pointIndexHit> cellsTriangleNearest_;
@@ -154,6 +163,18 @@ public:
         return vertexToCell_; 
     }
 
+    //- Interface cell -> contained triangles
+    const auto& interfaceCellToTriangles() const
+    {
+        return interfaceCellToTriangles_;
+    }
+
+    //- Interface cell -> contained vertices
+    const auto& interfaceCellToVertices() const
+    {
+        return interfaceCellToVertices_;
+    }
+
     template<typename LabelList> 
     void setTriangleToCell(LabelList const& l)
     {
@@ -188,6 +209,9 @@ public:
     void update();  
 
     void updateVertexToCell();  
+
+    void updateInterfaceCellToTriangles();
+    void updateInterfaceCellToVertices();
 
     // Empty writer: regIOobject is used only for registry queries.
     bool writeData(Ostream& os) const;
