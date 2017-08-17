@@ -71,6 +71,21 @@ typedef DimensionedField<symmTensor, triSurfaceFrontPointGeoMesh>
 typedef DimensionedField<tensor, triSurfaceFrontPointGeoMesh>
     triSurfaceFrontPointTensorField;
 
+class triSurfaceFrontEdgeGeoMesh;
+
+typedef DimensionedField<label, triSurfaceFrontEdgeGeoMesh>
+    triSurfaceFrontEdgeLabelField;
+typedef DimensionedField<scalar, triSurfaceFrontEdgeGeoMesh>
+    triSurfaceFrontEdgeScalarField;
+typedef DimensionedField<vector, triSurfaceFrontEdgeGeoMesh>
+    triSurfaceFrontEdgeVectorField;
+typedef DimensionedField<sphericalTensor, triSurfaceFrontEdgeGeoMesh>
+    triSurfaceFrontEdgeSphericalTensorField;
+typedef DimensionedField<symmTensor, triSurfaceFrontEdgeGeoMesh>
+    triSurfaceFrontEdgeSymmTensorField;
+typedef DimensionedField<tensor, triSurfaceFrontEdgeGeoMesh>
+    triSurfaceFrontEdgeTensorField;
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking 

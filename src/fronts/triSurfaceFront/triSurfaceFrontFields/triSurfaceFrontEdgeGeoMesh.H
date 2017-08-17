@@ -21,25 +21,68 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-InClass
-    Foam::triSurfaceFrontFields
+Class
+    Foam::triSurfaceFrontGeoMesh
 
 Description
-    Fields for triSurfaceFront
+    The triSurfaceFront  edge GeoMesh (for holding edge fields).
 
-SourceFiles
-    triSurfaceFrontFields.C
+    Similar to the volMesh used for the Finite Volume discretization.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef triSurfaceFrontFields_H
-#define triSurfaceFrontFields_H
+#ifndef triSurfaceFrontEdgeGeoMesh_H
+#define triSurfaceFrontEdgeGeoMesh_H
 
-#include "DimensionedField.H"
-#include "triSurfaceFrontGeoMesh.H"
-#include "triSurfaceFrontPointGeoMesh.H"
-#include "triSurfaceFrontEdgeGeoMesh.H"
-#include "triSurfaceFrontFieldsFwd.H"
+#include "GeoMesh.H"
+#include "triSurfaceFront.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+namespace Foam
+{
+namespace FrontTracking
+{
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+class triSurfaceFrontEdgeGeoMesh
+:
+    public GeoMesh<triSurfaceFront>
+{
+
+public:
+
+    // Constructors
+
+        //- Construct from triSurfaceFront reference
+        explicit triSurfaceFrontEdgeGeoMesh(const triSurfaceFront& mesh)
+        :
+            GeoMesh<triSurfaceFront>(mesh)
+        {}
+
+
+    // Member Functions
+
+        //- Return size
+        static label size(const triSurfaceFront& mesh)
+        {
+            const triSurface& surface = mesh;
+            return surface.edges().size();
+        }
+
+        //- Return size
+        label size() const
+        {
+            return size(mesh_);
+        }
+
+};
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace FrontTracking
+} // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
