@@ -113,9 +113,15 @@ tmp<volScalarField> frontCompactDivGradCurvatureModel::cellCurvature(
     auto cellCurvatureFieldTmp = frontCurvatureModel::cellCurvature(mesh, frontMesh);
     auto& cellCurvatureField = cellCurvatureFieldTmp.ref();
 
+
+    const volScalarField& curvatureInputField = 
+        mesh.lookupObject<volScalarField>(curvatureInputFieldName()); 
+
     forAll(triangleToCell, index)
     {
-        curvatureBuffer[index] = cellCurvatureField[triangleToCell[index]];
+        auto temp = cellCurvatureField[triangleToCell[index]];
+        curvatureBuffer[index] = sign(temp) * 2.0 / (2.0/mag(temp)
+                                            - curvatureInputField[triangleToCell[index]]);
     }
     cellCurvatureField *= 0.0;
 
