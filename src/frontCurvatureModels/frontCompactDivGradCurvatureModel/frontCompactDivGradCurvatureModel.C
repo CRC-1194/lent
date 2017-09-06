@@ -77,7 +77,8 @@ namespace FrontTracking {
 
 frontCompactDivGradCurvatureModel::frontCompactDivGradCurvatureModel(const dictionary& configDict)
     :
-        frontCurvatureModel(configDict)
+        frontCurvatureModel(configDict),
+        distanceCorrection_{configDict.lookup("distanceCorrection")}
 {}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
@@ -120,8 +121,16 @@ tmp<volScalarField> frontCompactDivGradCurvatureModel::cellCurvature(
     forAll(triangleToCell, index)
     {
         auto temp = cellCurvatureField[triangleToCell[index]];
-        curvatureBuffer[index] = sign(temp) * 2.0 / (2.0/mag(temp)
+
+        if (distanceCorrection_ == "on")
+        {
+            curvatureBuffer[index] = sign(temp) * 2.0 / (2.0/mag(temp)
                                             - curvatureInputField[triangleToCell[index]]);
+        }
+        else
+        {
+            curvatureBuffer[index] = temp;
+        }
     }
     cellCurvatureField *= 0.0;
 

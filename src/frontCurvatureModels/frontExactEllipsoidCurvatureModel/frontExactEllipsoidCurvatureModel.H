@@ -23,18 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontCompactDivGradCurvatureModel
+    Foam::frontExactEllipsoidCurvatureModel
 
 SourceFiles
-    frontCurvatureModel.C
+    frontExactEllipsoidCurvatureModel.C
 
 Author
-    Tobias Tolle    tolle@mma.tu-darmstadt.de
+    Tobias Tolle tolle@mma.tu-darmstadt.de
 
 Description
-    Compact version of the divGrad curvature Model. Uses the front-mesh
-    communication to transfer the curvature values of interface cells
-    to all cells in the narrow band
+
+    TODO: write me
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,51 +57,55 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef frontCompactDivGradCurvatureModel_H
-#define frontCompactDivGradCurvatureModel_H
+#ifndef frontExactEllipsoidCurvatureModel_H
+#define frontExactEllipsoidCurvatureModel_H
 
-#include "frontCurvatureModel.H"
+#include "frontExactCurvatureModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-
 /*---------------------------------------------------------------------------*\
-                         Class frontCompactDivGradCurvatureModel Declaration
+                         Class frontExactEllipsoidCurvatureModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class frontCompactDivGradCurvatureModel
+class frontExactEllipsoidCurvatureModel
 :
-    public frontCurvatureModel
+    public frontExactCurvatureModel
 {
+    using interval = FixedList<scalar,2>;
 
 private:
-    
-    word distanceCorrection_;
 
+    vector semiAxes_;
+    vector centre_;
+    scalar tolerance_;
+
+    scalar devCosine(const scalar& longitude, const scalar& latitude, const point& p) const;
+    bool converged(const scalar& longitude, const scalar& latitude, const point& p) const;
+
+    point ellipsoidPoint(const scalar& longitude, const scalar& latitude) const;
+    scalar distance(const scalar& longitude, const scalar& latitude, const point& p) const;
+    scalar curvature(const scalar& longitude, const scalar& latitude) const;
+
+    interval findParameters(const point& p) const;
 
 public:
 
-    TypeName ("compactDivGrad");
+    TypeName ("ellipsoid");
 
     // Constructors
-    frontCompactDivGradCurvatureModel(const dictionary& configDict);
-
-
-    //- Destructor
-    virtual ~frontCompactDivGradCurvatureModel() = default;
+    explicit frontExactEllipsoidCurvatureModel(const dictionary& configDict);
+    
+    // Destructor
+    virtual ~frontExactEllipsoidCurvatureModel() = default;
 
 
     // Member Functions
-    virtual tmp<volScalarField> cellCurvature(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const;  
+    scalar curvatureAtPoint(const point& p) const;
 };
-
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking

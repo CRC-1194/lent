@@ -23,18 +23,19 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontCompactDivGradCurvatureModel
+    Foam::frontExactEllipseCurvatureModel
 
 SourceFiles
-    frontCurvatureModel.C
+    frontExactEllipseCurvatureModel.C
 
 Author
-    Tobias Tolle    tolle@mma.tu-darmstadt.de
+    Tobias Tolle tolle@mma.tu-darmstadt.de
 
 Description
-    Compact version of the divGrad curvature Model. Uses the front-mesh
-    communication to transfer the curvature values of interface cells
-    to all cells in the narrow band
+
+    Computes the exact curvature of an ellipse for a given point.
+    The curvature is evaluated at the point on the ellipse with minimal
+    distance to the given point (propagate curvature in normal direction)
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,51 +59,46 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef frontCompactDivGradCurvatureModel_H
-#define frontCompactDivGradCurvatureModel_H
+#ifndef frontExactEllipseCurvatureModel_H
+#define frontExactEllipseCurvatureModel_H
 
-#include "frontCurvatureModel.H"
+#include "frontExactCurvatureModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-
 /*---------------------------------------------------------------------------*\
-                         Class frontCompactDivGradCurvatureModel Declaration
+                         Class frontExactEllipseCurvatureModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class frontCompactDivGradCurvatureModel
+class frontExactEllipseCurvatureModel
 :
-    public frontCurvatureModel
+    public frontExactCurvatureModel
 {
+    scalar xSemiAxis_;
+    scalar ySemiAxis_;
+    vector centre_;
 
-private:
-    
-    word distanceCorrection_;
-
+    point ellipsePoint(const scalar& angle) const;
+    scalar distance(const scalar& angle, const point& p) const;
+    scalar curvature(const scalar& angle) const;
 
 public:
 
-    TypeName ("compactDivGrad");
+    TypeName ("ellipse");
 
     // Constructors
-    frontCompactDivGradCurvatureModel(const dictionary& configDict);
-
-
-    //- Destructor
-    virtual ~frontCompactDivGradCurvatureModel() = default;
+    explicit frontExactEllipseCurvatureModel(const dictionary& configDict);
+    
+    // Destructor
+    virtual ~frontExactEllipseCurvatureModel() = default;
 
 
     // Member Functions
-    virtual tmp<volScalarField> cellCurvature(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const;  
+    scalar curvatureAtPoint(const point& p) const;
 };
-
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
