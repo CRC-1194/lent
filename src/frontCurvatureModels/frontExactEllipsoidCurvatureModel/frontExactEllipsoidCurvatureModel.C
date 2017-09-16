@@ -187,21 +187,6 @@ scalar frontExactEllipsoidCurvatureModel::curvatureAtPoint(const point& p) const
     auto longitude = parameters[0];
     auto latitude = parameters[1];
 
-    /*
-    auto dev = devCosine(longitude, latitude, q);
-    auto dist = distance(longitude, latitude, q);
-    auto tanDev = dist*sqrt(1.0 - dev*dev);
-
-    if (tanDev > 0.04)
-    {
-        Info << "Tangential devDist = " << tanDev
-             << ", (u,v) = (" << 180.0/pi*longitude << ", " << 180.0/pi*latitude << ')'
-             << ", point = " << q
-             << ", on ellipsoid = " << ellipsoidPoint(longitude, latitude)
-             << '\n';
-    }
-    */
-
     return curvature(longitude, latitude);
 }
 

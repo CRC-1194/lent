@@ -41,6 +41,12 @@ Authors
 #include "map.H"
 #include <fstream>
 
+#include "analyticalSurface.H"
+#include "errorMetrics.H"
+#include <map>
+#include <random>
+#include <vector>
+
 using namespace FrontTracking;
 
 // Test if file is empty: for an empty file the current position in a stream in
@@ -54,6 +60,74 @@ bool fileIsEmpty(std::fstream& file)
     else
     {
         return false;
+    }
+}
+
+scalar frontRadius(const triSurfaceFront& front)
+{
+    scalar R = 0.0;
+    vector centre{4, 4, 4};
+
+    const auto& points = front.points();
+
+    forAll(points, I)
+    {
+        R += mag(points[I] - centre);
+    }
+
+    return R/points.size();
+}
+
+std::vector<scalar> signedDistanceDeviation(const volScalarField& signedDistance, const analyticalSurface& surface)
+{
+    std::vector<scalar> deviations{};
+
+    auto exactDistance = 0.0;
+    const auto& C = signedDistance.mesh().C();
+
+    forAll(signedDistance, I)
+    {
+        if (mag(signedDistance[I]) < GREAT)
+        {
+            exactDistance = surface.signedDistance(C[I]);
+            deviations.push_back(signedDistance[I] - exactDistance);
+        }
+    }
+
+    return deviations;
+}
+
+std::vector<scalar> frontDev(const triSurfaceFront& front, const analyticalSurface& surface)
+{
+    std::vector<scalar> deviations{};
+
+    const auto& points = front.points();
+
+    deviations.resize(points.size());
+
+    forAll(points, I)
+    {
+        deviations[I] = surface.signedDistance(points[I]);
+    }
+
+    return deviations;
+}
+
+void correctAndPerturbDistances(volScalarField& signedDistance, const analyticalSurface& surface, const scalar& noiseLevel)
+{
+    const auto& C = signedDistance.mesh().C();
+
+    // Add noise to signed distances
+    std::random_device rd{};
+    std::mt19937 gen{rd()};
+    std::uniform_real_distribution<> dis{-noiseLevel, noiseLevel};
+
+    forAll(C, I)
+    {
+        if (mag(signedDistance[I]) < GREAT)
+        {
+            signedDistance[I] = surface.signedDistance(C[I]) + dis(gen);
+        }
     }
 }
 
@@ -100,6 +174,73 @@ int main(int argc, char *argv[])
         front
     );
 
+    dimensionedScalar h = max(mag(mesh.delta())); 
+
+    // ------- Begin modifications
+    Info << "Radius after reconstruction: " << frontRadius(front) << '\n';
+
+    // Set exact signed distance and optionally perturb it
+    auto analyticalSurfaceTmp = tmp<analyticalSurface>{analyticalSurface::New(lent.dict().subDict("analyticalSurface"))};
+    const auto& surface = analyticalSurfaceTmp.ref();
+
+    // Record deviations in signed distance
+    auto deviations = signedDistanceDeviation(signedDistance, surface);
+    errorMetrics metrics{deviations};
+
+    Info << "Distance: mean deviation = " << metrics.arithmeticMeanError()
+         << ", median = " << metrics.medianError()
+         << ", std deviation = " << metrics.standardDeviation()
+         << '\n';
+
+    auto distribution = metrics.errorDistribution(100);
+    auto normalizedDistribution = metrics.errorDistributionNormalized(100);
+
+    std::fstream distFile;
+
+    distFile.open("distanceErrorDistribution_" + std::to_string(h.value()) + ".dat", std::ios_base::out);
+    distFile << "# dev | nPoints | fraction\n";
+
+    for (const auto& entry : distribution)
+    {
+        distFile << entry.first << ' ' << entry.second << ' ' << normalizedDistribution[entry.first] << std::endl;
+    }
+
+    // Record deviations in the front points after reconstruction
+    auto pointDev = frontDev(front, surface);
+    errorMetrics frontMetrics{pointDev};
+
+    Info << "Front: mean deviation = " << frontMetrics.arithmeticMeanError()
+         << ", median = " << frontMetrics.medianError()
+         << ", std deviation = " << frontMetrics.standardDeviation()
+         << '\n';
+
+    auto frontDist = frontMetrics.errorDistribution(100);
+    auto frontDistNorm = frontMetrics.errorDistributionNormalized(100);
+
+    std::fstream frontFile;
+    frontFile.open("frontErrorDistribution_" + std::to_string(h.value()) + ".dat", std::ios_base::out);
+    frontFile << "# dev | nPoints | fraction\n";
+
+    for (const auto& entry : frontDist)
+    {
+        frontFile << entry.first << ' ' << entry.second << ' ' << frontDistNorm[entry.first] << std::endl;
+    }
+
+    // Write statistic metrics
+    std::fstream statisticsFile;
+    statisticsFile.open("distanceStatistics.dat", std::ios_base::app);
+
+    if (fileIsEmpty(statisticsFile))
+    {
+        statisticsFile << "# mesh spacing | distance error mean | distance error std dev | front error mean | front errot std dev\n";
+    }
+    statisticsFile << h.value() << ' ' << metrics.arithmeticMeanError() << ' '
+                   << metrics.standardDeviation() << ' ' << frontMetrics.arithmeticMeanError() << ' '
+                   << frontMetrics.standardDeviation() << '\n';
+
+    //correctAndPerturbDistances(signedDistance, surface, 0.0);
+    // -------- End modifications
+
     const dictionary& lentDict = lent.dict(); 
 
     tmp<frontCurvatureModel> exactCurvatureModelTmp = frontCurvatureModel::New(lentDict.subDict("exactCurvatureModel")); 
@@ -131,13 +272,42 @@ int main(int argc, char *argv[])
     LinfField.writeOpt() = IOobject::AUTO_WRITE; 
     dimensionedScalar Linf = max(LinfField);
 
+    // Compute and write error distribution of curvature
+    std::vector<scalar> curvatureErrors{};
+
+    forAll(onesFilter, I)
+    {
+        if (onesFilter[I] > 0.0)
+        {
+            curvatureErrors.push_back((exactCurvature[I] - numericalCurvature[I])/(SMALL + mag(exactCurvature[I])));
+        }
+    }
+
+    errorMetrics curvatureMetrics{curvatureErrors};
+
+    Info << "Curvature: mean deviation = " << curvatureMetrics.arithmeticMeanError()
+         << ", median = " << curvatureMetrics.medianError()
+         << ", std deviation = " << curvatureMetrics.standardDeviation()
+         << '\n';
+
+    std::fstream curvatureFile;
+
+    curvatureFile.open("curvatureErrorDistribution.dat", std::ios_base::out);
+    curvatureFile << "# dev | nCells | fraction\n";
+    auto absDistribution = curvatureMetrics.errorDistribution(50);
+    auto relDistribution = curvatureMetrics.errorDistributionNormalized(50);
+
+    for (const auto& entry : absDistribution)
+    {
+        curvatureFile << entry.first << ' ' << entry.second << ' ' << relDistribution[entry.first] << '\n';
+    }
+
     // Write results
     if (fileIsEmpty(errorFile))
     {
         errorFile << "# mesh spacing | Linf relative | exact model | numerical model\n";
     }
 
-    dimensionedScalar h = max(mag(mesh.delta())); 
     errorFile << h.value() << " " << Linf.value() << " " << exactCurvatureModel.type()
               << " " << numericalCurvatureModel.type() << std::endl;
 
