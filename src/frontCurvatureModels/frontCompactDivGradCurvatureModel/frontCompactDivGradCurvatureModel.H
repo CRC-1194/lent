@@ -61,6 +61,8 @@ Description
 #ifndef frontCompactDivGradCurvatureModel_H
 #define frontCompactDivGradCurvatureModel_H
 
+#include <vector>
+
 #include "frontCurvatureModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -81,6 +83,22 @@ class frontCompactDivGradCurvatureModel
 private:
     
     word distanceCorrection_;
+
+    void applySphereCorrection(
+            const fvMesh& mesh,
+            const triSurfaceFront& front,
+            const volScalarField& signedDistance,
+            volScalarField& curvature
+    ) const;
+
+    void applyInterpolationCorrection(
+            const fvMesh& mesh,
+            const triSurfaceFront& front,
+            const volScalarField& signedDistance,
+            volScalarField& curvature
+    ) const;
+
+    std::vector<label> findNeighbourCells(const fvMesh& mesh, const label& cellLabel) const;
 
 
 public:
