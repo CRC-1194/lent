@@ -82,12 +82,11 @@ class frontTriangleCurvatureModel
     // Private data
     word normalAlgorithm_;
     mutable tmp<triSurfaceFrontVectorField> curvatureNormalTmp_;
-    mutable tmp<triSurfaceFrontPointVectorField> normalDevTmp_;
 
     // Private Member Functions
     void initializeCurvatureNormal(const fvMesh&, const triSurfaceFront&) const;
 
-    void correctSphere(const triSurfaceFront&) const;
+    //void correctSphere(const triSurfaceFront&) const;
     tmp<triSurfaceFrontEdgeVectorField> edgeNormals(const fvMesh&, const triSurfaceFront&) const;
 
 public:
@@ -101,7 +100,6 @@ public:
     virtual ~frontTriangleCurvatureModel() = default;
 
     // Member Functions
-    tmp<triSurfaceFrontPointVectorField> sphereNormals(const fvMesh&, const triSurfaceFront&) const;
     tmp<triSurfaceFrontPointVectorField> invDistanceNormals(const fvMesh&, const triSurfaceFront&) const;
     tmp<triSurfaceFrontPointVectorField> areaAveragedNormals(const fvMesh&, const triSurfaceFront&) const;
     tmp<triSurfaceFrontPointVectorField> edgeInvNormals(const fvMesh&, const triSurfaceFront&) const;

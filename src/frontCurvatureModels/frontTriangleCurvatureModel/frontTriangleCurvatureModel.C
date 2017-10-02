@@ -98,39 +98,6 @@ void frontTriangleCurvatureModel::initializeCurvatureNormal(const fvMesh& mesh, 
                 )
             )
         );
-
-    normalDevTmp_ = 
-        tmp<triSurfaceFrontPointVectorField> 
-        (
-            new triSurfaceFrontPointVectorField
-            (
-                IOobject(
-                    "normal_dev", 
-                    runTime.timeName(), 
-                    front,
-                    IOobject::NO_READ, 
-                    IOobject::AUTO_WRITE
-                ), 
-                front, 
-                dimensionedVector(
-                    "zero", 
-                    dimless, 
-                    vector(0.0,0.0,0.0)
-                )
-            )
-        );
-}
-
-void frontTriangleCurvatureModel::correctSphere(const triSurfaceFront& front) const
-{
-    auto& points = const_cast<pointField&>(front.points());
-
-    vector centre{4,4,4};
-
-    forAll(points, I)
-    {
-        points[I] = centre + 2.0*(points[I] - centre)/mag(points[I] - centre);
-    }
 }
 
 tmp<triSurfaceFrontEdgeVectorField> frontTriangleCurvatureModel::edgeNormals(const fvMesh& mesh, const triSurfaceFront& front) const
@@ -167,6 +134,7 @@ tmp<triSurfaceFrontEdgeVectorField> frontTriangleCurvatureModel::edgeNormals(con
     {
         const auto& f = edgeToFaces[I];
 
+        // Compute edge normal by opposite area weighting of triangle normals
         eNormals[I] = (sf[f[0]]/triArea[f[0]]*triArea[f[1]]
                       + sf[f[1]]/triArea[f[1]]*triArea[f[0]]
                      ) / (triArea[f[0]] + triArea[f[1]]);
@@ -181,60 +149,11 @@ frontTriangleCurvatureModel::frontTriangleCurvatureModel(const dictionary& confi
 :
     frontCurvatureModel{configDict},
     normalAlgorithm_{configDict.lookup("normals")},
-    curvatureNormalTmp_{},
-    normalDevTmp_{}
+    curvatureNormalTmp_{}
 {}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-tmp<triSurfaceFrontPointVectorField> frontTriangleCurvatureModel::sphereNormals(const fvMesh& mesh, const triSurfaceFront& front) const
-{
-
-    const Time& runTime = mesh.time();  
-
-    tmp<triSurfaceFrontPointVectorField> normalsTmp
-    (
-        new triSurfaceFrontPointVectorField
-        (
-            IOobject(
-                "frontNormals", 
-                runTime.timeName(), 
-                front,
-                IOobject::NO_READ, 
-                IOobject::NO_WRITE
-            ), 
-            front, 
-            dimensionedVector(
-                "zero", 
-                dimless, 
-                vector(0.0,0.0,0.0)
-            )
-        )
-    );
-
-    auto& normals = normalsTmp.ref();
-    vector centre{0, 0, 0};
-
-    const auto& points = front.localPoints();
-
-    /*
-    forAll(points, I)
-    {
-        centre += points[I];
-    }
-    centre /= points.size();
-    */
-    centre = vector{4, 4, 4};
-
-    forAll(points, I)
-    {
-        normals[I] = points[I] - centre;
-    }
-    normals /= mag(normals);
-
-    return normalsTmp;
-}
-
 tmp<triSurfaceFrontPointVectorField> frontTriangleCurvatureModel::invDistanceNormals(const fvMesh& mesh, const triSurfaceFront& front) const
 {
     const Time& runTime = mesh.time();  
@@ -486,10 +405,6 @@ tmp<triSurfaceFrontPointVectorField> frontTriangleCurvatureModel::vertexNormals(
     {
         return invDistanceNormals(mesh, front);
     }
-    else if (normalAlgorithm_ == "sphere")
-    {
-        return sphereNormals(mesh, front);
-    }
     else if (normalAlgorithm_ == "edge")
     {
         return edgeInvNormals(mesh, front); 
@@ -505,6 +420,9 @@ tmp<triSurfaceFrontPointVectorField> frontTriangleCurvatureModel::vertexNormals(
             << normalAlgorithm_ << "'\n"
             << "Valid options are: areaAveraged, inversedDistance, sphere, edge, ring"
             << exit(FatalError);
+
+        // Only here to disable compiler warning
+        return areaAveragedNormals(mesh, front);
     }
 }
 
@@ -538,19 +456,8 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mes
     auto& cn = curvatureNormalTmp_.ref();
     cn *= 0.0;
 
-    // Test
-    correctSphere(front);
-
     auto frontVertexNormalsTmp = vertexNormals(mesh, front);
     auto& n = frontVertexNormalsTmp.ref();
-
-    // normal test begin
-    auto sphereNormalsTmp = sphereNormals(mesh, front);
-    auto& sn = sphereNormalsTmp.ref();
-    auto& nd = normalDevTmp_.ref();
-
-    nd = n - sn;
-    // normal test end
 
     const auto& faces = front.localFaces();
     const auto& p = front.localPoints();

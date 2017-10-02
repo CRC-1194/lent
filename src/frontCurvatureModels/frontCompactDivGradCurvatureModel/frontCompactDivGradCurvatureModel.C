@@ -165,7 +165,7 @@ void frontCompactDivGradCurvatureModel::applyInterpolationCorrection(
     }
 }
 
-// TODO: this probably needs some serious optimization
+// TODO: this probably needs some serious optimization (TT)
 std::vector<label> frontCompactDivGradCurvatureModel::findNeighbourCells(
     const fvMesh& mesh,
     const label& cellLabel
