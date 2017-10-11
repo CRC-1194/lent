@@ -95,7 +95,6 @@ class frontSmoother
     // TODO: this functionality should be moved to the triSurfaceFront class (TT)
     std::vector<label> singlePointBoundaryEdges(const triSurfaceFront& front) const;
     std::vector<label> internalEdges(const label nInternalEdges, const std::vector<label>& boundaryEdges) const;
-    void updateLocalPoints(triSurfaceFront& front) const;
     void updateGlobalPoints(triSurfaceFront& front) const;
     label determineBoundaryPoint(const edge& relaxEdge, const triSurfaceFront& front) const;
     Tensor<scalar> movementRestriction(const label& pointLabel, const triSurfaceFront& front, const fvMesh& mesh) const;

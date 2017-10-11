@@ -132,11 +132,7 @@ public:
         return localFaces().size(); 
     }
 
-    // Return non-const access to face normals.
-    pointField& storedFaceNormals()
-    {
-        return const_cast<pointField&>(faceNormals());
-    } 
+    void displace(const Field<Vector<double>>& displacements);
 
     bool writeObject
     (

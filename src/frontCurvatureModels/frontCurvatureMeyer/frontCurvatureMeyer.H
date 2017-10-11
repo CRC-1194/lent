@@ -105,8 +105,6 @@ public:
 
     scalar cot(vector a, vector b) const;
 
-    scalar areaHeron(vector& A, vector& B, vector& C) const;
-
     virtual tmp<volScalarField> cellCurvature(const fvMesh&, const triSurfaceFront&) const; 
 };
 

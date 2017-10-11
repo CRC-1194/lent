@@ -185,6 +185,19 @@ bool triSurfaceFront::writeObject
     return true;
 }
 
+void triSurfaceFront::displace(const Field<Vector<double> >& displacements)
+{
+    auto& frontVertices = this->storedPoints();
+    frontVertices += displacements;
+
+    // This deletes all demand driven geometrical data (e.g. face normals).
+    // Thus, it is recomputed once it is called for. However, the memory
+    // is also deallocated.
+    // TODO: When profiling Lent, take a look at the performance impact of
+    // the continued allocation / deallocation
+    clearGeom();
+}
+
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
 void triSurfaceFront::operator=(const triSurface& rhs)
 {

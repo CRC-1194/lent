@@ -261,10 +261,6 @@ void lentMethod::evolveFront(
     //front.cleanup(false);
     //Info << "Done." << endl;
 
-    // Calculate normal vectors after front motion.
-    Info << "Computing triangle normal vectors..." << endl;  
-    calcFrontNormals(front); 
-    //Info << "Done." << endl;
     // Update front-mesh communication maps after front motion. 
     Info << "Updating communication maps..." << endl;  
     communicationMaps_.update(); 
@@ -279,24 +275,6 @@ bool lentMethod::writeData(Ostream& os) const
 
     return false;
 }
-
-// FIXME: Move this into the triSurfaceFront class. 
-void lentMethod::calcFrontNormals(triSurfaceFront& front) const
-{
-    // Disambiguate from regIOobject, multiple inheritance issue. TM.
-    // Required for registering fields to the front.
-    const triSurface& frontSurface = front; 
-
-    auto& normals = front.storedFaceNormals(); 
-    normals.resize(frontSurface.size());
-    const auto& points = front.points(); 
-
-    forAll(normals, faceI)
-    {
-        normals[faceI] = frontSurface[faceI].normal(points);  
-        normals[faceI] /= mag(normals[faceI]) + VSMALL;
-    }
-}; 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

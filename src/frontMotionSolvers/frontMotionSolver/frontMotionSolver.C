@@ -176,8 +176,7 @@ void frontMotionSolver::evolveFront(
     interpolation_.interpolate(deltaC, deltaF); 
 
     // Displace front points with front displacements.  
-    pointField& frontPoints = const_cast<pointField&>(front.points());
-    frontPoints += deltaF; 
+    front.displace(deltaF);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

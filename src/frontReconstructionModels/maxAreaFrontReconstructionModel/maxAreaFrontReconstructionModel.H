@@ -102,7 +102,7 @@ public:
 
     scalar maxArea() const
     {
-        return Foam::sqrt(maxArea_);
+        return maxArea_;
     }
 };
 

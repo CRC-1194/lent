@@ -69,18 +69,6 @@ namespace Foam {
 namespace FrontTracking {
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-void frontSmoother::updateLocalPoints(triSurfaceFront& front) const
-{
-    pointField& localPoints = const_cast<pointField&>(front.localPoints());
-    const auto& frontPoints = front.points();
-    const labelList& globalToLocal = front.meshPoints();
-
-    forAll(globalToLocal, pointI)
-    {
-        localPoints[pointI] = frontPoints[globalToLocal[pointI]];
-    }
-}
-
 void frontSmoother::updateGlobalPoints(triSurfaceFront& front) const
 {
     pointField& frontPoints = const_cast<pointField&>(front.points());
@@ -404,7 +392,6 @@ frontSmoother::frontSmoother(const dictionary& configDict)
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 void frontSmoother::smoothEdges(triSurfaceFront& front, const fvMesh& mesh) const
 {
-    updateLocalPoints(front);
     pointField& points = const_cast<pointField&>(front.localPoints());
 
     auto singlePointBoundaryEdgeLabels = singlePointBoundaryEdges(front);
@@ -511,7 +498,6 @@ void frontSmoother::smoothEdges(triSurfaceFront& front, const fvMesh& mesh) cons
 
 void frontSmoother::smoothPoints(triSurfaceFront& front, const fvMesh& mesh) const
 {
-    updateLocalPoints(front);
     pointField& points = const_cast<pointField&>(front.localPoints());
 
     for (label sweep = 0; sweep < nSweeps_; ++sweep)

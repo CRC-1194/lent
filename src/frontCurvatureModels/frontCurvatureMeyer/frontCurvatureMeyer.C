@@ -142,23 +142,13 @@ scalar frontCurvatureMeyer::getAngle(vector& a, vector& b) const
 }
 
 
-// Cotangent function to resemble algorihm notion from paper
+// Cotangent function to resemble algorithm notion from paper
 // Removed trigonometric functions to prevent precision loss. TT
 scalar frontCurvatureMeyer::cot(vector a, vector b) const
 {
     return a & b / mag(a ^ b);
 }
 
-
-scalar frontCurvatureMeyer::areaHeron(vector& A, vector& B, vector& C) const
-{
-    scalar a = mag(A);
-    scalar b = mag(B);
-    scalar c = mag(C);
-    scalar s = 0.5 * (a + b + c);
-                
-    return Foam::sqrt(s*(s-a)*(s-b)*(s-c));
-}
 
 tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
     const fvMesh& mesh, 
@@ -198,24 +188,23 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
 
     // All of the following functions are taken from
     // "PrimitivePatch.H"
-    // Get label list of all mesh vertices
-    const labelList& vertices = frontMesh.meshPoints();
 
     // Get assignment point --> faces
     const labelListList& adjacentFaces = frontMesh.pointFaces();
 
     // List of local point references for current patch
-    const pointField& localPoints = frontMesh.localPoints();
+    const pointField& vertices = frontMesh.localPoints();
     
     // Needed: List of local face references
     const List<labelledTri>& localFaces = frontMesh.localFaces();
+
+    const auto& faceAreas = frontMesh.magSf();
 
     // V (the actual vertex) and Vl (its label) are used synonymously
     // in the following comments
     forAll(vertices, Vl)
     {
         scalar Amix = 0.0;
-        //bool obtuse = false;
 
         // Get all triangles adjacent to V
         const labelList& oneRingNeighborhood = adjacentFaces[Vl];
@@ -232,9 +221,9 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
             // one matches Vl to resolve point coordinates correctly
             labelList triVertices = orderVertices(currentTri, Vl);
 
-            point V = localPoints[triVertices[0]];
-            point Q = localPoints[triVertices[1]];
-            point R = localPoints[triVertices[2]];
+            point V = vertices[triVertices[0]];
+            point Q = vertices[triVertices[1]];
+            point R = vertices[triVertices[2]];
 
             // Edge vectors
             vector VQ = Q - V;
@@ -257,18 +246,12 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
             else if (Va >= 0.5*M_PI)
             {
                 // Obtuse angle at V, use half area
-                // Use Heron's formula for now until problem
-                // with vector approach is solved
-                Amix += 0.5 * areaHeron(VQ, VR, QR);
-                //obtuse = true;
+                Amix += 0.5 * faceAreas[triLabel];
             }
             else
             {
                 // Obtuse angle not at V, use quarter area
-                // Use Heron's formula for now until problem
-                // with vector approach is solved
-                Amix += 0.25 * areaHeron(VQ, VR, QR);
-                //obtuse = true;
+                Amix += 0.25 * faceAreas[triLabel];
             }
 
             // Compute mean curvature normal contributions
