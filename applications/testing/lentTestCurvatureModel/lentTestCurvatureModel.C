@@ -175,10 +175,11 @@ int main(int argc, char *argv[])
     // Write results
     if (fileIsEmpty(errorFile))
     {
-        errorFile << "# mesh spacing | Linf relative | exact model | numerical model\n";
+        errorFile << "# mesh spacing | Linf relative | L2 relative | exact model | numerical model\n";
     }
 
-    errorFile << h.value() << " " << Linf.value() << " " << exactCurvatureModel.type()
+    errorFile << h.value() << " " << Linf.value() << " " << curvatureMetrics.quadraticMeanError() << " "
+              << exactCurvatureModel.type()
               << " " << numericalCurvatureModel.type() << std::endl;
 
     front.write();
