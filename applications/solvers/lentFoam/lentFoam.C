@@ -126,6 +126,9 @@ int main(int argc, char *argv[])
 
     front.write();
 
+    // TODO: move this into a preprocessing application
+    Info << "Minimal characteristic length of triangle: " << Foam::sqrt(min(front.magSf())) << endl;
+
     // TODO: Examine the internal p-U coupling loop. Update on markerField? TM.  
     while (runTime.run())
     {
