@@ -23,18 +23,19 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontTriangleCurvatureModel
+    Foam::inversedDistanceNormalCalculator
 
 SourceFiles
-    frontTriangleCurvatureModel.C
+    inversedDistanceNormalCalculator.C
 
 Author
     Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
 
-    Curvature model based on the surface tension model described in the
-    2012 paper of Tukovic and Jasak
+    Compute the normals at the front vertices as the average of the surrounding
+    triangles. The inversed distances of the triangle barycentres is used as
+    weights.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,50 +59,71 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef frontTriangleCurvatureModel_H
-#define frontTriangleCurvatureModel_H
-
-#include "frontCurvatureModel.H"
-#include "frontVertexNormalCalculator.H"
-
-#include "triSurfaceFrontFields.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "inversedDistanceNormalCalculator.H"
+#include "addToRunTimeSelectionTable.H"
 
 namespace Foam {
 namespace FrontTracking {
 
+    defineTypeNameAndDebug(inversedDistanceNormalCalculator, 0);
+    addToRunTimeSelectionTable(frontVertexNormalCalculator, inversedDistanceNormalCalculator, Dictionary);
 
-/*---------------------------------------------------------------------------*\
-                         Class frontTriangleCurvatureModel Declaration
-\*---------------------------------------------------------------------------*/
-
-class frontTriangleCurvatureModel
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+inversedDistanceNormalCalculator::inversedDistanceNormalCalculator(const dictionary& configDict)
 :
-    public frontCurvatureModel
+    frontVertexNormalCalculator{configDict}
+{}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+tmp<triSurfaceFrontPointVectorField> inversedDistanceNormalCalculator::vertexNormals(const fvMesh& mesh, const triSurfaceFront& front) const
 {
-    // Private data
-    tmp<frontVertexNormalCalculator> normalCalculatorTmp_;
-    mutable tmp<triSurfaceFrontVectorField> curvatureNormalTmp_;
+    const Time& runTime = mesh.time();  
 
-    // Private Member Functions
-    void initializeCurvatureNormal(const fvMesh&, const triSurfaceFront&) const;
+    tmp<triSurfaceFrontPointVectorField> normalsTmp
+    (
+        new triSurfaceFrontPointVectorField
+        (
+            IOobject(
+                "frontNormals", 
+                runTime.timeName(), 
+                front,
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ), 
+            front, 
+            dimensionedVector(
+                "zero", 
+                dimless, 
+                vector(0.0,0.0,0.0)
+            )
+        )
+    );
 
+    auto& normals = normalsTmp.ref();
+    const auto& centres = front.Cf();
+    const auto& points = front.localPoints();
+    const auto& pointToFaces = front.pointFaces();
+    const auto& faceNormals = front.Sf();
+    auto w = 1.0;
 
-public:
+    forAll(points, I)
+    {
+        const auto& faces = pointToFaces[I];
 
-    TypeName ("frontTriangle");
-    
-    // Constructors
-    frontTriangleCurvatureModel(const dictionary& configDict);
-        
-    //- Destructor
-    virtual ~frontTriangleCurvatureModel() = default;
+        forAll(faces, K)
+        {
+            const auto& fl = faces[K];
+            w = 1.0/mag(points[I] - centres[fl]);
 
-    // Member Functions
-    virtual tmp<volScalarField> cellCurvature(const fvMesh&, const triSurfaceFront&) const; 
-};
+            normals[I] += w*faceNormals[fl]/mag(faceNormals[fl]);
+        }
+    }
 
+    normals /= mag(normals);
+
+    return normalsTmp;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -112,7 +134,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

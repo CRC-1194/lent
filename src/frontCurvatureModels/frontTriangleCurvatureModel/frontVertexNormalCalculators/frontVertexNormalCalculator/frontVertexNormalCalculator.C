@@ -23,18 +23,18 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontTriangleCurvatureModel
+    Foam::frontVertexNormalCalculator
 
 SourceFiles
-    frontTriangleCurvatureModel.C
+    frontVertexNormalCalculator.C
 
 Author
     Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
 
-    Curvature model based on the surface tension model described in the
-    2012 paper of Tukovic and Jasak
+    Compute the normals at the front vertices as the area average of the
+    surrounding triangles.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,49 +58,88 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef frontTriangleCurvatureModel_H
-#define frontTriangleCurvatureModel_H
-
-#include "frontCurvatureModel.H"
 #include "frontVertexNormalCalculator.H"
-
-#include "triSurfaceFrontFields.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "addToRunTimeSelectionTable.H"
 
 namespace Foam {
 namespace FrontTracking {
 
+    defineTypeNameAndDebug(frontVertexNormalCalculator, 0);
+    defineRunTimeSelectionTable(frontVertexNormalCalculator, Dictionary);
+    addToRunTimeSelectionTable(frontVertexNormalCalculator, frontVertexNormalCalculator, Dictionary);
 
-/*---------------------------------------------------------------------------*\
-                         Class frontTriangleCurvatureModel Declaration
-\*---------------------------------------------------------------------------*/
 
-class frontTriangleCurvatureModel
-:
-    public frontCurvatureModel
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+frontVertexNormalCalculator::frontVertexNormalCalculator(const dictionary& configDict)
+{}
+
+
+// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
+tmp<frontVertexNormalCalculator> frontVertexNormalCalculator::New(const dictionary& configDict)
 {
-    // Private data
-    tmp<frontVertexNormalCalculator> normalCalculatorTmp_;
-    mutable tmp<triSurfaceFrontVectorField> curvatureNormalTmp_;
+    const word name = configDict.lookup("type");
 
-    // Private Member Functions
-    void initializeCurvatureNormal(const fvMesh&, const triSurfaceFront&) const;
+    DictionaryConstructorTable::iterator cstrIter =
+        DictionaryConstructorTablePtr_->find(name);
+
+    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    {
+        FatalErrorIn (
+            "frontVertexNormalCalculator::New(const word& name)"
+        )   << "Unknown frontVertexNormalCalculator type "
+            << name << nl << nl
+            << "Valid frontVertexNormalCalculator are : " << endl
+            << DictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalError);
+    }
+
+    return tmp<frontVertexNormalCalculator> (cstrIter()(configDict));
+}
 
 
-public:
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+tmp<triSurfaceFrontPointVectorField> frontVertexNormalCalculator::vertexNormals(const fvMesh& mesh, const triSurfaceFront& front) const
+{
+    const Time& runTime = mesh.time();  
 
-    TypeName ("frontTriangle");
-    
-    // Constructors
-    frontTriangleCurvatureModel(const dictionary& configDict);
-        
-    //- Destructor
-    virtual ~frontTriangleCurvatureModel() = default;
+    tmp<triSurfaceFrontPointVectorField> normalsTmp
+    (
+        new triSurfaceFrontPointVectorField
+        (
+            IOobject(
+                "frontNormals", 
+                runTime.timeName(), 
+                front,
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ), 
+            front, 
+            dimensionedVector(
+                "zero", 
+                dimless, 
+                vector(0.0,0.0,0.0)
+            )
+        )
+    );
 
-    // Member Functions
-    virtual tmp<volScalarField> cellCurvature(const fvMesh&, const triSurfaceFront&) const; 
-};
+    auto& normals = normalsTmp.ref();
+    const auto& faceNormals = front.Sf();
+    const auto& faces = front.localFaces();
+
+    forAll(faces, I)
+    {
+        const auto& aFace = faces[I];
+
+        forAll(aFace, K)
+        {
+            normals[aFace[K]] +=faceNormals[I];
+        }
+    }
+
+    normals /= mag(normals);
+
+    return normalsTmp;
+}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -112,7 +151,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

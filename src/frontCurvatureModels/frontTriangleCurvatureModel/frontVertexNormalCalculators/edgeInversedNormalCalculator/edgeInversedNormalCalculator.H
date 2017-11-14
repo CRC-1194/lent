@@ -23,16 +23,24 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::triSurfaceFront
+    Foam::edgeInversedNormalCalculator
 
 SourceFiles
-    triSurfaceFront.C
+    edgeInversedNormalCalculator.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    A registered triSurface that can be used with tmp<>.
+
+    Compute the normals at the front vertices in two steps.
+    First, the
+    normals on the edges are approximated using an average of the two connected
+    triangles. Each normal is assigned the area of the opposite triangle as
+    weight.
+    Second, the vertex normal is computed by averaging the edge normals of the
+    connected edges. The inversed edge lengths (inversed distance weighting) are
+    used as weights.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,116 +64,46 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef edgeInversedNormalCalculator_H
+#define edgeInversedNormalCalculator_H
 
-#ifndef triSurfaceFront_H
-#define triSurfaceFront_H
-
-#include "isoSurface.H"
-#include "triSurface.H"
-#include "error.H"
-
-#include <vector>
+#include "frontVertexNormalCalculator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
-namespace FrontTracking
-{
+namespace Foam {
+namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class triSurfaceFront Declaration
+                         Class edgeInversedNormalCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class triSurfaceFront
-    :
-        public refCount,
-        public objectRegistry, 
-        //public regIOobject, 
-        public triSurface
+class edgeInversedNormalCalculator
+:
+    public frontVertexNormalCalculator
 {
-    // Read format.
-    word readFormat_;
-
-    // Write format.
-    word writeFormat_;
-
-    // Prepend zeros.
-    label prependZeros_;
-
-    // Topological information required for parabolda fitting
-    std::vector<std::vector<label>> twoRingNeighbours_;
-
-    // Compute the iso-surface.
-    void computeIsoSurface(
-        const volScalarField& cellsToElementsDist,
-        const scalarField& pointsToElementsDist,
-        const bool regularise=false,
-        const scalar mergeTol=1e-06
-    );
-
-    // Create the file name with IOobject::name, extension and timeIndex
-    // paddeed with zeros. 
-    fileName zeroPaddedFileName(word extension) const;
-
-    template<class Displacement>
-    void executeMovePoints(const Displacement& d);
-
-    // Get the actual file name of the stored front. IOobject::name + time
-    // index prepended with zeros + extension. 
-    fileName actualFileName() const;
-
-    // Write fields registered to the front to the vtk file to enable visualization
-    // in paraview
-    void writeVTKWithFields(Ostream& os) const;
-
-    void computeTwoRingNeighbours();
-    std::vector<label> neighbourPoints(const label& pointLabel, const label& exclude=-1) const;
 
 public:
 
-    TypeName ("triSurfaceFront");
+    TypeName ("edgeNormalInversed");
 
     // Constructors
-    triSurfaceFront(const IOobject& io, word readFormat="stl", word writeFormat="vtk", label prependZeros=8);
+    edgeInversedNormalCalculator() = default;
+    explicit edgeInversedNormalCalculator(const dictionary& configDict);
 
     //- Destructor
-    virtual ~triSurfaceFront() {};
+    virtual ~edgeInversedNormalCalculator() = default;
 
     // Member Functions
-    bool write() const;
-
-    label nFaces() const 
-    {
-        return localFaces().size(); 
-    }
-
-    void displace(const Field<Vector<double>>& displacements);
-
-    bool writeObject
-    (
-        IOstream::streamFormat fmt,
-        IOstream::versionNumber ver,
-        IOstream::compressionType cmp
-    ) const;
-
-    bool writeData(Foam::Ostream& os) const;
-
-    const std::vector<std::vector<label>>& twoRingNeighbours() const
-    {
-        return twoRingNeighbours_;
-    }
-
-    // Member operators
-    void operator=(const triSurfaceFront& rhs);
-    void operator=(const triSurface& rhs);
-
-    void operator=(const isoSurface& rhs);
+    virtual tmp<triSurfaceFrontPointVectorField> vertexNormals(const fvMesh&, const triSurfaceFront&) const;
 };
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 
