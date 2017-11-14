@@ -23,20 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::normalConsistency
+    Foam::convexFrontNormalConsistency
 
 SourceFiles
-    normalConsistency.C
+    convexFrontNormalConsistency.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
-    Mathematical Modeling and Analysis
-    Center of Smart Interfaces, TU Darmstadt
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Class encapsulating the algorithm that makes the normals of the iso-surface
-    consistent by using the orientation provided by the signed distance field
-    gradient.
+    Ensures normal consistency by computing a geometric centre.
+    ONLY applicable to CONVEX fronts.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -61,16 +58,10 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#ifndef normalConsistency_H
-#define normalConsistency_H
+#ifndef convexFrontNormalConsistency_H
+#define convexFrontNormalConsistency_H
 
-#include "typeInfo.H"
-#include "autoPtr.H"
-#include "tmp.H"
-#include "refCount.H"
-#include "volFieldsFwd.H"
-#include "triSurfaceFront.H"
-#include "pointIndexHit.H"
+#include "normalConsistency.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -78,53 +69,39 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class normalConsistency Declaration
+                         Class convexFrontNormalConsistency Declaration
 \*---------------------------------------------------------------------------*/
 
-class normalConsistency
+class convexFrontNormalConsistency
     :
-        public refCount
+        public normalConsistency
 {
 
 private:
-
+    
+    word orientation_;
+    scalar orientationSign_;
+    
+    // Private Member Functions
     virtual void runNormalConsistencyAlgorithm(
         triSurfaceFront& front,
-        const volScalarField& signedDistance,
-        const pointScalarField& pointSignedDistance // Not used.
+        const volScalarField& signedDistance,       // Not used by this alg.
+        const pointScalarField& pointSignedDistance // Not used by this alg.
     ) const;
 
 public:
 
-    TypeName ("cellDistGrad");
-
-    declareRunTimeSelectionTable (
-        tmp,
-        normalConsistency,
-        Dictionary,
-        (
-            const dictionary& configDict
-        ),
-        (configDict)
-    );
+    TypeName ("convexFrontNormal");
 
     // Constructors
-        normalConsistency(const dictionary& configDict) {};
+        convexFrontNormalConsistency(const dictionary& configDict);
 
     // Selectors
 
-        static tmp<normalConsistency> New(const dictionary& configDict);
+        static tmp<convexFrontNormalConsistency> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~normalConsistency() {};
-
-    // Member Functions
-
-        void makeFrontNormalsConsistent(
-            triSurfaceFront& front,
-            const volScalarField& signedDistance,
-            const pointScalarField& pointSignedDistance // Not used.
-        ) const;
+        virtual ~convexFrontNormalConsistency() {};
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

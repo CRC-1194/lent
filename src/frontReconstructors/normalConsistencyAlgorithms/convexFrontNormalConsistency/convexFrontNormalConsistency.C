@@ -57,11 +57,9 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-
-#include "normalConsistency.H"
+#include "convexFrontNormalConsistency.H"
 #include "dictionary.H"
 #include "addToRunTimeSelectionTable.H"
-#include "fvcGrad.H"
 #include "lentCommunication.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -69,93 +67,71 @@ Description
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(normalConsistency, 0);
-    defineRunTimeSelectionTable(normalConsistency, Dictionary);
-    addToRunTimeSelectionTable(normalConsistency, normalConsistency, Dictionary);
+    defineTypeNameAndDebug(convexFrontNormalConsistency, 0);
+    addToRunTimeSelectionTable(normalConsistency, convexFrontNormalConsistency, Dictionary);
 
 // * * * * * * * * * * * * * Private  member functions * * * * * * * * * * * //
-void normalConsistency::runNormalConsistencyAlgorithm(
+void convexFrontNormalConsistency::runNormalConsistencyAlgorithm(
     triSurfaceFront& front,
     const volScalarField& signedDistance,
-    const pointScalarField& pointSignedDistance // Not used.
+    const pointScalarField& pointSignedDistance // Not used by this algorithm.
 ) const
 {
-    // Gradient based normal consistency algorithm.
-    volVectorField distGrad = fvc::grad(signedDistance);
-
     List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);
-    const vectorField& triangleNormals = front.faceNormals();
+    const auto& triangleNormals = front.faceNormals();
+    const auto& points = front.points();
+    const auto& faceCentres = front.Cf();
 
-    const fvMesh& mesh = signedDistance.mesh(); 
-    const lentCommunication& communication = 
-        mesh.lookupObject<lentCommunication>(
-            lentCommunication::registeredName(front,mesh)
-    ); 
+    vector geometricCentre{0.0, 0.0, 0.0};
 
-    const auto& triangleToCell = communication.triangleToCell();  
+    forAll(points, I)
+    {
+        geometricCentre += points[I];
+    }
+
+    geometricCentre /= points.size();
 
     // For all faces
     forAll (triangles, triangleI)
     {
-        scalar gradMag = mag(distGrad[triangleToCell[triangleI]]);
+        auto centreToPoint = faceCentres[triangleI] - geometricCentre;
 
-        if (gradMag >= SMALL)
+        if (sign(centreToPoint & triangleNormals[triangleI]) != orientationSign_)
         {
-            distGrad[triangleToCell[triangleI]] /= gradMag;
-
-            scalar normalMag = mag(triangleNormals[triangleI]);
-
-            if (normalMag > SMALL)
-            {
-                vector triangleNormal = triangleNormals[triangleI] / mag(triangleNormals[triangleI]);
-
-                if ((triangleNormal & distGrad[triangleToCell[triangleI]]) < 0)
-                {
-                    triangles[triangleI].flip();
-                }
-            }
+            triangles[triangleI].flip();
         }
     }
 }
 
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
-tmp<normalConsistency>
-normalConsistency::New(const dictionary& configDict)
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+convexFrontNormalConsistency::convexFrontNormalConsistency(const dictionary& configDict)
+    :
+        normalConsistency(configDict),
+        orientation_{configDict.lookup("normalOrientation")},
+        orientationSign_{}
 {
-    const word name = configDict.lookup("type");
-
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
-
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    if (orientation_ == "outside")
+    {
+        orientationSign_ = 1.0;
+    }
+    else if (orientation_ == "inside")
+    {
+        orientationSign_ = -1.0;
+    }
+    else
     {
         FatalErrorIn (
-            "normalConsistency::New(const word& name)"
-        )   << "Unknown normalConsistency type "
-            << name << nl << nl
-            << "Valid normalConsistencys are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
+            "convexFrontNormalConsistency::convexFrontNormalConsistency(const dictionary& configDict)"
+        )   << "Unknown normalOrientation "
+            << orientation_ << nl << nl
+            << "Valid orientations are : " << endl
+            << "outside or inside"
             << exit(FatalError);
     }
-
-    return tmp<normalConsistency> (cstrIter()(configDict));
 }
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-void normalConsistency::makeFrontNormalsConsistent(
-    triSurfaceFront& front,
-    const volScalarField& signedDistance,
-    const pointScalarField& pointSignedDistance // Not used by this algorithm. TM. 
-) const
-{
-    runNormalConsistencyAlgorithm(front, signedDistance, pointSignedDistance);
-
-    // Ensure update of demand driven data by completely clearing it
-    front.clearOut();
-}
-
+    
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking

@@ -565,6 +565,11 @@ void frontSmoother::smoothFront(triSurfaceFront& front, const fvMesh& mesh) cons
             << "Valid options are 'points', 'edges' or 'pointsAndEdges'."
             << exit(FatalError);
     }
+
+    // IMPORTANT: front smoothing invalidates demand driven front geometry data
+    // e.g. face normals
+    // --> delete them
+    front.clearGeom();
 }
 
 
