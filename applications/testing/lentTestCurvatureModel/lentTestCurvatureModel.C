@@ -66,6 +66,75 @@ bool fileIsEmpty(std::fstream& file)
     }
 }
 
+void correctFront(triSurfaceFront& front)
+{
+    vector centre{4.00001, 3.99999, 4.0000035};
+    scalar R = 2.0;
+
+    pointField& globalPoints = const_cast<pointField&>(front.points());
+
+    forAll(globalPoints, I)
+    {
+        auto dV = globalPoints[I] - centre;
+        dV /= mag(dV);
+        globalPoints[I] = centre + R*dV;
+    }
+
+    front.clearGeom();
+}
+
+scalar averageRadius(const triSurfaceFront& front, const vector& centre)
+{
+    const auto& points = front.localPoints();
+
+    scalar radius = 0.0;
+
+    forAll(points, I)
+    {
+        radius += mag(points[I] - centre);
+    }
+
+    return radius/points.size();
+}
+
+tmp<triSurfaceFrontPointVectorField> sphereDeviation(const triSurfaceFront& front, const fvMesh& mesh)
+{
+    const Time& runTime = mesh.time();  
+
+    tmp<triSurfaceFrontPointVectorField> deviationTmp 
+    (
+        new triSurfaceFrontPointVectorField
+        (
+            IOobject(
+                "sphereDeviation", 
+                runTime.timeName(), 
+                front,
+                IOobject::NO_READ, 
+                IOobject::AUTO_WRITE
+            ), 
+            front, 
+            dimensionedVector(
+                "zero", 
+                dimless, 
+                vector(0.0,0.0,0.0)
+            )
+        )
+    );
+
+    auto& deviation = deviationTmp.ref();
+
+    const auto& points = front.localPoints();
+    vector centre{4.00001, 3.99999, 4.0000035};
+    auto R = averageRadius(front, centre);
+
+    forAll(points, I)
+    {
+        deviation[I] = (points[I] - centre) - R*(points[I] - centre)/mag(points[I] - centre);
+    }
+
+    return deviationTmp;
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Main program:
 
@@ -100,6 +169,11 @@ int main(int argc, char *argv[])
     runTime++;
 
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
+    // Rule out position errors caused by reconstruction
+    correctFront(front);
+    
+    auto deviationTmp = sphereDeviation(front, mesh);
 
     lent.calcSignedDistances(
         signedDistance,
@@ -175,10 +249,12 @@ int main(int argc, char *argv[])
     // Write results
     if (fileIsEmpty(errorFile))
     {
-        errorFile << "# mesh spacing | Linf relative | L2 relative | exact model | numerical model\n";
+        errorFile << "# mesh spacing | Linf relative | L1 relative | L2 relative | exact model | numerical model\n";
     }
 
-    errorFile << h.value() << " " << Linf.value() << " " << curvatureMetrics.quadraticMeanError() << " "
+    errorFile << h.value() << " " << Linf.value() << " "
+              << curvatureMetrics.arithmeticMeanError() << " "
+              << curvatureMetrics.quadraticMeanError() << " "
               << exactCurvatureModel.type()
               << " " << numericalCurvatureModel.type() << std::endl;
 
