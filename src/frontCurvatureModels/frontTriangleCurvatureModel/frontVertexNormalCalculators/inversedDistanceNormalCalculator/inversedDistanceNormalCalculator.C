@@ -23,19 +23,19 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::maxNormalAngleFrontReconstructionModel
+    Foam::inversedDistanceNormalCalculator
 
 SourceFiles
-    maxNormalAngleFrontReconstructionModel.C
+    inversedDistanceNormalCalculator.C
 
 Author
     Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Invoke front reconstruction if the maximum area of a front triangle
-    exceeds a given threshold.
-    Based on the cell volume of the Eulerian Mesh a characteristic area
-    is computed and scaled with user prescribed factor.
+
+    Compute the normals at the front vertices as the average of the surrounding
+    triangles. The inversed distances of the triangle barycentres is used as
+    weights.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -59,53 +59,71 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef maxAreaFrontReconstructionModel_H
-#define maxAreaFrontReconstructionModel_H
+#include "inversedDistanceNormalCalculator.H"
+#include "addToRunTimeSelectionTable.H"
 
-#include "frontReconstructionModel.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-// TODO: extend this class so that also a minimum area can be prescribed
-// and checked. First check if this makes sense
 namespace Foam {
 namespace FrontTracking {
 
+    defineTypeNameAndDebug(inversedDistanceNormalCalculator, 0);
+    addToRunTimeSelectionTable(frontVertexNormalCalculator, inversedDistanceNormalCalculator, Dictionary);
 
-/*---------------------------------------------------------------------------*\
-                         Class maxAreaFrontReconstructionModel Declaration
-\*---------------------------------------------------------------------------*/
-
-class maxAreaFrontReconstructionModel
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+inversedDistanceNormalCalculator::inversedDistanceNormalCalculator(const dictionary& configDict)
 :
-    public frontReconstructionModel
+    frontVertexNormalCalculator{configDict}
+{}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+tmp<triSurfaceFrontPointVectorField> inversedDistanceNormalCalculator::vertexNormals(const fvMesh& mesh, const triSurfaceFront& front) const
 {
-  
-    mutable scalar maxArea_;
-    scalar scaleFactor_;
+    const Time& runTime = mesh.time();  
 
-    void computeMaxArea(const fvMesh& mesh) const;
+    tmp<triSurfaceFrontPointVectorField> normalsTmp
+    (
+        new triSurfaceFrontPointVectorField
+        (
+            IOobject(
+                "frontNormals", 
+                runTime.timeName(), 
+                front,
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ), 
+            front, 
+            dimensionedVector(
+                "zero", 
+                dimless, 
+                vector(0.0,0.0,0.0)
+            )
+        )
+    );
 
-public:
+    auto& normals = normalsTmp.ref();
+    const auto& centres = front.Cf();
+    const auto& points = front.localPoints();
+    const auto& pointToFaces = front.pointFaces();
+    const auto& faceNormals = front.Sf();
+    auto w = 1.0;
 
-    TypeName ("maxArea");
-
-    // Constructors
-    explicit maxAreaFrontReconstructionModel(const dictionary& configDict);
-    
-
-    // Member Functions
-    virtual bool reconstructionRequired(
-        const triSurfaceFront& front,
-        const volScalarField& signedDistance
-    ) const;
-
-    scalar maxArea() const
+    forAll(points, I)
     {
-        return maxArea_;
-    }
-};
+        const auto& faces = pointToFaces[I];
 
+        forAll(faces, K)
+        {
+            const auto& fl = faces[K];
+            w = 1.0/mag(points[I] - centres[fl]);
+
+            normals[I] += w*faceNormals[fl]/mag(faceNormals[fl]);
+        }
+    }
+
+    normals /= mag(normals);
+
+    return normalsTmp;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -116,7 +134,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

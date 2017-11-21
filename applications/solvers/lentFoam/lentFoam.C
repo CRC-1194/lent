@@ -126,6 +126,9 @@ int main(int argc, char *argv[])
 
     front.write();
 
+    // TODO: move this into a preprocessing application
+    Info << "Minimal characteristic length of triangle: " << Foam::sqrt(min(front.magSf())) << endl;
+
     // TODO: Examine the internal p-U coupling loop. Update on markerField? TM.  
     while (runTime.run())
     {
@@ -168,6 +171,21 @@ int main(int argc, char *argv[])
         
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
+        // TODO: if front has been reconstructed, the signed distances (at least)
+        // for the cell centres have to be recomputed to ensure the front-mesh
+        // communication is up-to-date (TT)
+        if (lent.isFrontReconstructed())
+        {
+            lent.calcSignedDistances(
+                signedDistance,
+                pointSignedDistance,
+                searchDistanceSqr,
+                pointSearchDistanceSqr,
+                front
+            );
+        }
+
 
         Info << "p-U algorithm ... " << endl;
         // --- Pressure-velocity PIMPLE corrector loop

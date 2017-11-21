@@ -1,7 +1,9 @@
 {
-    rhoPhi == fvc::interpolate(rho) * phi;
+    // Do nit update the U sytem of equations here as it will break consistency
+    // with the p equation
+    //rhoPhi == fvc::interpolate(rho) * phi;
     //#include "computeRhoPhi.H"
-
+    /*
     UEqn =
     (
         fvm::ddt(rho, U)
@@ -15,6 +17,7 @@
     UEqn.relax();
 
     fvOptions.constrain(UEqn);
+    */
 
     // Solve the momentum equation for the cell centered velocity. 
     solve

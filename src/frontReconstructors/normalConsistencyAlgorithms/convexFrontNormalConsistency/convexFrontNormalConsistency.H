@@ -23,30 +23,28 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::maxNormalAngleFrontReconstructionModel
+    Foam::convexFrontNormalConsistency
 
 SourceFiles
-    maxNormalAngleFrontReconstructionModel.C
+    convexFrontNormalConsistency.C
 
 Author
     Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Invoke front reconstruction if the maximum area of a front triangle
-    exceeds a given threshold.
-    Based on the cell volume of the Eulerian Mesh a characteristic area
-    is computed and scaled with user prescribed factor.
+    Ensures normal consistency by computing a geometric centre.
+    ONLY applicable to CONVEX fronts.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
 
     This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
+        Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de (main developer)
     under the project supervision of :
         Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
     
     Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de
+    	Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
     	Holger Marschall <marschall@csi.tu-darmstadt.de>
     	Dieter Bothe <bothe@csi.tu-darmstadt.de>
 
@@ -59,53 +57,52 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef maxAreaFrontReconstructionModel_H
-#define maxAreaFrontReconstructionModel_H
 
-#include "frontReconstructionModel.H"
+#ifndef convexFrontNormalConsistency_H
+#define convexFrontNormalConsistency_H
+
+#include "normalConsistency.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// TODO: extend this class so that also a minimum area can be prescribed
-// and checked. First check if this makes sense
 namespace Foam {
 namespace FrontTracking {
 
-
 /*---------------------------------------------------------------------------*\
-                         Class maxAreaFrontReconstructionModel Declaration
+                         Class convexFrontNormalConsistency Declaration
 \*---------------------------------------------------------------------------*/
 
-class maxAreaFrontReconstructionModel
-:
-    public frontReconstructionModel
+class convexFrontNormalConsistency
+    :
+        public normalConsistency
 {
-  
-    mutable scalar maxArea_;
-    scalar scaleFactor_;
 
-    void computeMaxArea(const fvMesh& mesh) const;
+private:
+    
+    word orientation_;
+    scalar orientationSign_;
+    
+    // Private Member Functions
+    virtual void runNormalConsistencyAlgorithm(
+        triSurfaceFront& front,
+        const volScalarField& signedDistance,       // Not used by this alg.
+        const pointScalarField& pointSignedDistance // Not used by this alg.
+    ) const;
 
 public:
 
-    TypeName ("maxArea");
+    TypeName ("convexFrontNormal");
 
     // Constructors
-    explicit maxAreaFrontReconstructionModel(const dictionary& configDict);
-    
+        convexFrontNormalConsistency(const dictionary& configDict);
 
-    // Member Functions
-    virtual bool reconstructionRequired(
-        const triSurfaceFront& front,
-        const volScalarField& signedDistance
-    ) const;
+    // Selectors
 
-    scalar maxArea() const
-    {
-        return maxArea_;
-    }
+        static tmp<convexFrontNormalConsistency> New(const dictionary& configDict);
+
+    // Destructor
+        virtual ~convexFrontNormalConsistency() {};
 };
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

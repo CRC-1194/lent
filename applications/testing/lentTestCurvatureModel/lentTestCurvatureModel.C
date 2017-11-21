@@ -30,6 +30,9 @@ Description
 Authors
     Tomislav Maric maric@csi.tu-darmstadt.de
 
+Contributors
+    Tobias Tolle tolle@mma.tu-darmstadt.de
+
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
@@ -41,7 +44,96 @@ Authors
 #include "map.H"
 #include <fstream>
 
+#include "analyticalSurface.H"
+#include "errorMetrics.H"
+#include <map>
+#include <random>
+#include <vector>
+
 using namespace FrontTracking;
+
+// Test if file is empty: for an empty file the current position in a stream in
+// append-mode is 0
+bool fileIsEmpty(std::fstream& file)
+{
+    if (file.tellg() == 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void correctFront(triSurfaceFront& front)
+{
+    vector centre{4.00001, 3.99999, 4.0000035};
+    scalar R = 2.0;
+
+    pointField& globalPoints = const_cast<pointField&>(front.points());
+
+    forAll(globalPoints, I)
+    {
+        auto dV = globalPoints[I] - centre;
+        dV /= mag(dV);
+        globalPoints[I] = centre + R*dV;
+    }
+
+    front.clearGeom();
+}
+
+scalar averageRadius(const triSurfaceFront& front, const vector& centre)
+{
+    const auto& points = front.localPoints();
+
+    scalar radius = 0.0;
+
+    forAll(points, I)
+    {
+        radius += mag(points[I] - centre);
+    }
+
+    return radius/points.size();
+}
+
+tmp<triSurfaceFrontPointVectorField> sphereDeviation(const triSurfaceFront& front, const fvMesh& mesh)
+{
+    const Time& runTime = mesh.time();  
+
+    tmp<triSurfaceFrontPointVectorField> deviationTmp 
+    (
+        new triSurfaceFrontPointVectorField
+        (
+            IOobject(
+                "sphereDeviation", 
+                runTime.timeName(), 
+                front,
+                IOobject::NO_READ, 
+                IOobject::AUTO_WRITE
+            ), 
+            front, 
+            dimensionedVector(
+                "zero", 
+                dimless, 
+                vector(0.0,0.0,0.0)
+            )
+        )
+    );
+
+    auto& deviation = deviationTmp.ref();
+
+    const auto& points = front.localPoints();
+    vector centre{4.00001, 3.99999, 4.0000035};
+    auto R = averageRadius(front, centre);
+
+    forAll(points, I)
+    {
+        deviation[I] = (points[I] - centre) - R*(points[I] - centre)/mag(points[I] - centre);
+    }
+
+    return deviationTmp;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // Main program:
@@ -78,6 +170,21 @@ int main(int argc, char *argv[])
 
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
+    // Rule out position errors caused by reconstruction
+    correctFront(front);
+    
+    auto deviationTmp = sphereDeviation(front, mesh);
+
+    lent.calcSignedDistances(
+        signedDistance,
+        pointSignedDistance,
+        searchDistanceSqr,
+        pointSearchDistanceSqr,
+        front
+    );
+
+    dimensionedScalar h = max(mag(mesh.delta())); 
+
     const dictionary& lentDict = lent.dict(); 
 
     tmp<frontCurvatureModel> exactCurvatureModelTmp = frontCurvatureModel::New(lentDict.subDict("exactCurvatureModel")); 
@@ -85,32 +192,76 @@ int main(int argc, char *argv[])
     tmp<volScalarField> cellCurvatureExactTmp = exactCurvatureModel.cellCurvature(mesh,front);  
     volScalarField& exactCurvature = cellCurvatureExactTmp.ref();  
 
-    tmp<frontCurvatureModel> numericalCurvatureModelTmp = frontCurvatureModel::New(lentDict.subDict("curvatureModel"));  
+    const auto& surfaceTensionDict = lentDict.subDict("surfaceTensionForceModel");
+    tmp<frontCurvatureModel> numericalCurvatureModelTmp = frontCurvatureModel::New(surfaceTensionDict.subDict("curvatureModel"));  
     const frontCurvatureModel& numericalCurvatureModel = numericalCurvatureModelTmp.ref(); 
     tmp<volScalarField> numericalCurvatureTmp = numericalCurvatureModel.cellCurvature(mesh,front);  
     volScalarField& numericalCurvature = numericalCurvatureTmp.ref();  
     numericalCurvature.rename("numericalCurvature"); 
     numericalCurvature.writeOpt() = IOobject::AUTO_WRITE; 
 
-    volScalarField onesFilter (map(markerField, 1.0, [](scalar x) { return (x > 0) && (x < 1); })); 
+    // Use the gradient of the markerField as filter since this gives the cells
+    // where the curvature is used when the CSF model is used for surface tension
+    dimensionedScalar dSMALL("SMALL", pow(dimLength,-1), SMALL);
+    volScalarField onesFilter = pos(mag(fvc::grad(markerField)) - 1e4*dSMALL);
     onesFilter.rename("ones"); 
     onesFilter.writeOpt() = IOobject::AUTO_WRITE; 
     numericalCurvature *= onesFilter; 
     exactCurvature *= onesFilter; 
 
-    Info << max(numericalCurvature).value() << " " << min(numericalCurvature).value() << endl; 
+    Info << "\nMaximum numerical curvature: " << max(numericalCurvature).value()
+         << "\nMinimum numerical curvature: " << min(numericalCurvature).value() << endl; 
 
-    volScalarField LinfField ("LinfCurvatureErr", mag(exactCurvature - numericalCurvature)); 
+    volScalarField LinfField ("LinfCurvatureErr", mag(exactCurvature - numericalCurvature)/(dSMALL + mag(exactCurvature))); 
     LinfField.writeOpt() = IOobject::AUTO_WRITE; 
     dimensionedScalar Linf = max(LinfField);
 
-    dimensionedScalar h = max(mag(mesh.delta())); 
-    errorFile << h.value() << " " << Linf.value() << std::endl;
+    // Compute and write error distribution of curvature
+    std::vector<scalar> curvatureErrors{};
+
+    forAll(onesFilter, I)
+    {
+        if (onesFilter[I] > 0.0)
+        {
+            curvatureErrors.push_back((exactCurvature[I] - numericalCurvature[I])/(SMALL + mag(exactCurvature[I])));
+        }
+    }
+
+    errorMetrics curvatureMetrics{curvatureErrors};
+
+    Info << "Curvature: mean deviation = " << curvatureMetrics.arithmeticMeanError()
+         << ", median = " << curvatureMetrics.medianError()
+         << ", std deviation = " << curvatureMetrics.standardDeviation()
+         << '\n';
+
+    std::fstream curvatureFile;
+
+    curvatureFile.open("curvatureErrorDistribution_" + std::to_string(h.value()) + ".dat",  std::ios_base::out);
+    curvatureFile << "# dev | nCells | fraction\n";
+    auto absDistribution = curvatureMetrics.errorDistribution(50);
+    auto relDistribution = curvatureMetrics.errorDistributionNormalized(50);
+
+    for (const auto& entry : absDistribution)
+    {
+        curvatureFile << entry.first << ' ' << entry.second << ' ' << relDistribution[entry.first] << '\n';
+    }
+
+    // Write results
+    if (fileIsEmpty(errorFile))
+    {
+        errorFile << "# mesh spacing | Linf relative | L1 relative | L2 relative | exact model | numerical model\n";
+    }
+
+    errorFile << h.value() << " " << Linf.value() << " "
+              << curvatureMetrics.arithmeticMeanError() << " "
+              << curvatureMetrics.quadraticMeanError() << " "
+              << exactCurvatureModel.type()
+              << " " << numericalCurvatureModel.type() << std::endl;
 
     front.write();
     runTime.writeNow();
 
-    Info <<"Maximal curvature error = " << Linf.value() << endl;
+    Info <<"Maximal relative curvature error = " << Linf.value() << '\n' << endl;
 
     Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
         << "  ClockTime = " << runTime.elapsedClockTime() << " s"

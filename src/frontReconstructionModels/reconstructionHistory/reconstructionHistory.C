@@ -114,7 +114,7 @@ void reconstructionHistory::frontSmoothed()
     void frontReconstructed();
     // Do not add entry for smoothing if front has been reconstructed
     // in the same time step. Reconstruction always implies smoothing
-    if (timeStepNumber_.back() == time_.timeIndex())
+    if (timeStepNumber_.size() > 0 && timeStepNumber_.back() == time_.timeIndex())
     {
         // Do nothing
     }

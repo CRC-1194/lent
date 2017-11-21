@@ -23,16 +23,20 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::triSurfaceFront
+    Foam::parabolaFittingNormalCalculator
 
 SourceFiles
-    triSurfaceFront.C
+    parabolaFittingNormalCalculator.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    A registered triSurface that can be used with tmp<>.
+
+    Compute the front vertex normals from a parabola fitted at each vertex.
+    The parameters of the parabola f(x,y)=ax^2 + by^2 + cxy + dx + ey
+    are found by solving a least-squares problem considering all vertices
+    of the two-ring neighbourhood.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,116 +60,57 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef parabolaFittingNormalCalculator_H
+#define parabolaFittingNormalCalculator_H
 
-#ifndef triSurfaceFront_H
-#define triSurfaceFront_H
+#include "quaternion.H"
 
-#include "isoSurface.H"
-#include "triSurface.H"
-#include "error.H"
+#include "frontVertexNormalCalculator.H"
 
-#include <vector>
+#include <Eigen/Dense>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
-namespace FrontTracking
-{
+namespace Foam {
+namespace FrontTracking {
+
+    using matrixXd = Eigen::Matrix<scalar, Eigen::Dynamic, Eigen::Dynamic>;
+    using vectorXd = Eigen::Matrix<scalar, Eigen::Dynamic, 1>;
 
 /*---------------------------------------------------------------------------*\
-                         Class triSurfaceFront Declaration
+                         Class parabolaFittingNormalCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class triSurfaceFront
-    :
-        public refCount,
-        public objectRegistry, 
-        //public regIOobject, 
-        public triSurface
+class parabolaFittingNormalCalculator
+:
+    public frontVertexNormalCalculator
 {
-    // Read format.
-    word readFormat_;
-
-    // Write format.
-    word writeFormat_;
-
-    // Prepend zeros.
-    label prependZeros_;
-
-    // Topological information required for parabolda fitting
-    std::vector<std::vector<label>> twoRingNeighbours_;
-
-    // Compute the iso-surface.
-    void computeIsoSurface(
-        const volScalarField& cellsToElementsDist,
-        const scalarField& pointsToElementsDist,
-        const bool regularise=false,
-        const scalar mergeTol=1e-06
-    );
-
-    // Create the file name with IOobject::name, extension and timeIndex
-    // paddeed with zeros. 
-    fileName zeroPaddedFileName(word extension) const;
-
-    template<class Displacement>
-    void executeMovePoints(const Displacement& d);
-
-    // Get the actual file name of the stored front. IOobject::name + time
-    // index prepended with zeros + extension. 
-    fileName actualFileName() const;
-
-    // Write fields registered to the front to the vtk file to enable visualization
-    // in paraview
-    void writeVTKWithFields(Ostream& os) const;
-
-    void computeTwoRingNeighbours();
-    std::vector<label> neighbourPoints(const label& pointLabel, const label& exclude=-1) const;
+private:
+    quaternion rotationQuaternion(const triSurfaceFront& front, const label& pointLabel) const;
+    vectorXd fitParabola(const std::vector<Foam::vector>& points) const;
+    vector computeNormal(const vectorXd& coefficients, const quaternion& rotation) const;
 
 public:
 
-    TypeName ("triSurfaceFront");
+    TypeName ("parabolaFitting");
 
     // Constructors
-    triSurfaceFront(const IOobject& io, word readFormat="stl", word writeFormat="vtk", label prependZeros=8);
+    parabolaFittingNormalCalculator() = default;
+    explicit parabolaFittingNormalCalculator(const dictionary& configDict);
 
     //- Destructor
-    virtual ~triSurfaceFront() {};
+    virtual ~parabolaFittingNormalCalculator() = default;
 
     // Member Functions
-    bool write() const;
-
-    label nFaces() const 
-    {
-        return localFaces().size(); 
-    }
-
-    void displace(const Field<Vector<double>>& displacements);
-
-    bool writeObject
-    (
-        IOstream::streamFormat fmt,
-        IOstream::versionNumber ver,
-        IOstream::compressionType cmp
-    ) const;
-
-    bool writeData(Foam::Ostream& os) const;
-
-    const std::vector<std::vector<label>>& twoRingNeighbours() const
-    {
-        return twoRingNeighbours_;
-    }
-
-    // Member operators
-    void operator=(const triSurfaceFront& rhs);
-    void operator=(const triSurface& rhs);
-
-    void operator=(const isoSurface& rhs);
+    virtual tmp<triSurfaceFrontPointVectorField> vertexNormals(const fvMesh&, const triSurfaceFront&) const;
 };
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 

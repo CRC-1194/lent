@@ -23,19 +23,24 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::maxNormalAngleFrontReconstructionModel
+    Foam::edgeInversedNormalCalculator
 
 SourceFiles
-    maxNormalAngleFrontReconstructionModel.C
+    edgeInversedNormalCalculator.C
 
 Author
     Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Invoke front reconstruction if the maximum area of a front triangle
-    exceeds a given threshold.
-    Based on the cell volume of the Eulerian Mesh a characteristic area
-    is computed and scaled with user prescribed factor.
+
+    Compute the normals at the front vertices in two steps.
+    First, the
+    normals on the edges are approximated using an average of the two connected
+    triangles. Each normal is assigned the area of the opposite triangle as
+    weight.
+    Second, the vertex normal is computed by averaging the edge normals of the
+    connected edges. The inversed edge lengths (inversed distance weighting) are
+    used as weights.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -59,53 +64,76 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef maxAreaFrontReconstructionModel_H
-#define maxAreaFrontReconstructionModel_H
+#include "edgeInversedNormalCalculator.H"
+#include "addToRunTimeSelectionTable.H"
 
-#include "frontReconstructionModel.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-// TODO: extend this class so that also a minimum area can be prescribed
-// and checked. First check if this makes sense
 namespace Foam {
 namespace FrontTracking {
 
+    defineTypeNameAndDebug(edgeInversedNormalCalculator, 0);
+    addToRunTimeSelectionTable(frontVertexNormalCalculator, edgeInversedNormalCalculator, Dictionary);
 
-/*---------------------------------------------------------------------------*\
-                         Class maxAreaFrontReconstructionModel Declaration
-\*---------------------------------------------------------------------------*/
-
-class maxAreaFrontReconstructionModel
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+edgeInversedNormalCalculator::edgeInversedNormalCalculator(const dictionary& configDict)
 :
-    public frontReconstructionModel
+    frontVertexNormalCalculator{configDict}
+{}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+tmp<triSurfaceFrontPointVectorField> edgeInversedNormalCalculator::vertexNormals(const fvMesh& mesh, const triSurfaceFront& front) const
 {
-  
-    mutable scalar maxArea_;
-    scalar scaleFactor_;
+    const Time& runTime = mesh.time();  
 
-    void computeMaxArea(const fvMesh& mesh) const;
+    tmp<triSurfaceFrontPointVectorField> normalsTmp
+    (
+        new triSurfaceFrontPointVectorField
+        (
+            IOobject(
+                "frontNormals", 
+                runTime.timeName(), 
+                front,
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ), 
+            front, 
+            dimensionedVector(
+                "zero", 
+                dimless, 
+                vector(0.0,0.0,0.0)
+            )
+        )
+    );
 
-public:
+    auto& normals = normalsTmp.ref();
+    const auto& sf = front.Sf();
+    const auto& triArea = front.magSf();
+    const auto& edges = front.edges();
+    const auto& edgeToFaces = front.edgeFaces();
+    const auto& points = front.localPoints();
 
-    TypeName ("maxArea");
+    vector edgeNormal{0,0,0};
 
-    // Constructors
-    explicit maxAreaFrontReconstructionModel(const dictionary& configDict);
-    
-
-    // Member Functions
-    virtual bool reconstructionRequired(
-        const triSurfaceFront& front,
-        const volScalarField& signedDistance
-    ) const;
-
-    scalar maxArea() const
+    forAll(edges, I)
     {
-        return maxArea_;
-    }
-};
+        const auto& f = edgeToFaces[I];
 
+        edgeNormal = (sf[f[0]]/triArea[f[0]]*triArea[f[1]]
+                      + sf[f[1]]/triArea[f[1]]*triArea[f[0]]
+                     ) / (triArea[f[0]] + triArea[f[1]]);
+
+        const auto& anEdge = edges[I];
+
+        forAll(anEdge, K)
+        {
+            normals[anEdge[K]] += edgeNormal / anEdge.mag(points);
+        }
+    }
+
+    normals /= mag(normals);
+
+    return normalsTmp;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -116,7 +144,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

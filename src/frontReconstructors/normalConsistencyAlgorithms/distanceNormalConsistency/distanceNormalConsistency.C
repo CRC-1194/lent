@@ -70,16 +70,8 @@ namespace FrontTracking {
     defineTypeNameAndDebug(distanceNormalConsistency, 0);
     addToRunTimeSelectionTable(normalConsistency, distanceNormalConsistency, Dictionary);
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-distanceNormalConsistency::distanceNormalConsistency(const dictionary& configDict)
-    :
-        normalConsistency(configDict)
-{}
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-void distanceNormalConsistency::makeFrontNormalsConsistent(
+// * * * * * * * * * * * * * Private  member functions * * * * * * * * * * * //
+void distanceNormalConsistency::runNormalConsistencyAlgorithm(
     triSurfaceFront& front,
     const volScalarField& signedDistance,
     const pointScalarField& pointSignedDistance // Not used by this algorithm.
@@ -167,6 +159,14 @@ void distanceNormalConsistency::makeFrontNormalsConsistent(
     //}
     
 }
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+distanceNormalConsistency::distanceNormalConsistency(const dictionary& configDict)
+    :
+        normalConsistency(configDict)
+{}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
