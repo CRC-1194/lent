@@ -87,8 +87,16 @@ class parabolaFitting2DNormalCalculator
 {
 private:
     mutable tensor projector_;
-    mutable quaternion globalToReference_;
     mutable tmp<triSurfaceFrontPointVectorField> vertexNormalTmp_;
+    
+    // Abstraction of coordinates so the 2d problem can always be treated
+    // like z is the empty direction and to avoid further rotations
+    mutable scalar xRef_;
+    mutable scalar yRef_;
+    mutable scalar zRef_;
+
+    mutable vector emptyDirection_;
+    mutable vector heightDirection_;
 
     void initializeVertexNormal(const fvMesh&, const triSurfaceFront&) const;
 

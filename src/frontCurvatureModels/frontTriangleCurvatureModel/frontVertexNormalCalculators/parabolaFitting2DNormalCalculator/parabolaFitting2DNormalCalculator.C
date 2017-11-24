@@ -112,18 +112,32 @@ void parabolaFitting2DNormalCalculator::computeProjectionData(const fvMesh& mesh
                 //emptyDirection /= mag(emptyDirection);
                 vector emptyDirection{0, 0, 1};
 
-                // Ensure positiv orientation for consistency
-                forAll(emptyDirection, I)
+                //----------------------------------------
+                emptyDirection_ = emptyDirection;
+
+                // Distinguish between the three possibilities for the empty direction
+                if(mag(emptyDirection_[0]) > SMALL)
                 {
-                    emptyDirection[I] = mag(emptyDirection[I]);
+                    xRef_ = 1;
+                    yRef_ = 2;
+                    zRef_ = 0;
+                    heightDirection_ = vector{0, 0, 1};
+                }
+                else if (mag(emptyDirection_[1]) > SMALL)
+                {
+                    xRef_ = 0;
+                    yRef_ = 2;
+                    zRef_ = 1;
+                    heightDirection_ = vector{0, 0, 1};
+                }
+                else if (mag(emptyDirection_[2]) > SMALL)
+                {
+                    xRef_ = 0;
+                    yRef_ = 1;
+                    zRef_ = 2;
+                    heightDirection_ = vector{0, 1, 0};
                 }
 
-                projector_ = Identity<scalar>{} - emptyDirection*emptyDirection;
-                
-                // The following rotation ensures that the empty direction is
-                // always rotated to the positive z-direction, the reference system
-                // which is assumed in the rest of this function
-                globalToReference_ = quaternion{emptyDirection^(vector{0, 0, 1}), 0.0, true};
                 break;
             }
         }
@@ -137,11 +151,19 @@ quaternion parabolaFitting2DNormalCalculator::rotationQuaternion(const triSurfac
     // transform to reference system
     approxNormal = projector_&approxNormal;
     approxNormal /= mag(approxNormal) + SMALL;
-    approxNormal = globalToReference_.transform(approxNormal);
 
-    const vector yAxis{0.0, 1.0, 0.0};
+    auto rotationAxis = approxNormal^heightDirection_;
 
-    return quaternion{vector{0, 0, 1}, (yAxis & approxNormal), true};
+    if (mag(rotationAxis) > SMALL)
+    {
+        rotationAxis /= mag(rotationAxis);
+    }
+    else
+    {
+        rotationAxis = emptyDirection_;
+    }
+
+    return quaternion{rotationAxis, heightDirection_&approxNormal, true};
 }
 
 vectorXd parabolaFitting2DNormalCalculator::fitParabola(const std::vector<Foam::vector>& points) const
@@ -156,10 +178,10 @@ vectorXd parabolaFitting2DNormalCalculator::fitParabola(const std::vector<Foam::
     label index = 0;
     for (const auto& aPoint : points)
     {
-        A(index, 0) = aPoint[0]*aPoint[0];
-        A(index, 1) = aPoint[0];
+        A(index, 0) = aPoint[xRef_]*aPoint[xRef_];
+        A(index, 1) = aPoint[xRef_];
 
-        b(index) = aPoint[1];
+        b(index) = aPoint[yRef_];
 
         ++index;
     }
@@ -169,11 +191,13 @@ vectorXd parabolaFitting2DNormalCalculator::fitParabola(const std::vector<Foam::
 
 vector parabolaFitting2DNormalCalculator::computeNormal(const vectorXd& coefficients, const quaternion& rotation) const
 {
-    vector localNormal{-1.0*coefficients(1), 1, 0};
+    vector localNormal{0, 0, 0};
+    localNormal[xRef_] = -1.0*coefficients(1);
+    localNormal[yRef_] = 1.0;
+
     localNormal /= mag(localNormal) + SMALL;
 
-    localNormal = rotation.invTransform(localNormal);
-    return globalToReference_.invTransform(localNormal);
+    return rotation.invTransform(localNormal);
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -181,8 +205,12 @@ parabolaFitting2DNormalCalculator::parabolaFitting2DNormalCalculator(const dicti
 :
     frontVertexNormalCalculator{configDict},
     projector_{Identity<scalar>{}},
-    globalToReference_{},
-    vertexNormalTmp_{}
+    vertexNormalTmp_{},
+    xRef_{0.0},
+    yRef_{0.0},
+    zRef_{0.0},
+    emptyDirection_{0,0,0},
+    heightDirection_{0,0,0}
 {
 }
 
@@ -213,7 +241,6 @@ tmp<triSurfaceFrontPointVectorField> parabolaFitting2DNormalCalculator::vertexNo
         for (const auto& pointLabel : pointSet)
         {
             auto localVector = projector_&(points[pointLabel] - points[I]);
-            localVector = globalToReference_.transform(localVector);
             localVector = rotationQ.transform(localVector);
             localCoordinatePoints.push_back(localVector);
         }
