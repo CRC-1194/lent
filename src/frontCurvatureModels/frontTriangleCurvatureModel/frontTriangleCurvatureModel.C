@@ -151,13 +151,15 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mes
     const auto& p = front.localPoints();
     const auto& triArea = front.magSf();
 
+
     forAll(faces, I)
     {
         const auto& f = faces[I];
+
         cn[I] = 0.5*(
-                        ((p[f[0]] - p[f[2]]) ^ (n[f[0]] + n[f[2]]))
-                      + ((p[f[1]] - p[f[0]]) ^ (n[f[1]] + n[f[0]]))
+                        ((p[f[1]] - p[f[0]]) ^ (n[f[1]] + n[f[0]]))
                       + ((p[f[2]] - p[f[1]]) ^ (n[f[2]] + n[f[1]]))
+                      + ((p[f[0]] - p[f[2]]) ^ (n[f[0]] + n[f[2]]))
                     )
                     / triArea[I];
     }
