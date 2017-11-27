@@ -34,7 +34,7 @@ Author
 Description
 
     Compute the front vertex normals from a parabola fitted at each vertex.
-    The parameters of the parabola f(x,y)=ax^2 + by^2 + cxy + dx + ey
+    The parameters of the parabola f(x,y)=ax^2 + bx
     are found by solving a least-squares problem considering all vertices
     of the two-ring neighbourhood.
 
@@ -99,48 +99,40 @@ void parabolaFitting2DNormalCalculator::computeProjectionData(const fvMesh& mesh
 {
     if (projector_ == tensor(Identity<scalar>{}))
     {
-        const auto& patches = mesh.boundary();
+        // Derive empty direction from the mesh bounding
+        // box. This assumes that mesh has the least expanse in the
+        // empty direction
+        const auto& bb = mesh.bounds().span();
 
-        forAll(patches, I)
+        if (bb[0] < bb[1] && bb[0] < bb[2])
         {
-            if (patches[I].type() == "empty")
-            {
-                // FIXME: works NOT as intended. Find alternative to detect
-                // the empty direction
-                //
-                //auto emptyDirection = patches[I].Sf()[0];
-                //emptyDirection /= mag(emptyDirection);
-                vector emptyDirection{0, 0, 1};
-
-                //----------------------------------------
-                emptyDirection_ = emptyDirection;
-
-                // Distinguish between the three possibilities for the empty direction
-                if(mag(emptyDirection_[0]) > SMALL)
-                {
-                    xRef_ = 1;
-                    yRef_ = 2;
-                    zRef_ = 0;
-                    heightDirection_ = vector{0, 0, 1};
-                }
-                else if (mag(emptyDirection_[1]) > SMALL)
-                {
-                    xRef_ = 0;
-                    yRef_ = 2;
-                    zRef_ = 1;
-                    heightDirection_ = vector{0, 0, 1};
-                }
-                else if (mag(emptyDirection_[2]) > SMALL)
-                {
-                    xRef_ = 0;
-                    yRef_ = 1;
-                    zRef_ = 2;
-                    heightDirection_ = vector{0, 1, 0};
-                }
-
-                break;
-            }
+            // x is empty direction
+            emptyDirection_ = vector{1, 0, 0};
+            heightDirection_ = vector{0, 0, 1};
+            xRef_ = 1;
+            yRef_ = 2;
+            zRef_ = 0;
         }
+        else if (bb[1] < bb[0] && bb[1] < bb[2])
+        {
+            // y is empty direction
+            emptyDirection_ = vector{0, 1, 0};
+            heightDirection_ = vector{0, 0, 1};
+            xRef_ = 0;
+            yRef_ = 2;
+            zRef_ = 1;
+        }
+        else
+        {
+            // z is empty direction
+            emptyDirection_ = vector{0, 0, 1};
+            heightDirection_ = vector{0, 1, 0};
+            xRef_ = 0;
+            yRef_ = 1;
+            zRef_ = 2;
+        }
+
+        projector_ = Identity<scalar>{} - emptyDirection_*emptyDirection_;
     }
 }
 
@@ -149,18 +141,20 @@ quaternion parabolaFitting2DNormalCalculator::rotationQuaternion(const triSurfac
     auto approxNormal = front.pointNormals()[pointLabel];
 
     // transform to reference system
-    approxNormal = projector_&approxNormal;
-    approxNormal /= mag(approxNormal) + SMALL;
+    approxNormal[zRef_] = 0.0;
+    approxNormal /= (mag(approxNormal) + SMALL);
 
-    auto rotationAxis = approxNormal^heightDirection_;
+    vector rotationAxis{0,0,0};
 
-    if (mag(rotationAxis) > SMALL)
+    // Rotation axis and the corresponding angle have to be determined
+    // carefully in order to not compromise the accuracy of the solution.
+    if (approxNormal[xRef_] > 0.0)
     {
-        rotationAxis /= mag(rotationAxis);
+        rotationAxis = emptyDirection_;
     }
     else
     {
-        rotationAxis = emptyDirection_;
+        rotationAxis = -1.0*emptyDirection_;
     }
 
     return quaternion{rotationAxis, heightDirection_&approxNormal, true};
@@ -169,7 +163,7 @@ quaternion parabolaFitting2DNormalCalculator::rotationQuaternion(const triSurfac
 vectorXd parabolaFitting2DNormalCalculator::fitParabola(const std::vector<Foam::vector>& points) const
 {
     // This function fits the parabola
-    // z(x,y) = a0x^2 + a1y^2 + a2xy + a3x + a4y
+    // y(x) = ax^2 + bx
     // to the given point set.The aboslute term is missing so the parabola
     // always includes the point we are actually fitting to
     matrixXd A{points.size(), 2};

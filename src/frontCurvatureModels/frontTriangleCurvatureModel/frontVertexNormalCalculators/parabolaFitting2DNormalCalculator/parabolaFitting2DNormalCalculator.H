@@ -34,7 +34,7 @@ Author
 Description
 
     Compute the front vertex normals from a parabola fitted at each vertex.
-    The parameters of the parabola f(x,y)=ax^2 + by^2 + cxy + dx + ey
+    The parameters of the parabola f(x,y)=ax^2 + bx
     are found by solving a least-squares problem considering all vertices
     of the two-ring neighbourhood.
 
