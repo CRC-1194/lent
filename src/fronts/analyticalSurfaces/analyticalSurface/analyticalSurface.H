@@ -66,6 +66,8 @@ Description
 #include "tmp.H"
 #include "typeInfo.H"
 
+#include "triSurfaceFront.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
@@ -108,6 +110,7 @@ public:
     virtual point normalProjectionToSurface(point&) const = 0;
     virtual vector normalToPoint(const point&) const = 0;
     virtual point intersection(const point&, const point&) const = 0;
+    virtual void moveFrontToSurface(triSurfaceFront& front) const;
 };
 
 

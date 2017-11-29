@@ -173,6 +173,7 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mes
             lentCommunication::registeredName(front,mesh)
     ); 
 
+    /*
     const auto& cellsTriangleNearest = communication.cellsTriangleNearest();
     const auto& faceNormal = front.Sf();
 
@@ -187,6 +188,40 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mes
             cellCurvature[I] = mag(cn[fl])*sign(cn[fl]&faceNormal[fl]);
         }
     }
+    */
+
+    // Test averaging
+    const auto& trianglesInCell = communication.interfaceCellToTriangles();
+    const auto& faceNormal = front.Sf();
+
+    for (const auto& cellTrianglesMap : trianglesInCell)
+    {
+        const auto& cellLabel = cellTrianglesMap.first;
+        const auto& triangleLabels = cellTrianglesMap.second;
+
+        for (const auto& tl : triangleLabels)
+        {
+            cellCurvature[cellLabel] += mag(cn[tl])*sign(cn[tl]&faceNormal[tl]);
+        }
+
+        cellCurvature[cellLabel] /= triangleLabels.size();
+    }
+
+    // Propagate to non-interface cells
+    const auto& cellToTriangle = communication.cellsTriangleNearest();
+    const auto& triangleToCell = communication.triangleToCell();
+
+    forAll(cellToTriangle, I)
+    {
+        const auto& hitObject = cellToTriangle[I];
+        
+        if (hitObject.hit())
+        {
+            cellCurvature[I] = cellCurvature[triangleToCell[hitObject.index()]];
+            //cellCurvatureField[I] = curvatureBuffer[hitObject.index()];
+        }
+    }
+    
 
     return cellCurvatureTmp;
 }

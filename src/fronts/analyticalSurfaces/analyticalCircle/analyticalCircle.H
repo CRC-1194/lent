@@ -23,18 +23,16 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::analyticalSurface
+    Foam::analyticalCircle
 
 SourceFiles
-    analyticalSurface.C
+    analyticalCircle.C
 
 Author
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    Abstract base class for definition of (simple) analytical surfaces.
-    Intended for directly constructing a front or setting an exact signed
-    distance field.
+    Specialization of the analyticalSurface class for a sphere.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,53 +56,64 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef analyticalCircle_H
+#define analyticalCircle_H
+
+#include <cmath>
+
 #include "analyticalSurface.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(analyticalSurface, 0);
-    defineRunTimeSelectionTable(analyticalSurface, Dictionary);
+/*---------------------------------------------------------------------------*\
+                         Class analyticalCircle Declaration
+\*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-analyticalSurface::analyticalSurface(const dictionary& configDict)
-{}
-
-
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-tmp<analyticalSurface> analyticalSurface::New(const dictionary& configDict)
+class analyticalCircle
+:
+    public analyticalSurface
 {
-    const word name = configDict.lookup("type");
+    // Private data
+    point centre_;
+    scalar radius_;
+    tensor projector_;
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+public:
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    TypeName ("Circle");
+
+    // Constructors
+    analyticalCircle() = default;
+    analyticalCircle(const dictionary& configDict);
+    analyticalCircle(const point& centre, const scalar radius, const vector& emptyDirection);
+
+    //- Destructor
+    virtual ~analyticalCircle() {};
+
+
+    // Member Functions
+    virtual scalar distance(const point& trialpoint) const;
+    virtual scalar signedDistance(const point& trialPoint) const;
+    virtual point normalProjectionToSurface(point& trialPoint) const;
+    virtual vector normalToPoint(const point& trialPoint) const;
+    virtual point intersection(const point& pointA, const point& pointB) const;
+
+    virtual point centre() const
     {
-        FatalErrorIn (
-            "analyticalSurface::New(const word& name)"
-        )   << "Unknown analyticalSurface type "
-            << name << nl << nl
-            << "Valid analyticalSurface are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        return centre_;
     }
 
-    return tmp<analyticalSurface> (cstrIter()(configDict));
-}
-
-// * * * * * * * * * * * * * Public member functions * * * * * * * * * * * * //
-void analyticalSurface::moveFrontToSurface(triSurfaceFront& front) const
-{
-    auto& points = const_cast<pointField&>(front.points());
-
-    for (auto& vertex : points)
+    virtual scalar radius() const
     {
-        vertex = this->normalProjectionToSurface(vertex);
+        return radius_;
     }
 
-    front.clearGeom();
-}
+    // Member operators
+    virtual analyticalCircle& operator=(const analyticalCircle& rhs);
+};
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -117,7 +126,6 @@ void analyticalSurface::moveFrontToSurface(triSurfaceFront& front) const
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#endif
 
 // ************************************************************************* //
