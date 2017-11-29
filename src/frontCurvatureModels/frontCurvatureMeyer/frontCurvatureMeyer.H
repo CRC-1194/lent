@@ -88,6 +88,7 @@ private:
 
     void initializeCurvatureNormal(const fvMesh&, const triSurfaceFront&) const;
 
+    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
 
 public:
 
@@ -104,8 +105,6 @@ public:
     scalar getAngle(vector& a, vector& b) const;
 
     scalar cot(vector a, vector b) const;
-
-    virtual tmp<volScalarField> cellCurvature(const fvMesh&, const triSurfaceFront&) const; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

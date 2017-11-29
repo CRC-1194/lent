@@ -79,8 +79,18 @@ class frontCurvatureModel
     :
         public refCount
 {
+private:
 
-    word curvatureInputFieldName_; 
+    word curvatureInputFieldName_;
+    mutable label lastTimeUpdated_;
+
+    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
+    void initializeCellCurvatureField(const fvMesh&) const; 
+    bool curvatureNeedsUpdate(const fvMesh&) const;
+    void curvatureUpdated(const fvMesh&) const;
+
+protected:
+    mutable tmp<volScalarField> cellCurvatureTmp_;
 
 public:
 

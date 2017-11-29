@@ -100,41 +100,8 @@ void frontTriangleCurvatureModel::initializeCurvatureNormal(const fvMesh& mesh, 
         );
 }
 
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-frontTriangleCurvatureModel::frontTriangleCurvatureModel(const dictionary& configDict)
-:
-    frontCurvatureModel{configDict},
-    normalCalculatorTmp_{
-        frontVertexNormalCalculator::New(configDict.subDict("normalCalculator"))
-    },
-    curvatureNormalTmp_{}
-{}
-
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mesh, const triSurfaceFront& front) const
+void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurfaceFront& front) const
 {
-    const Time& runTime = mesh.time();  
-
-    tmp<volScalarField> cellCurvatureTmp(
-        new volScalarField(
-            IOobject(
-                "cellCurvature", 
-                runTime.timeName(), 
-                mesh, 
-                IOobject::NO_READ, 
-                IOobject::NO_WRITE
-            ), 
-            mesh, 
-            dimensionedScalar(
-                "zero", 
-                pow(dimLength, -1), 
-                0
-            )
-        )
-    );
-    
     if (curvatureNormalTmp_.empty())
     {
         initializeCurvatureNormal(mesh, front);
@@ -164,7 +131,7 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mes
                     / triArea[I];
     }
 
-    auto& cellCurvature = cellCurvatureTmp.ref();
+    auto& cellCurvature = cellCurvatureTmp_.ref();
 
     // TODO: this kind of interpolation / transfer should be moved to
     // lentInterpolation or lentCommunication (TT)
@@ -221,10 +188,19 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mes
             //cellCurvatureField[I] = curvatureBuffer[hitObject.index()];
         }
     }
-    
-
-    return cellCurvatureTmp;
 }
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+frontTriangleCurvatureModel::frontTriangleCurvatureModel(const dictionary& configDict)
+:
+    frontCurvatureModel{configDict},
+    normalCalculatorTmp_{
+        frontVertexNormalCalculator::New(configDict.subDict("normalCalculator"))
+    },
+    curvatureNormalTmp_{}
+{}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

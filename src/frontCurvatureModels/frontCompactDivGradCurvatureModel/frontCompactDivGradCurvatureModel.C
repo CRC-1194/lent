@@ -200,20 +200,7 @@ std::vector<label> frontCompactDivGradCurvatureModel::findNeighbourCells(
     return neighbourCells;
 }
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-frontCompactDivGradCurvatureModel::frontCompactDivGradCurvatureModel(const dictionary& configDict)
-    :
-        frontCurvatureModel(configDict),
-        distanceCorrection_{configDict.lookup("distanceCorrection")}
-{}
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-tmp<volScalarField> frontCompactDivGradCurvatureModel::cellCurvature(
-    const fvMesh& mesh, 
-    const triSurfaceFront& frontMesh
-) const
+void frontCompactDivGradCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurfaceFront& frontMesh) const
 {
     const Time& runTime = mesh.time();  
 
@@ -238,8 +225,7 @@ tmp<volScalarField> frontCompactDivGradCurvatureModel::cellCurvature(
                                     lentCommunication::registeredName(frontMesh, mesh)
                                 ); 
     const auto& triangleToCell = communication.triangleToCell();
-    auto cellCurvatureFieldTmp = frontCurvatureModel::cellCurvature(mesh, frontMesh);
-    auto& cellCurvatureField = cellCurvatureFieldTmp.ref();
+    auto& cellCurvatureField = cellCurvatureTmp_.ref();
 
 
     const volScalarField& curvatureInputField = 
@@ -289,9 +275,16 @@ tmp<volScalarField> frontCompactDivGradCurvatureModel::cellCurvature(
             cellCurvatureField[I] = curvatureBuffer[hitObject.index()];
         }
     }
-
-    return cellCurvatureFieldTmp;
 }
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+frontCompactDivGradCurvatureModel::frontCompactDivGradCurvatureModel(const dictionary& configDict)
+    :
+        frontCurvatureModel(configDict),
+        distanceCorrection_{configDict.lookup("distanceCorrection")}
+{}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

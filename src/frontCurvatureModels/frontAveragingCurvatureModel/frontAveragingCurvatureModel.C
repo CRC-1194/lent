@@ -70,24 +70,8 @@ namespace FrontTracking {
     defineTypeNameAndDebug(frontAveragingCurvatureModel, 0);
     addToRunTimeSelectionTable(frontCurvatureModel, frontAveragingCurvatureModel, Dictionary);
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-frontAveragingCurvatureModel::frontAveragingCurvatureModel(const dictionary& configDict, const Time& runTime)
-    :
-        frontCurvatureModel(configDict, runTime),
-        averagingIterations_(
-            configDict.lookupOrDefault<scalar>("averagingIterations", SMALL) 
-        )
-{}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
- 
-frontAveragingCurvatureModel::~frontAveragingCurvatureModel() {} 
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-
-tmp<volScalarField> frontAveragingCurvatureModel::cellCurvature() const
+// * * * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * //
+void frontAveragingCurvatureModel::computeCurvature(const fvMesh&, const triSurfaceFront&) const
 {
     // Compute the curvature using the CSF model and an averaged field.
     volScalarField inputFieldSmooth("smoothMarkerField", inputField()); 
@@ -107,8 +91,23 @@ tmp<volScalarField> frontAveragingCurvatureModel::cellCurvature() const
     // Testing
     cellGradSmooth.write(); 
 
-    return fvc::div(-1*cellGradSmooth);
+    auto& cellCurvature = cellCurvatureTmp_.ref();
+    cellCurvature = fvc::div(-1*cellGradSmooth);
 }
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+frontAveragingCurvatureModel::frontAveragingCurvatureModel(const dictionary& configDict, const Time& runTime)
+    :
+        frontCurvatureModel(configDict, runTime),
+        averagingIterations_(
+            configDict.lookupOrDefault<scalar>("averagingIterations", SMALL) 
+        )
+{}
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+ 
+frontAveragingCurvatureModel::~frontAveragingCurvatureModel() {} 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
