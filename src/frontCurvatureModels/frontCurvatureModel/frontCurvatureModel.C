@@ -124,7 +124,7 @@ void frontCurvatureModel::initializeCellCurvatureField(const fvMesh& mesh) const
                 mesh, 
                 dimensionedScalar(
                     "zero", 
-                    dimless, 
+                    dimless/dimLength, 
                     0.0
                 )
             )
@@ -186,6 +186,11 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature(
     const triSurfaceFront& frontMesh
 ) const
 {
+    if (cellCurvatureTmp_.empty())
+    {
+        initializeCellCurvatureField(mesh);
+    }
+
     if (curvatureNeedsUpdate(mesh))
     {
         computeCurvature(mesh, frontMesh);
@@ -200,13 +205,8 @@ tmp<surfaceScalarField> frontCurvatureModel::faceCurvature(
     const triSurfaceFront& frontMesh
 ) const
 {
-    if (curvatureNeedsUpdate(mesh))
-    {
-        computeCurvature(mesh, frontMesh);
-        curvatureUpdated(mesh); 
-    }
-
-    return fvc::interpolate(cellCurvatureTmp_); 
+    const auto& cellCurvatureField = cellCurvature(mesh, frontMesh).ref();
+    return fvc::interpolate(cellCurvatureField); 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

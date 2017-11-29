@@ -132,6 +132,7 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
     }
 
     auto& cellCurvature = cellCurvatureTmp_.ref();
+    cellCurvature *= 0.0;
 
     // TODO: this kind of interpolation / transfer should be moved to
     // lentInterpolation or lentCommunication (TT)

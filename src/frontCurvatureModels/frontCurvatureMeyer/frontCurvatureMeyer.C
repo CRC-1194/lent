@@ -187,6 +187,7 @@ void frontCurvatureMeyer::computeCurvature(const fvMesh& mesh, const triSurfaceF
     }
 
     auto& cellCurvature = cellCurvatureTmp_.ref(); 
+    cellCurvature *= 0.0;
 
     // TODO: this kind of interpolation / transfer should be moved to
     // lentInterpolation or lentCommunication
