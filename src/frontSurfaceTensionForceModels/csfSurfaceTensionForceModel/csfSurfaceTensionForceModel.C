@@ -107,6 +107,7 @@ tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
     const triSurfaceFront& frontMesh 
 ) const
 {
+    /*
     const Time& runTime = mesh.time(); 
 
     const dictionary& transportProperties = 
@@ -118,8 +119,8 @@ tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
     const auto& cellCurvatureField = cellCurvature(mesh, frontMesh).ref();
 
     return sigma * cellCurvatureField * fvc::grad(filterField);
-    
-    //return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
+    */
+    return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

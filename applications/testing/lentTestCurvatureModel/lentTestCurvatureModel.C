@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
     // Rule out position errors caused by reconstruction
-    correctFront(front);
+    //correctFront(front);
     
     auto deviationTmp = sphereDeviation(front, mesh);
 
