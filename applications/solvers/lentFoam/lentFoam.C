@@ -132,8 +132,8 @@ int main(int argc, char *argv[])
 
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
-    // Lets make a fair comparison: recover exact sphere!
-    //correctFront(front, lent.dict());
+    // Lets make a fair comparison: recover exact surface!
+    correctFront(front, lent.dict());
 
     front.write();
 
@@ -163,13 +163,11 @@ int main(int argc, char *argv[])
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
-        /*
         if (runTime.timeIndex() <= 1)
         {
             correctFront(front, lent.dict());
             Info << "Front has been corrected" << endl;
         }
-        */
         
         // TODO: if front has been reconstructed, the signed distances (at least)
         // for the cell centres have to be recomputed to ensure the front-mesh

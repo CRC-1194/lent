@@ -76,6 +76,7 @@ test/errorMetrics/errorMetrics.C
 fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
 fronts/analyticalSurfaces/analyticalPlane/analyticalPlane.C
 fronts/analyticalSurfaces/analyticalSphere/analyticalSphere.C
+fronts/analyticalSurfaces/analyticalEllipsoid/analyticalEllipsoid.C
 fronts/analyticalSurfaces/analyticalCircle/analyticalCircle.C
 fronts/frontConstructor/frontConstructor/frontConstructor.C
 fronts/faceTriangulators/simpleTriangulator/simpleTriangulator.C
