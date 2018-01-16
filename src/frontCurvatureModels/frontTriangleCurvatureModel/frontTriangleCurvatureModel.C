@@ -78,34 +78,38 @@ void frontTriangleCurvatureModel::initializeCurvatureNormal(const fvMesh& mesh, 
 {
     const Time& runTime = mesh.time();  
 
-    curvatureNormalTmp_ = 
-        tmp<triSurfaceFrontVectorField> 
-        (
-            new triSurfaceFrontVectorField
+    if (curvatureNormalTmp_.empty())
+    {
+        curvatureNormalTmp_ = 
+            tmp<triSurfaceFrontVectorField> 
             (
-                IOobject(
-                    "curvature_normal", 
-                    runTime.timeName(), 
-                    front,
-                    IOobject::NO_READ, 
-                    IOobject::AUTO_WRITE
-                ), 
-                front, 
-                dimensionedVector(
-                    "zero", 
-                    dimless, 
-                    vector(0.0,0.0,0.0)
+                new triSurfaceFrontVectorField
+                (
+                    IOobject(
+                        "curvature_normal", 
+                        runTime.timeName(), 
+                        front,
+                        IOobject::NO_READ, 
+                        IOobject::AUTO_WRITE
+                    ), 
+                    front, 
+                    dimensionedVector(
+                        "zero", 
+                        dimless, 
+                        vector(0.0,0.0,0.0)
+                    )
                 )
-            )
-        );
+            );
+    }
+    else if (curvatureNormalTmp_->size() != front.UList<labelledTri>::size())
+    {
+        curvatureNormalTmp_->resize(front.UList<labelledTri>::size());
+    }
 }
 
 void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurfaceFront& front) const
 {
-    if (curvatureNormalTmp_.empty())
-    {
-        initializeCurvatureNormal(mesh, front);
-    }
+    initializeCurvatureNormal(mesh, front);
 
     auto& cn = curvatureNormalTmp_.ref();
     cn *= 0.0;
@@ -117,7 +121,6 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
     const auto& faces = front.localFaces();
     const auto& p = front.localPoints();
     const auto& triArea = front.magSf();
-
 
     forAll(faces, I)
     {
