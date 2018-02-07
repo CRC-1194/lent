@@ -79,6 +79,7 @@ fronts/analyticalSurfaces/analyticalPlane/analyticalPlane.C
 fronts/analyticalSurfaces/analyticalSphere/analyticalSphere.C
 fronts/analyticalSurfaces/analyticalEllipsoid/analyticalEllipsoid.C
 fronts/analyticalSurfaces/analyticalCircle/analyticalCircle.C
+fronts/analyticalSurfaces/analyticalEllipse/analyticalEllipse.C
 fronts/frontConstructor/frontConstructor/frontConstructor.C
 fronts/faceTriangulators/simpleTriangulator/simpleTriangulator.C
 fronts/frontMeshIntersection/cutCellVolumeCalculator/cutCellVolumeCalculator.C
