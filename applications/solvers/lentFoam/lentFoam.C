@@ -68,11 +68,15 @@ Description
 
 using namespace FrontTracking;
 
-void correctFront(triSurfaceFront& front, const dictionary& configDict)
+void correctFrontIfRequested(triSurfaceFront& front, const dictionary& configDict)
 {
-    auto surfaceTmp = analyticalSurface::New(configDict.subDict("frontSurface"));
-    const auto& frontSurface = surfaceTmp.ref();
-    frontSurface.moveFrontToSurface(front);
+    if (configDict.found("frontSurface"))
+    {
+        auto surfaceTmp = analyticalSurface::New(configDict.subDict("frontSurface"));
+        const auto& frontSurface = surfaceTmp.ref();
+        frontSurface.moveFrontToSurface(front);
+        Info << "Front has been corrected" << endl;
+    }
 }
 
 int main(int argc, char *argv[])
@@ -133,7 +137,7 @@ int main(int argc, char *argv[])
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
     // Lets make a fair comparison: recover exact surface!
-    correctFront(front, lent.dict());
+    correctFrontIfRequested(front, lent.dict());
 
     front.write();
 
@@ -165,8 +169,7 @@ int main(int argc, char *argv[])
 
         if (runTime.timeIndex() <= 1)
         {
-            correctFront(front, lent.dict());
-            Info << "Front has been corrected" << endl;
+            correctFrontIfRequested(front, lent.dict());
         }
         
         // TODO: if front has been reconstructed, the signed distances (at least)
@@ -197,11 +200,17 @@ int main(int argc, char *argv[])
         // However, LENT has no ability to compute the volumetric phase flux. 
         // TODO: examine the impact of the momentum flux computation and devise
         // more accurate approach if required (TT)
-        //
-        // old approach
-        rhoPhi == fvc::interpolate(rho) * phi;
-        // new approach: vol fraction based calculation of rho at the face
-        //#include "computeRhoPhi.H"
+        if (lent.dict().subDict("markerFieldModel").lookup("nSmoothingSteps") > 0)
+        {
+            // old approach, only works for diffuse markerfield
+            rhoPhi == fvc::interpolate(rho) * phi;
+        }
+        else
+        {
+            // new approach: vol fraction based calculation of rho at the face
+            // only works for a sharp, vol-fraction like markerfield
+            #include "computeRhoPhi.H"
+        }
         
 
         Info << "p-U algorithm ... " << endl;
