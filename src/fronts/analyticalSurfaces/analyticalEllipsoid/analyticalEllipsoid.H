@@ -76,24 +76,21 @@ class analyticalEllipsoid
 :
     public analyticalSurface
 {
-    using interval = FixedList<scalar,2>;
+
+public:
+    using parameterPair = FixedList<scalar,2>;
+
+private:
     
     // Private data
     point centre_;
     vector semiAxes_;
-    scalar tolerance_;
 
-    // Taken from exact ellipsoid curvature model
-    scalar devCosine(const scalar& longitude, const scalar& latitude, const point& p) const;
-    bool converged(const scalar& longitude, const scalar& latitude, const point& p) const;
-
-    point ellipsoidPoint(const scalar& longitude, const scalar& latitude) const;
-    scalar distanceFromParameters(const scalar& longitude, const scalar& latitude, const point& p) const;
-    scalar curvature(const scalar& longitude, const scalar& latitude) const;
-
-    interval findParameters(const point& p) const;
-    point projectToPositiveQuadrant(const point& p) const;
-    void undoQuadrantProjection(point& projection, const point& refPoint) const;
+    scalar levelSetValueOf(const point& aPoint) const;
+    vector levelSetGradientAt(const point& aPoint) const;
+    point moveToReferenceFrame(const point& aPoint) const;
+    parameterPair intersectEllipsoidWithLine(const point& refPoint, const vector& path) const;
+    
 
 public:
 

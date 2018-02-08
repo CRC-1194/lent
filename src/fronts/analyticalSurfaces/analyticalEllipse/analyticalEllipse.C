@@ -73,11 +73,11 @@ void analyticalEllipse::ensureValidHalfAxes()
 {
     // For this class to work correctly the half axis value of the
     // empty direction can be anything but zero
-    forAll(halfAxes_, I)
+    forAll(semiAxes_, I)
     {
-        if (halfAxes_[I] == 0.0)
+        if (semiAxes_[I] == 0.0)
         {
-            halfAxes_[I] = 1.0;
+            semiAxes_[I] = 1.0;
         }
     }
 }
@@ -97,7 +97,7 @@ scalar analyticalEllipse::levelSetValueOf(const point& aPoint) const
 
     forAll(aPoint, I)
     {
-        levelSetValue += pow(aPoint[I]/halfAxes_[I],2.0);
+        levelSetValue += pow(aPoint[I]/semiAxes_[I],2.0);
     }
 
     return levelSetValue; 
@@ -117,7 +117,7 @@ vector analyticalEllipse::levelSetGradientAt(const point& aPoint) const
 
     forAll(levelSetGradient, I)
     {
-        levelSetGradient[I] = 2.0/pow(halfAxes_[I],2.0)*aPoint[I];
+        levelSetGradient[I] = 2.0/pow(semiAxes_[I],2.0)*aPoint[I];
     }
 
     return levelSetGradient;
@@ -128,16 +128,47 @@ point analyticalEllipse::moveToReferenceFrame(const point& aPoint) const
     return (projector_&aPoint) - centre_;
 }
 
+analyticalEllipse::parameterPair analyticalEllipse::intersectEllipseWithLine(const point& refPoint, const vector& path) const
+{
+    parameterPair lambdas{};
+
+    // Idea for intersection: inserting the parametric description of a line
+    // composed by a refPoint and its path (direction) results in a quadratic
+    // equation for the intersection parameter lambda.
+    scalar a = 0.0;
+    scalar b = 0.0;
+    scalar c = -1.0;
+
+    forAll(refPoint, I)
+    {
+        a += std::pow(path[I]/semiAxes_[I],2.0);
+        b += 2.0*refPoint[I]*path[I]/std::pow(semiAxes_[I],2.0);
+        c += std::pow(refPoint[I]/semiAxes_[I],2.0);
+    }
+
+    // p-q formula...
+    auto p = b/a;
+    auto q = c/a;
+
+    // Since the directional vector is normal to the ellipse
+    // there must be two real valued solutions for the factor lambda
+    // corresponding to the two intersections of the line with the
+    // ellipse
+    lambdas[0] = -0.5*p + std::sqrt(std::pow(0.5*p,2.0) - q);
+    lambdas[1] = -0.5*p - std::sqrt(std::pow(0.5*p,2.0) - q);
+
+    return lambdas;
+}
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 analyticalEllipse::analyticalEllipse(const dictionary& configDict)
 :
     analyticalSurface{configDict},
     centre_{configDict.lookup("centre")},
-    halfAxes_{configDict.lookup("halfAxes")}
+    semiAxes_{configDict.lookup("halfAxes")}
 {
     vector emptyDirection = configDict.lookup("emptyDirection");
     projector_ = Identity<scalar>{} - emptyDirection*emptyDirection;
-    centre_ = projector_&centre_;
     ensureValidHalfAxes();
     ensureValidCentre();
 }
@@ -146,10 +177,9 @@ analyticalEllipse::analyticalEllipse(const point& centre, const vector& halfAxes
 :
    analyticalSurface{},
    centre_{centre},
-   halfAxes_{halfAxes}
+   semiAxes_{halfAxes}
 {
     projector_ = Identity<scalar>{} - emptyDirection*emptyDirection;
-    centre_ = projector_&centre_;
     ensureValidHalfAxes();
     ensureValidCentre();
 } 
@@ -172,41 +202,21 @@ scalar analyticalEllipse::signedDistance(const point& trialPoint) const
 
 point analyticalEllipse::normalProjectionToSurface(point& trialPoint) const
 {
-    auto refPoint = moveToReferenceFrame(trialPoint);
-
-    auto lGrad = levelSetGradientAt(refPoint);
-
     // Idea to find the normal projection on the ellipse: set up a line
     // using the refPoint and the level set gradient (which is normal to
     // the ellipse) as direction. Intersect this line with the level set
     // description of the ellipse which results in a quadratic equation to
     // be solved
-    scalar a = 0.0;
-    scalar b = 0.0;
-    scalar c = -1.0;
+    auto refPoint = moveToReferenceFrame(trialPoint);
 
-    forAll(refPoint, I)
-    {
-        a += std::pow(lGrad[I]/halfAxes_[I],2.0);
-        b += 2.0*refPoint[I]*lGrad[I]/std::pow(halfAxes_[I],2.0);
-        c += std::pow(refPoint[I]/halfAxes_[I],2.0);
-    }
+    auto lGrad = levelSetGradientAt(refPoint);
 
-    // p-q formula...
-    auto p = b/a;
-    auto q = c/a;
-
-    // Since the directional vector is normal to the ellipse
-    // there must be two real valued solutions for the factor lambda
-    // corresponding to the two intersections of the line with the
-    // ellipse
-    auto lambda1 = -0.5*p + std::sqrt(std::pow(0.5*p,2.0) - q);
-    auto lambda2 = -0.5*p - std::sqrt(std::pow(0.5*p,2.0) - q);
+    auto lambdas = intersectEllipseWithLine(refPoint, lGrad);
 
     // We want the intersection closer to refPoint, thus the lambda
     // with the smaller absolute value is the one we are looking for
     scalar lambda = 0.0;
-    mag(lambda1) < mag(lambda2) ? lambda = lambda1 : lambda = lambda2;
+    mag(lambdas[0]) < mag(lambdas[1]) ? lambda = lambdas[0] : lambda = lambdas[1];
 
     point ellipsePoint = refPoint + lambda*lGrad;
 
@@ -230,8 +240,60 @@ vector analyticalEllipse::normalToPoint(const point& trialPoint) const
 point analyticalEllipse::intersection(const point& pointA,
                                      const point& pointB) const
 {
-    notImplemented("analyticalEllipsoid::intersection(...)");
-    return point{0,0,0};
+    // Move to reference frame
+    auto refPointA = (projector_&pointA) - centre_;
+    auto refPointB = (projector_&pointB) - centre_;
+
+    auto lSetValueA = levelSetValueOf(refPointA);
+    auto lSetValueB = levelSetValueOf(refPointB);
+
+    // No intersection with elipsoid between A and B if their level set value
+    // has the same sign
+    // TODO: special case in which A and B form a tangent to the ellipse
+    // is not covered yet. (TT)
+    if (sign(lSetValueA) == sign(lSetValueB))
+    {
+        // Fatal Error
+        FatalErrorInFunction
+            << "Error: there is no intersection with ellipsoid between "
+            << "point " << pointA << " and point " << pointB
+            << abort(FatalError);
+    }
+    else if (lSetValueA == 0.0)
+    {
+        return pointA;
+    }
+    else if (lSetValueB == 0.0)
+    {
+        return pointB;
+    }
+
+    auto connection = refPointA - refPointB;
+    auto basePoint = refPointB;
+    auto emptyComponent = (Identity<scalar>{} - projector_)&pointB;
+
+    // Ensure the direction points from inside the ellipsoid to the outside.
+    // In this case solution of the quadratic equation will yield a positive
+    // and a negative lambda with the positive one being the sought after (TT)
+    if (lSetValueA < 0.0)
+    {
+        connection = refPointB -refPointA;
+        basePoint = refPointA;
+        emptyComponent = (Identity<scalar>{} - projector_)&pointA;
+    }
+    
+    // Compute intersection using line approach
+    auto lamdbas = intersectEllipseWithLine(refPointA, connection);
+    
+    // Decide which lambda is the sought after
+    scalar lamdba = lamdbas[0];
+
+    if (lamdbas[1] > 0.0)
+    {
+        lamdba = lamdbas[1];
+    }
+    
+    return basePoint + lamdba*connection + centre_ + emptyComponent;
 }
 
 
@@ -241,7 +303,7 @@ analyticalEllipse& analyticalEllipse::operator=(const analyticalEllipse& rhs)
     if (this != &rhs)
     {
         centre_ = rhs.centre_;
-        halfAxes_ = rhs.halfAxes_;
+        semiAxes_ = rhs.semiAxes_;
         projector_ = rhs.projector_;
     }
 

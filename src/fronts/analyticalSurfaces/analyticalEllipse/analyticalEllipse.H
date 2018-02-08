@@ -74,9 +74,15 @@ class analyticalEllipse
 :
     public analyticalSurface
 {
+
+public:
+    using parameterPair = FixedList<scalar,2>;
+
+private:
+
     // Private data
     point centre_;
-    vector halfAxes_;
+    vector semiAxes_;
     tensor projector_;
 
     // Private member functions
@@ -85,6 +91,7 @@ class analyticalEllipse
     scalar levelSetValueOf(const point& aPoint) const;
     vector levelSetGradientAt(const point& aPoint) const;
     point moveToReferenceFrame(const point& aPoint) const;
+    parameterPair intersectEllipseWithLine(const point& refPoint, const vector& path) const;
 
 public:
 
@@ -111,9 +118,9 @@ public:
         return centre_;
     }
 
-    virtual const vector& halfAxes() const
+    virtual const vector& semiAxes() const
     {
-        return halfAxes_;
+        return semiAxes_;
     }
 
     // Member operators
