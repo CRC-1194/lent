@@ -165,7 +165,7 @@ analyticalEllipse::analyticalEllipse(const dictionary& configDict)
 :
     analyticalSurface{configDict},
     centre_{configDict.lookup("centre")},
-    semiAxes_{configDict.lookup("halfAxes")}
+    semiAxes_{configDict.lookup("semiAxes")}
 {
     vector emptyDirection = configDict.lookup("emptyDirection");
     projector_ = Identity<scalar>{} - emptyDirection*emptyDirection;
