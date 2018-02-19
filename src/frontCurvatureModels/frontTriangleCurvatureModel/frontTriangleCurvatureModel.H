@@ -86,7 +86,7 @@ class frontTriangleCurvatureModel
 
     // Private Member Functions
     void initializeCurvatureNormal(const fvMesh&, const triSurfaceFront&) const;
-
+    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
 
 public:
 
@@ -97,9 +97,6 @@ public:
         
     //- Destructor
     virtual ~frontTriangleCurvatureModel() = default;
-
-    // Member Functions
-    virtual tmp<volScalarField> cellCurvature(const fvMesh&, const triSurfaceFront&) const; 
 };
 
 

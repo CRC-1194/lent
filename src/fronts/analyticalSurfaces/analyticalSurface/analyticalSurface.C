@@ -93,6 +93,19 @@ tmp<analyticalSurface> analyticalSurface::New(const dictionary& configDict)
     return tmp<analyticalSurface> (cstrIter()(configDict));
 }
 
+// * * * * * * * * * * * * * Public member functions * * * * * * * * * * * * //
+void analyticalSurface::moveFrontToSurface(triSurfaceFront& front) const
+{
+    auto& points = const_cast<pointField&>(front.points());
+
+    for (auto& vertex : points)
+    {
+        vertex = this->normalProjectionToSurface(vertex);
+    }
+
+    front.clearGeom();
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

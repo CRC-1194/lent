@@ -100,6 +100,8 @@ private:
 
     std::vector<label> findNeighbourCells(const fvMesh& mesh, const label& cellLabel) const;
 
+    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
+
 
 public:
 
@@ -111,13 +113,6 @@ public:
 
     //- Destructor
     virtual ~frontCompactDivGradCurvatureModel() = default;
-
-
-    // Member Functions
-    virtual tmp<volScalarField> cellCurvature(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const;  
 };
 
 

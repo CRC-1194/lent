@@ -78,67 +78,38 @@ void frontTriangleCurvatureModel::initializeCurvatureNormal(const fvMesh& mesh, 
 {
     const Time& runTime = mesh.time();  
 
-    curvatureNormalTmp_ = 
-        tmp<triSurfaceFrontVectorField> 
-        (
-            new triSurfaceFrontVectorField
-            (
-                IOobject(
-                    "curvature_normal", 
-                    runTime.timeName(), 
-                    front,
-                    IOobject::NO_READ, 
-                    IOobject::AUTO_WRITE
-                ), 
-                front, 
-                dimensionedVector(
-                    "zero", 
-                    dimless, 
-                    vector(0.0,0.0,0.0)
-                )
-            )
-        );
-}
-
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-frontTriangleCurvatureModel::frontTriangleCurvatureModel(const dictionary& configDict)
-:
-    frontCurvatureModel{configDict},
-    normalCalculatorTmp_{
-        frontVertexNormalCalculator::New(configDict.subDict("normalCalculator"))
-    },
-    curvatureNormalTmp_{}
-{}
-
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mesh, const triSurfaceFront& front) const
-{
-    const Time& runTime = mesh.time();  
-
-    tmp<volScalarField> cellCurvatureTmp(
-        new volScalarField(
-            IOobject(
-                "cellCurvature", 
-                runTime.timeName(), 
-                mesh, 
-                IOobject::NO_READ, 
-                IOobject::NO_WRITE
-            ), 
-            mesh, 
-            dimensionedScalar(
-                "zero", 
-                pow(dimLength, -1), 
-                0
-            )
-        )
-    );
-    
     if (curvatureNormalTmp_.empty())
     {
-        initializeCurvatureNormal(mesh, front);
+        curvatureNormalTmp_ = 
+            tmp<triSurfaceFrontVectorField> 
+            (
+                new triSurfaceFrontVectorField
+                (
+                    IOobject(
+                        "curvature_normal", 
+                        runTime.timeName(), 
+                        front,
+                        IOobject::NO_READ, 
+                        IOobject::AUTO_WRITE
+                    ), 
+                    front, 
+                    dimensionedVector(
+                        "zero", 
+                        dimless, 
+                        vector(0.0,0.0,0.0)
+                    )
+                )
+            );
     }
+    else if (curvatureNormalTmp_->size() != front.UList<labelledTri>::size())
+    {
+        curvatureNormalTmp_->resize(front.UList<labelledTri>::size());
+    }
+}
+
+void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurfaceFront& front) const
+{
+    initializeCurvatureNormal(mesh, front);
 
     auto& cn = curvatureNormalTmp_.ref();
     cn *= 0.0;
@@ -154,15 +125,17 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mes
     forAll(faces, I)
     {
         const auto& f = faces[I];
+
         cn[I] = 0.5*(
-                        ((p[f[0]] - p[f[2]]) ^ (n[f[0]] + n[f[2]]))
-                      + ((p[f[1]] - p[f[0]]) ^ (n[f[1]] + n[f[0]]))
+                        ((p[f[1]] - p[f[0]]) ^ (n[f[1]] + n[f[0]]))
                       + ((p[f[2]] - p[f[1]]) ^ (n[f[2]] + n[f[1]]))
+                      + ((p[f[0]] - p[f[2]]) ^ (n[f[0]] + n[f[2]]))
                     )
                     / triArea[I];
     }
 
-    auto& cellCurvature = cellCurvatureTmp.ref();
+    auto& cellCurvature = cellCurvatureTmp_.ref();
+    cellCurvature *= 0.0;
 
     // TODO: this kind of interpolation / transfer should be moved to
     // lentInterpolation or lentCommunication (TT)
@@ -171,6 +144,7 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mes
             lentCommunication::registeredName(front,mesh)
     ); 
 
+    /*
     const auto& cellsTriangleNearest = communication.cellsTriangleNearest();
     const auto& faceNormal = front.Sf();
 
@@ -185,9 +159,52 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(const fvMesh& mes
             cellCurvature[I] = mag(cn[fl])*sign(cn[fl]&faceNormal[fl]);
         }
     }
+    */
 
-    return cellCurvatureTmp;
+    // Test averaging
+    const auto& trianglesInCell = communication.interfaceCellToTriangles();
+    const auto& faceNormal = front.Sf();
+
+    for (const auto& cellTrianglesMap : trianglesInCell)
+    {
+        const auto& cellLabel = cellTrianglesMap.first;
+        const auto& triangleLabels = cellTrianglesMap.second;
+
+        for (const auto& tl : triangleLabels)
+        {
+            cellCurvature[cellLabel] += mag(cn[tl])*sign(cn[tl]&faceNormal[tl]);
+        }
+
+        cellCurvature[cellLabel] /= triangleLabels.size();
+    }
+
+    // Propagate to non-interface cells
+    const auto& cellToTriangle = communication.cellsTriangleNearest();
+    const auto& triangleToCell = communication.triangleToCell();
+
+    forAll(cellToTriangle, I)
+    {
+        const auto& hitObject = cellToTriangle[I];
+        
+        if (hitObject.hit())
+        {
+            cellCurvature[I] = cellCurvature[triangleToCell[hitObject.index()]];
+            //cellCurvatureField[I] = curvatureBuffer[hitObject.index()];
+        }
+    }
 }
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+frontTriangleCurvatureModel::frontTriangleCurvatureModel(const dictionary& configDict)
+:
+    frontCurvatureModel{configDict},
+    normalCalculatorTmp_{
+        frontVertexNormalCalculator::New(configDict.subDict("normalCalculator"))
+    },
+    curvatureNormalTmp_{}
+{}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

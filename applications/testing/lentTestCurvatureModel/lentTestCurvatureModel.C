@@ -66,21 +66,11 @@ bool fileIsEmpty(std::fstream& file)
     }
 }
 
-void correctFront(triSurfaceFront& front)
+void correctFront(triSurfaceFront& front, const dictionary& surfaceDict)
 {
-    vector centre{4.00001, 3.99999, 4.0000035};
-    scalar R = 2.0;
-
-    pointField& globalPoints = const_cast<pointField&>(front.points());
-
-    forAll(globalPoints, I)
-    {
-        auto dV = globalPoints[I] - centre;
-        dV /= mag(dV);
-        globalPoints[I] = centre + R*dV;
-    }
-
-    front.clearGeom();
+    tmp<analyticalSurface> surfaceTmp = analyticalSurface::New(surfaceDict);
+    const auto& surface = surfaceTmp.ref();
+    surface.moveFrontToSurface(front);
 }
 
 scalar averageRadius(const triSurfaceFront& front, const vector& centre)
@@ -171,7 +161,7 @@ int main(int argc, char *argv[])
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
     // Rule out position errors caused by reconstruction
-    correctFront(front);
+    correctFront(front, lent.dict().subDict("frontSurface"));
     
     auto deviationTmp = sphereDeviation(front, mesh);
 

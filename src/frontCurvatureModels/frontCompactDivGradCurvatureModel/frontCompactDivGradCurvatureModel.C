@@ -64,9 +64,14 @@ Description
 #include <iterator>
 
 #include "addToRunTimeSelectionTable.H"
-#include "triSurfaceFields.H"
+#include "fvcGrad.H" 
+#include "fvcDiv.H"
+#include "fvcLaplacian.H"
+#include "fvcAverage.H" 
+#include "surfaceInterpolate.H" 
 
 #include "lentCommunication.H"
+#include "triSurfaceFields.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -200,20 +205,7 @@ std::vector<label> frontCompactDivGradCurvatureModel::findNeighbourCells(
     return neighbourCells;
 }
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-frontCompactDivGradCurvatureModel::frontCompactDivGradCurvatureModel(const dictionary& configDict)
-    :
-        frontCurvatureModel(configDict),
-        distanceCorrection_{configDict.lookup("distanceCorrection")}
-{}
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-tmp<volScalarField> frontCompactDivGradCurvatureModel::cellCurvature(
-    const fvMesh& mesh, 
-    const triSurfaceFront& frontMesh
-) const
+void frontCompactDivGradCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurfaceFront& frontMesh) const
 {
     const Time& runTime = mesh.time();  
 
@@ -238,12 +230,34 @@ tmp<volScalarField> frontCompactDivGradCurvatureModel::cellCurvature(
                                     lentCommunication::registeredName(frontMesh, mesh)
                                 ); 
     const auto& triangleToCell = communication.triangleToCell();
-    auto cellCurvatureFieldTmp = frontCurvatureModel::cellCurvature(mesh, frontMesh);
-    auto& cellCurvatureField = cellCurvatureFieldTmp.ref();
 
-
+    // Copied from the frontCurvatureModel
     const volScalarField& curvatureInputField = 
         mesh.lookupObject<volScalarField>(curvatureInputFieldName()); 
+
+    const surfaceVectorField& Sf = mesh.Sf();
+
+    //Cell gradient of alpha
+    const volVectorField curvGrad(fvc::grad(curvatureInputField, "curvatureGradient"));
+
+    // Interpolated face-gradient of alpha
+    surfaceVectorField curvGradF(fvc::interpolate(curvGrad));
+
+    // Hardcoded stabilization of the gradient to avoid floating point
+    // exception.
+    dimensionedScalar deltaN
+    (
+        "deltaN",
+        curvatureInputField.dimensions() / dimLength, 
+        SMALL 
+    );
+
+    // Face unit interface normal
+    surfaceVectorField curvGradFhat(curvGradF /(mag(curvGradF) + deltaN));
+
+    auto& cellCurvatureField = cellCurvatureTmp_.ref();
+    cellCurvatureField = -fvc::div(curvGradFhat & Sf); 
+    // Copy end
 
     // Apply corrections
     if (distanceCorrection_ == "sphere")
@@ -289,9 +303,16 @@ tmp<volScalarField> frontCompactDivGradCurvatureModel::cellCurvature(
             cellCurvatureField[I] = curvatureBuffer[hitObject.index()];
         }
     }
-
-    return cellCurvatureFieldTmp;
 }
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+frontCompactDivGradCurvatureModel::frontCompactDivGradCurvatureModel(const dictionary& configDict)
+    :
+        frontCurvatureModel(configDict),
+        distanceCorrection_{configDict.lookup("distanceCorrection")}
+{}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

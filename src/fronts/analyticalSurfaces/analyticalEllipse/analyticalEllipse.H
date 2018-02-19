@@ -23,16 +23,16 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontAveragingCurvatureModel
+    Foam::analyticalEllipse
 
 SourceFiles
-    frontAveragingCurvatureModel.C
+    analyticalEllipse.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+    Specialization of the analyticalSurface class for an ellipse.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,58 +56,77 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#include "frontAveragingCurvatureModel.H"
-#include "addToRunTimeSelectionTable.H"
-#include "fvcAverage.H"
-#include "fvcDiv.H"
-#include "fvcGrad.H"
+#ifndef analyticalEllipse_H
+#define analyticalEllipse_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "analyticalSurface.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(frontAveragingCurvatureModel, 0);
-    addToRunTimeSelectionTable(frontCurvatureModel, frontAveragingCurvatureModel, Dictionary);
+/*---------------------------------------------------------------------------*\
+                         Class analyticalEllipse Declaration
+\*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * //
-void frontAveragingCurvatureModel::computeCurvature(const fvMesh&, const triSurfaceFront&) const
+class analyticalEllipse
+:
+    public analyticalSurface
 {
-    // Compute the curvature using the CSF model and an averaged field.
-    volScalarField inputFieldSmooth("smoothMarkerField", inputField()); 
 
-    for (label I = 0; I < averagingIterations_; ++I)
+public:
+    using parameterPair = FixedList<scalar,2>;
+
+private:
+
+    // Private data
+    point centre_;
+    vector semiAxes_;
+    tensor projector_;
+
+    // Private member functions
+    void ensureValidHalfAxes();
+    void ensureValidCentre();
+    scalar levelSetValueOf(const point& aPoint) const;
+    vector levelSetGradientAt(const point& aPoint) const;
+    point moveToReferenceFrame(const point& aPoint) const;
+    parameterPair intersectEllipseWithLine(const point& refPoint, const vector& path) const;
+
+public:
+
+    TypeName ("Ellipse");
+
+    // Constructors
+    analyticalEllipse() = default;
+    analyticalEllipse(const dictionary& configDict);
+    analyticalEllipse(const point& centre, const vector& halfAxes, const vector& emptyDirection);
+
+    //- Destructor
+    virtual ~analyticalEllipse() {};
+
+
+    // Member Functions
+    virtual scalar distance(const point& trialpoint) const;
+    virtual scalar signedDistance(const point& trialPoint) const;
+    virtual point normalProjectionToSurface(point& trialPoint) const;
+    virtual vector normalToPoint(const point& trialPoint) const;
+    virtual point intersection(const point& pointA, const point& pointB) const;
+
+    virtual point centre() const
     {
-        inputFieldSmooth == fvc::average(inputFieldSmooth);
+        return centre_;
     }
 
-    // Testing
-    inputFieldSmooth.write(); 
+    virtual const vector& semiAxes() const
+    {
+        return semiAxes_;
+    }
 
-    volVectorField cellGradSmooth = fvc::grad(inputFieldSmooth); 
+    // Member operators
+    virtual analyticalEllipse& operator=(const analyticalEllipse& rhs);
+};
 
-    normalizeVectorField(cellGradSmooth);
-
-    // Testing
-    cellGradSmooth.write(); 
-
-    auto& cellCurvature = cellCurvatureTmp_.ref();
-    cellCurvature = fvc::div(-1*cellGradSmooth);
-}
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-frontAveragingCurvatureModel::frontAveragingCurvatureModel(const dictionary& configDict, const Time& runTime)
-    :
-        frontCurvatureModel(configDict, runTime),
-        averagingIterations_(
-            configDict.lookupOrDefault<scalar>("averagingIterations", SMALL) 
-        )
-{}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
- 
-frontAveragingCurvatureModel::~frontAveragingCurvatureModel() {} 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -118,5 +137,7 @@ frontAveragingCurvatureModel::~frontAveragingCurvatureModel() {}
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

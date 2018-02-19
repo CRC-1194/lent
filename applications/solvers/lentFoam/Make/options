@@ -1,5 +1,6 @@
 EXE_INC = \
     -std=c++14 \
+    -I/usr/include/eigen3 \
     -I.. \
     -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
     -I$(LIB_SRC)/transportModels \

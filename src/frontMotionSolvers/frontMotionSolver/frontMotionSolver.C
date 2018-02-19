@@ -153,10 +153,10 @@ void frontMotionSolver::initDisplacements(
                 zeroDisplacement
             )
         );
-    } else
+    }
+    else if (frontDisplacementTmp_->size() != front.nPoints())
     {
         frontDisplacementTmp_->resize(front.nPoints()); 
-        //frontDisplacementTmp_.ref() = zeroDisplacement;  
     }
 }
 

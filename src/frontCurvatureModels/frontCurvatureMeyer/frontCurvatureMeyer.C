@@ -99,82 +99,8 @@ void frontCurvatureMeyer::initializeCurvatureNormal(const fvMesh& mesh, const tr
         };
 }
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-frontCurvatureMeyer::frontCurvatureMeyer(const dictionary& configDict) 
-    :
-        frontCurvatureModel{configDict},
-        curvatureNormalTmp_{}
-{}
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-labelList frontCurvatureMeyer::orderVertices(labelledTri& tri, label V) const
+void frontCurvatureMeyer::computeCurvature(const fvMesh& mesh, const triSurfaceFront& frontMesh) const
 {
-    labelList vertices(3);
-
-    if (tri[0] == V)
-    {
-        vertices[0] = tri[0];
-        vertices[1] = tri[1];
-        vertices[2] = tri[2];
-    }
-    else if (tri[1] == V)
-    {
-        vertices[0] = tri[1];
-        vertices[1] = tri[0];
-        vertices[2] = tri[2];
-    }
-    else
-    {
-        vertices[0] = tri[2];
-        vertices[1] = tri[0];
-        vertices[2] = tri[1];
-    }
-
-    return vertices;
-}
-
-
-scalar frontCurvatureMeyer::getAngle(vector& a, vector& b) const
-{
-    return Foam::acos((a & b) / (mag(a) * mag(b)));
-}
-
-
-// Cotangent function to resemble algorithm notion from paper
-// Removed trigonometric functions to prevent precision loss. TT
-scalar frontCurvatureMeyer::cot(vector a, vector b) const
-{
-    return a & b / mag(a ^ b);
-}
-
-
-tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
-    const fvMesh& mesh, 
-    const triSurfaceFront& frontMesh
-) const
-{
-    const Time& runTime = mesh.time();  
-
-    tmp<volScalarField> cellCurvatureTmp(
-        new volScalarField(
-            IOobject(
-                "cellCurvature", 
-                runTime.timeName(), 
-                mesh, 
-                IOobject::NO_READ, 
-                IOobject::NO_WRITE
-            ), 
-            mesh, 
-            dimensionedScalar(
-                "zero", 
-                pow(dimLength, -1), 
-                0
-            )
-        )
-    );
-    
     if (curvatureNormalTmp_.empty())
     {
         initializeCurvatureNormal(mesh, frontMesh);
@@ -260,7 +186,8 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
         cn[Vl] = cn[Vl] / (2.0 * Amix);
     }
 
-    volScalarField& cellCurvature = cellCurvatureTmp.ref(); 
+    auto& cellCurvature = cellCurvatureTmp_.ref(); 
+    cellCurvature *= 0.0;
 
     // TODO: this kind of interpolation / transfer should be moved to
     // lentInterpolation or lentCommunication
@@ -289,13 +216,56 @@ tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
     }
 
     cellCurvature /= 3.0;
-    /*
-    lentInterpolation interpolation;  // FIXME: Move to a data member. TM. 
+}
 
-    interpolation.interpolate(mag(cn), cellCurvature);
-    */
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-    return  cellCurvatureTmp; 
+frontCurvatureMeyer::frontCurvatureMeyer(const dictionary& configDict) 
+    :
+        frontCurvatureModel{configDict},
+        curvatureNormalTmp_{}
+{}
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+labelList frontCurvatureMeyer::orderVertices(labelledTri& tri, label V) const
+{
+    labelList vertices(3);
+
+    if (tri[0] == V)
+    {
+        vertices[0] = tri[0];
+        vertices[1] = tri[1];
+        vertices[2] = tri[2];
+    }
+    else if (tri[1] == V)
+    {
+        vertices[0] = tri[1];
+        vertices[1] = tri[0];
+        vertices[2] = tri[2];
+    }
+    else
+    {
+        vertices[0] = tri[2];
+        vertices[1] = tri[0];
+        vertices[2] = tri[1];
+    }
+
+    return vertices;
+}
+
+
+scalar frontCurvatureMeyer::getAngle(vector& a, vector& b) const
+{
+    return Foam::acos((a & b) / (mag(a) * mag(b)));
+}
+
+
+// Cotangent function to resemble algorithm notion from paper
+// Removed trigonometric functions to prevent precision loss. TT
+scalar frontCurvatureMeyer::cot(vector a, vector b) const
+{
+    return a & b / mag(a ^ b);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

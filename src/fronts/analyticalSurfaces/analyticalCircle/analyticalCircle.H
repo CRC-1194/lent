@@ -23,20 +23,16 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontExactCircleCurvatureModel
+    Foam::analyticalCircle
 
 SourceFiles
-    frontExactCircleCurvatureModel.C
+    analyticalCircle.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-
-    Computes the exact curvature used for testing the pressure-velocity
-    coupling against parasitic currents.
-
-    Computes the curvature of a circle. 
+    Specialization of the analyticalSurface class for a sphere.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -60,50 +56,65 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#include "frontExactCircleCurvatureModel.H"
-#include "addToRunTimeSelectionTable.H"
+#ifndef analyticalCircle_H
+#define analyticalCircle_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include <cmath>
+
+#include "analyticalSurface.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(frontExactCircleCurvatureModel, 0);
-    addToRunTimeSelectionTable(frontCurvatureModel, frontExactCircleCurvatureModel, Dictionary);
+/*---------------------------------------------------------------------------*\
+                         Class analyticalCircle Declaration
+\*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-frontExactCircleCurvatureModel::frontExactCircleCurvatureModel(const dictionary& configDict)
-    :
-        frontExactCurvatureModel(configDict), 
-        center_(configDict.lookup("center"))
+class analyticalCircle
+:
+    public analyticalSurface
 {
-}
+    // Private data
+    point centre_;
+    scalar radius_;
+    tensor projector_;
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+public:
 
-scalar frontExactCircleCurvatureModel::curvatureRadius(const point& p) const
-{
-    return mag(center_ - p); 
-}
+    TypeName ("Circle");
 
-scalar frontExactCircleCurvatureModel::curvatureAtPoint(const point& p) const
-{
-    scalar curvature = 0;
-   
-    const scalar curvRadius = curvatureRadius(p); 
+    // Constructors
+    analyticalCircle() = default;
+    analyticalCircle(const dictionary& configDict);
+    analyticalCircle(const point& centre, const scalar radius, const vector& emptyDirection);
 
-    if (curvRadius > SMALL) 
+    //- Destructor
+    virtual ~analyticalCircle() {};
+
+
+    // Member Functions
+    virtual scalar distance(const point& trialpoint) const;
+    virtual scalar signedDistance(const point& trialPoint) const;
+    virtual point normalProjectionToSurface(point& trialPoint) const;
+    virtual vector normalToPoint(const point& trialPoint) const;
+    virtual point intersection(const point& pointA, const point& pointB) const;
+
+    virtual point centre() const
     {
-        curvature = 1 / curvRadius;  
-    }
-    else
-    {
-        curvature = 0; 
+        return centre_;
     }
 
-    return curvature;
-}
+    virtual scalar radius() const
+    {
+        return radius_;
+    }
+
+    // Member operators
+    virtual analyticalCircle& operator=(const analyticalCircle& rhs);
+};
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -114,5 +125,7 @@ scalar frontExactCircleCurvatureModel::curvatureAtPoint(const point& p) const
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

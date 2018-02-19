@@ -23,27 +23,20 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontExactCircleCurvatureModel
+    Foam::parabolaFitting2DNormalCalculator
 
 SourceFiles
-    frontExactCircleCurvatureModel.C
+    parabolaFitting2DNormalCalculator.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
 
-    Computes the exact curvature used for testing the pressure-velocity
-    coupling against parasitic currents.
-
-    Computes the curvature of a circle: make sure that the circle center lies
-    on the appropriate height of the single cell layer 2D OpenFOAM mesh. 
-
-    Usage parameters:
-
-        type            circleCurvature;
-        writeExactCurvature yes;
-        center          ( 4 4 0.1 );
+    Compute the front vertex normals from a parabola fitted at each vertex.
+    The parameters of the parabola f(x,y)=ax^2 + bx
+    are found by solving a least-squares problem considering all vertices
+    of the two-ring neighbourhood.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -67,46 +60,66 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef parabolaFitting2DNormalCalculator_H
+#define parabolaFitting2DNormalCalculator_H
 
-#ifndef frontExactCircleCurvatureModel_H
-#define frontExactCircleCurvatureModel_H
+#include "quaternion.H"
 
-#include "frontExactCurvatureModel.H"
+#include "frontVertexNormalCalculator.H"
+
+#include <Eigen/Dense>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
+    using matrixXd = Eigen::Matrix<scalar, Eigen::Dynamic, Eigen::Dynamic>;
+    using vectorXd = Eigen::Matrix<scalar, Eigen::Dynamic, 1>;
+
 /*---------------------------------------------------------------------------*\
-                         Class frontExactCircleCurvatureModel Declaration
+                         Class parabolaFitting2DNormalCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class frontExactCircleCurvatureModel
-    :
-        public frontExactCurvatureModel 
+class parabolaFitting2DNormalCalculator
+:
+    public frontVertexNormalCalculator
 {
-    const vector center_; 
+private:
+    mutable tensor projector_;
+    mutable tmp<triSurfaceFrontPointVectorField> vertexNormalTmp_;
+    
+    // Abstraction of coordinates so the 2d problem can always be treated
+    // like z is the empty direction and to avoid further rotations
+    mutable scalar xRef_;
+    mutable scalar yRef_;
+    mutable scalar zRef_;
+
+    mutable vector emptyDirection_;
+    mutable vector heightDirection_;
+
+    void initializeVertexNormal(const fvMesh&, const triSurfaceFront&) const;
+
+    void computeProjectionData(const fvMesh& mesh) const;
+    quaternion rotationQuaternion(const triSurfaceFront& front, const label& pointLabel) const;
+    vectorXd fitParabola(const std::vector<Foam::vector>& points) const;
+    vector computeNormal(const vectorXd& coefficients, const quaternion& rotation) const;
 
 public:
 
-    TypeName ("circleCurvature");
+    TypeName ("parabolaFitting2D");
 
     // Constructors
-    explicit frontExactCircleCurvatureModel(const dictionary& configDict);
+    parabolaFitting2DNormalCalculator() = default;
+    explicit parabolaFitting2DNormalCalculator(const dictionary& configDict);
 
-    virtual ~frontExactCircleCurvatureModel() = default; 
-            
-    // Member Functions 
-    scalar curvatureRadius(const point& p) const;
+    //- Destructor
+    virtual ~parabolaFitting2DNormalCalculator() = default;
 
-    virtual scalar curvatureAtPoint(const point& p) const; 
-       
-    const vector& center() const
-    {
-        return center_; 
-    }
+    // Member Functions
+    virtual tmp<triSurfaceFrontPointVectorField> vertexNormals(const fvMesh&, const triSurfaceFront&) const;
 };
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

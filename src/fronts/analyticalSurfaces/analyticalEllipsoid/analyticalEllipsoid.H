@@ -23,26 +23,16 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontExactSphereCurvatureModel
+    Foam::analyticalEllipsoid
 
 SourceFiles
-    frontExactSphereCurvatureModel.C
+    analyticalEllipsoid.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-
-    Computes the exact curvature used for testing the pressure-velocity
-    coupling against parasitic currents.
-
-    Computes the exact curvature of a sphere as a field. 
-
-    Usage parameters:
-
-        type            sphereCurvature;
-        writeExactCurvature yes;
-        center          ( 4 4 0.1 );
+    Specialization of the analyticalSurface class for a sphere.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -66,11 +56,12 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef analyticalEllipsoid_H
+#define analyticalEllipsoid_H
 
-#ifndef frontExactSphereCurvatureModel_H
-#define frontExactSphereCurvatureModel_H
+#include <cmath>
 
-#include "frontExactCircleCurvatureModel.H"
+#include "analyticalSurface.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -78,26 +69,63 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class frontExactSphereCurvatureModel Declaration
+                         Class analyticalEllipsoid Declaration
 \*---------------------------------------------------------------------------*/
 
-class frontExactSphereCurvatureModel
-    :
-        public frontExactCircleCurvatureModel 
+class analyticalEllipsoid
+:
+    public analyticalSurface
 {
 
 public:
+    using parameterPair = FixedList<scalar,2>;
 
-    TypeName ("sphereCurvature");
+private:
+    
+    // Private data
+    point centre_;
+    vector semiAxes_;
+
+    scalar levelSetValueOf(const point& aPoint) const;
+    vector levelSetGradientAt(const point& aPoint) const;
+    point moveToReferenceFrame(const point& aPoint) const;
+    parameterPair intersectEllipsoidWithLine(const point& refPoint, const vector& path) const;
+    
+
+public:
+
+    TypeName ("Ellipsoid");
 
     // Constructors
-    explicit frontExactSphereCurvatureModel(const dictionary& configDict);
+    analyticalEllipsoid() = default;
+    analyticalEllipsoid(const dictionary& configDict);
+    analyticalEllipsoid(const point& centre, const vector& semiAxes, const scalar& tolerance);
 
-    virtual ~frontExactSphereCurvatureModel() = default; 
-            
-    // Member Functions 
-    virtual scalar curvatureAtPoint(const point& p) const; 
+    //- Destructor
+    virtual ~analyticalEllipsoid() {};
+
+
+    // Member Functions
+    virtual scalar distance(const point& trialpoint) const;
+    virtual scalar signedDistance(const point& trialPoint) const;
+    virtual point normalProjectionToSurface(point& trialPoint) const;
+    virtual vector normalToPoint(const point& trialPoint) const;
+    virtual point intersection(const point& pointA, const point& pointB) const;
+
+    virtual point centre() const
+    {
+        return centre_;
+    }
+
+    virtual vector semiAxes() const
+    {
+        return semiAxes_;
+    }
+
+    // Member operators
+    virtual analyticalEllipsoid& operator=(const analyticalEllipsoid& rhs);
 };
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

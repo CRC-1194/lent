@@ -60,12 +60,24 @@ Description
 #include "fvOptions.H"
 #include "CorrectPhi.H"
 #include "lentMethod.H"
+#include "analyticalSurface.H"
 
 #include "alphaFace.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
+
+void correctFrontIfRequested(triSurfaceFront& front, const dictionary& configDict)
+{
+    if (configDict.found("frontSurface"))
+    {
+        auto surfaceTmp = analyticalSurface::New(configDict.subDict("frontSurface"));
+        const auto& frontSurface = surfaceTmp.ref();
+        frontSurface.moveFrontToSurface(front);
+        Info << "Front has been corrected" << endl;
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -124,6 +136,9 @@ int main(int argc, char *argv[])
 
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
+    // Lets make a fair comparison: recover exact surface!
+    correctFrontIfRequested(front, lent.dict());
+
     front.write();
 
     // TODO: move this into a preprocessing application
@@ -150,28 +165,13 @@ int main(int argc, char *argv[])
             front
         );
 
-        lent.calcMarkerField(markerField);
-
-        // Update the viscosity. 
-        mixture.correct();
-
-        // Update density field.
-        rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
-
-        // The momentum flux is computed from MULES as  
-        // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
-        // However, LENT has no ability to compute the volumetric phase flux. 
-        // TODO: examine the impact of the momentum flux computation and devise
-        // more accurate approach if required (TT)
-        //
-        // old approach
-        rhoPhi == fvc::interpolate(rho) * phi;
-        // new approach: vol fraction based calculation of rho at the face
-        //#include "computeRhoPhi.H"
-        
-
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
+        if (runTime.timeIndex() <= 1)
+        {
+            correctFrontIfRequested(front, lent.dict());
+        }
+        
         // TODO: if front has been reconstructed, the signed distances (at least)
         // for the cell centres have to be recomputed to ensure the front-mesh
         // communication is up-to-date (TT)
@@ -186,6 +186,32 @@ int main(int argc, char *argv[])
             );
         }
 
+
+        lent.calcMarkerField(markerField);
+
+        // Update the viscosity. 
+        mixture.correct();
+
+        // Update density field.
+        rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
+
+        // The momentum flux is computed from MULES as  
+        // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
+        // However, LENT has no ability to compute the volumetric phase flux. 
+        // TODO: examine the impact of the momentum flux computation and devise
+        // more accurate approach if required (TT)
+        if (lent.dict().subDict("markerFieldModel").lookup("nSmoothingSteps") > 0)
+        {
+            // old approach, only works for diffuse markerfield
+            rhoPhi == fvc::interpolate(rho) * phi;
+        }
+        else
+        {
+            // new approach: vol fraction based calculation of rho at the face
+            // only works for a sharp, vol-fraction like markerfield
+            #include "computeRhoPhi.H"
+        }
+        
 
         Info << "p-U algorithm ... " << endl;
         // --- Pressure-velocity PIMPLE corrector loop
