@@ -84,22 +84,23 @@ private:
     
     // Private data
     point centre_;
-    vector semiAxes_;
+    vector oneBySemiAxisSqr_;
 
     scalar levelSetValueOf(const point& aPoint) const;
     vector levelSetGradientAt(const point& aPoint) const;
     point moveToReferenceFrame(const point& aPoint) const;
     parameterPair intersectEllipsoidWithLine(const point& refPoint, const vector& path) const;
+    scalar ellipsoidCurvature(const point& p) const;
     
 
 public:
 
-    TypeName ("Ellipsoid");
+    TypeName ("ellipsoid");
 
     // Constructors
     analyticalEllipsoid() = default;
     analyticalEllipsoid(const dictionary& configDict);
-    analyticalEllipsoid(const point& centre, const vector& semiAxes, const scalar& tolerance);
+    analyticalEllipsoid(const point& centre, const vector& semiAxes);
 
     //- Destructor
     virtual ~analyticalEllipsoid() {};
@@ -111,15 +112,23 @@ public:
     virtual point normalProjectionToSurface(point& trialPoint) const;
     virtual vector normalToPoint(const point& trialPoint) const;
     virtual point intersection(const point& pointA, const point& pointB) const;
+    virtual scalar curvatureAt(const point& p) const;
 
     virtual point centre() const
     {
         return centre_;
     }
 
-    virtual vector semiAxes() const
+    virtual vector semiAxes() const;
+    
+    virtual void setOneBySemiAxisSquare(const vector& oneBySemiAxisSquare)
     {
-        return semiAxes_;
+        oneBySemiAxisSqr_ = oneBySemiAxisSquare;
+    }
+
+    virtual void setCentre(const vector& newCentre)
+    {
+        centre_ = newCentre;
     }
 
     // Member operators

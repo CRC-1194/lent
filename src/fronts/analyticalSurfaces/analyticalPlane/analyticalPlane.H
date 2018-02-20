@@ -81,7 +81,7 @@ class analyticalPlane
 
 public:
 
-    TypeName ("Plane");
+    TypeName ("plane");
 
     // Constructors
     analyticalPlane() = default;
@@ -98,6 +98,10 @@ public:
     virtual point normalProjectionToSurface(point& trialPoint) const;
     virtual vector normalToPoint(const point& trialPoint) const;
     virtual point intersection(const point& pointA, const point& pointB) const;
+    virtual scalar curvatureAt(const point& p) const
+    {
+        return 0.0;
+    }
 
     virtual vector normal() const
     {

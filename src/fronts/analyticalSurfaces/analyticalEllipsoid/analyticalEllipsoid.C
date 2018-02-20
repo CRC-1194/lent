@@ -70,12 +70,13 @@ namespace FrontTracking {
 scalar analyticalEllipsoid::levelSetValueOf(const point& aPoint) const
 {
     // This function resembles
-    // f(aPoint) = (x/a)^2 + (y/b)^2 + (z/c)^2 - 1
+    // f(aPoint) = qx^2 + ry^2 + sz^2 - 1, where q, r, s are one by semi-axis
+    // squared
     scalar levelSetValue = -1.0;
 
     forAll(aPoint, I)
     {
-        levelSetValue += pow(aPoint[I]/semiAxes_[I],2.0);
+        levelSetValue += oneBySemiAxisSqr_[I]*aPoint[I]*aPoint[I];
     }
 
     return levelSetValue; 
@@ -95,7 +96,7 @@ vector analyticalEllipsoid::levelSetGradientAt(const point& aPoint) const
 
     forAll(levelSetGradient, I)
     {
-        levelSetGradient[I] = 2.0/pow(semiAxes_[I],2.0)*aPoint[I];
+        levelSetGradient[I] = 2.0*oneBySemiAxisSqr_[I]*aPoint[I];
     }
 
     return levelSetGradient;
@@ -113,29 +114,48 @@ analyticalEllipsoid::parameterPair analyticalEllipsoid::intersectEllipsoidWithLi
     // equation for the intersection parameter lambda.
     parameterPair lambdas{};
 
-    scalar a = 0.0;
-    scalar b = 0.0;
-    scalar c = -1.0;
+    scalar quadCoeff = 0.0;
+    scalar linCoeff = 0.0;
+    scalar absCoeff = -1.0; // Already include the "-1" from the level set equation
 
     forAll(refPoint, I)
     {
-        a += std::pow(path[I]/semiAxes_[I],2.0);
-        b += 2.0*refPoint[I]*path[I]/std::pow(semiAxes_[I],2.0);
-        c += std::pow(refPoint[I]/semiAxes_[I],2.0);
+        quadCoeff += oneBySemiAxisSqr_[I]*path[I]*path[I];
+        linCoeff += 2.0*oneBySemiAxisSqr_[I]*refPoint[I]*path[I];
+        absCoeff += oneBySemiAxisSqr_[I]*refPoint[I]*refPoint[I];
     }
 
     // p-q formula...
-    auto p = b/a;
-    auto q = c/a;
+    auto p = linCoeff/quadCoeff;
+    auto q = absCoeff/quadCoeff;
 
-    // Since the directional vector is normal to the ellipse
-    // there must be two real valued solutions for the factor lambda
-    // corresponding to the two intersections of the line with the
-    // ellipse
+    // It is the responsibility of the user of this class to request
+    // existing intersections only. Thus, a negative discriminant will
+    // terminate the program
+    assert((0.25*linCoeff*linCoeff - absCoeff) >= 0.0 &&
+            "analyticalEllipsoid::intersectEllipsoidWithLine: no real-valued intersection found.");
+
     lambdas[0] = -0.5*p + std::sqrt(std::pow(0.5*p,2.0) - q);
     lambdas[1] = -0.5*p - std::sqrt(std::pow(0.5*p,2.0) - q);
 
     return lambdas;
+}
+
+scalar analyticalEllipsoid::ellipsoidCurvature(const point& p) const
+{
+    // See the notes on the level set equation used for fitting for a
+    // derivation of the ellipsoid curvature from a level set representation.
+    // It boils down to write the level set equation of an ellipsoid
+    // phi = qx^2 + ry^2 + sz^2 - 1 = 0 and apply
+    // kappa = -div(grad(phi)/mag(grad(phi))).
+    auto g = levelSetGradientAt(p);
+    auto D = mag(g);
+
+    scalar kappa = (g.y()*g.y() + g.z()*g.z())*oneBySemiAxisSqr_.x()
+                 + (g.x()*g.x() + g.z()*g.z())*oneBySemiAxisSqr_.y()
+                 + (g.x()*g.x() + g.y()*g.y())*oneBySemiAxisSqr_.z();
+
+    return -2.0*kappa/(D*D*D + SMALL);
 }
 
 
@@ -144,16 +164,26 @@ analyticalEllipsoid::analyticalEllipsoid(const dictionary& configDict)
 :
     analyticalSurface{configDict},
     centre_{configDict.lookup("centre")},
-    semiAxes_{configDict.lookup("semiAxes")}
+    oneBySemiAxisSqr_{}
 {
+    vector semiAxes{configDict.lookup("semiAxes")};
+
+    forAll(semiAxes, I)
+    {
+        oneBySemiAxisSqr_[I] = 1.0/(semiAxes[I]*semiAxes[I]);
+    }
 }
 
-analyticalEllipsoid::analyticalEllipsoid(const point& centre, const vector& semiAxes, const scalar& tolerance)
+analyticalEllipsoid::analyticalEllipsoid(const point& centre, const vector& semiAxes)
 :
    analyticalSurface{},
    centre_{centre},
-   semiAxes_{semiAxes}
+   oneBySemiAxisSqr_{}
 {
+    forAll(semiAxes, I)
+    {
+        oneBySemiAxisSqr_[I] = 1.0/(semiAxes[I]*semiAxes[I]);
+    }
 } 
 
 
@@ -265,14 +295,33 @@ point analyticalEllipsoid::intersection(const point& pointA,
     return basePoint + lamdba*connection + centre_;
 }
 
+scalar analyticalEllipsoid::curvatureAt(const point& p) const
+{
+    point pCopy{p};
+    auto pOnEllipsoid = normalProjectionToSurface(pCopy);
 
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+    return ellipsoidCurvature(pOnEllipsoid);
+}
+
+vector analyticalEllipsoid::semiAxes() const
+{
+    vector semiAxes{};
+
+    forAll(semiAxes, I)
+    {
+        semiAxes[I] = sqrt(1.0/(oneBySemiAxisSqr_[I] + SMALL));
+    }
+
+    return semiAxes;
+}
+
+// * * * * * * * * * * * * * * Member Operators    * * * * * * * * * * * * * * //
 analyticalEllipsoid& analyticalEllipsoid::operator=(const analyticalEllipsoid& rhs)
 {
     if (this != &rhs)
     {
         centre_ = rhs.centre_;
-        semiAxes_= rhs.semiAxes_;
+        oneBySemiAxisSqr_= rhs.oneBySemiAxisSqr_;
     }
 
     return *this;

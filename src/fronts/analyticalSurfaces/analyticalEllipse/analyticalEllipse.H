@@ -59,7 +59,7 @@ Description
 #ifndef analyticalEllipse_H
 #define analyticalEllipse_H
 
-#include "analyticalSurface.H"
+#include "analyticalEllipsoid.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -72,35 +72,28 @@ namespace FrontTracking {
 
 class analyticalEllipse
 :
-    public analyticalSurface
+    public analyticalEllipsoid
 {
-
-public:
-    using parameterPair = FixedList<scalar,2>;
 
 private:
 
     // Private data
-    point centre_;
-    vector semiAxes_;
     tensor projector_;
 
     // Private member functions
-    void ensureValidHalfAxes();
-    void ensureValidCentre();
-    scalar levelSetValueOf(const point& aPoint) const;
-    vector levelSetGradientAt(const point& aPoint) const;
-    point moveToReferenceFrame(const point& aPoint) const;
-    parameterPair intersectEllipseWithLine(const point& refPoint, const vector& path) const;
+    vector computeOneBySemiAxisSquare(const vector& semiAxes) const;
+    point projectToReferencePlane(const point& aPoint) const;
+    point emptyComponent(const point& aPoint) const;
+
 
 public:
 
-    TypeName ("Ellipse");
+    TypeName ("ellipse");
 
     // Constructors
     analyticalEllipse() = default;
     analyticalEllipse(const dictionary& configDict);
-    analyticalEllipse(const point& centre, const vector& halfAxes, const vector& emptyDirection);
+    analyticalEllipse(const point& centre, const vector& semiAxes, const vector& emptyDirection);
 
     //- Destructor
     virtual ~analyticalEllipse() {};
@@ -112,16 +105,7 @@ public:
     virtual point normalProjectionToSurface(point& trialPoint) const;
     virtual vector normalToPoint(const point& trialPoint) const;
     virtual point intersection(const point& pointA, const point& pointB) const;
-
-    virtual point centre() const
-    {
-        return centre_;
-    }
-
-    virtual const vector& semiAxes() const
-    {
-        return semiAxes_;
-    }
+    virtual scalar curvatureAt(const point& p) const;
 
     // Member operators
     virtual analyticalEllipse& operator=(const analyticalEllipse& rhs);

@@ -83,7 +83,7 @@ class analyticalCircle
 
 public:
 
-    TypeName ("Circle");
+    TypeName ("circle");
 
     // Constructors
     analyticalCircle() = default;
@@ -100,6 +100,10 @@ public:
     virtual point normalProjectionToSurface(point& trialPoint) const;
     virtual vector normalToPoint(const point& trialPoint) const;
     virtual point intersection(const point& pointA, const point& pointB) const;
+    virtual scalar curvatureAt(const point& p) const
+    {
+        return -1.0/radius();
+    }
 
     virtual point centre() const
     {
