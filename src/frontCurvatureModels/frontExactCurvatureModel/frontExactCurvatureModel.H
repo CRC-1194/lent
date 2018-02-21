@@ -64,6 +64,8 @@ Description
 
 #include "frontCurvatureModel.H"
 
+#include "analyticalSurface.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
@@ -78,8 +80,11 @@ class frontExactCurvatureModel
         public frontCurvatureModel 
 {
     const Switch write_; 
+    tmp<analyticalSurface> surfaceTmp_;
 
 public:
+
+    TypeName ("exactCurvature");
 
     // Constructors
     explicit frontExactCurvatureModel(const dictionary& configDict);
@@ -88,7 +93,7 @@ public:
     virtual ~frontExactCurvatureModel() = default;
         
     // Member functions
-    virtual scalar curvatureAtPoint(const point& p) const = 0; 
+    virtual scalar curvatureAtPoint(const point& p) const; 
 
     virtual tmp<volScalarField> cellCurvature(
         const fvMesh&, 

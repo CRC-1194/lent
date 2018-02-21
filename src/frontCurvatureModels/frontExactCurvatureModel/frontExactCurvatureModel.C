@@ -59,21 +59,30 @@ Description
 #include "fvcAverage.H"
 #include "fvcDiv.H"
 #include "fvcGrad.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
+    defineTypeNameAndDebug(frontExactCurvatureModel, 0);
+    addToRunTimeSelectionTable(frontCurvatureModel, frontExactCurvatureModel, Dictionary);
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontExactCurvatureModel::frontExactCurvatureModel(const dictionary& configDict)
     :
-        frontCurvatureModel(configDict), 
-        write_(configDict.lookupOrDefault<Switch>("write", "off"))
+        frontCurvatureModel{configDict}, 
+        write_{configDict.lookupOrDefault<Switch>("write", "off")},
+        surfaceTmp_{analyticalSurface::New(configDict.subDict("frontSurface"))}
 {}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+scalar frontExactCurvatureModel::curvatureAtPoint(const point& p) const
+{
+    return surfaceTmp_.ref().curvatureAt(p);
+}
 
 tmp<volScalarField> frontExactCurvatureModel::cellCurvature(
     const fvMesh& mesh, 
