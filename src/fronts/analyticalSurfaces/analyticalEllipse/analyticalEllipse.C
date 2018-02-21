@@ -59,6 +59,9 @@ Description
 #include "analyticalEllipse.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include <cmath>
+#include <assert.h>
+
 namespace Foam {
 namespace FrontTracking {
 
@@ -66,120 +69,323 @@ namespace FrontTracking {
     addToRunTimeSelectionTable(analyticalSurface, analyticalEllipse, Dictionary);
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-vector analyticalEllipse::computeOneBySemiAxisSquare(const vector& semiAxes) const
+void analyticalEllipse::ensureValidHalfAxes()
 {
-    vector oneBySemiAxisSquare{};
-
-    forAll(semiAxes, I)
+    // For this class to work correctly the half axis value of the
+    // empty direction can be anything but zero
+    forAll(semiAxes_, I)
     {
-        oneBySemiAxisSquare[I] = 1.0/(semiAxes[I]*semiAxes[I]);
+        if (semiAxes_[I] == 0.0)
+        {
+            semiAxes_[I] = 1.0;
+        }
+    }
+}
+
+void analyticalEllipse::ensureValidCentre()
+{
+    // The empty direction component of the centre has to be zero
+    // for this class to work properly
+    centre_ = projector_&centre_;
+}
+
+scalar analyticalEllipse::levelSetValueOf(const point& aPoint) const
+{
+    // This function resembles
+    // f(aPoint) = (x/a)^2 + (y/b)^2 + (z/c)^2 - 1
+    scalar levelSetValue = -1.0;
+
+    forAll(aPoint, I)
+    {
+        levelSetValue += pow(aPoint[I]/semiAxes_[I],2.0);
     }
 
-    // This gives zero for the empty direction and is equivalent
-    // to an infinite semi axis: this transforms the ellipsoid
-    // into an ellipse
-    oneBySemiAxisSquare = projector_&oneBySemiAxisSquare;
-
-    return oneBySemiAxisSquare;
+    return levelSetValue; 
 }
 
-point analyticalEllipse::projectToReferencePlane(const point& aPoint) const
+vector analyticalEllipse::levelSetGradientAt(const point& aPoint) const
 {
-    return projector_&aPoint;
+    vector levelSetGradient{0,0,0};
+
+    if (mag(aPoint - centre_) < SMALL)
+    {
+        FatalErrorInFunction
+            << "Cannot compute level set gradient for a point which "
+            << " coincides with the ellipse centre."
+            << abort(FatalError);
+    }
+
+    forAll(levelSetGradient, I)
+    {
+        levelSetGradient[I] = 2.0/pow(semiAxes_[I],2.0)*aPoint[I];
+    }
+
+    return levelSetGradient;
 }
 
-point analyticalEllipse::emptyComponent(const point& aPoint) const
+point analyticalEllipse::moveToReferenceFrame(const point& aPoint) const
+{
+    return (projector_&aPoint) - centre_;
+}
+
+vector analyticalEllipse::emptyComponent(const point& aPoint) const
 {
     return ((Identity<scalar>{} - projector_) & aPoint);
 }
 
+analyticalEllipse::parameterPair analyticalEllipse::intersectEllipseWithLine(const point& refPoint, const vector& path) const
+{
+    parameterPair lambdas{};
+
+    // Idea for intersection: inserting the parametric description of a line
+    // composed by a refPoint and its path (direction) results in a quadratic
+    // equation for the intersection parameter lambda.
+    scalar a = 0.0;
+    scalar b = 0.0;
+    scalar c = -1.0;
+
+    forAll(refPoint, I)
+    {
+        a += std::pow(path[I]/semiAxes_[I],2.0);
+        b += 2.0*refPoint[I]*path[I]/std::pow(semiAxes_[I],2.0);
+        c += std::pow(refPoint[I]/semiAxes_[I],2.0);
+    }
+
+    // p-q formula...
+    auto p = b/a;
+    auto q = c/a;
+
+    // It is up to the user of this function to ensure
+    // that an intersection exists. Thus a negative discriminant
+    // is considered an error.
+    assert((0.25*p*p - q) >= 0.0 &&
+            "Error in analyticalEllipse::intersectEllipseWithLine: no intersection with ellipse found.");
+
+    lambdas[0] = -0.5*p + std::sqrt(std::pow(0.5*p,2.0) - q);
+    lambdas[1] = -0.5*p - std::sqrt(std::pow(0.5*p,2.0) - q);
+
+    return lambdas;
+}
+
+scalar analyticalEllipse::ellipseCurvature(const point& aPoint) const
+{
+    scalar curvature = 0.0;
+
+    vector oneBySemiAxisSqr{0,0,0};
+
+    forAll(oneBySemiAxisSqr, I)
+    {
+        oneBySemiAxisSqr[I] = 1.0/(semiAxes_[I]*semiAxes_[I] + SMALL);
+    }
+
+    // Remove empty component
+    oneBySemiAxisSqr = projector_&oneBySemiAxisSqr;
+
+    auto g = levelSetGradientAt(aPoint);
+    auto magGrad = mag(g);
+    
+    curvature = oneBySemiAxisSqr.x()*(g.y()*g.y() + g.z()*g.z())
+              + oneBySemiAxisSqr.y()*(g.x()*g.x() + g.z()*g.z())
+              + oneBySemiAxisSqr.z()*(g.x()*g.x() + g.y()*g.y());
+
+    return -2.0/(magGrad*magGrad*magGrad)*curvature;
+}
+
+scalar analyticalEllipse::bisection(const std::function< scalar(scalar)>& rootFunction, analyticalEllipse::parameterPair interval) const
+{
+    auto midPoint = 0.5*(interval[0] + interval[1]);
+    scalar valueAtMidPoint = rootFunction(midPoint);
+
+    // TODO: set hard limit for iteration count? (TT)
+    while(mag(valueAtMidPoint) > 1.0e-13 && mag(midPoint - interval[1]) > 1.0e-13)
+    {
+        if (rootFunction(interval[0])*valueAtMidPoint > 0.0)
+        {
+            interval[0] = midPoint;
+        }
+        else
+        {
+            interval[1] = midPoint;
+        }
+
+        midPoint = 0.5*(interval[0] + interval[1]);
+        valueAtMidPoint = rootFunction(midPoint);
+    }
+
+    return midPoint;
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 analyticalEllipse::analyticalEllipse(const dictionary& configDict)
 :
-    analyticalEllipsoid{configDict},
-    projector_{}
+    analyticalSurface{configDict},
+    centre_{configDict.lookup("centre")},
+    semiAxes_{configDict.lookup("semiAxes")}
 {
     vector emptyDirection = configDict.lookup("emptyDirection");
     projector_ = Identity<scalar>{} - emptyDirection*emptyDirection;
-
-    vector centre{configDict.lookup("centre")};
-    centre = projector_&centre;
-    setCentre(centre);
-
-    vector semiAxes{configDict.lookup("semiAxes")};
-    auto oneBySemiAxisSquare = computeOneBySemiAxisSquare(semiAxes);
-    setOneBySemiAxisSquare(oneBySemiAxisSquare);
+    ensureValidHalfAxes();
+    ensureValidCentre();
 }
 
 analyticalEllipse::analyticalEllipse(const point& centre, const vector& semiAxes, const vector& emptyDirection)
 :
-   analyticalEllipsoid{centre, semiAxes},
-   projector_{}
+   analyticalSurface{},
+   centre_{centre},
+   semiAxes_{semiAxes}
 {
     projector_ = Identity<scalar>{} - emptyDirection*emptyDirection;
-
-    auto projectedCentre = projector_&centre;
-    setCentre(projectedCentre);
-
-    auto oneBySemiAxisSquare = computeOneBySemiAxisSquare(semiAxes);
-    setOneBySemiAxisSquare(oneBySemiAxisSquare);
+    ensureValidHalfAxes();
+    ensureValidCentre();
 } 
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 scalar analyticalEllipse::distance(const point& trialPoint) const
 {
-    auto projection = projectToReferencePlane(trialPoint);
-
-    return analyticalEllipsoid::distance(projection);
+    return fabs(signedDistance(trialPoint));
 }
 
 scalar analyticalEllipse::signedDistance(const point& trialPoint) const
 {
-    auto projection = projectToReferencePlane(trialPoint);
+    auto copyPoint{trialPoint};
+    auto projectedPoint = moveToReferenceFrame(trialPoint);
+    auto surfaceProjection = normalProjectionToSurface(copyPoint);
 
-    return analyticalEllipsoid::signedDistance(projection);
+    return sign(levelSetValueOf(projectedPoint))*mag(surfaceProjection - projectedPoint);
 }
 
 point analyticalEllipse::normalProjectionToSurface(point& trialPoint) const
 {
-    auto projection = projectToReferencePlane(trialPoint);
+    point pointOnSurface{0,0,0};
 
-    return analyticalEllipsoid::normalProjectionToSurface(projection)
-            + emptyComponent(trialPoint);
+    // Move trial point to first quadrant of reference frame
+    auto refPoint = moveToReferenceFrame(trialPoint);
+    auto p = refPoint;
+    forAll(p, I)
+    {
+        p[I] = fabs(p[I]);
+    }
+
+    vector a{semiAxes_};
+    auto minDistanceParameter = [&a,&p](scalar t)
+            {
+                auto term1 = a.x()*p.x()/(a.x()*a.x() + t);
+                auto term2 = a.y()*p.y()/(a.y()*a.y() + t);
+                auto term3 = a.z()*p.z()/(a.z()*a.z() + t);
+
+                return term1*term1 + term2*term2 + term3*term3 - 1.0;
+            };
+
+    // TODO: the code below assumes that the x semi axis is larger than
+    // the y one and that z is the empty direction (TT)
+    parameterPair interval{};
+    interval[0] = -1.0*a.y()*a.y() + a.y()*p.y();
+    interval[1] = -1.0*a.y()*a.y() + sqrt(a.x()*a.x()*p.x()*p.x()
+                                                +a.y()*a.y()*p.y()*p.y());
+
+    auto lambdaMin = bisection(minDistanceParameter, interval);
+    
+    pointOnSurface.x() = a.x()*a.x()*p.x() / (a.x()*a.x() + lambdaMin);
+    pointOnSurface.y() = a.y()*a.y()*p.y() / (a.y()*a.y() + lambdaMin);
+    pointOnSurface.z() = a.z()*a.z()*p.z() / (a.z()*a.z() + lambdaMin);
+
+    // Move point on surface to correct quadrant
+    forAll(pointOnSurface, I)
+    {
+        pointOnSurface[I] *= sign(refPoint[I]);
+    }
+
+    return pointOnSurface + centre_ + emptyComponent(trialPoint);
 }
 
 vector analyticalEllipse::normalToPoint(const point& trialPoint) const
 {
-    auto projection = projectToReferencePlane(trialPoint);
+    // NOTE: using the level set gradient rather than the connection
+    // between the refPoint and pointOnSurface is more stable for points
+    // close to the interface (TT)
+    auto refPoint = moveToReferenceFrame(trialPoint);
+    auto levelSetValue = levelSetValueOf(refPoint);
+    
+    point copyPoint{trialPoint};
+    auto pointOnSurface = normalProjectionToSurface(copyPoint);
+    auto gradient = levelSetGradientAt(pointOnSurface);
 
-    return analyticalEllipsoid::normalToPoint(projection);
+    return sign(levelSetValue)*gradient/mag(gradient);
 }
 
 point analyticalEllipse::intersection(const point& pointA,
                                      const point& pointB) const
 {
-    auto projectionA = projectToReferencePlane(pointA);
-    auto projectionB = projectToReferencePlane(pointB);
+    auto refPointA = moveToReferenceFrame(pointA);
+    auto refPointB = moveToReferenceFrame(pointB);
 
-    auto interSec = analyticalEllipsoid::intersection(projectionA, projectionB);
+    auto lSetValueA = levelSetValueOf(refPointA);
+    auto lSetValueB = levelSetValueOf(refPointB);
 
-    // Sweet linearity: use the ratio of the projected points and their
-    // intersection to compute a distance ratio. Then contruct the
-    // intersection of the original points with this distance ratio.
-    auto distanceBA = mag(projectionA - projectionB);
-    auto distanceBIntersection = mag(interSec - projectionB);
-    auto lambda = distanceBIntersection/distanceBA;
+    // No intersection with elipsoid between A and B if their level set value
+    // has the same sign
+    // TODO: special case in which A and B form a tangent to the ellipse
+    // is not covered yet. (TT)
+    if (sign(lSetValueA) == sign(lSetValueB))
+    {
+        // Fatal Error
+        FatalErrorInFunction
+            << "Error: there is no intersection with ellipsoid between "
+            << "point " << pointA << " and point " << pointB
+            << abort(FatalError);
+    }
+    else if (lSetValueA == 0.0)
+    {
+        return pointA;
+    }
+    else if (lSetValueB == 0.0)
+    {
+        return pointB;
+    }
 
-    return pointB + lambda*(pointA - pointB);
+    auto connection = refPointA - refPointB;
+    auto basePoint = refPointB;
+    auto emptyComponent = (Identity<scalar>{} - projector_)&pointB;
+
+    // Ensure the direction points from inside the ellipsoid to the outside.
+    // In this case solution of the quadratic equation will yield a positive
+    // and a negative lambda with the positive one being the sought after (TT)
+    if (lSetValueA < 0.0)
+    {
+        connection = refPointB -refPointA;
+        basePoint = refPointA;
+        emptyComponent = (Identity<scalar>{} - projector_)&pointA;
+    }
+    
+    // Compute intersection using line approach
+    auto lamdbas = intersectEllipseWithLine(refPointA, connection);
+    
+    // Decide which lambda is the sought after
+    scalar lamdba = lamdbas[0];
+
+    if (lamdbas[1] > 0.0)
+    {
+        lamdba = lamdbas[1];
+    }
+    
+    return basePoint + lamdba*connection + centre_ + emptyComponent;
 }
 
-scalar analyticalEllipse::curvatureAt(const point& p) const
+scalar analyticalEllipse::curvatureAt(const point& aPoint) const
 {
-    auto projection = projectToReferencePlane(p);
+    auto refPoint = moveToReferenceFrame(aPoint);
 
-    return analyticalEllipsoid::curvatureAt(projection);
+    if (mag(levelSetValueOf(refPoint)) > SMALL)
+    {
+        // Remember: the normal projection moves the point back to the
+        // original coordinate system
+        point copyPoint{aPoint};
+        refPoint = normalProjectionToSurface(copyPoint);
+        refPoint = moveToReferenceFrame(refPoint);
+    }
+
+    return ellipseCurvature(refPoint); 
 }
 
 
@@ -188,6 +394,8 @@ analyticalEllipse& analyticalEllipse::operator=(const analyticalEllipse& rhs)
 {
     if (this != &rhs)
     {
+        centre_ = rhs.centre_;
+        semiAxes_ = rhs.semiAxes_;
         projector_ = rhs.projector_;
     }
 

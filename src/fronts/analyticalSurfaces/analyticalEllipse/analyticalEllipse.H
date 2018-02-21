@@ -59,7 +59,9 @@ Description
 #ifndef analyticalEllipse_H
 #define analyticalEllipse_H
 
-#include "analyticalEllipsoid.H"
+#include "analyticalSurface.H"
+
+#include <functional>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -72,19 +74,34 @@ namespace FrontTracking {
 
 class analyticalEllipse
 :
-    public analyticalEllipsoid
+    public analyticalSurface
 {
+
+public:
+    using parameterPair = FixedList<scalar,2>;
 
 private:
 
     // Private data
+    point centre_;
+    vector semiAxes_;
     tensor projector_;
 
     // Private member functions
-    vector computeOneBySemiAxisSquare(const vector& semiAxes) const;
-    point projectToReferencePlane(const point& aPoint) const;
-    point emptyComponent(const point& aPoint) const;
+    void ensureValidHalfAxes();
+    void ensureValidCentre();
 
+    scalar levelSetValueOf(const point& aPoint) const;
+    vector levelSetGradientAt(const point& aPoint) const;
+
+    point moveToReferenceFrame(const point& aPoint) const;
+    vector emptyComponent(const point& aPoint) const;
+
+    parameterPair intersectEllipseWithLine(const point& refPoint, const vector& path) const;
+    scalar ellipseCurvature(const point& aPoint) const;
+
+    // TODO: extract bisection method since it may be used else wehere (TT)
+    scalar bisection(const std::function<scalar(scalar)>& rootFunction, parameterPair interval) const;
 
 public:
 
@@ -100,12 +117,22 @@ public:
 
 
     // Member Functions
-    virtual scalar distance(const point& trialpoint) const;
+    virtual scalar distance(const point& trialPoint) const;
     virtual scalar signedDistance(const point& trialPoint) const;
     virtual point normalProjectionToSurface(point& trialPoint) const;
     virtual vector normalToPoint(const point& trialPoint) const;
     virtual point intersection(const point& pointA, const point& pointB) const;
-    virtual scalar curvatureAt(const point& p) const;
+    virtual scalar curvatureAt(const point& aPoint) const;
+
+    virtual point centre() const
+    {
+        return centre_;
+    }
+
+    virtual const vector& semiAxes() const
+    {
+        return semiAxes_;
+    }
 
     // Member operators
     virtual analyticalEllipse& operator=(const analyticalEllipse& rhs);
