@@ -32,7 +32,11 @@ Author
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    Specialization of the analyticalSurface class for a sphere.
+    Specialization of the analyticalSurface class for an ellipsoid.
+
+    See https://www.geometrictools.com/Documentation/DistancePointEllipseEllipsoid.pdf
+    for information on how to find the minimal distance between a point
+    and the ellipsoid.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -60,6 +64,7 @@ Description
 #define analyticalEllipsoid_H
 
 #include <cmath>
+#include <functional>
 
 #include "analyticalSurface.H"
 
@@ -91,6 +96,9 @@ private:
     point moveToReferenceFrame(const point& aPoint) const;
     parameterPair intersectEllipsoidWithLine(const point& refPoint, const vector& path) const;
     scalar ellipsoidCurvature(const point& p) const;
+    label minorSemiAxisIndex() const;
+    // TODO: extract bisection method since it may be used else wehere (TT)
+    scalar bisection(const std::function<scalar(scalar)>& rootFunction, parameterPair interval) const;
     
 
 public:
@@ -107,7 +115,7 @@ public:
 
 
     // Member Functions
-    virtual scalar distance(const point& trialpoint) const;
+    virtual scalar distance(const point& trialPoint) const;
     virtual scalar signedDistance(const point& trialPoint) const;
     virtual point normalProjectionToSurface(point& trialPoint) const;
     virtual vector normalToPoint(const point& trialPoint) const;

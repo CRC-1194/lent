@@ -32,7 +32,11 @@ Author
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    Specialization of the analyticalSurface class for a sphere.
+    Specialization of the analyticalSurface class for an ellipsoid.
+
+    See https://www.geometrictools.com/Documentation/DistancePointEllipseEllipsoid.pdf
+    for information on how to find the minimal distance between a point
+    and the ellipsoid.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -59,6 +63,7 @@ Description
 #include "analyticalEllipsoid.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include <cmath>
 #include <assert.h>
 
 namespace Foam {
@@ -158,6 +163,46 @@ scalar analyticalEllipsoid::ellipsoidCurvature(const point& p) const
     return -2.0*kappa/(D*D*D + SMALL);
 }
 
+label analyticalEllipsoid::minorSemiAxisIndex() const
+{
+    label minIndex = 0;
+    scalar minAxis = 0.0;
+
+    forAll(oneBySemiAxisSqr_, I)
+    {
+        if (oneBySemiAxisSqr_[I] > minAxis)
+        {
+            minAxis = oneBySemiAxisSqr_[I];
+            minIndex = I;
+        }
+    }
+
+    return minIndex;
+}
+
+scalar analyticalEllipsoid::bisection(const std::function< scalar(scalar)>& rootFunction, analyticalEllipsoid::parameterPair interval) const
+{
+    auto midPoint = 0.5*(interval[0] + interval[1]);
+    scalar valueAtMidPoint = rootFunction(midPoint);
+
+    // TODO: set hard limit for iteration count? (TT)
+    while(mag(valueAtMidPoint) > 1.0e-13 && mag(midPoint - interval[1]) > 1.0e-13)
+    {
+        if (rootFunction(interval[0])*valueAtMidPoint > 0.0)
+        {
+            interval[0] = midPoint;
+        }
+        else
+        {
+            interval[1] = midPoint;
+        }
+
+        midPoint = 0.5*(interval[0] + interval[1]);
+        valueAtMidPoint = rootFunction(midPoint);
+    }
+
+    return midPoint;
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 analyticalEllipsoid::analyticalEllipsoid(const dictionary& configDict)
@@ -204,36 +249,62 @@ scalar analyticalEllipsoid::signedDistance(const point& trialPoint) const
 
 point analyticalEllipsoid::normalProjectionToSurface(point& trialPoint) const
 {
-    // Idea to find the normal projection on the ellipsoid: set up a line
-    // using the refPoint and the level set gradient (which is normal to
-    // the ellipsoid) as direction. Intersect this line with the level set
-    // description of the ellipse which results in a quadratic equation to
-    // be solved
+    point pointOnSurface{0,0,0};
+
+    // Move trial point to first quadrant of reference frame
     auto refPoint = moveToReferenceFrame(trialPoint);
+    auto p = refPoint;
+    forAll(p, I)
+    {
+        p[I] = fabs(p[I]);
+    }
 
-    auto lGrad = levelSetGradientAt(refPoint);
+    vector q{oneBySemiAxisSqr_};
+    auto minDistanceParameter = [&q,&p](scalar t)
+            {
+                auto term1 = p.x()/(1.0 + q.x()*t);
+                auto term2 = p.y()/(1.0 + q.y()*t);
+                auto term3 = p.z()/(1.0 + q.z()*t);
 
-    auto lambdas = intersectEllipsoidWithLine(refPoint, lGrad);
+                return q.x()*term1*term1 + q.y()*term2*term2
+                        + q.z()*term3*term3 - 1.0;
+            };
 
-    // We want the intersection closer to refPoint, thus the lambda
-    // with the smaller absolute value is the one we are looking for
-    scalar lambda = 0.0;
-    mag(lambdas[0]) < mag(lambdas[1]) ? lambda = lambdas[0] : lambda = lambdas[1];
+    // The minor and the major semi axis are rquired to compute the
+    // appropriate parameter range (TT)
+    parameterPair interval{};
+    auto minI = minorSemiAxisIndex();
+    interval[0] = -1.0/q[minI] + p[minI]/sqrt(q[minI]);
+    interval[1] = -1.0/q[minI]
+                 + sqrt(p.x()*p.x()/q.x() + p.y()*p.y()/q.y()
+                         + p.z()*p.z()/q.z());
 
-    point ellipsePoint = refPoint + lambda*lGrad;
+    auto lambdaMin = bisection(minDistanceParameter, interval);
+    
+    pointOnSurface.x() = p.x() / (1.0 + q.x()*lambdaMin);
+    pointOnSurface.y() = p.y() / (1.0 + q.y()*lambdaMin);
+    pointOnSurface.z() = p.z() / (1.0 + q.z()*lambdaMin);
 
-    assert(mag(levelSetValueOf(ellipsePoint)) < SMALL 
-            && "Bug: projected point is not on ellipse");
+    // Move point on surface to correct quadrant
+    forAll(pointOnSurface, I)
+    {
+        pointOnSurface[I] *= sign(refPoint[I]);
+    }
 
-    // Reverse movement to reference system
-    return ellipsePoint + centre_; 
+    return pointOnSurface + centre_;
 }
 
 vector analyticalEllipsoid::normalToPoint(const point& trialPoint) const
 {
+    // NOTE: using the level set gradient rather than the connection
+    // between the refPoint and pointOnSurface is more stable for points
+    // close to the interface (TT)
     auto refPoint = moveToReferenceFrame(trialPoint);
-    auto gradient = levelSetGradientAt(refPoint);
     auto levelSetValue = levelSetValueOf(refPoint);
+    
+    point copyPoint{trialPoint};
+    auto pointOnSurface = normalProjectionToSurface(copyPoint);
+    auto gradient = levelSetGradientAt(pointOnSurface);
 
     return sign(levelSetValue)*gradient/mag(gradient);
 }
@@ -241,15 +312,17 @@ vector analyticalEllipsoid::normalToPoint(const point& trialPoint) const
 point analyticalEllipsoid::intersection(const point& pointA,
                                      const point& pointB) const
 {
+    // NOTE: this function is intended to find a unique intersection
+    // between A and B. The case of A and B spanning the ellipsoid
+    // is not covered yet. (TT)
+    
     // Move to reference frame
-    auto refPointA = pointA - centre_;
-    auto refPointB = pointB - centre_;
+    auto refPointA = moveToReferenceFrame(pointA);
+    auto refPointB = moveToReferenceFrame(pointB);
 
     auto lSetValueA = levelSetValueOf(refPointA);
     auto lSetValueB = levelSetValueOf(refPointB);
 
-    // No intersection with elipsoid between A and B if their level set value
-    // has the same sign
     // TODO: special case in which A and B form a tangent to the ellipsoid
     // is not covered yet. (TT)
     if (sign(lSetValueA) == sign(lSetValueB))
@@ -299,6 +372,7 @@ scalar analyticalEllipsoid::curvatureAt(const point& p) const
 {
     point pCopy{p};
     auto pOnEllipsoid = normalProjectionToSurface(pCopy);
+    pOnEllipsoid = moveToReferenceFrame(pOnEllipsoid);
 
     return ellipsoidCurvature(pOnEllipsoid);
 }
