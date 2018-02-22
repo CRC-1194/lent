@@ -71,15 +71,17 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 void analyticalEllipse::ensureValidHalfAxes()
 {
+    assert(semiAxes_.x() > 0.0 && semiAxes_.y() > 0.0 && semiAxes_.z() > 0.0
+            && "Error: use semi axes larger than zero.");
+
     // For this class to work correctly the half axis value of the
     // empty direction can be anything but zero
-    forAll(semiAxes_, I)
-    {
-        if (semiAxes_[I] == 0.0)
-        {
-            semiAxes_[I] = 1.0;
-        }
-    }
+    // In order to identify the empty axis, its value is set to the
+    // non-sense value of -1 (TT)
+    vector emptySemiAxis{-1, -1, -1};
+
+    semiAxes_ = (projector_&semiAxes_)
+                + ((Identity<scalar>{} - projector_)&emptySemiAxis);
 }
 
 void analyticalEllipse::ensureValidCentre()
@@ -87,6 +89,39 @@ void analyticalEllipse::ensureValidCentre()
     // The empty direction component of the centre has to be zero
     // for this class to work properly
     centre_ = projector_&centre_;
+}
+
+label analyticalEllipse::majorSemiAxisIndex() const
+{
+    // FIXME: for some reason the OpenFOAM version of 'max()' does
+    // not work here (TT)
+    label indexMax = 0;
+        
+    forAll(semiAxes_, I)
+    {
+        if (semiAxes_[I] > semiAxes_[indexMax])
+        {
+            indexMax = I;
+        }
+    }
+
+    return indexMax;
+}
+
+label analyticalEllipse::minorSemiAxisIndex() const
+{
+    auto majorIndex = majorSemiAxisIndex();
+
+    forAll(semiAxes_, I)
+    {
+        if (I != majorIndex && semiAxes_[I] > 0.0)
+        {
+            return I;
+        }
+    }
+
+    // This should never be reached (TT)
+    return 0;
 }
 
 scalar analyticalEllipse::levelSetValueOf(const point& aPoint) const
@@ -277,12 +312,15 @@ point analyticalEllipse::normalProjectionToSurface(point& trialPoint) const
                 return term1*term1 + term2*term2 + term3*term3 - 1.0;
             };
 
-    // TODO: the code below assumes that the x semi axis is larger than
-    // the y one and that z is the empty direction (TT)
+    // The minor and the major semi axis are rquired to compute the
+    // appropriate parameter range (TT)
     parameterPair interval{};
-    interval[0] = -1.0*a.y()*a.y() + a.y()*p.y();
-    interval[1] = -1.0*a.y()*a.y() + sqrt(a.x()*a.x()*p.x()*p.x()
-                                                +a.y()*a.y()*p.y()*p.y());
+    auto minI = minorSemiAxisIndex();
+    auto maxI = majorSemiAxisIndex();
+    interval[0] = -1.0*a[minI]*a[minI] + a[minI]*p[minI];
+    interval[1] = -1.0*a[minI]*a[minI]
+                 + sqrt(a[maxI]*a[maxI]*p[maxI]*p[maxI]
+                        + a[minI]*a[minI]*p[minI]*p[minI]);
 
     auto lambdaMin = bisection(minDistanceParameter, interval);
     

@@ -91,6 +91,9 @@ private:
     void ensureValidHalfAxes();
     void ensureValidCentre();
 
+    label majorSemiAxisIndex() const;
+    label minorSemiAxisIndex() const;
+
     scalar levelSetValueOf(const point& aPoint) const;
     vector levelSetGradientAt(const point& aPoint) const;
 
