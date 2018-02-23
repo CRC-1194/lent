@@ -61,9 +61,11 @@ Description
 #ifndef frontTriangleCurvatureModel_H
 #define frontTriangleCurvatureModel_H
 
+#include <vector>
+
 #include "frontCurvatureModel.H"
 #include "frontVertexNormalCalculator.H"
-
+#include "lentCommunication.H"
 #include "triSurfaceFrontFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -85,6 +87,8 @@ class frontTriangleCurvatureModel
     mutable tmp<triSurfaceFrontVectorField> curvatureNormalTmp_;
 
     // Private Member Functions
+    std::vector<label> findNeighbourCells(const fvMesh& mesh, const label& cellLabel) const;
+    std::vector<label> trianglesInNeighbourhood(const std::vector<label>& cellLabels, const lentCommunication& communication) const;
     void initializeCurvatureNormal(const fvMesh&, const triSurfaceFront&) const;
     virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
 
