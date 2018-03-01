@@ -60,9 +60,6 @@ Description
 
 #include "frontTriangleCurvatureModel.H"
 
-#include <algorithm>
-#include <iterator>
-
 #include "addToRunTimeSelectionTable.H"
 
 #include "lentCommunication.H"
@@ -77,64 +74,6 @@ namespace FrontTracking {
     addToRunTimeSelectionTable(frontCurvatureModel, frontTriangleCurvatureModel, Dictionary);
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-// TODO: this probably needs some serious optimization (TT)
-// NOTE: contrary to the method in frontCompactDivGradModel the
-// cell 'cellLabel' is included
-std::vector<label> frontTriangleCurvatureModel::findNeighbourCells(
-    const fvMesh& mesh,
-    const label& cellLabel
-) const
-{
-    std::vector<label> neighbourCells{};
-
-    const auto& vertexLabels = mesh.cellPoints()[cellLabel];
-    const auto& vertexToCell = mesh.pointCells();
-
-    forAll(vertexLabels, I)
-    {
-        const auto& connectedCells = vertexToCell[vertexLabels[I]];
-
-        forAll(connectedCells, K)
-        {
-                neighbourCells.push_back(connectedCells[K]);
-        }
-    }
-
-    // Remove duplicate entries
-    std::sort(neighbourCells.begin(), neighbourCells.end());
-    
-    std::vector<label>::iterator newEnd = 
-                std::unique(neighbourCells.begin(), neighbourCells.end());
-
-    neighbourCells.resize(std::distance(neighbourCells.begin(), newEnd));
-
-    return neighbourCells;
-}
-
-std::vector<label> frontTriangleCurvatureModel::trianglesInNeighbourhood(const std::vector<label>& cellLabels, const lentCommunication& communication) const
-{
-    std::vector<label> triangleLabels{};
-    // Guess on the number of triangles in neighbourhood
-    triangleLabels.reserve(100);
-
-    const auto& interfaceCellsToTriangles = communication.interfaceCellToTriangles();
-
-    for (const auto& cellLabel : cellLabels)
-    {
-        const auto mapIterator = interfaceCellsToTriangles.find(cellLabel);
-
-        if (mapIterator != interfaceCellsToTriangles.end())
-        {
-            for (const auto& triLabel : mapIterator->second)
-            {
-                triangleLabels.push_back(triLabel);
-            }
-        }
-    }
-
-    return triangleLabels;
-}
-
 void frontTriangleCurvatureModel::initializeCurvatureNormal(const fvMesh& mesh, const triSurfaceFront& front) const
 {
     const Time& runTime = mesh.time();  
@@ -191,8 +130,7 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
                         ((p[f[1]] - p[f[0]]) ^ (n[f[1]] + n[f[0]]))
                       + ((p[f[2]] - p[f[1]]) ^ (n[f[2]] + n[f[1]]))
                       + ((p[f[0]] - p[f[2]]) ^ (n[f[0]] + n[f[2]]))
-                    )
-                    / triArea[I];
+                    ) / triArea[I];
     }
 
     // Distribute curvature from front to Eulerian mesh
@@ -207,25 +145,21 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
     ); 
 
     //------------------------------------------------------------------------
-    // Area weighted averaging of triangles in cell neighbourhood
+    // Arithmetic mean of all trianglesin cell
     const auto& trianglesInCell = communication.interfaceCellToTriangles();
     const auto& faceNormal = front.Sf();
 
     for (const auto& cellTrianglesMap : trianglesInCell)
     {
         const auto& cellLabel = cellTrianglesMap.first;
-        const auto neighbourhoodCells = findNeighbourCells(mesh, cellLabel);
-        const auto triangleLabels = trianglesInNeighbourhood(neighbourhoodCells, communication);
+        const auto& triangleLabels = cellTrianglesMap.second;
 
-        auto totalArea = 0.0;
         for (const auto& tl : triangleLabels)
         {
-            cellCurvature[cellLabel] += mag(cn[tl])*sign(cn[tl]&faceNormal[tl])
-                                            *triArea[tl];
-            totalArea += triArea[tl];
+            cellCurvature[cellLabel] += mag(cn[tl])*sign(cn[tl]&faceNormal[tl]);
         }
 
-        cellCurvature[cellLabel] /= totalArea;
+        cellCurvature[cellLabel] /= triangleLabels.size();
     }
 
     //------------------------------------------------------------------------
