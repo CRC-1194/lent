@@ -299,14 +299,12 @@ vector analyticalEllipsoid::normalToPoint(const point& trialPoint) const
     // NOTE: using the level set gradient rather than the connection
     // between the refPoint and pointOnSurface is more stable for points
     // close to the interface (TT)
-    auto refPoint = moveToReferenceFrame(trialPoint);
-    auto levelSetValue = levelSetValueOf(refPoint);
-    
     point copyPoint{trialPoint};
     auto pointOnSurface = normalProjectionToSurface(copyPoint);
+    pointOnSurface = moveToReferenceFrame(pointOnSurface);
     auto gradient = levelSetGradientAt(pointOnSurface);
 
-    return sign(levelSetValue)*gradient/mag(gradient);
+    return gradient/mag(gradient);
 }
 
 point analyticalEllipsoid::intersection(const point& pointA,

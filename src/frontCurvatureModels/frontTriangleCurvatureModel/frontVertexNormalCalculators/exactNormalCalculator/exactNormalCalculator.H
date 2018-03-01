@@ -23,18 +23,21 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontExactCurvatureModel
+    Foam::exactNormalCalculator
 
 SourceFiles
-    frontExactCurvatureModel.C
+    exactNormalCalculator.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
 
-    Computes the exact curvature used for testing the pressure-velocity
-    coupling against parasitic currents.
+    Compute the normals at the front vertices using the normals provided
+    by an analytical surface description.
+
+    Requires a subDict named "frontSurface" providing the parameters for
+    an analyticalSurface.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,11 +61,12 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef exactNormalCalculator_H
+#define exactNormalCalculator_H
 
-#ifndef frontExactCurvatureModel_H
-#define frontExactCurvatureModel_H
+#include "frontVertexNormalCalculator.H"
 
-#include "frontCurvatureModel.H"
+#include "analyticalSurface.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -70,36 +74,33 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class frontExactCurvatureModel Declaration
+                         Class exactNormalCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class frontExactCurvatureModel
-    :
-        public frontCurvatureModel 
+class exactNormalCalculator
+:
+    public frontVertexNormalCalculator
 {
-    const Switch write_; 
+
+private:
+
+    tmp<analyticalSurface> surfaceTmp_;
 
 public:
 
+    TypeName ("exactNormals");
+
     // Constructors
-    explicit frontExactCurvatureModel(const dictionary& configDict);
+    exactNormalCalculator() = default;
+    explicit exactNormalCalculator(const dictionary& configDict);
 
-    // Destructor
-    virtual ~frontExactCurvatureModel() = default;
-        
-    // Member functions
-    virtual scalar curvatureAtPoint(const point& p) const = 0; 
+    //- Destructor
+    virtual ~exactNormalCalculator() = default;
 
-    virtual tmp<volScalarField> cellCurvature(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const;  
-
-    virtual tmp<surfaceScalarField> faceCurvature(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const; 
+    // Member Functions
+    virtual tmp<triSurfaceFrontPointVectorField> vertexNormals(const fvMesh&, const triSurfaceFront&) const;
 };
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -23,19 +23,20 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontExactEllipseCurvatureModel
+    Foam::frontExactSurfaceCurvatureModel
 
 SourceFiles
-    frontExactEllipseCurvatureModel.C
+    frontExactSurfaceCurvatureModel.C
 
 Author
     Tobias Tolle tolle@mma.tu-darmstadt.de
 
 Description
 
-    Computes the exact curvature of an ellipse for a given point.
-    The curvature is evaluated at the point on the ellipse with minimal
-    distance to the given point (propagate curvature in normal direction)
+    Curvature model that uses an analytical surface description to
+    provide the curvature.
+    Expects a subdict named "frontSurface" with the parameters for an
+    analyticalSurface.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -59,46 +60,34 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef frontExactEllipseCurvatureModel_H
-#define frontExactEllipseCurvatureModel_H
+#include "frontExactSurfaceCurvatureModel.H"
+#include "addToRunTimeSelectionTable.H"
 
-#include "frontExactCurvatureModel.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class frontExactEllipseCurvatureModel Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(frontExactSurfaceCurvatureModel, 0);
+    addToRunTimeSelectionTable(frontCurvatureModel, frontExactSurfaceCurvatureModel, Dictionary);
 
-class frontExactEllipseCurvatureModel
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+frontExactSurfaceCurvatureModel::frontExactSurfaceCurvatureModel(const dictionary& configDict)
 :
-    public frontExactCurvatureModel
+    frontExactCurvatureModel{configDict},
+    surfaceTmp_{analyticalSurface::New(configDict.subDict("frontSurface"))}
+{}
+
+
+// * * * * * * * * * * * * * * * * Public member functions * * * * * * * * * //
+scalar frontExactSurfaceCurvatureModel::curvatureAtPoint(const point& p) const
 {
-    scalar xSemiAxis_;
-    scalar ySemiAxis_;
-    vector centre_;
+    const auto& surface = surfaceTmp_.ref();
 
-    point ellipsePoint(const scalar& angle) const;
-    scalar distance(const scalar& angle, const point& p) const;
-    scalar curvature(const scalar& angle) const;
+    return surface.curvatureAt(p);
+}
 
-public:
-
-    TypeName ("ellipse");
-
-    // Constructors
-    explicit frontExactEllipseCurvatureModel(const dictionary& configDict);
-    
-    // Destructor
-    virtual ~frontExactEllipseCurvatureModel() = default;
-
-
-    // Member Functions
-    scalar curvatureAtPoint(const point& p) const;
-};
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
@@ -108,7 +97,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

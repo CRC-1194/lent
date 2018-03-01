@@ -23,18 +23,20 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontExactCurvatureModel
+    Foam::frontExactSurfaceCurvatureModel
 
 SourceFiles
-    frontExactCurvatureModel.C
+    frontExactSurfaceCurvatureModel.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle tolle@mma.tu-darmstadt.de
 
 Description
 
-    Computes the exact curvature used for testing the pressure-velocity
-    coupling against parasitic currents.
+    Curvature model that uses an analytical surface description to
+    provide the curvature.
+    Expects a subdict named "frontSurface" with the parameters for an
+    analyticalSurface.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,11 +60,12 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef frontExactSurfaceCurvatureModel_H
+#define frontExactSurfaceCurvatureModel_H
 
-#ifndef frontExactCurvatureModel_H
-#define frontExactCurvatureModel_H
+#include "frontExactCurvatureModel.H"
 
-#include "frontCurvatureModel.H"
+#include "analyticalSurface.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -70,37 +73,31 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class frontExactCurvatureModel Declaration
+                         Class frontExactSurfaceCurvatureModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class frontExactCurvatureModel
-    :
-        public frontCurvatureModel 
+class frontExactSurfaceCurvatureModel
+:
+    public frontExactCurvatureModel
 {
-    const Switch write_; 
+
+private:
+    tmp<analyticalSurface> surfaceTmp_;
 
 public:
 
+    TypeName ("exactCurvature");
+
     // Constructors
-    explicit frontExactCurvatureModel(const dictionary& configDict);
-
+    explicit frontExactSurfaceCurvatureModel(const dictionary& configDict);
+    
     // Destructor
-    virtual ~frontExactCurvatureModel() = default;
-        
-    // Member functions
-    virtual scalar curvatureAtPoint(const point& p) const = 0; 
+    virtual ~frontExactSurfaceCurvatureModel() = default;
 
-    virtual tmp<volScalarField> cellCurvature(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const;  
 
-    virtual tmp<surfaceScalarField> faceCurvature(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const; 
+    // Member Functions
+    scalar curvatureAtPoint(const point& p) const;
 };
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
