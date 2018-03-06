@@ -23,16 +23,21 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::analyticalCircle
+    Foam::exactNormalCalculator
 
 SourceFiles
-    analyticalCircle.C
+    exactNormalCalculator.C
 
 Author
-    Tobias Tolle   tolle@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Specialization of the analyticalSurface class for a sphere.
+
+    Compute the normals at the front vertices using the normals provided
+    by an analytical surface description.
+
+    Requires a subDict named "frontSurface" providing the parameters for
+    an analyticalSurface.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,10 +61,10 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef analyticalCircle_H
-#define analyticalCircle_H
+#ifndef exactNormalCalculator_H
+#define exactNormalCalculator_H
 
-#include <cmath>
+#include "frontVertexNormalCalculator.H"
 
 #include "analyticalSurface.H"
 
@@ -69,54 +74,31 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class analyticalCircle Declaration
+                         Class exactNormalCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class analyticalCircle
+class exactNormalCalculator
 :
-    public analyticalSurface
+    public frontVertexNormalCalculator
 {
-    // Private data
-    point centre_;
-    scalar radius_;
-    tensor projector_;
+
+private:
+
+    tmp<analyticalSurface> surfaceTmp_;
 
 public:
 
-    TypeName ("circle");
+    TypeName ("exactNormals");
 
     // Constructors
-    analyticalCircle() = default;
-    analyticalCircle(const dictionary& configDict);
-    analyticalCircle(const point& centre, const scalar radius, const vector& emptyDirection);
+    exactNormalCalculator() = default;
+    explicit exactNormalCalculator(const dictionary& configDict);
 
     //- Destructor
-    virtual ~analyticalCircle() {};
-
+    virtual ~exactNormalCalculator() = default;
 
     // Member Functions
-    virtual scalar distance(const point& trialpoint) const;
-    virtual scalar signedDistance(const point& trialPoint) const;
-    virtual point normalProjectionToSurface(point& trialPoint) const;
-    virtual vector normalToPoint(const point& trialPoint) const;
-    virtual point intersection(const point& pointA, const point& pointB) const;
-    virtual scalar curvatureAt(const point& p) const
-    {
-        return -1.0/radius();
-    }
-
-    virtual point centre() const
-    {
-        return centre_;
-    }
-
-    virtual scalar radius() const
-    {
-        return radius_;
-    }
-
-    // Member operators
-    virtual analyticalCircle& operator=(const analyticalCircle& rhs);
+    virtual tmp<triSurfaceFrontPointVectorField> vertexNormals(const fvMesh&, const triSurfaceFront&) const;
 };
 
 

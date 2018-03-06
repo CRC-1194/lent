@@ -130,10 +130,10 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
                         ((p[f[1]] - p[f[0]]) ^ (n[f[1]] + n[f[0]]))
                       + ((p[f[2]] - p[f[1]]) ^ (n[f[2]] + n[f[1]]))
                       + ((p[f[0]] - p[f[2]]) ^ (n[f[0]] + n[f[2]]))
-                    )
-                    / triArea[I];
+                    ) / triArea[I];
     }
 
+    // Distribute curvature from front to Eulerian mesh
     auto& cellCurvature = cellCurvatureTmp_.ref();
     cellCurvature *= 0.0;
 
@@ -144,24 +144,8 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
             lentCommunication::registeredName(front,mesh)
     ); 
 
-    /*
-    const auto& cellsTriangleNearest = communication.cellsTriangleNearest();
-    const auto& faceNormal = front.Sf();
-
-    forAll(cellsTriangleNearest, I)
-    {
-        const auto& hitObject = cellsTriangleNearest[I];
-
-        if (hitObject.hit())
-        {
-            const label& fl = hitObject.index();
-
-            cellCurvature[I] = mag(cn[fl])*sign(cn[fl]&faceNormal[fl]);
-        }
-    }
-    */
-
-    // Test averaging
+    //------------------------------------------------------------------------
+    // Arithmetic mean of all trianglesin cell
     const auto& trianglesInCell = communication.interfaceCellToTriangles();
     const auto& faceNormal = front.Sf();
 
@@ -178,6 +162,8 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
         cellCurvature[cellLabel] /= triangleLabels.size();
     }
 
+    //------------------------------------------------------------------------
+
     // Propagate to non-interface cells
     const auto& cellToTriangle = communication.cellsTriangleNearest();
     const auto& triangleToCell = communication.triangleToCell();
@@ -189,7 +175,6 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
         if (hitObject.hit())
         {
             cellCurvature[I] = cellCurvature[triangleToCell[hitObject.index()]];
-            //cellCurvatureField[I] = curvatureBuffer[hitObject.index()];
         }
     }
 }

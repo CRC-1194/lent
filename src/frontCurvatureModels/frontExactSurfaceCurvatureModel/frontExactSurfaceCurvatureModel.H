@@ -23,16 +23,20 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::analyticalCircle
+    Foam::frontExactSurfaceCurvatureModel
 
 SourceFiles
-    analyticalCircle.C
+    frontExactSurfaceCurvatureModel.C
 
 Author
-    Tobias Tolle   tolle@csi.tu-darmstadt.de
+    Tobias Tolle tolle@mma.tu-darmstadt.de
 
 Description
-    Specialization of the analyticalSurface class for a sphere.
+
+    Curvature model that uses an analytical surface description to
+    provide the curvature.
+    Expects a subdict named "frontSurface" with the parameters for an
+    analyticalSurface.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,10 +60,10 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef analyticalCircle_H
-#define analyticalCircle_H
+#ifndef frontExactSurfaceCurvatureModel_H
+#define frontExactSurfaceCurvatureModel_H
 
-#include <cmath>
+#include "frontExactCurvatureModel.H"
 
 #include "analyticalSurface.H"
 
@@ -69,57 +73,31 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class analyticalCircle Declaration
+                         Class frontExactSurfaceCurvatureModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class analyticalCircle
+class frontExactSurfaceCurvatureModel
 :
-    public analyticalSurface
+    public frontExactCurvatureModel
 {
-    // Private data
-    point centre_;
-    scalar radius_;
-    tensor projector_;
+
+private:
+    tmp<analyticalSurface> surfaceTmp_;
 
 public:
 
-    TypeName ("circle");
+    TypeName ("exactCurvature");
 
     // Constructors
-    analyticalCircle() = default;
-    analyticalCircle(const dictionary& configDict);
-    analyticalCircle(const point& centre, const scalar radius, const vector& emptyDirection);
-
-    //- Destructor
-    virtual ~analyticalCircle() {};
+    explicit frontExactSurfaceCurvatureModel(const dictionary& configDict);
+    
+    // Destructor
+    virtual ~frontExactSurfaceCurvatureModel() = default;
 
 
     // Member Functions
-    virtual scalar distance(const point& trialpoint) const;
-    virtual scalar signedDistance(const point& trialPoint) const;
-    virtual point normalProjectionToSurface(point& trialPoint) const;
-    virtual vector normalToPoint(const point& trialPoint) const;
-    virtual point intersection(const point& pointA, const point& pointB) const;
-    virtual scalar curvatureAt(const point& p) const
-    {
-        return -1.0/radius();
-    }
-
-    virtual point centre() const
-    {
-        return centre_;
-    }
-
-    virtual scalar radius() const
-    {
-        return radius_;
-    }
-
-    // Member operators
-    virtual analyticalCircle& operator=(const analyticalCircle& rhs);
+    scalar curvatureAtPoint(const point& p) const;
 };
-
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking

@@ -23,17 +23,19 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontExactEllipsoidCurvatureModel
+    Foam::exactNormalCalculator
 
 SourceFiles
-    frontExactEllipsoidCurvatureModel.C
+    exactNormalCalculator.C
 
 Author
-    Tobias Tolle tolle@mma.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
 
-    TODO: write me
+    Compute the normals at the front vertices as the average of the surrounding
+    triangles. The inversed distances of the triangle barycentres is used as
+    weights.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,55 +59,60 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef frontExactEllipsoidCurvatureModel_H
-#define frontExactEllipsoidCurvatureModel_H
-
-#include "frontExactCurvatureModel.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "exactNormalCalculator.H"
+#include "addToRunTimeSelectionTable.H"
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class frontExactEllipsoidCurvatureModel Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(exactNormalCalculator, 0);
+    addToRunTimeSelectionTable(frontVertexNormalCalculator, exactNormalCalculator, Dictionary);
 
-class frontExactEllipsoidCurvatureModel
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+exactNormalCalculator::exactNormalCalculator(const dictionary& configDict)
 :
-    public frontExactCurvatureModel
+    frontVertexNormalCalculator{configDict},
+    surfaceTmp_{analyticalSurface::New(configDict.subDict("frontSurface"))}
+{}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+tmp<triSurfaceFrontPointVectorField> exactNormalCalculator::vertexNormals(const fvMesh& mesh, const triSurfaceFront& front) const
 {
-    using interval = FixedList<scalar,2>;
+    const Time& runTime = mesh.time();  
 
-private:
+    tmp<triSurfaceFrontPointVectorField> normalsTmp
+    (
+        new triSurfaceFrontPointVectorField
+        (
+            IOobject(
+                "frontNormals", 
+                runTime.timeName(), 
+                front,
+                IOobject::NO_READ, 
+                IOobject::NO_WRITE
+            ), 
+            front, 
+            dimensionedVector(
+                "zero", 
+                dimless, 
+                vector(0.0,0.0,0.0)
+            )
+        )
+    );
 
-    vector semiAxes_;
-    vector centre_;
-    scalar tolerance_;
+    const auto& surface = surfaceTmp_.ref();
+    const auto& vertices = front.localPoints();
+    auto& normals = normalsTmp.ref();
 
-    scalar devCosine(const scalar& longitude, const scalar& latitude, const point& p) const;
-    bool converged(const scalar& longitude, const scalar& latitude, const point& p) const;
+    forAll(vertices, I)
+    {
+        normals[I] = surface.normalToPoint(vertices[I]);
+    }
 
-    point ellipsoidPoint(const scalar& longitude, const scalar& latitude) const;
-    scalar distance(const scalar& longitude, const scalar& latitude, const point& p) const;
-    scalar curvature(const scalar& longitude, const scalar& latitude) const;
+    return normalsTmp;
+}
 
-    interval findParameters(const point& p) const;
-
-public:
-
-    TypeName ("ellipsoid");
-
-    // Constructors
-    explicit frontExactEllipsoidCurvatureModel(const dictionary& configDict);
-    
-    // Destructor
-    virtual ~frontExactEllipsoidCurvatureModel() = default;
-
-
-    // Member Functions
-    scalar curvatureAtPoint(const point& p) const;
-};
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
@@ -115,7 +122,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

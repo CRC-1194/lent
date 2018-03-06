@@ -111,6 +111,7 @@ public:
     virtual vector normalToPoint(const point&) const = 0;
     virtual point intersection(const point&, const point&) const = 0;
     virtual void moveFrontToSurface(triSurfaceFront& front) const;
+    virtual scalar curvatureAt(const point& p) const = 0;
 };
 
 

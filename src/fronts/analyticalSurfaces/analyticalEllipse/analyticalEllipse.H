@@ -61,6 +61,8 @@ Description
 
 #include "analyticalSurface.H"
 
+#include <functional>
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
@@ -88,30 +90,42 @@ private:
     // Private member functions
     void ensureValidHalfAxes();
     void ensureValidCentre();
+
+    label majorSemiAxisIndex() const;
+    label minorSemiAxisIndex() const;
+
     scalar levelSetValueOf(const point& aPoint) const;
     vector levelSetGradientAt(const point& aPoint) const;
+
     point moveToReferenceFrame(const point& aPoint) const;
+    vector emptyComponent(const point& aPoint) const;
+
     parameterPair intersectEllipseWithLine(const point& refPoint, const vector& path) const;
+    scalar ellipseCurvature(const point& aPoint) const;
+
+    // TODO: extract bisection method since it may be used else wehere (TT)
+    scalar bisection(const std::function<scalar(scalar)>& rootFunction, parameterPair interval) const;
 
 public:
 
-    TypeName ("Ellipse");
+    TypeName ("ellipse");
 
     // Constructors
     analyticalEllipse() = default;
     analyticalEllipse(const dictionary& configDict);
-    analyticalEllipse(const point& centre, const vector& halfAxes, const vector& emptyDirection);
+    analyticalEllipse(const point& centre, const vector& semiAxes, const vector& emptyDirection);
 
     //- Destructor
     virtual ~analyticalEllipse() {};
 
 
     // Member Functions
-    virtual scalar distance(const point& trialpoint) const;
+    virtual scalar distance(const point& trialPoint) const;
     virtual scalar signedDistance(const point& trialPoint) const;
     virtual point normalProjectionToSurface(point& trialPoint) const;
     virtual vector normalToPoint(const point& trialPoint) const;
     virtual point intersection(const point& pointA, const point& pointB) const;
+    virtual scalar curvatureAt(const point& aPoint) const;
 
     virtual point centre() const
     {

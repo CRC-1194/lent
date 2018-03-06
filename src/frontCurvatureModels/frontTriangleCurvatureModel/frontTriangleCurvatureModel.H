@@ -63,7 +63,7 @@ Description
 
 #include "frontCurvatureModel.H"
 #include "frontVertexNormalCalculator.H"
-
+#include "lentCommunication.H"
 #include "triSurfaceFrontFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
