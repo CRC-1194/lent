@@ -74,6 +74,9 @@ lentMethod/lentMethod.C
 
 test/lentMarkerFieldTest/lentMarkerFieldTest.C
 test/errorMetrics/errorMetrics.C
+test/lentSubalgorithmTest/lentSubalgorithmTest.C
+test/lentDummyTest/lentDummyTest.C
+
 fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
 fronts/analyticalSurfaces/analyticalPlane/analyticalPlane.C
 fronts/analyticalSurfaces/analyticalSphere/analyticalSphere.C
