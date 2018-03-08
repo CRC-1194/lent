@@ -204,6 +204,7 @@ analyticalCircle& analyticalCircle::operator=(const analyticalCircle& rhs)
     {
         centre_ = rhs.centre_;
         radius_ = rhs.radius_;
+        projector_ = rhs.projector_;
     }
 
     return *this;

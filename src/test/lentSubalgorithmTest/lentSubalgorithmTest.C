@@ -32,8 +32,6 @@ License
 #include <sstream>
 #include <string>
 
-#include <iostream>
-
 namespace Foam {
 namespace FrontTracking {
 
@@ -97,7 +95,23 @@ lentSubalgorithmTest::lentSubalgorithmTest(const fvMesh& mesh, triSurfaceFront& 
     lent_{front, mesh},
     separator_{","},
     algorithmRuntime_{"t_exec"}
-{}
+{
+    nRandomRuns_ = lentDict().lookupOrDefault<label>("nRandomRuns", 1);
+    nPerturbedRuns_ = lentDict().lookupOrDefault<label>("nPerturbedRuns", 1);
+
+    // Values below 1 for the number of random runs and for the number
+    // of perturbed runs make no sense.
+    // Rather to throw an error, set the values to 1 if they are 0 or smaller
+    if (nRandomRuns_ < 1)
+    {
+       nRandomRuns_ = 1;
+    }
+
+    if (nPerturbedRuns_ < 1)
+    {
+       nPerturbedRuns_ = 1;
+    } 
+}
 
 
 
@@ -106,14 +120,11 @@ void lentSubalgorithmTest::runAllTests()
 {
     Info << "Running Tests..." << endl;
 
-    label nRandomRuns = 2;
-    label nPerturbedRuns = 2;
-
-    for (label I = 0; I < nRandomRuns; ++I)
+    for (label I = 0; I < nRandomRuns_; ++I)
     {
         randomSetup();
 
-        for (label K = 0; K < nPerturbedRuns; ++K)
+        for (label K = 0; K < nPerturbedRuns_; ++K)
         {
             perturbInputFields();
 
@@ -166,21 +177,15 @@ void lentSubalgorithmTest::writeResultsHDF5(const word& fileName) const
 
 void lentSubalgorithmTest::writeResultsCSV(const word& fileName) const
 {
-    std::string filePath = assembleFilePath() + fileName;
-
-    std::cout << "File path = " << filePath << std::endl;
-
-    std::fstream dataFile(filePath, std::ios_base::out);
+    std::fstream dataFile(assembleFilePath() + fileName, std::ios_base::out);
 
     dataFile << metricHeader(scalarMetrics_)
              << metricHeader(vectorMetrics_) << std::endl;
 
-    // TODO: assumption: for every run every mertic is evaluated,
+    // TODO: assumption: for every run every metric is evaluated,
     //  so that the results will be a full table without empty fields
     label nRuns = scalarMetrics_.at(algorithmRuntime_).size();
 
-    // Skip first entry since it is not obtained by evaluation but by
-    // default initialization
     for (int index = 0; index < nRuns; ++index)
     {
         for (auto const& metricField: scalarMetrics_)

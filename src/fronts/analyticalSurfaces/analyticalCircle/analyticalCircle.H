@@ -115,6 +115,16 @@ public:
         return radius_;
     }
 
+    virtual void centre(const vector newCentre)
+    {
+        centre_ = newCentre;
+    }
+
+    virtual void radius(const scalar newRadius)
+    {
+        radius_ = newRadius;
+    }
+
     // Member operators
     virtual analyticalCircle& operator=(const analyticalCircle& rhs);
 };

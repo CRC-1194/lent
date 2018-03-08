@@ -25,6 +25,7 @@ License
 
 #include "lentDummyTest.H"
 
+#include "analyticalSurface.H"
 #include "errorMetrics.H"
 
 #include <chrono>
@@ -36,10 +37,18 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 void lentDummyTest::randomSetup()
 {
+    Info << "Setup...\n";
+
+    tmp<analyticalSurface> surfaceTmp
+    {
+        analyticalSurface::New(lentDict().subDict("frontSurface"))
+    };
 }
 
 void lentDummyTest::computeApproximatedFields()
 {
+    Info << "Approximating fields...\n";
+
     auto& computedField = computedFieldTmp_.ref();
 
     forAll(computedField, I)
@@ -52,6 +61,7 @@ void lentDummyTest::computeApproximatedFields()
 
 void lentDummyTest::evaluateMetrics()
 {
+    Info << "Evaluating metrics...\n";
     auto deltaField = computedFieldTmp_.ref() - referenceFieldTmp_.ref();
 
     errorMetrics eval{deltaField.ref()};

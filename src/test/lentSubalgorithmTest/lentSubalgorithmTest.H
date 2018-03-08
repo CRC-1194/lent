@@ -48,8 +48,6 @@ SourceFiles
 #include <unordered_map>
 #include <vector>
 
-// Forward declarations
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
@@ -74,6 +72,8 @@ private:
     triSurfaceFront& front_;
     lentMethod lent_;
 
+    label nRandomRuns_;
+    label nPerturbedRuns_;
     std::string separator_;
     std::string algorithmRuntime_;
 
@@ -91,10 +91,27 @@ private:
 protected:
     void addMeasure(const std::string& metricName, const scalar& value);
     void addMeasure(const std::string& metricName, const vector& value);
+
     auto& lent()
     {
         return lent_;
     }
+
+    const dictionary& lentDict() const
+    {
+        return lent_.dict();
+    }
+
+    label nRandomRuns() const
+    {
+        return nRandomRuns_;
+    }
+
+    label nPerturbedRuns() const
+    {
+        return nPerturbedRuns_;
+    }
+
 
     virtual void randomSetup() = 0;
     virtual void perturbInputFields() = 0;

@@ -74,6 +74,8 @@ lentMethod/lentMethod.C
 
 test/lentMarkerFieldTest/lentMarkerFieldTest.C
 test/errorMetrics/errorMetrics.C
+test/randomization/noiseGenerator/noiseGenerator.C
+test/randomization/randomNumberGenerator/randomNumberGenerator.C
 test/lentSubalgorithmTest/lentSubalgorithmTest.C
 test/lentDummyTest/lentDummyTest.C
 
@@ -83,6 +85,7 @@ fronts/analyticalSurfaces/analyticalSphere/analyticalSphere.C
 fronts/analyticalSurfaces/analyticalEllipsoid/analyticalEllipsoid.C
 fronts/analyticalSurfaces/analyticalCircle/analyticalCircle.C
 fronts/analyticalSurfaces/analyticalEllipse/analyticalEllipse.C
+fronts/analyticalSurfaces/analyticalRandomizedCircle/analyticalRandomizedCircle.C
 fronts/frontConstructor/frontConstructor/frontConstructor.C
 fronts/faceTriangulators/simpleTriangulator/simpleTriangulator.C
 fronts/frontMeshIntersection/cutCellVolumeCalculator/cutCellVolumeCalculator.C
