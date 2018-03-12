@@ -37,12 +37,25 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 void lentDummyTest::randomSetup()
 {
-    Info << "Setup...\n";
+    Info << "\n\n----------------------------------------------\n"
+         << "Setup...\n";
 
-    tmp<analyticalSurface> surfaceTmp
-    {
-        analyticalSurface::New(lentDict().subDict("frontSurface"))
-    };
+    setupFrontFromSurface(true);
+    computeFrontSignedDistances();
+}
+
+void lentDummyTest::perturbInputFields()
+{
+    Info << "Perturbing fields...\n";
+
+    auto& referenceField = referenceFieldTmp_.ref();
+    auto& refVectorField = refVectorFieldTmp_.ref();
+
+    referenceField = dimensionedScalar{"zero", dimless, 0.0};
+    refVectorField = dimensionedVector{"one", dimless, vector{1,1,0}};
+
+    noiseGen_.addNoiseTo<scalar,List>(referenceField, 1.0);
+    noiseGen_.addNoiseTo<vector,List>(refVectorField, vector{1,0,0});
 }
 
 void lentDummyTest::computeApproximatedFields()
@@ -50,19 +63,23 @@ void lentDummyTest::computeApproximatedFields()
     Info << "Approximating fields...\n";
 
     auto& computedField = computedFieldTmp_.ref();
+    auto& compVectorField = compVectorFieldTmp_.ref();
 
     forAll(computedField, I)
     {
-        computedField[I] = I;
+        computedField[I] = 10.0;
+        compVectorField[I] = vector{10, 1, 0};
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
 
 void lentDummyTest::evaluateMetrics()
 {
     Info << "Evaluating metrics...\n";
+
     auto deltaField = computedFieldTmp_.ref() - referenceFieldTmp_.ref();
+    auto deltaVetcorFieldTmp = compVectorFieldTmp_.ref() - refVectorFieldTmp_.ref();
 
     errorMetrics eval{deltaField.ref()};
 
@@ -70,10 +87,9 @@ void lentDummyTest::evaluateMetrics()
     addMeasure("L2_norm", eval.quadraticMeanError());
     addMeasure("L_inf_norm", eval.maximumError());
 
-    // Write fields
-    referenceFieldTmp_.ref().write();
-    computedFieldTmp_.ref().write();
+    // Write delta fields
     deltaField.ref().write();
+    deltaVetcorFieldTmp.ref().write();
 }
 
 
@@ -86,13 +102,13 @@ lentDummyTest::lentDummyTest(const fvMesh& mesh, triSurfaceFront& front)
     (
         IOobject
         (
-            "refField",
+            "refScalarField",
             mesh.time().timeName(),
             mesh,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
-        mesh, 
+        mesh,
         dimensionedScalar(
             "zero",
             dimless,
@@ -105,13 +121,13 @@ lentDummyTest::lentDummyTest(const fvMesh& mesh, triSurfaceFront& front)
     (
         IOobject
         (
-            "computedField",
+            "computedScalarField",
             mesh.time().timeName(),
             mesh,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
-        mesh, 
+        mesh,
         dimensionedScalar(
             "zero",
             dimless,
@@ -119,10 +135,45 @@ lentDummyTest::lentDummyTest(const fvMesh& mesh, triSurfaceFront& front)
         )
     )
     };
+
+    refVectorFieldTmp_ = tmp<volVectorField>{new volVectorField 
+    (
+        IOobject
+        (
+            "refVectorField",
+            mesh.time().timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedVector(
+            "zero",
+            dimless,
+            vector{1,1,0}
+        )
+    )
+    };
+
+    compVectorFieldTmp_ = tmp<volVectorField>{new volVectorField 
+    (
+        IOobject
+        (
+            "compVectorField",
+            mesh.time().timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedVector(
+            "zero",
+            dimless,
+            vector{1,1,0}
+        )
+    )
+    };
 }
-
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

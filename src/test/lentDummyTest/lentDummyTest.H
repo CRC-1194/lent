@@ -37,6 +37,7 @@ SourceFiles
 #define lentDummyTest_H
 
 #include "lentSubalgorithmTest.H"
+#include "noiseGenerator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -55,11 +56,14 @@ class lentDummyTest
     // Private data
     tmp<volScalarField> referenceFieldTmp_;
     tmp<volScalarField> computedFieldTmp_;
+    tmp<volVectorField> refVectorFieldTmp_;
+    tmp<volVectorField> compVectorFieldTmp_;
+    noiseGenerator noiseGen_;
 
 
     // Private Member Functions
     virtual void randomSetup();
-    virtual void perturbInputFields(){};
+    virtual void perturbInputFields();
     virtual void computeApproximatedFields();
     virtual void evaluateMetrics();
 
@@ -72,10 +76,6 @@ public:
 
     //- Destructor
     virtual ~lentDummyTest() = default;
-
-
-    // Member Functions
-
 
 };
 

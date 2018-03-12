@@ -41,6 +41,7 @@ SourceFiles
 #include "vector.H"
 #include "word.H"
 
+#include "analyticalSurface.H"
 #include "lentMethod.H"
 #include "triSurfaceFront.H"
 
@@ -71,6 +72,7 @@ private:
     const fvMesh& mesh_;
     triSurfaceFront& front_;
     lentMethod lent_;
+    tmp<analyticalSurface> surfaceTmp_;
 
     label nRandomRuns_;
     label nPerturbedRuns_;
@@ -87,10 +89,39 @@ private:
     std::string metricHeader(const metricDataMap<Type>&) const;
     std::string printFoamVector(const vector& v) const;
 
+    void setNextRun() const;
+    void writeFields() const;
+
+    template<class fieldType>
+    fieldType& lookupField(const word fieldName) const
+    {
+        return const_cast<fieldType&>(mesh_.lookupObject<fieldType>(fieldName));
+    }
+
+    volScalarField& lookupSearchDistanceSqr() const
+    {
+        return lookupField<volScalarField>("searchDistanceSqr");
+    }
+
+    pointScalarField& lookupPointSearchDistanceSqr() const
+    {
+        return lookupField<pointScalarField>("pointSearchDistanceSqr");
+    }
+
 
 protected:
     void addMeasure(const std::string& metricName, const scalar& value);
     void addMeasure(const std::string& metricName, const vector& value);
+
+    const fvMesh& mesh() const
+    {
+        return mesh_;
+    }
+
+    triSurface& front()
+    {
+        return front_;
+    }
 
     auto& lent()
     {
@@ -111,6 +142,25 @@ protected:
     {
         return nPerturbedRuns_;
     }
+
+    const analyticalSurface& surface() const
+    {
+        return surfaceTmp_.ref();
+    }
+
+    volScalarField& lookupSignedDistance() const
+    {
+        return lookupField<volScalarField>("signedDistance");
+    }
+    
+    pointScalarField& lookupPointSignedDistance() const
+    {
+        return lookupField<pointScalarField>("pointSignedDistance");
+    }
+
+    void computeExactSignedDistances() const;
+    void computeFrontSignedDistances();
+    void setupFrontFromSurface(const bool correct);
 
 
     virtual void randomSetup() = 0;

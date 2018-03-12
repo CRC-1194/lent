@@ -42,6 +42,7 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
+    #include "createMinimalFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     
@@ -58,8 +59,6 @@ int main(int argc, char *argv[])
     );
 
     lentDummyTest dummyTest{mesh, front};
-
-    runTime++;
 
     dummyTest.runAllTests();
     dummyTest.writeResults("testResults.csv");

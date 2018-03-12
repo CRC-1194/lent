@@ -74,6 +74,18 @@ std::string lentSubalgorithmTest::printFoamVector(const vector& v) const
     return std::string{streamedVector.str()};
 }
 
+void lentSubalgorithmTest::setNextRun() const
+{
+    auto& runTime = const_cast<Time&>(mesh_.time());
+    runTime++;
+}
+
+void lentSubalgorithmTest::writeFields() const
+{
+    auto& runTime = const_cast<Time&>(mesh_.time());
+    runTime.write();
+}
+
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 void lentSubalgorithmTest::addMeasure(const std::string& metricName, const scalar& value)
@@ -86,6 +98,67 @@ void lentSubalgorithmTest::addMeasure(const std::string& metricName, const vecto
     vectorMetrics_[metricName].push_back(value);
 }
 
+void lentSubalgorithmTest::computeExactSignedDistances() const
+{
+    const auto& frontSurface = surfaceTmp_.ref();
+
+    // cell-centred distances
+    const auto& C = mesh_.C();
+    auto& signedDistance = lookupSignedDistance();
+
+    forAll(signedDistance, I)
+    {
+        signedDistance[I] = frontSurface.signedDistance(C[I]);
+    }
+    
+    // cell-corner distances
+    auto& pointSignedDistance = lookupPointSignedDistance();
+    const auto& pMesh = pointSignedDistance.mesh();
+    const auto& corners = pMesh().points();
+
+    forAll(pointSignedDistance, I)
+    {
+        pointSignedDistance[I] = frontSurface.signedDistance(corners[I]);
+    }
+}
+
+void lentSubalgorithmTest::computeFrontSignedDistances()
+{
+    auto& signedDistance = lookupSignedDistance();
+    auto& pointSignedDistance = lookupPointSignedDistance();
+
+    const auto& searchDistanceSqr = lookupSearchDistanceSqr();
+    const auto& pointSearchDistanceSqr = lookupPointSearchDistanceSqr();
+
+    lent_.calcSignedDistances
+            (
+                signedDistance,
+                pointSignedDistance,
+                searchDistanceSqr,
+                pointSearchDistanceSqr,
+                front_
+            ); 
+}
+
+void lentSubalgorithmTest::setupFrontFromSurface(const bool correct)
+{
+    // re-read analyticalSurface in order to randomize it
+    surfaceTmp_ = tmp<analyticalSurface>
+                  {
+                        analyticalSurface::New(lentDict().subDict("frontSurface"))
+                  };
+
+    computeExactSignedDistances();
+
+    lent_.reconstructFront(front_, lookupSignedDistance(), lookupPointSignedDistance());
+
+    if (correct)
+    {
+        surfaceTmp_.ref().moveFrontToSurface(front_);   
+    }
+}
+
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 lentSubalgorithmTest::lentSubalgorithmTest(const fvMesh& mesh, triSurfaceFront& front)
@@ -93,9 +166,15 @@ lentSubalgorithmTest::lentSubalgorithmTest(const fvMesh& mesh, triSurfaceFront& 
     mesh_{mesh},
     front_{front},
     lent_{front, mesh},
+    surfaceTmp_{},
     separator_{","},
     algorithmRuntime_{"t_exec"}
 {
+    surfaceTmp_ = tmp<analyticalSurface>
+                  {
+                     analyticalSurface::New(lentDict().subDict("frontSurface"))
+                  };
+
     nRandomRuns_ = lentDict().lookupOrDefault<label>("nRandomRuns", 1);
     nPerturbedRuns_ = lentDict().lookupOrDefault<label>("nPerturbedRuns", 1);
 
@@ -111,6 +190,12 @@ lentSubalgorithmTest::lentSubalgorithmTest(const fvMesh& mesh, triSurfaceFront& 
     {
        nPerturbedRuns_ = 1;
     } 
+
+    // Initialize search distances
+    auto& searchDistanceSqr = lookupSearchDistanceSqr();
+    auto& pointSearchDistanceSqr = lookupPointSearchDistanceSqr();
+
+    lent_.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 }
 
 
@@ -122,6 +207,10 @@ void lentSubalgorithmTest::runAllTests()
 
     for (label I = 0; I < nRandomRuns_; ++I)
     {
+        // Use the Time class to write the fields and front of
+        // each random run if desired
+        setNextRun();
+        
         randomSetup();
 
         for (label K = 0; K < nPerturbedRuns_; ++K)
@@ -139,6 +228,8 @@ void lentSubalgorithmTest::runAllTests()
             
             evaluateMetrics();
         }
+
+        writeFields();
     }
 }
 

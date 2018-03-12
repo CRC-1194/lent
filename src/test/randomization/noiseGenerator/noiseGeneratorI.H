@@ -82,6 +82,34 @@ tensorType noiseGenerator::noise(const tensorType& magnitudes) const
 }
 
 
+template
+<
+    typename tensorType,
+    template<typename> class container
+>
+void noiseGenerator::addNoiseTo(container<tensorType>& field, const scalar magnitude) const
+{
+    for (tensorType& fieldValue : field)
+    {
+        fieldValue += noise<tensorType>(magnitude);
+    }
+}
+
+template
+<
+    typename tensorType,
+    template<typename> class container,
+    typename std::enable_if<std::is_class<tensorType>::value>::type* = nullptr
+>
+void noiseGenerator::addNoiseTo(container<tensorType>& field, const tensorType& magnitudes) const
+{
+    for (tensorType& fieldValue : field)
+    {
+        fieldValue += noise<tensorType>(magnitudes);
+    }
+}
+
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -94,6 +94,25 @@ public:
         typename std::enable_if<std::is_class<tensorType>::value>::type* = nullptr
     >
     tensorType noise(const tensorType& magnitudes) const;
+
+    // Noise generation for fields
+    
+    // Uniform noise for each tensor component
+    template
+    <
+        typename tensorType,
+        template<typename> class container
+    >
+    void addNoiseTo(container<tensorType>& field, const scalar magnitude) const;
+    
+    // Per component noise
+    template
+    <
+        typename tensorType,
+        template<typename> class container,
+        typename std::enable_if<std::is_class<tensorType>::value>::type* = nullptr
+    >
+    void addNoiseTo(container<tensorType>& field, const tensorType& magnitudes) const;
 };
 
 
