@@ -42,12 +42,25 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 analyticalRandomizedCircle::analyticalRandomizedCircle(const dictionary& configDict)
 :
-    analyticalCircle{configDict}
+    analyticalCircle{configDict},
+    noiseGen_{},
+    originalCentre_{},
+    originalRadius_{},
+    centrePerturbation_{configDict.lookup("centrePerturbation")},
+    radiusPerturbation_{readScalar(configDict.lookup("radiusPerturbation"))}
 {
-    vector centrePerturbation = configDict.lookup("centrePerturbation");
-    scalar radiusPerturbation = readScalar(configDict.lookup("radiusPerturbation"));
-    auto perturbedCentre = centre() + noiseGen_.noise<vector>(centrePerturbation);
-    auto perturbedRadius = radius() + noiseGen_.noise<scalar>(radiusPerturbation);
+    originalCentre_ = centre();
+    originalRadius_ = radius();
+
+    randomize();
+}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+void analyticalRandomizedCircle::randomize()
+{
+    auto perturbedCentre = originalCentre_ + noiseGen_.noise<vector>(centrePerturbation_);
+    auto perturbedRadius = originalRadius_ + noiseGen_.noise<scalar>(radiusPerturbation_);
     centre(perturbedCentre);
 
     if (perturbedRadius > SMALL)
@@ -55,9 +68,6 @@ analyticalRandomizedCircle::analyticalRandomizedCircle(const dictionary& configD
         radius(perturbedRadius);
     }
 }
-
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 
 

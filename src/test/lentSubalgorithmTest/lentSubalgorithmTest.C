@@ -142,11 +142,7 @@ void lentSubalgorithmTest::computeFrontSignedDistances()
 
 void lentSubalgorithmTest::setupFrontFromSurface(const bool correct)
 {
-    // re-read analyticalSurface in order to randomize it
-    surfaceTmp_ = tmp<analyticalSurface>
-                  {
-                        analyticalSurface::New(lentDict().subDict("frontSurface"))
-                  };
+    surfaceTmp_.ref().randomize();
 
     computeExactSignedDistances();
 
@@ -175,21 +171,20 @@ lentSubalgorithmTest::lentSubalgorithmTest(const fvMesh& mesh, triSurfaceFront& 
                      analyticalSurface::New(lentDict().subDict("frontSurface"))
                   };
 
-    nRandomRuns_ = lentDict().lookupOrDefault<label>("nRandomRuns", 1);
-    nPerturbedRuns_ = lentDict().lookupOrDefault<label>("nPerturbedRuns", 1);
+    nRandomRuns_ = readLabel(testDict().lookup("nRandomRuns"));
+    nPerturbedRuns_ = readLabel(testDict().lookup("nPerturbedRuns"));
 
     // Values below 1 for the number of random runs and for the number
     // of perturbed runs make no sense.
-    // Rather to throw an error, set the values to 1 if they are 0 or smaller
-    if (nRandomRuns_ < 1)
+    if (nRandomRuns_ < 1 || nPerturbedRuns_ < 1)
     {
-       nRandomRuns_ = 1;
+        FatalErrorIn
+        (
+            "lentSubalgorithmTest::lentSubalgorithmTest(const fvMesh& mesh, triSurfaceFront& front)"
+        )   << "Invalid entry for nRandomRuns or nPerturbedRuns: "
+            << "Use n >= 1" 
+            << abort(FatalError);
     }
-
-    if (nPerturbedRuns_ < 1)
-    {
-       nPerturbedRuns_ = 1;
-    } 
 
     // Initialize search distances
     auto& searchDistanceSqr = lookupSearchDistanceSqr();
@@ -207,29 +202,35 @@ void lentSubalgorithmTest::runAllTests()
 
     for (label I = 0; I < nRandomRuns_; ++I)
     {
-        // Use the Time class to write the fields and front of
-        // each random run if desired
-        setNextRun();
-        
+        Info << "\n\n------------------------------------------------------"
+             << "\n ---> Running random setup...\n";
         randomSetup();
 
         for (label K = 0; K < nPerturbedRuns_; ++K)
         {
+            Info << "\n---> Perturbing input fields for model...\n";
+            
+            // Use the Time class to write the fields and front of
+            // each run if desired
+            setNextRun();
+        
             perturbInputFields();
 
             // add time measurement
             auto start = clock::now();
 
+            Info << "\n---> Running model...\n";
             computeApproximatedFields();
 
             auto end = clock::now();
             scalar deltaT = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
             addMeasure(algorithmRuntime_, deltaT);
             
+            Info << "\n---> Evaluating test metrics...\n";
             evaluateMetrics();
-        }
 
-        writeFields();
+            writeFields();
+        }
     }
 }
 

@@ -92,12 +92,6 @@ private:
     void setNextRun() const;
     void writeFields() const;
 
-    template<class fieldType>
-    fieldType& lookupField(const word fieldName) const
-    {
-        return const_cast<fieldType&>(mesh_.lookupObject<fieldType>(fieldName));
-    }
-
     volScalarField& lookupSearchDistanceSqr() const
     {
         return lookupField<volScalarField>("searchDistanceSqr");
@@ -118,7 +112,7 @@ protected:
         return mesh_;
     }
 
-    triSurface& front()
+    triSurfaceFront& frontRef()
     {
         return front_;
     }
@@ -133,6 +127,11 @@ protected:
         return lent_.dict();
     }
 
+    const dictionary& testDict() const
+    {
+        return lentDict().subDict("testConfiguration");
+    } 
+
     label nRandomRuns() const
     {
         return nRandomRuns_;
@@ -143,9 +142,15 @@ protected:
         return nPerturbedRuns_;
     }
 
-    const analyticalSurface& surface() const
+    const analyticalSurface& surfaceRef() const
     {
         return surfaceTmp_.ref();
+    }
+
+    template<class fieldType>
+    fieldType& lookupField(const word fieldName) const
+    {
+        return const_cast<fieldType&>(mesh_.lookupObject<fieldType>(fieldName));
     }
 
     volScalarField& lookupSignedDistance() const

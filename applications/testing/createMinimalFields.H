@@ -2,7 +2,6 @@
     // which is derived from "lentSubalgorithmTest".
     // So include it the corresponding test application.
 
-    Info << "Reading the cell distance field signedDistance\n" << endl;
     volScalarField signedDistance
     (
         IOobject
@@ -37,7 +36,6 @@
     pointMesh pmesh(mesh); 
 
     // Initialize the points-to-elements distance. 
-    Info << "Reading the point distance field signedDistance\n" << endl;
     pointScalarField pointSignedDistance 
     (
         IOobject

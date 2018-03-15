@@ -1,0 +1,212 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright (C) 2016 OpenFOAM Foundation
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+\*---------------------------------------------------------------------------*/
+
+#include "lentCurvatureTest.H"
+
+#include "fvCFD.H"
+#include "volMesh.H"
+
+#include "errorMetrics.H"
+
+namespace Foam {
+namespace FrontTracking {
+
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+void lentCurvatureTest::randomSetup()
+{
+    setupFrontFromSurface(correctFront_);
+
+    // Remember: computing the signed distance also updates front-mesh
+    // connectivity
+    computeFrontSignedDistances();
+
+    const auto& exactCurvatureModel = exactCurvatureModelTmp_.ref();
+    const auto& front = frontRef();
+
+    // Compute reference curvature, stored in the curvature model
+    exactCurvatureModel.cellCurvature(mesh(), front).ref();
+
+    // The markerfield is required to setup the filter field
+    auto& markerField = lookupField<volScalarField>("alpha.water");
+    lent().calcMarkerField(markerField);
+
+    auto& filterField = filterFieldTmp_.ref();
+    dimensionedScalar dSMALL("SMALL", pow(dimLength,-1), SMALL);
+    filterField = pos(mag(fvc::grad(markerField)) - 1e2*dSMALL);
+}
+
+void lentCurvatureTest::perturbInputFields()
+{
+    // For approaches working directly on the front, disturb front vertices.
+    // Perturbation only makes sense when applied to the exact vertex
+    // positions
+    if (correctFront_ && mag(frontNoise_) > SMALL)
+    {
+        const auto& surface = surfaceRef();
+        auto& front = frontRef();
+
+        surface.moveFrontToSurface(front);
+        auto& vertices = const_cast<pointField&>(front.points());
+        noiseGen_.addNoiseTo<vector,List>(vertices, frontNoise_);
+        
+       // Clear buffered point dependent data
+       front.clearGeom();
+    }
+
+    // Analogue to the front based approaches, perform the same for the signed
+    // distance field
+    if (!useFrontSignedDistance_ && distanceNoise_ > SMALL)
+    {
+        auto& signedDistance = lookupSignedDistance();
+        const auto& C = mesh().C();
+        const auto& surface = surfaceRef();
+
+        forAll(signedDistance, I)
+        {
+            signedDistance[I] = surface.signedDistance(C[I]);
+        }
+
+        noiseGen_.addNoiseTo<scalar,List>(signedDistance, distanceNoise_);
+    }
+}
+
+void lentCurvatureTest::computeApproximatedFields()
+{
+    const auto& numericalCurvatureModel = numericalCurvatureModelTmp_.ref();
+    numericalCurvatureModel.cellCurvature(mesh(), frontRef()).ref();
+}
+
+void lentCurvatureTest::evaluateMetrics()
+{
+    // Get fields and compute error field
+    auto& exactCurvatureModel = exactCurvatureModelTmp_.ref();
+    auto& numericalCurvatureModel = numericalCurvatureModelTmp_.ref();
+    auto& exactCurvatureField = exactCurvatureModel.cellCurvature(mesh(), frontRef()).ref();
+    auto& numericalCurvatureField = numericalCurvatureModel.cellCurvature(mesh(), frontRef()).ref();
+
+    const auto& filterField = filterFieldTmp_.ref();
+    exactCurvatureField *= filterField;
+    numericalCurvatureField *= filterField;
+
+    auto& relativeDeltaField = relativeDeltaFieldTmp_.ref();
+    dimensionedScalar dSMALL("SMALL", pow(dimLength,-1), SMALL);
+
+    relativeDeltaField = mag(numericalCurvatureField - exactCurvatureField)/(mag(exactCurvatureField) + dSMALL);
+
+    // Rename curvature fields so they can be distinguished
+    exactCurvatureField.rename("exact_cell_curvature");
+    numericalCurvatureField.rename("numerical_cell_curvature");
+
+    // Acutually compute metrics
+    auto minNumerical = min(numericalCurvatureField);
+    auto maxNumerical = max(numericalCurvatureField);
+    auto minExact = min(exactCurvatureField);
+    auto maxExact = max(exactCurvatureField);
+
+    errorMetrics eval{relativeDeltaField};
+
+    addMeasure("L1_norm", eval.arithmeticMeanError());
+    addMeasure("L2_norm", eval.quadraticMeanError());
+    addMeasure("L_inf_norm", eval.maximumError());
+    addMeasure("min_numerical", minNumerical.value());
+    addMeasure("max_numerical", maxNumerical.value());
+    addMeasure("min_exact", minExact.value());
+    addMeasure("max_exact", maxExact.value());
+}
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+lentCurvatureTest::lentCurvatureTest(const fvMesh& mesh, triSurfaceFront& front)
+:
+    lentSubalgorithmTest{mesh, front},
+    filterFieldTmp_{},
+    relativeDeltaFieldTmp_{},
+    noiseGen_{},
+    exactCurvatureModelTmp_{},
+    numericalCurvatureModelTmp_{}
+{
+    correctFront_ = Switch{testDict().lookup("correctFront")};
+    useFrontSignedDistance_ = Switch{testDict().lookup("useFrontSignedDistance")};
+    frontNoise_ = testDict().lookup("frontNoise");
+    distanceNoise_ = readScalar(testDict().lookup("distanceNoise"));
+
+    exactCurvatureModelTmp_ = tmp<frontExactSurfaceCurvatureModel>{
+        new frontExactSurfaceCurvatureModel(lentDict().subDict("exactCurvatureModel"), surfaceRef())
+    };
+
+    numericalCurvatureModelTmp_ = tmp<frontCurvatureModel>{
+        frontCurvatureModel::New(lentDict().subDict("numericalCurvatureModel"))
+    };
+
+    // Initialize Fields
+    filterFieldTmp_ = tmp<volScalarField>{new volScalarField 
+    (
+        IOobject
+        (
+            "filter_field",
+            mesh.time().timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(
+            "zero",
+            dimless,
+            0
+        )
+    )
+    };
+
+    relativeDeltaFieldTmp_ = tmp<volScalarField>{new volScalarField 
+    (
+        IOobject
+        (
+            "relative_curvature_error",
+            mesh.time().timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(
+            "zero",
+            dimless,
+            0
+        )
+    )
+    };
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace FrontTracking
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ************************************************************************* //

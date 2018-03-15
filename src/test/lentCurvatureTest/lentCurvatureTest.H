@@ -22,23 +22,23 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::analyticalRandomizedCircle
+    Foam::lentCurvatureTest
 
 Description
 
 SourceFiles
-    analyticalRandomizedCircleI.H
-    analyticalRandomizedCircle.C
-    analyticalRandomizedCircleIO.C
+    lentCurvatureTestI.H
+    lentCurvatureTest.C
+    lentCurvatureTestIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef analyticalRandomizedCircle_H
-#define analyticalRandomizedCircle_H
+#ifndef lentCurvatureTest_H
+#define lentCurvatureTest_H
 
+#include "frontExactSurfaceCurvatureModel.H"
+#include "lentSubalgorithmTest.H"
 #include "noiseGenerator.H"
-
-#include "analyticalCircle.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -47,37 +47,42 @@ namespace FrontTracking {
 
 
 /*---------------------------------------------------------------------------*\
-                         Class analyticalRandomizedCircle Declaration
+                         Class lentCurvatureTest Declaration
 \*---------------------------------------------------------------------------*/
 
-class analyticalRandomizedCircle
+class lentCurvatureTest
 :
-    public analyticalCircle
+    public lentSubalgorithmTest
 {
     // Private data
+    tmp<volScalarField> filterFieldTmp_;
+    tmp<volScalarField> relativeDeltaFieldTmp_;
+
     noiseGenerator noiseGen_;
-    point originalCentre_;
-    scalar originalRadius_;
-    vector centrePerturbation_;
-    scalar radiusPerturbation_;
+    tmp<frontExactSurfaceCurvatureModel> exactCurvatureModelTmp_;
+    tmp<frontCurvatureModel> numericalCurvatureModelTmp_;
+
+    Switch correctFront_;
+    Switch useFrontSignedDistance_;
+    vector frontNoise_;
+    scalar distanceNoise_;
+
 
     // Private Member Functions
+    virtual void randomSetup();
+    virtual void perturbInputFields();
+    virtual void computeApproximatedFields();
+    virtual void evaluateMetrics();
 
 
 public:
 
-    TypeName ("randomizedCircle");
-
     // Constructors
-    analyticalRandomizedCircle() = default;
-    analyticalRandomizedCircle(const dictionary& configDict);
-    
+    lentCurvatureTest(const fvMesh& mesh, triSurfaceFront& front);
+
+
     //- Destructor
-    virtual ~analyticalRandomizedCircle() = default;
-
-
-    // Member Functions
-    virtual void randomize();
+    virtual ~lentCurvatureTest() = default;
 
 };
 

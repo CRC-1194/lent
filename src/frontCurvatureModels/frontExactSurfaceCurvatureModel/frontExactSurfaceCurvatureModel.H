@@ -90,6 +90,8 @@ public:
 
     // Constructors
     explicit frontExactSurfaceCurvatureModel(const dictionary& configDict);
+    explicit frontExactSurfaceCurvatureModel(const dictionary& configDict,
+                                             const analyticalSurface& surface);
     
     // Destructor
     virtual ~frontExactSurfaceCurvatureModel() = default;
