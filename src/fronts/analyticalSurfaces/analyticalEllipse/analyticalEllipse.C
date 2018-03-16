@@ -424,6 +424,18 @@ scalar analyticalEllipse::curvatureAt(const point& aPoint) const
     return ellipseCurvature(refPoint); 
 }
 
+void analyticalEllipse::centre(const point& newCentre)
+{
+    centre_ = newCentre;
+    ensureValidCentre(); 
+}
+
+void analyticalEllipse::semiAxes(const vector& newSemiAxes)
+{
+    semiAxes_ = newSemiAxes;
+    ensureValidHalfAxes();
+}
+
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 analyticalEllipse& analyticalEllipse::operator=(const analyticalEllipse& rhs)

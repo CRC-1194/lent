@@ -387,6 +387,14 @@ vector analyticalEllipsoid::semiAxes() const
     return semiAxes;
 }
 
+void analyticalEllipsoid::semiAxes(const vector& newSemiAxes)
+{
+    forAll(newSemiAxes, I)
+    {
+        oneBySemiAxisSqr_[I] = 1.0/(newSemiAxes[I]*newSemiAxes[I]);
+    }
+}
+
 // * * * * * * * * * * * * * * Member Operators    * * * * * * * * * * * * * * //
 analyticalEllipsoid& analyticalEllipsoid::operator=(const analyticalEllipsoid& rhs)
 {

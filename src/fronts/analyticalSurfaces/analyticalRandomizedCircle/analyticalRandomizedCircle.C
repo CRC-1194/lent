@@ -43,9 +43,6 @@ namespace FrontTracking {
 analyticalRandomizedCircle::analyticalRandomizedCircle(const dictionary& configDict)
 :
     analyticalCircle{configDict},
-    noiseGen_{},
-    originalCentre_{},
-    originalRadius_{},
     centrePerturbation_{configDict.lookup("centrePerturbation")},
     radiusPerturbation_{readScalar(configDict.lookup("radiusPerturbation"))}
 {
@@ -71,6 +68,20 @@ void analyticalRandomizedCircle::randomize()
 
 
 
+// * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
+analyticalRandomizedCircle& analyticalRandomizedCircle::operator=(const analyticalRandomizedCircle& rhs)
+{
+    if (this != &rhs)
+    {
+        analyticalCircle::operator=(rhs);
+        originalCentre_ = rhs.originalCentre_;
+        originalRadius_ = rhs.originalRadius_;
+        centrePerturbation_ = rhs.centrePerturbation_;
+        radiusPerturbation_ = rhs.radiusPerturbation_; 
+    }
+
+    return *this;
+}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking

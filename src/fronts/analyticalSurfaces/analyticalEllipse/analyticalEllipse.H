@@ -127,7 +127,7 @@ public:
     virtual point intersection(const point& pointA, const point& pointB) const;
     virtual scalar curvatureAt(const point& aPoint) const;
 
-    virtual point centre() const
+    virtual const point& centre() const
     {
         return centre_;
     }
@@ -136,6 +136,9 @@ public:
     {
         return semiAxes_;
     }
+
+    virtual void centre(const point& newCentre);
+    virtual void semiAxes(const vector& newSemiAxes);
 
     // Member operators
     virtual analyticalEllipse& operator=(const analyticalEllipse& rhs);

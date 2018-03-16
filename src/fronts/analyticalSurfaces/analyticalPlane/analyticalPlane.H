@@ -79,6 +79,9 @@ class analyticalPlane
     vector unitNormal_;
     scalar distanceOrigin_;
 
+protected:
+    vector normalize(const vector& normalVector) const;
+
 public:
 
     TypeName ("plane");
@@ -112,6 +115,9 @@ public:
     {
         return refPoint_;
     }
+
+    virtual void normal(const vector& newNormal);
+    virtual void referencePoint(const point& newRefPoint);
 
     // Member operators
     virtual analyticalPlane& operator=(const analyticalPlane& rhs);

@@ -23,16 +23,16 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::analyticalSphere
+    Foam::analyticalRandomizedEllipse
 
 SourceFiles
-    analyticalSphere.C
+    analyticalRandomizedEllipse.C
 
 Author
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    Specialization of the analyticalSurface class for a sphere.
+    Specialization of the analyticalSurface class for an ellipse.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,71 +56,76 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef analyticalSphere_H
-#define analyticalSphere_H
-
-#include <cmath>
-
-#include "analyticalSurface.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "analyticalRandomizedEllipse.H"
+#include "addToRunTimeSelectionTable.H"
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class analyticalSphere Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(analyticalRandomizedEllipse, 0);
+    addToRunTimeSelectionTable(analyticalSurface, analyticalRandomizedEllipse, Dictionary);
 
-class analyticalSphere
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+analyticalRandomizedEllipse::analyticalRandomizedEllipse(const dictionary& configDict)
 :
-    public analyticalSurface
+    analyticalEllipse{configDict},
+    centrePerturbation_{configDict.lookup("centrePerturbation")},
+    semiAxesPerturbation_{configDict.lookup("semiAxesPerturbation")}
 {
-    // Private data
-    point centre_;
-    scalar radius_;
+    originalCentre_ = centre();
+    originalSemiAxes_ = semiAxes();
 
-public:
+    randomize();
+}
 
-    TypeName ("sphere");
+analyticalRandomizedEllipse::analyticalRandomizedEllipse(const point& centre, const vector& semiAxes, const vector& emptyDirection, const point& centrePerturbation, const vector& semiAxesPerturbation)
+:
+   analyticalEllipse{centre, semiAxes, emptyDirection},
+   originalCentre_{centre},
+   originalSemiAxes_{semiAxes},
+   centrePerturbation_{centrePerturbation},
+   semiAxesPerturbation_{semiAxesPerturbation}
+{
+    randomize();
+} 
 
-    // Constructors
-    analyticalSphere() = default;
-    analyticalSphere(const dictionary& configDict);
-    analyticalSphere(const point& centre, const scalar radius);
 
-    //- Destructor
-    virtual ~analyticalSphere() {};
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+void analyticalRandomizedEllipse::randomize()
+{
+    auto randomCentre = originalCentre_ + noiseGen_.noise<vector>(centrePerturbation_);
+    auto randomSemiAxes = originalSemiAxes_ + noiseGen_.noise<vector>(semiAxesPerturbation_);
 
-
-    // Member Functions
-    virtual scalar distance(const point& trialpoint) const;
-    virtual scalar signedDistance(const point& trialPoint) const;
-    virtual point normalProjectionToSurface(point& trialPoint) const;
-    virtual vector normalToPoint(const point& trialPoint) const;
-    virtual point intersection(const point& pointA, const point& pointB) const;
-    virtual scalar curvatureAt(const point& p) const
+    // Ensure non-negative semi axes
+    forAll(randomSemiAxes, I)
     {
-        return -2.0/radius();
+        if (randomSemiAxes[I] < SMALL)
+        {
+            randomSemiAxes[I] = mag(randomSemiAxes[I]) + SMALL;
+        }
     }
 
-    virtual point centre() const
+    centre(randomCentre);
+    semiAxes(randomSemiAxes);
+}
+
+
+// * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
+analyticalRandomizedEllipse& analyticalRandomizedEllipse::operator=(const analyticalRandomizedEllipse& rhs)
+{
+    if (this != &rhs)
     {
-        return centre_;
+        analyticalEllipse::operator=(rhs);
+        originalCentre_ = rhs.originalCentre_;
+        originalSemiAxes_ = rhs.originalSemiAxes_;
+        centrePerturbation_ = rhs.centrePerturbation_;
+        semiAxesPerturbation_ = rhs.semiAxesPerturbation_;
     }
 
-    virtual scalar radius() const
-    {
-        return radius_;
-    }
-
-    virtual void centre(const point& newCentre);
-    virtual void radius(const scalar newRadius);
-
-    // Member operators
-    virtual analyticalSphere& operator=(const analyticalSphere& rhs);
-};
-
+    return *this;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -131,7 +136,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

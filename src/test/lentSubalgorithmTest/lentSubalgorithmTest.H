@@ -76,6 +76,7 @@ private:
 
     label nRandomRuns_;
     label nPerturbedRuns_;
+    Switch writeFields_;
     std::string separator_;
     std::string algorithmRuntime_;
 

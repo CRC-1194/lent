@@ -23,20 +23,16 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::analyticalEllipsoid
+    Foam::analyticalRandomizedSphere
 
 SourceFiles
-    analyticalEllipsoid.C
+    analyticalRandomizedSphere.C
 
 Author
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    Specialization of the analyticalSurface class for an ellipsoid.
-
-    See https://www.geometrictools.com/Documentation/DistancePointEllipseEllipsoid.pdf
-    for information on how to find the minimal distance between a point
-    and the ellipsoid.
+    Analytical sphere with randomized parameters.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -60,13 +56,12 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef analyticalEllipsoid_H
-#define analyticalEllipsoid_H
+#ifndef analyticalRandomizedSphere_H
+#define analyticalRandomizedSphere_H
 
-#include <cmath>
-#include <functional>
+#include "noiseGenerator.H"
 
-#include "analyticalSurface.H"
+#include "analyticalSphere.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -74,75 +69,38 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class analyticalEllipsoid Declaration
+                         Class analyticalRandomizedSphere Declaration
 \*---------------------------------------------------------------------------*/
 
-class analyticalEllipsoid
+class analyticalRandomizedSphere
 :
-    public analyticalSurface
+    public analyticalSphere
 {
-
-public:
-    using parameterPair = FixedList<scalar,2>;
-
-private:
-    
     // Private data
-    point centre_;
-    vector oneBySemiAxisSqr_;
-
-    scalar levelSetValueOf(const point& aPoint) const;
-    vector levelSetGradientAt(const point& aPoint) const;
-    point moveToReferenceFrame(const point& aPoint) const;
-    parameterPair intersectEllipsoidWithLine(const point& refPoint, const vector& path) const;
-    scalar ellipsoidCurvature(const point& p) const;
-    label minorSemiAxisIndex() const;
-    // TODO: extract bisection method since it may be used else wehere (TT)
-    scalar bisection(const std::function<scalar(scalar)>& rootFunction, parameterPair interval) const;
+    noiseGenerator noiseGen_{};
     
+    point originalCentre_{};
+    scalar originalRadius_{};
+    point centrePerturbation_;
+    scalar radiusPerturbation_;
 
 public:
 
-    TypeName ("ellipsoid");
+    TypeName ("randomizedSphere");
 
     // Constructors
-    analyticalEllipsoid() = default;
-    analyticalEllipsoid(const dictionary& configDict);
-    analyticalEllipsoid(const point& centre, const vector& semiAxes);
+    analyticalRandomizedSphere() = default;
+    analyticalRandomizedSphere(const dictionary& configDict);
+    analyticalRandomizedSphere(const point& centre, const scalar radius, const point& centrePerturbation, const scalar radiusPerturbation);
 
     //- Destructor
-    virtual ~analyticalEllipsoid() {};
-
+    virtual ~analyticalRandomizedSphere() {};
 
     // Member Functions
-    virtual scalar distance(const point& trialPoint) const;
-    virtual scalar signedDistance(const point& trialPoint) const;
-    virtual point normalProjectionToSurface(point& trialPoint) const;
-    virtual vector normalToPoint(const point& trialPoint) const;
-    virtual point intersection(const point& pointA, const point& pointB) const;
-    virtual scalar curvatureAt(const point& p) const;
-
-    virtual point centre() const
-    {
-        return centre_;
-    }
-
-    virtual vector semiAxes() const;
-    
-    virtual void oneBySemiAxisSquare(const vector& oneBySemiAxisSquare)
-    {
-        oneBySemiAxisSqr_ = oneBySemiAxisSquare;
-    }
-
-    virtual void centre(const vector& newCentre)
-    {
-        centre_ = newCentre;
-    }
-
-    virtual void semiAxes(const vector& newSemiAxes);
+    virtual void randomize();
 
     // Member operators
-    virtual analyticalEllipsoid& operator=(const analyticalEllipsoid& rhs);
+    virtual analyticalRandomizedSphere& operator=(const analyticalRandomizedSphere& rhs);
 };
 
 

@@ -180,6 +180,16 @@ point analyticalSphere::intersection(const point& pointA,
     return intersect;
 }
 
+void analyticalSphere::centre(const point& newCentre)
+{
+    centre_ = newCentre;
+}
+
+void analyticalSphere::radius(const scalar newRadius)
+{
+    radius_ = newRadius;
+}
+
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 analyticalSphere& analyticalSphere::operator=(const analyticalSphere& rhs)

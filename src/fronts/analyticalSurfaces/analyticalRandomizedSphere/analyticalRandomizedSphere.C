@@ -23,16 +23,16 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::analyticalSphere
+    Foam::analyticalRandomizedSphere
 
 SourceFiles
-    analyticalSphere.C
+    analyticalRandomizedSphere.C
 
 Author
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    Specialization of the analyticalSurface class for a sphere.
+    Analytical sphere with randomized parameters.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,71 +56,72 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef analyticalSphere_H
-#define analyticalSphere_H
-
-#include <cmath>
-
-#include "analyticalSurface.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "analyticalRandomizedSphere.H"
+#include "addToRunTimeSelectionTable.H"
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class analyticalSphere Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(analyticalRandomizedSphere, 0);
+    addToRunTimeSelectionTable(analyticalSurface, analyticalRandomizedSphere, Dictionary);
 
-class analyticalSphere
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+analyticalRandomizedSphere::analyticalRandomizedSphere(const dictionary& configDict)
 :
-    public analyticalSurface
+    analyticalSphere{configDict},
+    centrePerturbation_{configDict.lookup("centrePerturbation")},
+    radiusPerturbation_{readScalar(configDict.lookup("radiusPerturbation"))}
 {
-    // Private data
-    point centre_;
-    scalar radius_;
+    originalCentre_ = centre();
+    originalRadius_ = radius();
 
-public:
+    randomize();
+}
 
-    TypeName ("sphere");
+analyticalRandomizedSphere::analyticalRandomizedSphere(const point& centre, const scalar radius, const point& centrePerturbation, const scalar radiusPerturbation)
+:
+   analyticalSphere{centre, radius},
+   originalCentre_{centre},
+   originalRadius_{radius},
+   centrePerturbation_{centrePerturbation},
+   radiusPerturbation_{radiusPerturbation}
+{
+    randomize();
+} 
 
-    // Constructors
-    analyticalSphere() = default;
-    analyticalSphere(const dictionary& configDict);
-    analyticalSphere(const point& centre, const scalar radius);
 
-    //- Destructor
-    virtual ~analyticalSphere() {};
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+void analyticalRandomizedSphere::randomize()
+{
+    auto randomCentre = originalCentre_ + noiseGen_.noise<vector>(centrePerturbation_);
+    auto randomRadius = originalRadius_ + noiseGen_.noise<scalar>(radiusPerturbation_);
 
-
-    // Member Functions
-    virtual scalar distance(const point& trialpoint) const;
-    virtual scalar signedDistance(const point& trialPoint) const;
-    virtual point normalProjectionToSurface(point& trialPoint) const;
-    virtual vector normalToPoint(const point& trialPoint) const;
-    virtual point intersection(const point& pointA, const point& pointB) const;
-    virtual scalar curvatureAt(const point& p) const
+    centre(randomCentre);
+    
+    if (randomRadius > SMALL)
     {
-        return -2.0/radius();
+        radius(randomRadius);
+    }
+}
+
+
+// * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
+analyticalRandomizedSphere& analyticalRandomizedSphere::operator=(const analyticalRandomizedSphere& rhs)
+{
+    if (this != &rhs)
+    {
+        analyticalSphere::operator=(rhs);
+        originalCentre_ = rhs.originalCentre_;
+        originalRadius_ = rhs.originalRadius_;
+        centrePerturbation_ = rhs.centrePerturbation_;
+        radiusPerturbation_ = rhs.radiusPerturbation_;
     }
 
-    virtual point centre() const
-    {
-        return centre_;
-    }
-
-    virtual scalar radius() const
-    {
-        return radius_;
-    }
-
-    virtual void centre(const point& newCentre);
-    virtual void radius(const scalar newRadius);
-
-    // Member operators
-    virtual analyticalSphere& operator=(const analyticalSphere& rhs);
-};
-
+    return *this;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -131,7 +132,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

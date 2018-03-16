@@ -55,9 +55,10 @@ class analyticalRandomizedCircle
     public analyticalCircle
 {
     // Private data
-    noiseGenerator noiseGen_;
-    point originalCentre_;
-    scalar originalRadius_;
+    noiseGenerator noiseGen_{};
+
+    point originalCentre_{};
+    scalar originalRadius_{};
     vector centrePerturbation_;
     scalar radiusPerturbation_;
 
@@ -79,6 +80,8 @@ public:
     // Member Functions
     virtual void randomize();
 
+    // Member Operators
+    virtual analyticalRandomizedCircle& operator=(const analyticalRandomizedCircle& rhs);
 };
 
 

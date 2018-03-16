@@ -82,8 +82,11 @@ void lentSubalgorithmTest::setNextRun() const
 
 void lentSubalgorithmTest::writeFields() const
 {
-    auto& runTime = const_cast<Time&>(mesh_.time());
-    runTime.write();
+    if (writeFields_)
+    {
+        auto& runTime = const_cast<Time&>(mesh_.time());
+        runTime.write();
+    }
 }
 
 
@@ -173,6 +176,7 @@ lentSubalgorithmTest::lentSubalgorithmTest(const fvMesh& mesh, triSurfaceFront& 
 
     nRandomRuns_ = readLabel(testDict().lookup("nRandomRuns"));
     nPerturbedRuns_ = readLabel(testDict().lookup("nPerturbedRuns"));
+    writeFields_ = Switch{testDict().lookup("writeFields")};
 
     // Values below 1 for the number of random runs and for the number
     // of perturbed runs make no sense.

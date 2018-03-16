@@ -65,24 +65,39 @@ namespace FrontTracking {
     defineTypeNameAndDebug(analyticalPlane, 0);
     addToRunTimeSelectionTable(analyticalSurface, analyticalPlane, Dictionary);
 
+
+// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+vector analyticalPlane::normalize(const vector& normalVector) const
+{
+    if (mag(normalVector) > SMALL)
+    {
+        return normalVector / mag(normalVector);
+    }
+    else
+    {
+        return normalVector / (mag(normalVector) + SMALL);
+    }
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 analyticalPlane::analyticalPlane(const dictionary& configDict)
 :
-    analyticalSurface(configDict)
+    analyticalSurface{configDict},
+    refPoint_{configDict.lookup("referencePoint")},
+    unitNormal_{configDict.lookup("normalVector")}
 {
-    refPoint_ = configDict.lookup("referencePoint");
-    unitNormal_ = configDict.lookup("normalVector");
-    unitNormal_ = unitNormal_ / mag(unitNormal_);
+    unitNormal_ = normalize(unitNormal_);
     distanceOrigin_ = unitNormal_ & refPoint_;
 }
 
 analyticalPlane::analyticalPlane(const point& refPoint, const vector& normal)
 :
-    analyticalSurface()
+    analyticalSurface{},
+    refPoint_{refPoint},
+    unitNormal_{normal}
 {
-    refPoint_ = refPoint;
-    unitNormal_ = normal;
-    unitNormal_ /= mag(unitNormal_);
+    unitNormal_ = normalize(unitNormal_);
     distanceOrigin_ = unitNormal_ & refPoint_;
 }
 
@@ -135,6 +150,16 @@ point analyticalPlane::intersection(const point& pointA, const point& pointB) co
         intersect = distanceRatio*pointB + (1.0 - distanceRatio) * pointA;
 
         return intersect;
+}
+
+void analyticalPlane::normal(const vector& newNormal)
+{
+    unitNormal_ = newNormal / (mag(newNormal) + SMALL);
+}
+
+void analyticalPlane::referencePoint(const point& newRefPoint)
+{
+    refPoint_ = newRefPoint;
 }
 
 

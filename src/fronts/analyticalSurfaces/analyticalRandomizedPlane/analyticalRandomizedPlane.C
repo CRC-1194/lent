@@ -23,16 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::analyticalSphere
+    Foam::analyticalRandomizedPlane
 
 SourceFiles
-    analyticalSphere.C
+    analyticalRandomizedPlane.C
 
 Author
     Tobias Tolle   tolle@csi.tu-darmstadt.de
 
 Description
-    Specialization of the analyticalSurface class for a sphere.
+    An analytical plane for which the normal and the reference point
+    are computed from reference values plus random values
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,70 +57,65 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef analyticalSphere_H
-#define analyticalSphere_H
-
-#include <cmath>
-
-#include "analyticalSurface.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "analyticalRandomizedPlane.H"
+#include "addToRunTimeSelectionTable.H"
 
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class analyticalSphere Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(analyticalRandomizedPlane, 0);
+    addToRunTimeSelectionTable(analyticalSurface, analyticalRandomizedPlane, Dictionary);
 
-class analyticalSphere
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+analyticalRandomizedPlane::analyticalRandomizedPlane(const dictionary& configDict)
 :
-    public analyticalSurface
+    analyticalPlane{configDict},
+    refPointPerturbation_{configDict.lookup("referencePointPerturbation")},
+    normalPerturbation_{configDict.lookup("normalVectorPerturbation")}
 {
-    // Private data
-    point centre_;
-    scalar radius_;
+    originalRefPoint_ = referencePoint();
+    originalNormal_ = normal();
 
-public:
+    randomize();
+}
 
-    TypeName ("sphere");
+analyticalRandomizedPlane::analyticalRandomizedPlane(const point& refPoint, const vector& normal, const point& refPointPerturbation, const vector& normalPerturbation)
+:
+    analyticalPlane{refPoint, normal},
+    originalRefPoint_{refPoint},
+    originalNormal_{refPoint},
+    refPointPerturbation_{refPointPerturbation},
+    normalPerturbation_{normalPerturbation}
+{
+    originalNormal_ = normalize(originalNormal_);
+    randomize();
+}
 
-    // Constructors
-    analyticalSphere() = default;
-    analyticalSphere(const dictionary& configDict);
-    analyticalSphere(const point& centre, const scalar radius);
 
-    //- Destructor
-    virtual ~analyticalSphere() {};
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+void analyticalRandomizedPlane::randomize()
+{
+    auto randomRefPoint = originalRefPoint_ + noiseGen_.noise<vector>(refPointPerturbation_);
+    auto randomNormal = originalNormal_ + noiseGen_.noise<vector>(normalPerturbation_);
+    randomNormal = normalize(randomNormal);
 
+    referencePoint(randomRefPoint);
+    normal(randomNormal);
+}
 
-    // Member Functions
-    virtual scalar distance(const point& trialpoint) const;
-    virtual scalar signedDistance(const point& trialPoint) const;
-    virtual point normalProjectionToSurface(point& trialPoint) const;
-    virtual vector normalToPoint(const point& trialPoint) const;
-    virtual point intersection(const point& pointA, const point& pointB) const;
-    virtual scalar curvatureAt(const point& p) const
+// * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
+analyticalRandomizedPlane& analyticalRandomizedPlane::operator=(const analyticalRandomizedPlane& rhs) 
+{
+    if (this != &rhs)
     {
-        return -2.0/radius();
+        originalRefPoint_ = rhs.originalRefPoint_;
+        originalNormal_ = rhs.originalNormal_;
+        refPointPerturbation_ = rhs.refPointPerturbation_;
+        normalPerturbation_ = rhs.normalPerturbation_;
     }
 
-    virtual point centre() const
-    {
-        return centre_;
-    }
-
-    virtual scalar radius() const
-    {
-        return radius_;
-    }
-
-    virtual void centre(const point& newCentre);
-    virtual void radius(const scalar newRadius);
-
-    // Member operators
-    virtual analyticalSphere& operator=(const analyticalSphere& rhs);
-};
+    return *this;
+}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -131,7 +127,5 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //
