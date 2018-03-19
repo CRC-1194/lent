@@ -140,6 +140,8 @@ public:
     virtual void centre(const point& newCentre);
     virtual void semiAxes(const vector& newSemiAxes);
 
+    virtual void writeParameters(const word fileName) const;
+
     // Member operators
     virtual analyticalEllipse& operator=(const analyticalEllipse& rhs);
 };

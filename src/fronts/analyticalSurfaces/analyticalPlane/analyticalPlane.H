@@ -119,6 +119,8 @@ public:
     virtual void normal(const vector& newNormal);
     virtual void referencePoint(const point& newRefPoint);
 
+    virtual void writeParameters(const word fileName) const; 
+
     // Member operators
     virtual analyticalPlane& operator=(const analyticalPlane& rhs);
 };

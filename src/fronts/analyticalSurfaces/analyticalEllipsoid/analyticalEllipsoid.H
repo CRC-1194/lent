@@ -141,6 +141,8 @@ public:
 
     virtual void semiAxes(const vector& newSemiAxes);
 
+    virtual void writeParameters(const word fileName) const;
+
     // Member operators
     virtual analyticalEllipsoid& operator=(const analyticalEllipsoid& rhs);
 };

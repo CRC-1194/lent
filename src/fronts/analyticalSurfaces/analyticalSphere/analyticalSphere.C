@@ -190,6 +190,19 @@ void analyticalSphere::radius(const scalar newRadius)
     radius_ = newRadius;
 }
 
+void analyticalSphere::writeParameters(const word fileName) const
+{
+    // TODO: when porting to the latest OpenFOAM-plus version,
+    // open file in append mode so the entire history of surface
+    // parameters is saved (TT)
+    OFstream outputFile(fileName);
+
+    outputFile << "-------------------------------\n"
+               << "type " << this->type() << '\n'
+               << "centre " << centre_ << '\n'
+               << "radius " << radius_ << '\n';
+}
+
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 analyticalSphere& analyticalSphere::operator=(const analyticalSphere& rhs)

@@ -436,6 +436,17 @@ void analyticalEllipse::semiAxes(const vector& newSemiAxes)
     ensureValidHalfAxes();
 }
 
+void analyticalEllipse::writeParameters(const word fileName) const
+{
+    // TODO: open in append mode (TT)
+    OFstream outputFile(fileName);
+
+    outputFile << "-------------------------------\n"
+               << "type " << this->type() << '\n'
+               << "centre " << centre_ << '\n'
+               << "semiAxes " << semiAxes_ << '\n';
+}
+
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 analyticalEllipse& analyticalEllipse::operator=(const analyticalEllipse& rhs)

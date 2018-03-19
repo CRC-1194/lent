@@ -146,6 +146,7 @@ void lentSubalgorithmTest::computeFrontSignedDistances()
 void lentSubalgorithmTest::setupFrontFromSurface(const bool correct)
 {
     surfaceTmp_.ref().randomize();
+    surfaceTmp_.ref().writeParameters(assembleFilePath() + "front/surfaceParameters.dat");
 
     computeExactSignedDistances();
 

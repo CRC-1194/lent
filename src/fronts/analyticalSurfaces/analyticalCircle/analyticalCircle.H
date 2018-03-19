@@ -125,6 +125,8 @@ public:
         radius_ = newRadius;
     }
 
+    virtual void writeParameters(const word fileName) const;
+
     // Member operators
     virtual analyticalCircle& operator=(const analyticalCircle& rhs);
 };

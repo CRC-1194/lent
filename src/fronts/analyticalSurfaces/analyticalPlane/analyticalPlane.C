@@ -162,6 +162,19 @@ void analyticalPlane::referencePoint(const point& newRefPoint)
     refPoint_ = newRefPoint;
 }
 
+void analyticalPlane::writeParameters(const word fileName) const
+{
+    // TODO: when porting to the latest OpenFOAM-plus version,
+    // open file in append mode so the entire history of surface
+    // parameters is saved (TT)
+    OFstream outputFile(fileName);
+
+    outputFile << "-------------------------------\n"
+               << "type " << this->type() << '\n'
+               << "referencePoint " << refPoint_ << '\n'
+               << "normal " << unitNormal_ << '\n';
+}
+
 
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
 analyticalPlane& analyticalPlane::operator=(const analyticalPlane& rhs) 
