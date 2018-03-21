@@ -59,8 +59,9 @@ Description
 #include "analyticalEllipse.H"
 #include "addToRunTimeSelectionTable.H"
 
-#include <cmath>
 #include <assert.h>
+#include <cmath>
+#include <iomanip>
 
 namespace Foam {
 namespace FrontTracking {
@@ -440,6 +441,8 @@ void analyticalEllipse::writeParameters(const word fileName) const
 {
     // TODO: open in append mode (TT)
     OFstream outputFile(fileName);
+
+    outputFile.stdStream() << std::setprecision(15);
 
     outputFile << "-------------------------------\n"
                << "type " << this->type() << '\n'

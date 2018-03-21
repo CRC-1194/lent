@@ -63,8 +63,9 @@ Description
 #include "analyticalEllipsoid.H"
 #include "addToRunTimeSelectionTable.H"
 
-#include <cmath>
 #include <assert.h>
+#include <cmath>
+#include <iomanip>
 
 namespace Foam {
 namespace FrontTracking {
@@ -401,6 +402,8 @@ void analyticalEllipsoid::writeParameters(const word fileName) const
     // open file in append mode so the entire history of surface
     // parameters is saved (TT)
     OFstream outputFile(fileName);
+
+    outputFile.stdStream() << std::setprecision(15);
 
     outputFile << "-------------------------------\n"
                << "type " << this->type() << '\n'

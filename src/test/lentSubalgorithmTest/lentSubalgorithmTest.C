@@ -29,6 +29,7 @@ License
 
 #include <chrono>
 #include <fstream>
+#include <iomanip>
 #include <sstream>
 #include <string>
 
@@ -228,7 +229,7 @@ void lentSubalgorithmTest::runAllTests()
             computeApproximatedFields();
 
             auto end = clock::now();
-            scalar deltaT = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+            scalar deltaT = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
             addMeasure(algorithmRuntime_, deltaT);
             
             Info << "\n---> Evaluating test metrics...\n";
@@ -275,6 +276,9 @@ void lentSubalgorithmTest::writeResultsHDF5(const word& fileName) const
 void lentSubalgorithmTest::writeResultsCSV(const word& fileName) const
 {
     std::fstream dataFile(assembleFilePath() + fileName, std::ios_base::out);
+
+    // For now: hardcoded precision using scientific notation
+    dataFile << std::scientific << std::setprecision(10);
 
     dataFile << metricHeader(scalarMetrics_)
              << metricHeader(vectorMetrics_) << std::endl;

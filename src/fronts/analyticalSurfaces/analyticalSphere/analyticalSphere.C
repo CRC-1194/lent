@@ -59,6 +59,8 @@ Description
 #include "analyticalSphere.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include <iomanip>
+
 namespace Foam {
 namespace FrontTracking {
 
@@ -70,15 +72,15 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 analyticalSphere::analyticalSphere(const dictionary& configDict)
 :
-    analyticalSurface(configDict)
+    analyticalSurface{configDict}
 {
-    centre_ = configDict.lookupOrDefault<vector>("centre", centre_);
-    radius_ = configDict.lookupOrDefault<scalar>("radius", radius_);
+    centre_ = configDict.lookup("centre");
+    radius_ = readScalar(configDict.lookup("radius"));
 }
 
 analyticalSphere::analyticalSphere(const point& centre, const scalar radius)
 :
-   analyticalSurface()
+   analyticalSurface{}
 {
     centre_ = centre;
     radius_ = radius;
@@ -196,6 +198,8 @@ void analyticalSphere::writeParameters(const word fileName) const
     // open file in append mode so the entire history of surface
     // parameters is saved (TT)
     OFstream outputFile(fileName);
+
+    outputFile.stdStream() << std::setprecision(15);
 
     outputFile << "-------------------------------\n"
                << "type " << this->type() << '\n'
