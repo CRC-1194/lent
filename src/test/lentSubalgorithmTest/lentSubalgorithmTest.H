@@ -118,6 +118,11 @@ protected:
         return front_;
     }
 
+    const triSurfaceFront& frontRef() const
+    {
+        return front_;
+    }
+
     auto& lent()
     {
         return lent_;

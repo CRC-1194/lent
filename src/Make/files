@@ -32,6 +32,7 @@ frontReconstructors/normalConsistencyAlgorithms/normalConsistency/normalConsiste
 frontReconstructors/normalConsistencyAlgorithms/centerNormalConsistency/centerNormalConsistency.C
 frontReconstructors/normalConsistencyAlgorithms/distanceNormalConsistency/distanceNormalConsistency.C
 frontReconstructors/normalConsistencyAlgorithms/convexFrontNormalConsistency/convexFrontNormalConsistency.C
+frontReconstructors/normalConsistencyAlgorithms/analyticalSurfaceNormalConsistency/analyticalSurfaceNormalConsistency.C
 
 frontMeshSearch/frontMeshSearch.C
 
@@ -79,6 +80,7 @@ test/randomization/randomNumberGenerator/randomNumberGenerator.C
 test/lentSubalgorithmTest/lentSubalgorithmTest.C
 test/lentDummyTest/lentDummyTest.C
 test/lentCurvatureTest/lentCurvatureTest.C
+test/lentFrontSmoothingTest/lentFrontSmoothingTest.C
 
 fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
 fronts/analyticalSurfaces/analyticalPlane/analyticalPlane.C
