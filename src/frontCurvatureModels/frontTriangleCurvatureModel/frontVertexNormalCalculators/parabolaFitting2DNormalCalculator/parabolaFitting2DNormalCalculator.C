@@ -70,31 +70,6 @@ namespace FrontTracking {
     addToRunTimeSelectionTable(frontVertexNormalCalculator, parabolaFitting2DNormalCalculator, Dictionary);
 
 // * * * * * * * * * * * *  Private member functions * * * * * * * * * * * * //
-void parabolaFitting2DNormalCalculator::initializeVertexNormal(const fvMesh& mesh, const triSurfaceFront& front) const
-{
-    const Time& runTime = mesh.time();  
-
-    vertexNormalTmp_ = tmp<triSurfaceFrontPointVectorField>
-    (
-        new triSurfaceFrontPointVectorField
-        (
-            IOobject(
-                "frontNormals", 
-                runTime.timeName(), 
-                front,
-                IOobject::NO_READ, 
-                IOobject::AUTO_WRITE
-            ), 
-            front, 
-            dimensionedVector(
-                "zero", 
-                dimless, 
-                vector(0.0,0.0,0.0)
-            )
-        )
-    );
-}
-
 void parabolaFitting2DNormalCalculator::computeProjectionData(const fvMesh& mesh) const
 {
     if (projector_ == tensor(Identity<scalar>{}))
@@ -199,7 +174,6 @@ parabolaFitting2DNormalCalculator::parabolaFitting2DNormalCalculator(const dicti
 :
     frontVertexNormalCalculator{configDict},
     projector_{Identity<scalar>{}},
-    vertexNormalTmp_{},
     xRef_{0.0},
     yRef_{0.0},
     zRef_{0.0},
@@ -214,10 +188,25 @@ tmp<triSurfaceFrontPointVectorField> parabolaFitting2DNormalCalculator::vertexNo
 {
     computeProjectionData(mesh);
 
-    if (vertexNormalTmp_.empty())
+    tmp<triSurfaceFrontPointVectorField> vertexNormalTmp_
     {
-        initializeVertexNormal(mesh, front);
-    }
+        new triSurfaceFrontPointVectorField
+        {
+            IOobject(
+                "frontNormals", 
+                mesh.time().timeName(), 
+                front,
+                IOobject::NO_READ, 
+                IOobject::AUTO_WRITE
+            ), 
+            front, 
+            dimensionedVector(
+                "zero", 
+                dimless, 
+                vector(0.0,0.0,0.0)
+            )
+        }
+    };
 
     auto& normals = vertexNormalTmp_.ref();
 

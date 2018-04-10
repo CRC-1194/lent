@@ -81,6 +81,7 @@ test/lentSubalgorithmTest/lentSubalgorithmTest.C
 test/lentDummyTest/lentDummyTest.C
 test/lentCurvatureTest/lentCurvatureTest.C
 test/lentFrontSmoothingTest/lentFrontSmoothingTest.C
+test/lentVertexNormalCalculatorTest/lentVertexNormalCalculatorTest.C
 
 fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
 fronts/analyticalSurfaces/analyticalPlane/analyticalPlane.C
