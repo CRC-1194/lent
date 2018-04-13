@@ -2,11 +2,13 @@
 
 This is the library and application toolbox that implements the LENT method for DNS simulations of two-phase flows. 
 
-Tomislav Maric maric@csi.tu-darmstadt.de, tomislav@sourceflux.de
+Developers 
 
-Mathematical Modeling and Analysis
+Tomislav Maric maric{a}mma[dot]tu-darmstadt[dot]de
 
-Center of Smart Interfaces, TU Darmstadt
+Tobias Tolle tolle{a}mma[dot]tu-darmstadt[dot]de
+
+Mathematics Department, Mathematical Modeling and Analysis Institute, TU Darmstadt
 
 ## Installation 
 
