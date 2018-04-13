@@ -36,10 +36,12 @@ SourceFiles
 #ifndef lentVertexNormalCalculatorTest_H
 #define lentVertexNormalCalculatorTest_H
 
+#include "analyticalSurfaceNormalConsistency.H"
 #include "frontVertexNormalCalculator.H"
 #include "lentSubalgorithmTest.H"
 #include "noiseGenerator.H"
 
+#include <memory>
 #include <vector>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -63,6 +65,7 @@ private:
     noiseGenerator noiseGen_{};
 
     tmp<frontVertexNormalCalculator> normalCalculatorTmp_;
+    std::unique_ptr<analyticalSurfaceNormalConsistency> normalConsistencyPtr_;
 
     Switch correctFront_;
     scalar magFrontNoise_;

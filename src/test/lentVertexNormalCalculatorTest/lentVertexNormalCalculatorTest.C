@@ -65,6 +65,10 @@ void lentVertexNormalCalculatorTest::addFrontNormalNoise()
 void lentVertexNormalCalculatorTest::randomSetup()
 {
     setupFrontFromSurface(correctFront_);
+
+    // Ensure consistency of the front triangle normals, otherwise the
+    // check for inconsistent normals is senseless
+    normalConsistencyPtr_->makeFrontNormalsConsistent(frontRef());
 }
 
 void lentVertexNormalCalculatorTest::perturbInputFields()
@@ -145,6 +149,7 @@ lentVertexNormalCalculatorTest::lentVertexNormalCalculatorTest(const fvMesh& mes
 :
     lentSubalgorithmTest{mesh, front},
     normalCalculatorTmp_{},
+    normalConsistencyPtr_{},
     approximateNormalsTmp_{},
     normalDeviationField_{}
 {
@@ -154,6 +159,11 @@ lentVertexNormalCalculatorTest::lentVertexNormalCalculatorTest(const fvMesh& mes
                                     lentDict().subDict("normalCalculator")
                                 )
                             };
+
+    normalConsistencyPtr_ = std::unique_ptr<analyticalSurfaceNormalConsistency>
+                                {
+                                    new analyticalSurfaceNormalConsistency{surfaceRef()}
+                                };
 
     correctFront_ = Switch{testDict().lookup("correctFront")};
     magFrontNoise_ = readScalar(testDict().lookup("magFrontNoise"));
