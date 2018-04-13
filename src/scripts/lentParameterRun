@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+pyFoamRunParameterVariation.py  --no-server-process \
+                                --no-mesh-create --cloned-case-prefix="x" \
+                                --every-variant-one-case-execution \
+                                --create-database \
+                                $1 $1.parameter
