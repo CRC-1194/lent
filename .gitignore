@@ -32,5 +32,4 @@ linux*/
 *.png
 doc
 third-party
-*.pyc
-*cache*
+*pycache*
