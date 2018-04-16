@@ -59,6 +59,7 @@ Description
 #include "analyticalCircle.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include <cassert>
 #include <iomanip>
 
 namespace Foam {
@@ -197,6 +198,18 @@ point analyticalCircle::intersection(const point& pointA,
 
     return intersect + emptyComponent;
 }
+
+void analyticalCircle::centre(const vector newCentre)
+{
+    centre_ = projector_&newCentre;
+}
+
+void analyticalCircle::radius(const scalar newRadius)
+{
+    assert(newRadius > 0.0 && "Error: radius of analyticalCircle must be greater than zero.");
+    radius_ = newRadius;
+}
+
 
 void analyticalCircle::writeParameters(const word fileName) const
 {

@@ -115,15 +115,9 @@ public:
         return radius_;
     }
 
-    virtual void centre(const vector newCentre)
-    {
-        centre_ = newCentre;
-    }
+    virtual void centre(const vector newCentre);
 
-    virtual void radius(const scalar newRadius)
-    {
-        radius_ = newRadius;
-    }
+    virtual void radius(const scalar newRadius);
 
     virtual void writeParameters(const word fileName) const;
 

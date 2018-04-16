@@ -109,6 +109,15 @@ void analyticalRandomizedEllipsoid::randomize()
     semiAxes(randomSemiAxes);
 }
 
+void analyticalRandomizedEllipsoid::randomPlacementIn(const boundBox& bbox)
+{
+    auto maxDisplacement = 0.5*bbox.span() - originalSemiAxes_;
+    auto newCentre = bbox.midpoint() + noiseGen_.noise<vector>(maxDisplacement);
+
+    centre(newCentre);
+}
+
+
 // * * * * * * * * * * * * * * Member Operators    * * * * * * * * * * * * * * //
 analyticalRandomizedEllipsoid& analyticalRandomizedEllipsoid::operator=(const analyticalRandomizedEllipsoid& rhs)
 {

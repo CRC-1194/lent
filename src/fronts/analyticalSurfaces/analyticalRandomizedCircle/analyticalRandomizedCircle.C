@@ -66,6 +66,12 @@ void analyticalRandomizedCircle::randomize()
     }
 }
 
+void analyticalRandomizedCircle::randomPlacementIn(const boundBox& bbox)
+{
+    auto newCentre = bbox.midpoint() + 0.5*noiseGen_.noise<vector>(bbox.span() - originalRadius_*vector{1,1,1});
+
+    centre(newCentre);
+}
 
 
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //

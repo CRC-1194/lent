@@ -114,6 +114,7 @@ public:
     virtual scalar curvatureAt(const point& p) const = 0;
 
     virtual void randomize(){};
+    virtual void randomPlacementIn(const boundBox& bbox){};
     virtual void writeParameters(const word fileName) const {};
 };
 

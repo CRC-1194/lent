@@ -101,6 +101,8 @@ public:
 
     // Member Functions
     virtual void randomize();
+    virtual void randomPlacementIn(const boundBox& bbox);
+
 
     // Member operators
     virtual analyticalRandomizedEllipsoid& operator=(const analyticalRandomizedEllipsoid& rhs);

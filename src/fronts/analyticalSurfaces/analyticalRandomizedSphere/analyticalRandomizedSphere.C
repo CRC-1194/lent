@@ -107,6 +107,14 @@ void analyticalRandomizedSphere::randomize()
     }
 }
 
+void analyticalRandomizedSphere::randomPlacementIn(const boundBox& bbox)
+{
+    auto maxDisplacement = 0.5*bbox.span() - originalRadius_*vector{1,1,1};
+    auto newCentre = bbox.midpoint() + noiseGen_.noise<vector>(maxDisplacement);
+
+    centre(newCentre);
+}
+
 
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
 analyticalRandomizedSphere& analyticalRandomizedSphere::operator=(const analyticalRandomizedSphere& rhs)

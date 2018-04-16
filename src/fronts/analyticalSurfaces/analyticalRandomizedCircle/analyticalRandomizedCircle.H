@@ -79,6 +79,7 @@ public:
 
     // Member Functions
     virtual void randomize();
+    virtual void randomPlacementIn(const boundBox& bbox);
 
     // Member Operators
     virtual analyticalRandomizedCircle& operator=(const analyticalRandomizedCircle& rhs);

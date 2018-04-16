@@ -156,7 +156,7 @@ point analyticalPlane::intersection(const point& pointA, const point& pointB) co
 
 void analyticalPlane::normal(const vector& newNormal)
 {
-    unitNormal_ = newNormal / (mag(newNormal) + SMALL);
+    unitNormal_ = normalize(newNormal);
 }
 
 void analyticalPlane::referencePoint(const point& newRefPoint)

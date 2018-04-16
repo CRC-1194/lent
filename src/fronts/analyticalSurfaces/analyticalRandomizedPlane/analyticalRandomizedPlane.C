@@ -103,6 +103,11 @@ void analyticalRandomizedPlane::randomize()
     normal(randomNormal);
 }
 
+void analyticalRandomizedPlane::randomPlacementIn(const boundBox& bbox)
+{
+    referencePoint(bbox.midpoint() + noiseGen_.noise<vector>(0.5*bbox.span()));
+}
+
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
 analyticalRandomizedPlane& analyticalRandomizedPlane::operator=(const analyticalRandomizedPlane& rhs) 
 {
