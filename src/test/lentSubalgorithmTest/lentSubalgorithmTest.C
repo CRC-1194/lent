@@ -107,23 +107,12 @@ void lentSubalgorithmTest::computeExactSignedDistances() const
     const auto& frontSurface = surfaceTmp_.ref();
 
     // cell-centred distances
-    const auto& C = mesh_.C();
     auto& signedDistance = lookupSignedDistance();
-
-    forAll(signedDistance, I)
-    {
-        signedDistance[I] = frontSurface.signedDistance(C[I]);
-    }
+    frontSurface.setDistance(signedDistance);
     
     // cell-corner distances
     auto& pointSignedDistance = lookupPointSignedDistance();
-    const auto& pMesh = pointSignedDistance.mesh();
-    const auto& corners = pMesh().points();
-
-    forAll(pointSignedDistance, I)
-    {
-        pointSignedDistance[I] = frontSurface.signedDistance(corners[I]);
-    }
+    frontSurface.setDistance(pointSignedDistance);
 }
 
 void lentSubalgorithmTest::computeFrontSignedDistances()

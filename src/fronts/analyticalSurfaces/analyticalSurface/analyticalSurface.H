@@ -81,6 +81,8 @@ class analyticalSurface
 :
     public refCount 
 {
+protected:
+    OFstream outputStream(const word& fileName) const;
 
 public:
 
@@ -107,6 +109,14 @@ public:
     // Member functions
     virtual scalar distance(const point&) const = 0;
     virtual scalar signedDistance(const point&) const = 0;
+
+    template<class Container, class PointField>
+    void setDistance(Container& distanceField, const PointField& points) const;
+
+    void setDistance(volScalarField& signedDistance) const;
+    void setDistance(surfaceScalarField& signedDistance) const;
+    void setDistance(pointScalarField& signedDistance) const;
+
     virtual point normalProjectionToSurface(point&) const = 0;
     virtual vector normalToPoint(const point&) const = 0;
     virtual point intersection(const point&, const point&) const = 0;
@@ -121,6 +131,10 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+#include "analyticalSurfaceI.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 } // End namespace FrontTracking
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -128,7 +142,6 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

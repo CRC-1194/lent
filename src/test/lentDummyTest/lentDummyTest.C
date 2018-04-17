@@ -42,6 +42,7 @@ void lentDummyTest::randomSetup()
 
     setupFrontFromSurface(true);
     computeFrontSignedDistances();
+    computeExactSignedDistances();
 }
 
 void lentDummyTest::perturbInputFields()

@@ -194,10 +194,7 @@ void analyticalSphere::radius(const scalar newRadius)
 
 void analyticalSphere::writeParameters(const word fileName) const
 {
-    // TODO: when porting to the latest OpenFOAM-plus version,
-    // open file in append mode so the entire history of surface
-    // parameters is saved (TT)
-    OFstream outputFile(fileName);
+    auto outputFile = outputStream(fileName);
 
     outputFile.stdStream() << std::setprecision(15);
 

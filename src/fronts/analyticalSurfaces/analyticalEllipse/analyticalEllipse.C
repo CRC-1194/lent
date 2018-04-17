@@ -439,8 +439,7 @@ void analyticalEllipse::semiAxes(const vector& newSemiAxes)
 
 void analyticalEllipse::writeParameters(const word fileName) const
 {
-    // TODO: open in append mode (TT)
-    OFstream outputFile(fileName);
+    auto outputFile = outputStream(fileName);
 
     outputFile.stdStream() << std::setprecision(15);
 

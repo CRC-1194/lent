@@ -81,6 +81,11 @@ vector analyticalPlane::normalize(const vector& normalVector) const
     }
 }
 
+void analyticalPlane::updateDistanceToOrigin()
+{
+    distanceOrigin_ = unitNormal_ & refPoint_;
+}
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 analyticalPlane::analyticalPlane(const dictionary& configDict)
@@ -90,7 +95,7 @@ analyticalPlane::analyticalPlane(const dictionary& configDict)
     unitNormal_{configDict.lookup("normalVector")}
 {
     unitNormal_ = normalize(unitNormal_);
-    distanceOrigin_ = unitNormal_ & refPoint_;
+    updateDistanceToOrigin();
 }
 
 analyticalPlane::analyticalPlane(const point& refPoint, const vector& normal)
@@ -100,7 +105,7 @@ analyticalPlane::analyticalPlane(const point& refPoint, const vector& normal)
     unitNormal_{normal}
 {
     unitNormal_ = normalize(unitNormal_);
-    distanceOrigin_ = unitNormal_ & refPoint_;
+    updateDistanceToOrigin();
 }
 
 
@@ -117,22 +122,7 @@ scalar analyticalPlane::signedDistance(const point& trialPoint) const
 
 point analyticalPlane::normalProjectionToSurface(point& trialPoint) const
 {
-    point projected(0.0, 0.0, 0.0);
-
-    // Projection method fails for zero vector, thus provide 
-    // alternative method for this case
-    if (fabs(trialPoint & trialPoint) > SMALL)
-    {
-        scalar projectedDistanceToOrigin = unitNormal_ & trialPoint;
-
-        projected = projectedDistanceToOrigin / distanceOrigin_ * trialPoint;
-    }
-    else
-    {
-        projected = distanceOrigin_ * unitNormal_;
-    }
-
-    return projected;
+    return (trialPoint - ((trialPoint - refPoint_) & (unitNormal_*unitNormal_)));
 }
 
 vector analyticalPlane::normalToPoint(const point& trialPoint) const
@@ -157,19 +147,18 @@ point analyticalPlane::intersection(const point& pointA, const point& pointB) co
 void analyticalPlane::normal(const vector& newNormal)
 {
     unitNormal_ = normalize(newNormal);
+    updateDistanceToOrigin();
 }
 
 void analyticalPlane::referencePoint(const point& newRefPoint)
 {
     refPoint_ = newRefPoint;
+    updateDistanceToOrigin();
 }
 
 void analyticalPlane::writeParameters(const word fileName) const
 {
-    // TODO: when porting to the latest OpenFOAM-plus version,
-    // open file in append mode so the entire history of surface
-    // parameters is saved (TT)
-    OFstream outputFile(fileName);
+    auto outputFile = outputStream(fileName);
 
     outputFile.stdStream() << std::setprecision(15);
 

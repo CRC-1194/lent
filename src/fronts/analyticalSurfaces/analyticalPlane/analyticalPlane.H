@@ -81,6 +81,7 @@ class analyticalPlane
 
 protected:
     vector normalize(const vector& normalVector) const;
+    void updateDistanceToOrigin();
 
 public:
 
