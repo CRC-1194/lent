@@ -34,3 +34,4 @@ doc
 third-party
 *.pyc
 *cache*
+*History*
