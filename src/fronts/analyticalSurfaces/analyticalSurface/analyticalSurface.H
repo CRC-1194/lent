@@ -107,8 +107,8 @@ public:
     virtual ~analyticalSurface() = default;
 
     // Member functions
-    virtual scalar distance(const point&) const = 0;
-    virtual scalar signedDistance(const point&) const = 0;
+    virtual scalar distance(const point&) const {return 0.0;};
+    virtual scalar signedDistance(const point&) const {return 0.0;};
 
     template<class Container, class PointField>
     void setDistance(Container& distanceField, const PointField& points) const;
@@ -117,11 +117,11 @@ public:
     void setDistance(surfaceScalarField& signedDistance) const;
     void setDistance(pointScalarField& signedDistance) const;
 
-    virtual point normalProjectionToSurface(point&) const = 0;
-    virtual vector normalToPoint(const point&) const = 0;
-    virtual point intersection(const point&, const point&) const = 0;
+    virtual point normalProjectionToSurface(point&) const {return point{0,0,0};};
+    virtual vector normalToPoint(const point&) const {return vector{0,0,0};};
+    virtual point intersection(const point&, const point&) const {return point{0,0,0};};
     virtual void moveFrontToSurface(triSurfaceFront& front) const;
-    virtual scalar curvatureAt(const point& p) const = 0;
+    virtual scalar curvatureAt(const point& p) const {return 0.0;};
 
     virtual void randomize(){};
     virtual void randomPlacementIn(const boundBox& bbox){};
