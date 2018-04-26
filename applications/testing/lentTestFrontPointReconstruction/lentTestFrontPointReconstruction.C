@@ -33,9 +33,12 @@ Description
 
 // Algorithm
 #include "fvCFD.H"
+
 #include "pointFields.H"
 #include "isoSurface.H"
 #include <set>
+ // - For storing interface points.
+#include "DynamicList.H"
 
 // Testing 
 #include <random> 
@@ -45,8 +48,36 @@ Description
 #include "analyticalSphere.H"
 #include <sstream>
 #include <iomanip>
+ //- VTK output 
+#include "foamVtkLegacyAsciiFormatter.H"
+#include "foamVtkOutput.H"
+#include "pointList.H"
+#include "point.H"
+#include "List.H"
+#include "pointList.H"
+#include <fstream>
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+struct labelledPoints
+{
+    DynamicList<point> points; 
+    DynamicList<label> labels; 
+
+    void clear() { points.clear(); labels.clear(); };
+
+    void append(const point& p, const label& l)
+    {
+        points.append(p); 
+        labels.append(l); 
+    }
+
+    void append(const label& l, const point& p)
+    {
+        append(p,l); 
+    }
+};
 
 scalarField linspace(scalar start, scalar end, label size)
 {
@@ -85,10 +116,13 @@ void intersectedCells
 (
     const volScalarField& dist, 
     const pointScalarField& pdist, 
-    volScalarField& icells 
+    volScalarField& icells, // Visualization only.
+    DynamicList<label> icellLabels
 )
 {
     icells = 0; 
+
+    icellLabels.clear();
 
     const auto& mesh = dist.mesh(); 
     const auto& cellPointsLabelList = mesh.cellPoints(); 
@@ -101,10 +135,74 @@ void intersectedCells
 
         forAll(cellPointLabels, pointI)
         {
-            if (d0 * pdist[cellPointLabels[pointI]] < 0)
+            if (d0 * pdist[cellPointLabels[pointI]] <= SMALL)
+            {
                 icells[cellI] = 1;
+                icellLabels.append(cellI); 
+            }
         }
     }; 
+}
+
+void intersectedCells
+(
+    const volScalarField& dist, 
+    const pointScalarField& pdist, 
+    const DynamicList<label> iCellLabels,
+    labelledPoints& iPointData 
+)
+{
+    tmp<volVectorField> distGradTmp = fvc::grad(dist); 
+    tmp<volScalarField> distGradDotTmp = distGradTmp() & distGradTmp(); 
+    tmp<volVectorField> dirTmp = distGradTmp() / distGradDotTmp();  
+
+    const volVectorField& dir = dirTmp(); 
+
+    const fvMesh& mesh = dist.mesh(); 
+    const volVectorField& C = mesh.C();  
+
+    iPointData.clear(); 
+
+    forAll(iCellLabels, iCell)
+    {
+        const label& iCellLabel = iCellLabels[iCell]; 
+        const point& xc = C[iCellLabel]; 
+        iPointData.append
+        (
+            xc - dist[iCellLabel] * dir[iCellLabel],
+            iCellLabel
+        );
+    }
+}
+
+template<typename Points, typename String> 
+void pointsToVtk
+(
+    Points const & points, 
+    String const& fileName
+)
+{
+    // Open file for output in overwrite mode.
+    std::ofstream vtkFile(fileName);
+ 
+    // Initialize the VTK formatter, legacy in this case.
+    vtk::legacyAsciiFormatter legacyFormat(vtkFile, 15);
+ 
+    // Write the file header based on the chosen format (legacy VTK).
+    vtk::legacy::fileHeader(legacyFormat, "points", vtk::fileTag::POLY_DATA);
+ 
+    // Write the points beginning line for legacy VTK. 
+    vtk::legacy::beginPoints(vtkFile, points.size());
+ 
+    // Write the list of points using the legacy formatter.
+    vtk::writeList(legacyFormat, points); 
+}
+
+std::string indexedString(const std::string& s, label index, label nPad=4)
+{
+    std::stringstream ss; 
+    ss << s << "-" << std::setw(nPad) << std::setfill('0') << index;  
+    return ss.str(); 
 }
 
 int main(int argc, char **argv)
@@ -171,6 +269,8 @@ int main(int argc, char **argv)
     //point planePoint (dis(gen), dis(gen), dis(gen));
     point planePoint (0.5, 0.5, 0.5);
 
+    DynamicList<label> icellList; 
+
     for (const auto& theta : thetaSpace)
     { 
         for (const auto& phi : phiSpace)
@@ -191,13 +291,11 @@ int main(int argc, char **argv)
             distance(dist, plane); 
             distance(pdist, plane);
 
-            intersectedCells(dist, pdist, icells); 
+            intersectedCells(dist, pdist, icells, icellList); 
             isoSurface isurf(dist, pdist, 0, false); 
 
-            std::stringstream ss; 
-            ss << "isosurf-" << std::setw(4) << std::setfill('0') << runTime.timeIndex() << ".stl"; 
             if (runTime.writeTime())
-                isurf.write(ss.str()); 
+                isurf.write(indexedString("isosurf", runTime.timeIndex()) + ".stl"); 
 
             runTime.write(); 
         }
