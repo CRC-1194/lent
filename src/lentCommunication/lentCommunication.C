@@ -99,6 +99,8 @@ lentCommunication::lentCommunication(
         searchAlg_(),
         triangleToCell_(front_.nFaces()),
         vertexToCell_(front_.nPoints()),
+        interfaceCellToTriangles_{},
+        interfaceCellToVertices_{},
         cellsTriangleNearest_(), 
         pointsTriangleNearest_()
 {}
@@ -175,6 +177,9 @@ void lentCommunication::update()
             }
         }
     }
+
+    updateInterfaceCellToTriangles();
+    updateInterfaceCellToVertices();
 }
 
 // Reconstruction results in a triangle->cell relationship, regardless which  
@@ -217,6 +222,28 @@ void lentCommunication::updateVertexToCell()
                 }
             }
         }
+    }
+
+    updateInterfaceCellToVertices();
+}
+
+void lentCommunication::updateInterfaceCellToTriangles()
+{
+    interfaceCellToTriangles_.clear();
+
+    forAll(triangleToCell_, I)
+    {
+        interfaceCellToTriangles_[triangleToCell_[I]].push_back(I);
+    }
+}
+
+void lentCommunication::updateInterfaceCellToVertices()
+{
+    interfaceCellToVertices_.clear();
+
+    forAll(vertexToCell_, I)
+    {
+        interfaceCellToVertices_[vertexToCell_[I]].push_back(I);
     }
 }
 

@@ -75,13 +75,84 @@ namespace FrontTracking {
     defineRunTimeSelectionTable(frontCurvatureModel, Dictionary);
     addToRunTimeSelectionTable(frontCurvatureModel, frontCurvatureModel, Dictionary);
 
+// * * * * * * * * * * * * * * *  Private member functions * * * * * * * * * //
+void frontCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurfaceFront& front) const
+{
+    const volScalarField& curvatureInputField = 
+        mesh.lookupObject<volScalarField>(curvatureInputFieldName()); 
+
+    const surfaceVectorField& Sf = mesh.Sf();
+
+    //Cell gradient of alpha
+    const volVectorField curvGrad(fvc::grad(curvatureInputField, "curvatureGradient"));
+
+    // Interpolated face-gradient of alpha
+    surfaceVectorField curvGradF(fvc::interpolate(curvGrad));
+
+    // Hardcoded stabilization of the gradient to avoid floating point
+    // exception.
+    dimensionedScalar deltaN
+    (
+        "deltaN",
+        curvatureInputField.dimensions() / dimLength, 
+        SMALL 
+    );
+
+    // Face unit interface normal
+    surfaceVectorField curvGradFhat(curvGradF /(mag(curvGradF) + deltaN));
+
+    auto& cellCurvature = cellCurvatureTmp_.ref();
+    cellCurvature = -fvc::div(curvGradFhat & Sf); 
+}
+
+void frontCurvatureModel::initializeCellCurvatureField(const fvMesh& mesh) const
+{
+    const Time& runTime = mesh.time();  
+
+    cellCurvatureTmp_ = 
+        tmp<volScalarField> 
+        (
+            new volScalarField
+            (
+                IOobject(
+                    "cell_curvature", 
+                    runTime.timeName(), 
+                    mesh,
+                    IOobject::NO_READ, 
+                    IOobject::AUTO_WRITE
+                ), 
+                mesh, 
+                dimensionedScalar(
+                    "zero", 
+                    dimless/dimLength, 
+                    0.0
+                )
+            )
+        );
+}
+
+bool frontCurvatureModel::curvatureNeedsUpdate(const fvMesh& mesh) const
+{
+    const auto& runTime = mesh.time();
+
+    return (runTime.timeIndex() != lastTimeUpdated_);
+}
+
+void frontCurvatureModel::curvatureUpdated(const fvMesh& mesh) const
+{
+    lastTimeUpdated_ = mesh.time().timeIndex();
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontCurvatureModel::frontCurvatureModel(const dictionary& configDict)
     :
-        curvatureInputFieldName_(
+        curvatureInputFieldName_{
             configDict.lookupOrDefault<word>("curvatureField", "curvatureField")
-        )
+        },
+        lastTimeUpdated_{-1},
+        cellCurvatureTmp_{}
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -115,30 +186,18 @@ tmp<volScalarField> frontCurvatureModel::cellCurvature(
     const triSurfaceFront& frontMesh
 ) const
 {
-    const volScalarField& curvatureInputField = 
-        mesh.lookupObject<volScalarField>(curvatureInputFieldName()); 
+    if (cellCurvatureTmp_.empty())
+    {
+        initializeCellCurvatureField(mesh);
+    }
 
-    const surfaceVectorField& Sf = mesh.Sf();
+    if (curvatureNeedsUpdate(mesh))
+    {
+        computeCurvature(mesh, frontMesh);
+        curvatureUpdated(mesh); 
+    }
 
-    //Cell gradient of alpha
-    const volVectorField curvGrad(fvc::grad(curvatureInputField, "curvatureGradient"));
-
-    // Interpolated face-gradient of alpha
-    surfaceVectorField curvGradF(fvc::interpolate(curvGrad));
-
-    // Hardcoded stabilization of the gradient to avoid floating point
-    // exception.
-    dimensionedScalar deltaN
-    (
-        "deltaN",
-        curvatureInputField.dimensions() / dimLength, 
-        SMALL 
-    );
-
-    // Face unit interface normal
-    surfaceVectorField curvGradFhat(curvGradF /(mag(curvGradF) + deltaN));
-
-    return fvc::div(curvGradFhat & Sf); 
+    return cellCurvatureTmp_; 
 }
 
 tmp<surfaceScalarField> frontCurvatureModel::faceCurvature(
@@ -146,7 +205,8 @@ tmp<surfaceScalarField> frontCurvatureModel::faceCurvature(
     const triSurfaceFront& frontMesh
 ) const
 {
-    return -fvc::interpolate(cellCurvature(mesh,frontMesh)); 
+    const auto& cellCurvatureField = cellCurvature(mesh, frontMesh).ref();
+    return fvc::interpolate(cellCurvatureField); 
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

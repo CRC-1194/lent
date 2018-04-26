@@ -65,43 +65,14 @@ Description
 namespace Foam {
 namespace FrontTracking {
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-frontExactCurvatureModel::frontExactCurvatureModel(const dictionary& configDict)
-    :
-        frontCurvatureModel(configDict), 
-        write_(configDict.lookupOrDefault<Switch>("write", "off"))
-{}
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-tmp<volScalarField> frontExactCurvatureModel::cellCurvature(
-    const fvMesh& mesh, 
-    const triSurfaceFront& frontMesh
-) const
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+void frontExactCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurfaceFront& front) const
 {
-    const Time& runTime = mesh.time(); 
-
-    tmp<volScalarField> cellCurvatureTmp( 
-        new volScalarField(
-            IOobject(
-                "cellCurvatureExact", 
-                runTime.timeName(), 
-                mesh,
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE
-            ),
-            mesh,
-            //FIXME: Error in the curvature dimensions. Fix it. TM.
-            dimensionedScalar("zero", pow(dimLength, -1), 0) 
-        )
-    );
-
     const auto& C = mesh.C(); 
     const auto& Cf = mesh.Cf(); 
 
-    // Set internal cell centered curvature field.
-    auto& cellCurvature = cellCurvatureTmp.ref(); 
+    // Set internal cell centered curvature field
+    auto& cellCurvature = cellCurvatureTmp_.ref(); 
     forAll(cellCurvature, I)
     {
         cellCurvature[I] = curvatureAtPoint(C[I]);
@@ -124,10 +95,17 @@ tmp<volScalarField> frontExactCurvatureModel::cellCurvature(
     {
         cellCurvature.write(); 
     }
-
-    return cellCurvatureTmp;
 }
 
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+frontExactCurvatureModel::frontExactCurvatureModel(const dictionary& configDict)
+    :
+        frontCurvatureModel(configDict), 
+        write_(configDict.lookupOrDefault<Switch>("write", "off"))
+{}
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 tmp<surfaceScalarField> frontExactCurvatureModel::faceCurvature(
     const fvMesh& mesh, 
     const triSurfaceFront& frontMesh

@@ -86,6 +86,14 @@ class normalConsistency
         public refCount
 {
 
+private:
+
+    virtual void runNormalConsistencyAlgorithm(
+        triSurfaceFront& front,
+        const volScalarField& signedDistance,
+        const pointScalarField& pointSignedDistance // Not used.
+    ) const;
+
 public:
 
     TypeName ("cellDistGrad");
@@ -112,7 +120,7 @@ public:
 
     // Member Functions
 
-        virtual void makeFrontNormalsConsistent(
+        void makeFrontNormalsConsistent(
             triSurfaceFront& front,
             const volScalarField& signedDistance,
             const pointScalarField& pointSignedDistance // Not used.

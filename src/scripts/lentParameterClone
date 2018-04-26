@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+pyFoamRunParameterVariation.py  --no-execute-solver --no-case-setup --no-server-process \
+                                --no-mesh-create --cloned-case-prefix="x" \
+                                --every-variant-one-case-execution \
+                                --create-database \
+                                $1 $1.parameter
+
+for case in *00*; 
+do
+    mkdir -p $case/front && \
+    cp $1/front/front.stl $case/front
+done

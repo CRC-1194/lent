@@ -79,6 +79,8 @@ class frontAveragingCurvatureModel
 {
     label averagingIterations_;  
 
+    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
+
 public:
 
     TypeName ("averaging");
@@ -87,10 +89,6 @@ public:
         frontAveragingCurvatureModel(const dictionary& configDict, const Time& runTime);
 
         virtual ~frontAveragingCurvatureModel(); 
-
-    // Member functions
-        virtual tmp<volScalarField> cellCurvature() const; 
-
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

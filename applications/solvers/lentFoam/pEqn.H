@@ -8,6 +8,9 @@
     (
         "phiHbyA",
         fvc::flux(HbyA)
+        // TODO: find out what this correction does. If it yields a non-zero
+        // contribution, fix the interpolation of rho as in the new calculation
+        // of "rhoPhi"
       + fvc::interpolate(rho*rAU)*fvc::ddtCorr(U, phi)
     );
 
@@ -48,38 +51,11 @@
             // correcting the velocity. TM
             
             // First order accurate explicit update of the velocity field.
-            U = HbyA + rAU*fvc::reconstruct((phig - p_rghEqn.flux())/rAUf);
+            #include "U_reconstruct.H"
             
             // Assemble the matrix anew. TM.  
             // Update the momentum flux using the volume conservative flux.
-            /*
-            rhoPhi == fvc::interpolate(rho) * phi; 
-            fvVectorMatrix UEqn
-            (
-                fvm::ddt(rho, U)
-              + fvm::div(rhoPhi, U)
-              + turbulence->divDevRhoReff(rho, U)
-             ==
-                fvOptions(rho, U)
-            );
-            UEqn.relax();
-            fvOptions.constrain(UEqn);
-
-            // Solve the momentum equaiton for the cell centered velocity. 
-            solve
-            (
-                UEqn == lent.cellSurfaceTensionForce(mesh, front)
-                    + fvc::reconstruct(
-                        (
-                          - ghf*fvc::snGrad(rho)
-                          - fvc::snGrad(p_rgh)
-                        ) * mesh.magSf()
-                    )
-            );
-            */
-
-            U.correctBoundaryConditions();
-            fvOptions.correct(U);
+            //#include "U_solveMomentumEq.H"
         }
     }
 

@@ -68,6 +68,9 @@ namespace FrontTracking {
     defineTypeNameAndDebug(frontMotionSolver, 0);
     defineRunTimeSelectionTable(frontMotionSolver, Dictionary);
 
+// * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 frontMotionSolver::frontMotionSolver(const dictionary& configDict)
@@ -150,10 +153,10 @@ void frontMotionSolver::initDisplacements(
                 zeroDisplacement
             )
         );
-    } else
+    }
+    else if (frontDisplacementTmp_->size() != front.nPoints())
     {
         frontDisplacementTmp_->resize(front.nPoints()); 
-        //frontDisplacementTmp_.ref() = zeroDisplacement;  
     }
 }
 
@@ -173,8 +176,7 @@ void frontMotionSolver::evolveFront(
     interpolation_.interpolate(deltaC, deltaF); 
 
     // Displace front points with front displacements.  
-    pointField& frontPoints = const_cast<pointField&>(front.points());
-    frontPoints += deltaF; 
+    front.displace(deltaF);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

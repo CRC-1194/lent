@@ -82,6 +82,14 @@ class frontCurvatureMeyer
         public frontCurvatureModel 
 {
 
+private:
+    
+    mutable tmp<triSurfaceFrontPointVectorField> curvatureNormalTmp_;
+
+    void initializeCurvatureNormal(const fvMesh&, const triSurfaceFront&) const;
+
+    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
+
 public:
 
     TypeName ("Meyer");
@@ -97,10 +105,6 @@ public:
     scalar getAngle(vector& a, vector& b) const;
 
     scalar cot(vector a, vector b) const;
-
-    scalar areaHeron(vector& A, vector& B, vector& C) const;
-
-    virtual tmp<volScalarField> cellCurvature(const fvMesh&, const triSurfaceFront&) const; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
