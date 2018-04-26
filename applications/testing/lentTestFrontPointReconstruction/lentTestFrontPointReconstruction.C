@@ -60,17 +60,25 @@ Description
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-struct labelledPoints
+// TODO: Make this a class.
+struct surfaceData 
 {
     DynamicList<point> points; 
-    DynamicList<label> labels; 
+    // TODO: Use a set for the cell labels to avoid duplicate cells that are 
+    //       generated when the interface passes exaclty through a mesh vertex.
+    //DynamicList<label> cellLabels; 
+    std::set<label> cellLabels; 
 
-    void clear() { points.clear(); labels.clear(); };
+    void clear() { points.clear(); cellLabels.clear(); };
+
+    void clearPoints() { points.clear(); }; 
+
+    void clearLabels() { cellLabels.clear(); };
 
     void append(const point& p, const label& l)
     {
         points.append(p); 
-        labels.append(l); 
+        cellLabels.insert(l); 
     }
 
     void append(const label& l, const point& p)
@@ -85,7 +93,8 @@ scalarField linspace(scalar start, scalar end, label size)
 
     std::generate(result.begin(), result.end(), 
                   [n = 0, start, end, result] () mutable 
-                  { return (n++ * (end - start)) / (result.size() - 1);}); 
+                  { return (n++ * (end - start)) / 
+                           (result.size() - 1 > 0 ? result.size() - 1 : 1);}); 
 
     return result; 
 }
@@ -100,6 +109,20 @@ void distance(volScalarField& vf, const analyticalSurface& surf)
     {
         vf[cellI] = surf.signedDistance(C[cellI]); 
     }
+
+    const auto& Cf = vf.mesh().Cf(); 
+
+    forAll(vf.boundaryField(), patchI)
+    {
+        fvPatchScalarField& vfb = vf.boundaryFieldRef()[patchI]; 
+        const auto& patch = vfb.patch(); 
+
+        forAll(vfb, faceI)
+        {
+            vfb[faceI] = surf.signedDistance(Cf[patch.start() + faceI]); 
+        }
+    }
+
 }
 
 void distance(pointScalarField& pf, const analyticalSurface& surf)
@@ -116,16 +139,18 @@ void intersectedCells
 (
     const volScalarField& dist, 
     const pointScalarField& pdist, 
-    volScalarField& icells, // Visualization only.
-    DynamicList<label> icellLabels
+    volScalarField& iCells, // FIXME: Debugging, remove.
+    surfaceData& iData 
 )
 {
-    icells = 0; 
-
-    icellLabels.clear();
+    // Reset the intersected cells marker.
+    iCells = 0; 
+    // Clear everythng when new intersected cells are computed.
+    iData.clear();
 
     const auto& mesh = dist.mesh(); 
     const auto& cellPointsLabelList = mesh.cellPoints(); 
+
 
     forAll(dist, cellI)
     {
@@ -137,49 +162,51 @@ void intersectedCells
         {
             if (d0 * pdist[cellPointLabels[pointI]] <= SMALL)
             {
-                icells[cellI] = 1;
-                icellLabels.append(cellI); 
+                iCells[cellI] = 1;
+                iData.cellLabels.insert(cellI); 
             }
         }
     }; 
 }
 
-void intersectedCells
+void interfacePoints 
 (
     const volScalarField& dist, 
     const pointScalarField& pdist, 
-    const DynamicList<label> iCellLabels,
-    labelledPoints& iPointData 
+    surfaceData& iData 
 )
 {
+    if (iData.cellLabels.empty())
+        return; 
+
+    // Clear only interface points and related data, as interface cell labels
+    // are assumed to be computed and available.  
+    
+    // TODO: Check this: the loop below must loop over cellLabels and assign
+    // each value, otherwise old point values may be left in the list. TM. 
+    iData.points.resize(iData.cellLabels.size());
+
     tmp<volVectorField> distGradTmp = fvc::grad(dist); 
     tmp<volScalarField> distGradDotTmp = distGradTmp() & distGradTmp(); 
-    tmp<volVectorField> dirTmp = distGradTmp() / distGradDotTmp();  
+    tmp<volVectorField> dirTmp = distGradTmp() / (distGradDotTmp() + SMALL); 
 
     const volVectorField& dir = dirTmp(); 
 
     const fvMesh& mesh = dist.mesh(); 
     const volVectorField& C = mesh.C();  
 
-    iPointData.clear(); 
-
-    forAll(iCellLabels, iCell)
+    label labelI = 0; 
+    for(const auto& cutCellI : iData.cellLabels)
     {
-        const label& iCellLabel = iCellLabels[iCell]; 
-        const point& xc = C[iCellLabel]; 
-        iPointData.append
-        (
-            xc - dist[iCellLabel] * dir[iCellLabel],
-            iCellLabel
-        );
+        iData.points[labelI] = C[cutCellI] - dist[cutCellI] * dir[cutCellI];
+        ++labelI;
     }
 }
 
-template<typename Points, typename String> 
-void pointsToVtk
+void writePointsToVtk
 (
-    Points const & points, 
-    String const& fileName
+    UList<point> const & points, 
+    std::string const& fileName
 )
 {
     // Open file for output in overwrite mode.
@@ -198,7 +225,7 @@ void pointsToVtk
     vtk::writeList(legacyFormat, points); 
 }
 
-std::string indexedString(const std::string& s, label index, label nPad=4)
+std::string indexedString(const std::string& s, label index, label nPad=8)
 {
     std::stringstream ss; 
     ss << s << "-" << std::setw(nPad) << std::setfill('0') << index;  
@@ -259,8 +286,9 @@ int main(int argc, char **argv)
 
     // Parameterize plane orientation using spherical angles.
     const scalar pi = constant::mathematical::pi; 
-    scalarField thetaSpace = linspace(0,pi,100); 
-    scalarField phiSpace = linspace(0,2*pi,100); 
+    // TODO: Add options for nTheta and nPhi.
+    scalarField thetaSpace = linspace(0,pi,10); 
+    scalarField phiSpace = linspace(0,2*pi,10); 
 
     // Test the plane reconstruction that is randomized in terms of the position 
     // in the unit box domain and with the parameterized orientation. 
@@ -269,13 +297,14 @@ int main(int argc, char **argv)
     //point planePoint (dis(gen), dis(gen), dis(gen));
     point planePoint (0.5, 0.5, 0.5);
 
-    DynamicList<label> icellList; 
+    surfaceData surfDat;
 
-    for (const auto& theta : thetaSpace)
+    for (const auto& phi: thetaSpace)
     { 
-        for (const auto& phi : phiSpace)
+        for (const auto& theta: phiSpace)
         {
-            runTime++; 
+
+            Info << "Iteration = " << runTime.timeIndex() << nl;
 
             analyticalPlane plane
             (
@@ -288,16 +317,40 @@ int main(int argc, char **argv)
                 )
             );
 
+            // Set the cell and point distance fields using 
+            // the analytical plane. 
             distance(dist, plane); 
             distance(pdist, plane);
 
-            intersectedCells(dist, pdist, icells, icellList); 
+            // Test the OpenFOAM iso-surface algorithm. 
             isoSurface isurf(dist, pdist, 0, false); 
 
-            if (runTime.writeTime())
-                isurf.write(indexedString("isosurf", runTime.timeIndex()) + ".stl"); 
+            // Reset surface data.
+            surfDat.clear(); 
 
-            runTime.write(); 
+            // Find cells cut by the surface.
+            intersectedCells(dist, pdist, icells, surfDat); 
+            
+            // Compute interface points.
+            interfacePoints(dist, pdist, surfDat);
+
+            // Write selected test data.
+            if (runTime.writeTime() || runTime.timeIndex() == 0)
+            {
+                isurf.write(indexedString("isosurf", runTime.timeIndex()) + ".stl"); 
+                icells.write();
+                dist.write(); 
+                pdist.write(); 
+                writePointsToVtk(
+                    surfDat.points,
+                    indexedString("points", runTime.timeIndex()) + ".vtk"
+                );
+                // TODO: Remove, testing.
+                volVectorField dir ("dir", fvc::grad(dist) / ((fvc::grad(dist) & fvc::grad(dist)) + SMALL)); 
+                dir.write(); 
+            }
+
+            runTime++; 
         }
            
     }
