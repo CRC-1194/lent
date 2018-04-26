@@ -35,3 +35,8 @@ third-party
 *.pyc
 *cache*
 *History*
+
+*.stl 
+*.vtk 
+*VTK*
+*[1-9]*
