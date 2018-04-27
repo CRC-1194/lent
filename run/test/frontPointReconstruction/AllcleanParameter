@@ -1,0 +1,4 @@
+#! /usr/bin/bash
+
+# Clean Parameter Study: HEXAHEDRAL 
+rm -rf lentPointReconHex_00*
