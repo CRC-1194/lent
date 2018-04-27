@@ -331,6 +331,20 @@ void difference(const surfaceData& surf, const analyticalSurface& asurf, scalarF
 
 int main(int argc, char **argv)
 {
+    argList::addOption
+    (
+        "Ntheta",
+        "100",
+        "Number of intervals for the spherical angle theta." 
+    );
+
+    argList::addOption
+    (
+        "Nphi",
+        "100",
+        "Number of intervals for the spherical angle phi." 
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -383,9 +397,10 @@ int main(int argc, char **argv)
 
     // Parameterize plane orientation using spherical angles.
     const scalar pi = constant::mathematical::pi; 
-    // TODO: Add options for nTheta and nPhi.
-    scalarField thetaSpace = linspace(0,pi,10); 
-    scalarField phiSpace = linspace(0,2*pi,10); 
+    const label Ntheta = args.optionLookupOrDefault<label>("Ntheta", 100);
+    const label Nphi = args.optionLookupOrDefault<label>("Nphi", 100);
+    scalarField thetaSpace = linspace(0, pi, Ntheta); 
+    scalarField phiSpace = linspace(0, 2*pi, Nphi); 
 
     // Test the plane reconstruction that is randomized in terms of the position 
     // in the unit box domain and with the parameterized orientation. 
@@ -401,9 +416,7 @@ int main(int argc, char **argv)
     // Open the error file for output and write the header line. 
     const label Nc = mesh.nCells(); 
     const scalar h = average(pow(mesh.deltaCoeffs(), -1)).value(); 
-    std::stringstream errss; 
-    errss << "dual-contour-errors-Nc:" <<  Nc << "-h:" << h << ".dat";
-    OFstream errFile(errss.str()); 
+    OFstream errFile("dual-contouring-errors.dat"); 
     errFile << "Nc,h,phi,theta,Einf,E2" << nl;
 
     for (const auto& phi: thetaSpace)
@@ -443,6 +456,12 @@ int main(int argc, char **argv)
             scalarField diff(surfDat.nPoints(), 0); 
             difference(surfDat, plane, diff); 
 
+            // Calculate and write the error values. 
+            const scalar Linf = max(mag(diff));  
+            const scalar L2 = Foam::sqrt(sum(sqr(diff)));
+            errFile << Nc << "," << h << "," << phi 
+                << "," << theta << ","  << Linf << "," << L2 << nl; 
+
             // Write selected test data.
             if (runTime.writeTime() || runTime.timeIndex() == 0)
             {
@@ -455,11 +474,6 @@ int main(int argc, char **argv)
                     indexedString("points", runTime.timeIndex()) + ".vtk"
                 );
 
-                // Calculate and write the error values. 
-                const scalar Linf = max(mag(diff));  
-                const scalar L2 = Foam::sqrt(sum(sqr(diff)));
-                errFile << Nc << "," << h << "," << phi 
-                    << "," << theta << ","  << Linf << "," << L2 << nl; 
             }
             runTime++; 
         }

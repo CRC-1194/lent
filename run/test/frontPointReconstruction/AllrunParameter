@@ -1,0 +1,12 @@
+#! /usr/bin/bash
+
+# Parameter Study: HEXAHEDRAL 
+
+# Initialize directory structure
+lentParameterInit -c lentPointReconCase/ -p lentPointReconHex.parameter -s lentPointReconHex
+
+# Create the mesh  
+bulkeval lentPointReconHex_0000 blockMesh
+
+# Run the testing application
+bulkeval lentPointReconHex_0000 lentTestFrontPointReconstruction  
