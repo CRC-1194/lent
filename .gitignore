@@ -40,3 +40,6 @@ third-party
 *.vtk 
 *VTK*
 *[1-9]*
+*.dat 
+Ply*
+*Parameter*
