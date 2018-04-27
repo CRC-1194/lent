@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Version:  OpenFOAM-plus 
-    \\  /    A nd           | Copyright held by original author
+    \\  /    A nd           | Copyright Tomislav Maric, TU Darmstadt 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -39,6 +39,7 @@ Description
 #include <set>
  // - For storing interface points.
 #include "DynamicList.H"
+#include "DynamicField.H"
 
 // Testing 
 #include <random> 
@@ -63,29 +64,99 @@ Description
 // TODO: Make this a class.
 struct surfaceData 
 {
-    DynamicList<point> points; 
-    // TODO: Use a set for the cell labels to avoid duplicate cells that are 
-    //       generated when the interface passes exaclty through a mesh vertex.
-    //DynamicList<label> cellLabels; 
-    std::set<label> cellLabels; 
+    DynamicList<point> points_; 
+    std::set<label> cellLabels_; 
 
-    void clear() { points.clear(); cellLabels.clear(); };
+    void clear() { points_.clear(); cellLabels_.clear(); };
 
-    void clearPoints() { points.clear(); }; 
+    void clearPoints() { points_.clear(); }; 
 
-    void clearLabels() { cellLabels.clear(); };
+    void clearLabels() { cellLabels_.clear(); };
 
     void append(const point& p, const label& l)
     {
-        points.append(p); 
-        cellLabels.insert(l); 
+        points_.append(p); 
+        cellLabels_.insert(l); 
+    }
+
+    void append(const point& p)
+    {
+        points_.append(p); 
+    }
+
+    void append(const label& l)
+    {
+        cellLabels_.insert(l);
     }
 
     void append(const label& l, const point& p)
     {
         append(p,l); 
     }
+
+    label nPoints() const
+    {
+        return points_.size(); 
+    }
+
+    label nCellLabels() const
+    {
+        return cellLabels_.size(); 
+    }
+
+    const DynamicList<point>& points() const
+    {
+        return points_; 
+    }
+
+    void resizePoints(const label& newsize)
+    {
+        points_.resize(newsize);
+    }
+
+    const std::set<label>& cellLabels() const
+    {
+        return cellLabels_;
+    }
+
+    void setPoint(const label& l, const point& p)
+    {
+        points_[l] = p; 
+    }
+
+    bool emptyLabels()
+    {
+        return cellLabels_.empty(); 
+    }
+
+    bool emptyPoints()
+    {
+        return points_.empty(); 
+    }
 };
+
+struct surfErr
+{
+    scalar phi; 
+    scalar theta; 
+    scalar L1; 
+    scalar L2; 
+    scalar Linf;
+
+    surfErr()
+        : phi(0), theta(0), L1(0), L2(0), Linf(0)
+    {};
+
+    friend std::ostream& operator <<(std::ostream& os, const surfErr& errors); 
+};
+
+std::ostream& operator <<(std::ostream& os, const surfErr& errors)
+{
+    os << errors.phi << "," << errors.theta << "," 
+        << errors.L1 << "," << errors.L2 << ","
+        << errors.Linf << "\n";
+    return os; 
+} 
 
 scalarField linspace(scalar start, scalar end, label size)
 {
@@ -133,6 +204,19 @@ void distance(pointScalarField& pf, const analyticalSurface& surf)
     {
         pf[pointI] = surf.signedDistance(points[pointI]); 
     }
+
+    forAll(pf.boundaryField(), patchI)
+    {
+        pointPatchField<scalar>& pfb = pf.boundaryFieldRef()[patchI]; 
+
+        const pointPatch& patch = pfb.patch(); 
+        const pointField& localPoints = patch.localPoints(); 
+        const labelList& meshPoints = patch.meshPoints(); 
+        forAll(pfb, pointI)
+        {
+            pf[meshPoints[pointI]] = surf.signedDistance(localPoints[pointI]);
+        }
+    }
 }
 
 void intersectedCells
@@ -163,20 +247,20 @@ void intersectedCells
             if (d0 * pdist[cellPointLabels[pointI]] <= SMALL)
             {
                 iCells[cellI] = 1;
-                iData.cellLabels.insert(cellI); 
+                iData.append(cellI); 
             }
         }
     }; 
 }
 
-void interfacePoints 
+void surfacePoints 
 (
     const volScalarField& dist, 
     const pointScalarField& pdist, 
     surfaceData& iData 
 )
 {
-    if (iData.cellLabels.empty())
+    if (iData.emptyLabels())
         return; 
 
     // Clear only interface points and related data, as interface cell labels
@@ -184,7 +268,7 @@ void interfacePoints
     
     // TODO: Check this: the loop below must loop over cellLabels and assign
     // each value, otherwise old point values may be left in the list. TM. 
-    iData.points.resize(iData.cellLabels.size());
+    iData.resizePoints(iData.nCellLabels());
 
     tmp<volVectorField> distGradTmp = fvc::grad(dist); 
     tmp<volScalarField> distGradDotTmp = distGradTmp() & distGradTmp(); 
@@ -196,9 +280,9 @@ void interfacePoints
     const volVectorField& C = mesh.C();  
 
     label labelI = 0; 
-    for(const auto& cutCellI : iData.cellLabels)
+    for(const auto& cutCellI : iData.cellLabels())
     {
-        iData.points[labelI] = C[cutCellI] - dist[cutCellI] * dir[cutCellI];
+        iData.setPoint(labelI, C[cutCellI] - dist[cutCellI] * dir[cutCellI]);
         ++labelI;
     }
 }
@@ -230,6 +314,19 @@ std::string indexedString(const std::string& s, label index, label nPad=8)
     std::stringstream ss; 
     ss << s << "-" << std::setw(nPad) << std::setfill('0') << index;  
     return ss.str(); 
+}
+        
+void difference(const surfaceData& surf, const analyticalSurface& asurf, scalarField& diff) 
+{
+    const auto& surfPoints = surf.points(); 
+
+    forAll(diff, pointI)
+    {
+        // The iso-surface value shold be 0 here: differencce
+        // between the exact signed distance and the one given by the
+        // directed derivative (0). TM.
+        diff[pointI] = asurf.signedDistance(surfPoints[pointI]);
+    }
 }
 
 int main(int argc, char **argv)
@@ -294,10 +391,20 @@ int main(int argc, char **argv)
     // in the unit box domain and with the parameterized orientation. 
     // The parameterization also contains normal orientations that are collinear 
     // with the coordinate axes.
+    // TODO: Randomize the point position.
     //point planePoint (dis(gen), dis(gen), dis(gen));
     point planePoint (0.5, 0.5, 0.5);
 
+    // Initialize surface data.
     surfaceData surfDat;
+
+    // Open the error file for output and write the header line. 
+    const label Nc = mesh.nCells(); 
+    const scalar h = average(pow(mesh.deltaCoeffs(), -1)).value(); 
+    std::stringstream errss; 
+    errss << "dual-contour-errors-Nc:" <<  Nc << "-h:" << h << ".dat";
+    OFstream errFile(errss.str()); 
+    errFile << "Nc,h,phi,theta,Einf,E2" << nl;
 
     for (const auto& phi: thetaSpace)
     { 
@@ -325,14 +432,16 @@ int main(int argc, char **argv)
             // Test the OpenFOAM iso-surface algorithm. 
             isoSurface isurf(dist, pdist, 0, false); 
 
-            // Reset surface data.
-            surfDat.clear(); 
-
             // Find cells cut by the surface.
             intersectedCells(dist, pdist, icells, surfDat); 
             
             // Compute interface points.
-            interfacePoints(dist, pdist, surfDat);
+            surfacePoints(dist, pdist, surfDat);
+
+            // Calculate the difference between the reconstructed surface
+            // and the analytical surface. 
+            scalarField diff(surfDat.nPoints(), 0); 
+            difference(surfDat, plane, diff); 
 
             // Write selected test data.
             if (runTime.writeTime() || runTime.timeIndex() == 0)
@@ -342,21 +451,21 @@ int main(int argc, char **argv)
                 dist.write(); 
                 pdist.write(); 
                 writePointsToVtk(
-                    surfDat.points,
+                    surfDat.points(),
                     indexedString("points", runTime.timeIndex()) + ".vtk"
                 );
-                // TODO: Remove, testing.
-                volVectorField dir ("dir", fvc::grad(dist) / ((fvc::grad(dist) & fvc::grad(dist)) + SMALL)); 
-                dir.write(); 
-            }
 
+                // Calculate and write the error values. 
+                const scalar Linf = max(mag(diff));  
+                const scalar L2 = Foam::sqrt(sum(sqr(diff)));
+                errFile << Nc << "," << h << "," << phi 
+                    << "," << theta << ","  << Linf << "," << L2 << nl; 
+            }
             runTime++; 
         }
-           
     }
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 
     Info<< "End\n" << endl;
 
