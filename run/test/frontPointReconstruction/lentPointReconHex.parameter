@@ -1,0 +1,9 @@
+values
+{
+    solver (lentTestFrontPointReconstruction);
+
+    N 
+    ( 
+        4 8 16 32
+    );
+}

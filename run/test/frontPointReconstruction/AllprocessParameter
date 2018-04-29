@@ -1,0 +1,6 @@
+#! /usr/bin/bash
+
+# Parameter Study: HEXAHEDRAL 
+
+# Process errors 
+./process-recon-errors.py -p lentPointReconHex -f dual-contouring-errors.dat
