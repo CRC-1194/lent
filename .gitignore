@@ -42,4 +42,10 @@ third-party
 *[1-9]*
 *.dat 
 Ply*
-*Parameter*
+*[pP]y*Parameter*
+*.tex
+*.pdf
+*.csv
+*\.ipynb
+*.database
+*00* 
