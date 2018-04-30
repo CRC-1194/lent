@@ -24,7 +24,7 @@ ddtSchemes
 
 gradSchemes
 {
-    default         $LINEAR;
+    default         $@!GRAD!@;
     grad(p)         Gauss linear;
 }
 

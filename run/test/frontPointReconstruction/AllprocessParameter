@@ -1,6 +1,20 @@
 #! /usr/bin/bash
 
-# Parameter Study: HEXAHEDRAL 
+STUDY=$1
+
+# - Check the study type 
+case "$STUDY" in
+"Hex")
+    ;;
+"Tet")
+    ;;
+"PolyLsq" | "PolyGauss")
+    ;;
+*)
+    echo "Call this script using one of the following arguments: Hex Tet Poly"
+    exit 1
+esac
+
 
 # Process errors 
-./process-recon-errors.py -p lentPointReconHex -f dual-contouring-errors.dat
+./process-recon-errors.py -p lentPointRecon"$STUDY" -f dual-contouring-errors-planePoints.dat

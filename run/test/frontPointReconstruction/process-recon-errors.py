@@ -10,7 +10,7 @@ rcParams["text.usetex"]=True
 rcParams["figure.figsize"]=[2.36,2.36]
 rcParams["font.size"]=9
 
-usage = "usage: process-recon-errors.py -p directoryPattern"
+usage = "usage: process-recon-errors.py -p directoryPattern -f dataFileName"
 
 parser = OptionParser(usage=usage)
 
@@ -49,17 +49,17 @@ maxErrDf = pd.DataFrame(maxErr)
 
 # Write the maximal error dataframes with convergences to files.
 
-maxErrDf.to_csv("%s-%s-maxErrors.csv" % (options.datafile,options.pattern), index=False)
+baseFileName = options.datafile.split(".")[0] + "-" + options.pattern
+
+maxErrDf.to_csv("%s-maxErrors.csv" % (baseFileName), index=False)
 maxErrDf.drop(["phi","theta"], axis=1, inplace=True)
-maxErrDf.to_latex("%s-%s-maxErrors.tex" % (options.datafile,options.pattern), 
-                  index=False, float_format=custom_format, column_format="rlrrrr")
+maxErrDf.to_latex("%s-maxErrors.tex" % (baseFileName), index=False, 
+                  float_format=custom_format, column_format="rlrrrr")
 
 # Plot the max E1 and Einf convergence diagram. 
 plt.loglog()
 plt.plot(maxErrDf["h"],maxErrDf["Einf"],label="$E_\infty$")
 plt.plot(maxErrDf["h"],maxErrDf["E2"],label="$E_1$")
 plt.legend()
-plt.savefig("%s-%s-maxErrors.pdf" % (options.datafile,options.pattern), 
-            bbox_inches="tight")
-plt.savefig("%s-%s-maxErrors.png" % (options.datafile,options.pattern), 
-            bbox_inches="tight")
+plt.savefig("%s-maxErrors.pdf" % (baseFileName), bbox_inches="tight")
+plt.savefig("%s-maxErrors.png" % (baseFileName), bbox_inches="tight")

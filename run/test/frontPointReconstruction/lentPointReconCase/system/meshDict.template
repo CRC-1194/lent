@@ -23,7 +23,7 @@ surfaceFile	"constant/unit-box-domain.stl";
 
 // global cell size (mandatory)
 // it is the maximum cell size in the mesh
-maxCellSize	0.1;
+maxCellSize	#calc "1.0 / @!N!@";
 
 renameBoundary
 {

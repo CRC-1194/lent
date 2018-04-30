@@ -1,0 +1,7 @@
+#! /usr/bin/bash
+
+sed -i 's/Einf/$E_\\infty$/g' *.tex
+sed -i 's/E2/$E_2$/g' *.tex
+
+cp -u *.pdf *.png $LADV_FIG_PATH
+cp -u *.csv *.tex $LADV_TAB_PATH
