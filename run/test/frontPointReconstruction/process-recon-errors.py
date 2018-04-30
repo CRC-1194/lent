@@ -18,8 +18,9 @@ parser.add_option("-p", "--pattern", dest="pattern",
                   help="Pattern that identifies solution directories.", 
                   metavar="PATTERN")
 
-parser.add_option("-f", "--data-file", dest="datafile", help="CSV data file.", 
+parser.add_option("-f", "--data-file", dest="datafile", 
                   default='dual-contouring-errors.dat',
+                  help="File name of the CSV file written by a test application.",
                   metavar="DATAFILE")
 
 (options, args) = parser.parse_args()
@@ -28,13 +29,15 @@ if (options.pattern == None):
     print ("Error: pattern option not used. Use --help option for more information.") 
     sys.exit(1)
 
+baseFileName = options.datafile.split(".")[0] + "-" + options.pattern
+
 # Concat all CSV dataframes in the study. 
 errorDf = concat_csvdata(options.datafile, options.pattern)
 errorDf.sort_values("Nc", inplace=True, ascending=True)
 
-errorDf.to_latex("%s-%s.tex" % (options.datafile,options.pattern), 
+errorDf.to_latex("%s.tex" % baseFileName, 
                  index=False, float_format=custom_format, column_format="rlrrrr")
-errorDf.to_csv("%s-%s.csv" % (options.datafile,options.pattern), 
+errorDf.to_csv("%s.csv" % baseFileName, 
                index=False)
 
 # Get the list of unique resolutions. 
@@ -49,7 +52,6 @@ maxErrDf = pd.DataFrame(maxErr)
 
 # Write the maximal error dataframes with convergences to files.
 
-baseFileName = options.datafile.split(".")[0] + "-" + options.pattern
 
 maxErrDf.to_csv("%s-maxErrors.csv" % (baseFileName), index=False)
 maxErrDf.drop(["phi","theta"], axis=1, inplace=True)
