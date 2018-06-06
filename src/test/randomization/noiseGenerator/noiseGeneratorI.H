@@ -34,7 +34,7 @@ namespace FrontTracking {
 template
 <
     class tensorType,
-    typename std::enable_if<!std::is_class<tensorType>::value>::type* = nullptr
+    typename std::enable_if<!std::is_class<tensorType>::value>::type* //= nullptr
 >
 tensorType noiseGenerator::noise(const scalar& maxMagnitude) const
 {
@@ -49,7 +49,7 @@ tensorType noiseGenerator::noise(const scalar& maxMagnitude) const
 template
 <
     class tensorType,
-    typename std::enable_if<std::is_class<tensorType>::value>::type* = nullptr
+    typename std::enable_if<std::is_class<tensorType>::value>::type* //= nullptr
 >
 tensorType noiseGenerator::noise(const scalar& maxMagnitude) const
 {
@@ -67,7 +67,7 @@ tensorType noiseGenerator::noise(const scalar& maxMagnitude) const
 template
 <
     class tensorType,
-    typename std::enable_if<std::is_class<tensorType>::value>::type* = nullptr
+    typename std::enable_if<std::is_class<tensorType>::value>::type* //= nullptr
 >
 tensorType noiseGenerator::noise(const tensorType& magnitudes) const
 {
@@ -99,7 +99,7 @@ template
 <
     typename tensorType,
     template<typename> class container,
-    typename std::enable_if<std::is_class<tensorType>::value>::type* = nullptr
+    typename std::enable_if<std::is_class<tensorType>::value>::type* //= nullptr
 >
 void noiseGenerator::addNoiseTo(container<tensorType>& field, const tensorType& magnitudes) const
 {
