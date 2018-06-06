@@ -195,28 +195,28 @@ int main(int argc, char *argv[])
         // Update density field.
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
-        // The momentum flux is computed from MULES as  
-        // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
-        // However, LENT has no ability to compute the volumetric phase flux. 
-        // TODO: examine the impact of the momentum flux computation and devise
-        // more accurate approach if required (TT)
-        if (lent.dict().subDict("markerFieldModel").lookup("nSmoothingSteps") > 0)
-        {
-            // old approach, only works for diffuse markerfield
-            rhoPhi == fvc::interpolate(rho) * phi;
-        }
-        else
-        {
-            // new approach: vol fraction based calculation of rho at the face
-            // only works for a sharp, vol-fraction like markerfield
-            #include "computeRhoPhi.H"
-        }
-        
 
         Info << "p-U algorithm ... " << endl;
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
+            // The momentum flux is computed from MULES as  
+            // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
+            // However, LENT has no ability to compute the volumetric phase flux. 
+            // TODO: examine the impact of the momentum flux computation and devise
+            // more accurate approach if required (TT)
+            if (lent.dict().subDict("markerFieldModel").lookup("nSmoothingSteps") > 0)
+            {
+                // old approach, only works for diffuse markerfield
+                rhoPhi == fvc::interpolate(rho) * phi;
+            }
+            else
+            {
+                // new approach: vol fraction based calculation of rho at the face
+                // only works for a sharp, vol-fraction like markerfield
+                #include "computeRhoPhi.H"
+            }
+        
             #include "UEqn.H"
 
             //--- Pressure corrector loop
