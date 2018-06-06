@@ -114,6 +114,11 @@ public:
         return radius_;
     }
 
+    virtual void centre(const point& newCentre);
+    virtual void radius(const scalar newRadius);
+
+    virtual void writeParameters(const word fileName) const;
+
     // Member operators
     virtual analyticalSphere& operator=(const analyticalSphere& rhs);
 };

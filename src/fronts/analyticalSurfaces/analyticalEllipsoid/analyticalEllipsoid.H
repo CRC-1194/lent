@@ -129,15 +129,19 @@ public:
 
     virtual vector semiAxes() const;
     
-    virtual void setOneBySemiAxisSquare(const vector& oneBySemiAxisSquare)
+    virtual void oneBySemiAxisSquare(const vector& oneBySemiAxisSquare)
     {
         oneBySemiAxisSqr_ = oneBySemiAxisSquare;
     }
 
-    virtual void setCentre(const vector& newCentre)
+    virtual void centre(const vector& newCentre)
     {
         centre_ = newCentre;
     }
+
+    virtual void semiAxes(const vector& newSemiAxes);
+
+    virtual void writeParameters(const word fileName) const;
 
     // Member operators
     virtual analyticalEllipsoid& operator=(const analyticalEllipsoid& rhs);

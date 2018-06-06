@@ -59,8 +59,9 @@ Description
 #include "analyticalEllipse.H"
 #include "addToRunTimeSelectionTable.H"
 
-#include <cmath>
 #include <assert.h>
+#include <cmath>
+#include <iomanip>
 
 namespace Foam {
 namespace FrontTracking {
@@ -422,6 +423,30 @@ scalar analyticalEllipse::curvatureAt(const point& aPoint) const
     }
 
     return ellipseCurvature(refPoint); 
+}
+
+void analyticalEllipse::centre(const point& newCentre)
+{
+    centre_ = newCentre;
+    ensureValidCentre(); 
+}
+
+void analyticalEllipse::semiAxes(const vector& newSemiAxes)
+{
+    semiAxes_ = newSemiAxes;
+    ensureValidHalfAxes();
+}
+
+void analyticalEllipse::writeParameters(const word fileName) const
+{
+    auto outputFile = outputStream(fileName);
+
+    outputFile.stdStream() << std::setprecision(15);
+
+    outputFile << "-------------------------------\n"
+               << "type " << this->type() << '\n'
+               << "centre " << centre_ << '\n'
+               << "semiAxes " << semiAxes_ << '\n';
 }
 
 

@@ -79,6 +79,8 @@ class frontExactCurvatureModel
 {
     const Switch write_; 
 
+    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
+
 public:
 
     // Constructors
@@ -89,11 +91,6 @@ public:
         
     // Member functions
     virtual scalar curvatureAtPoint(const point& p) const = 0; 
-
-    virtual tmp<volScalarField> cellCurvature(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const;  
 
     virtual tmp<surfaceScalarField> faceCurvature(
         const fvMesh&, 

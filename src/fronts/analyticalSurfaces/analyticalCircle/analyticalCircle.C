@@ -59,6 +59,9 @@ Description
 #include "analyticalCircle.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include <cassert>
+#include <iomanip>
+
 namespace Foam {
 namespace FrontTracking {
 
@@ -196,6 +199,30 @@ point analyticalCircle::intersection(const point& pointA,
     return intersect + emptyComponent;
 }
 
+void analyticalCircle::centre(const vector newCentre)
+{
+    centre_ = projector_&newCentre;
+}
+
+void analyticalCircle::radius(const scalar newRadius)
+{
+    assert(newRadius > 0.0 && "Error: radius of analyticalCircle must be greater than zero.");
+    radius_ = newRadius;
+}
+
+
+void analyticalCircle::writeParameters(const word fileName) const
+{
+    auto outputFile = outputStream(fileName);
+
+    outputFile.stdStream() << std::setprecision(15);
+
+    outputFile << "-------------------------------\n"
+               << "type " << this->type() << '\n'
+               << "centre " << centre_ << '\n'
+               << "radius " << radius_ << '\n';
+}
+
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 analyticalCircle& analyticalCircle::operator=(const analyticalCircle& rhs)
@@ -204,6 +231,7 @@ analyticalCircle& analyticalCircle::operator=(const analyticalCircle& rhs)
     {
         centre_ = rhs.centre_;
         radius_ = rhs.radius_;
+        projector_ = rhs.projector_;
     }
 
     return *this;

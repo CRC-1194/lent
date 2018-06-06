@@ -183,12 +183,20 @@ triSurfaceFront::triSurfaceFront(
     prependZeros_(prependZeros),
     twoRingNeighbours_{}
 {
+    // FIXME: Output requires special handling for a parallel run. TM.
+    // Create the "front" directory in the case sub-directory. 
+    mkDir
+    (
+        IOobject::rootPath() + "/" + 
+        IOobject::caseName() + "/" 
+        + instance()
+    ); 
 
-    // FIXME: Work here to re-start the computation from latestTime.  Get the
-    // current file name of the front from the IOobject using runTime and
-    // readFormat. . TM.  
-    fileName initialFileName = IOobject::path() + 
-        "/" + IOobject::name() + "." + readFormat_; 
+    // FIXME: This is ugly, clean this up. TM.
+    fileName initialFileName = IOobject::rootPath() + "/" + 
+        IOobject::caseName() + "/" +
+        this->time().constant() + "/" + 
+        IOobject::name() + "." + readFormat_;  
 
     // Construct the triSurface from the current file. 
     static_cast<triSurface&>(*this) = triSurface(initialFileName);

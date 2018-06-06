@@ -240,7 +240,7 @@ void dualKrigingInterpolation::computeDualKrigingParameters
             fluctuationCoefficients_[K][I] = coeffs(K);
         }
 
-        for (auto K = nPoints; K < coeffs.rows(); ++K)
+        for (unsigned int K = nPoints; K < coeffs.rows(); ++K)
         {
             driftCoefficients_[K-nPoints][I] = coeffs(K);
         }

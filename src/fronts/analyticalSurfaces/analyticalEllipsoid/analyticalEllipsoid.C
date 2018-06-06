@@ -63,8 +63,9 @@ Description
 #include "analyticalEllipsoid.H"
 #include "addToRunTimeSelectionTable.H"
 
-#include <cmath>
 #include <assert.h>
+#include <cmath>
+#include <iomanip>
 
 namespace Foam {
 namespace FrontTracking {
@@ -385,6 +386,26 @@ vector analyticalEllipsoid::semiAxes() const
     }
 
     return semiAxes;
+}
+
+void analyticalEllipsoid::semiAxes(const vector& newSemiAxes)
+{
+    forAll(newSemiAxes, I)
+    {
+        oneBySemiAxisSqr_[I] = 1.0/(newSemiAxes[I]*newSemiAxes[I]);
+    }
+}
+
+void analyticalEllipsoid::writeParameters(const word fileName) const
+{
+    auto outputFile = outputStream(fileName);
+
+    outputFile.stdStream() << std::setprecision(15);
+
+    outputFile << "-------------------------------\n"
+               << "type " << this->type() << '\n'
+               << "centre " << centre_ << '\n'
+               << "semiAxes " << semiAxes() << '\n';
 }
 
 // * * * * * * * * * * * * * * Member Operators    * * * * * * * * * * * * * * //

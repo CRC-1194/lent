@@ -79,11 +79,16 @@ frontExactSurfaceCurvatureModel::frontExactSurfaceCurvatureModel(const dictionar
     surfaceTmp_{analyticalSurface::New(configDict.subDict("frontSurface"))}
 {}
 
+frontExactSurfaceCurvatureModel::frontExactSurfaceCurvatureModel(const dictionary& configDict, const analyticalSurface& surface)
+:
+    frontExactCurvatureModel{configDict},
+    surfaceTmp_{surface}
+{}
 
 // * * * * * * * * * * * * * * * * Public member functions * * * * * * * * * //
 scalar frontExactSurfaceCurvatureModel::curvatureAtPoint(const point& p) const
 {
-    const auto& surface = surfaceTmp_.ref();
+    const auto& surface = surfaceTmp_.operator()();
 
     return surface.curvatureAt(p);
 }
