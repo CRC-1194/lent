@@ -76,6 +76,27 @@ template<>
 const word triSurfaceFrontPointTensorField::typeName("triSurfaceFrontPointTensorField");
 
 
+template<>
+const word triSurfaceFrontEdgeLabelField::typeName("triSurfaceFrontEdgeLabelField");
+
+template<>
+const word triSurfaceFrontEdgeScalarField::typeName("triSurfaceFrontEdgeScalarField");
+
+template<>
+const word triSurfaceFrontEdgeVectorField::typeName("triSurfaceFrontEdgeVectorField");
+
+template<>
+const word triSurfaceFrontEdgeSphericalTensorField::typeName
+("triSurfaceFrontEdgeSphericalTensorField");
+
+template<>
+const word triSurfaceFrontEdgeSymmTensorField::typeName
+("triSurfaceFrontEdgeSymmTensorField");
+
+template<>
+const word triSurfaceFrontEdgeTensorField::typeName("triSurfaceFrontEdgeTensorField");
+
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking

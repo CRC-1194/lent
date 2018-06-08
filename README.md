@@ -17,6 +17,9 @@ Mathematics Department, Mathematical Modeling and Analysis Institute, TU Darmsta
 * OpenFOAM versions: 2.2.x  
 * Compilers: gcc-4.8.2 and gcc-4.9.0
 * `subversion` and `cmake` for compiling Google Test 
+* gmsh or paraview for surface mesh generation
+* admesh for normal consistency 
+
 
 ### Compiling Google Test
 

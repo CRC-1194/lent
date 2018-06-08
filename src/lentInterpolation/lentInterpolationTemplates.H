@@ -59,6 +59,9 @@ Description
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #include "interpolationCellPoint.H"
+#include "dualKrigingInterpolation.H"
+
+#include <chrono>
 
 namespace Foam {
 namespace FrontTracking {
@@ -114,21 +117,53 @@ void lentInterpolation::interpolate(
             lentCommunication::registeredName(front,mesh)
     ); 
 
-    auto interpolationPtr = 
-        interpolation<Type>::New(cellToVertexInterpType_,cellField);  
-
-    const auto& vertexToCell = communication.vertexToCell(); 
-    const pointField& vertices = front.points();
-
-    forAll(vertexToCell, vertexI)
+    if (cellToVertexInterpType_ == "Kriging")
     {
-        // FIXME: Dynamic dispatch overhead used here.
-        // Fix interpolation once we know which type gives best results.
-        // TM. 
-        vertexField[vertexI] = interpolationPtr->interpolate(
-            vertices[vertexI],
-            vertexToCell[vertexI] 
-        );
+        // Time measurement
+        auto start = std::chrono::system_clock::now();
+
+        dualKrigingInterpolation kriging{};
+
+        const auto& vertices = front.points();
+        const auto& verticesInCell = communication.interfaceCellToVertices();
+
+        for (const auto& cellToVertices : verticesInCell)
+        {
+            const auto& cellLabel = cellToVertices.first;
+            const auto& vertexLabels = cellToVertices.second;
+
+            kriging.computeDualKrigingParameters(cellLabel, mesh, cellField);
+
+            for (const auto& vLabel : vertexLabels)
+            {
+                vertexField[vLabel] = kriging.interpolateTo(vertices[vLabel]);
+            }
+
+            //kriging.selfTest(cellField, cellLabel);
+        }
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsedSeconds = end - start;
+
+        Info << "Computation time Kriging interpolation: " << elapsedSeconds.count() << endl;
+    }
+    else
+    {
+        auto interpolationPtr = 
+            interpolation<Type>::New(cellToVertexInterpType_,cellField);  
+
+        const auto& vertexToCell = communication.vertexToCell(); 
+        const pointField& vertices = front.points();
+
+        forAll(vertexToCell, vertexI)
+        {
+            // FIXME: Dynamic dispatch overhead used here.
+            // Fix interpolation once we know which type gives best results.
+            // TM. 
+            vertexField[vertexI] = interpolationPtr->interpolate(
+                vertices[vertexI],
+                vertexToCell[vertexI] 
+            );
+        }
     }
 }
 

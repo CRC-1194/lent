@@ -23,8 +23,14 @@
 
             lent.cellSurfaceTensionForce(mesh, front)
 
-            + 
-            
+            /*
+            - fvc::grad(p_rgh)
+
+            - gh*fvc::grad(rho)
+            */
+                
+            +
+
             fvc::reconstruct
             (
                 (

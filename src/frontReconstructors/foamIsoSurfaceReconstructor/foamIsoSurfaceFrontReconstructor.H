@@ -68,6 +68,7 @@ Description
 
 #include "frontReconstructor.H"
 #include "normalConsistency.H"
+#include "frontSmoother.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

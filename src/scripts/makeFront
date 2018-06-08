@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+gmsh -2 front.geo -o front.stl && \
+admesh --reverse-all front.stl --write-ascii-stl=output.stl && \
+cp output.stl front.stl  && \
+rm output.stl 

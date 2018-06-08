@@ -79,6 +79,15 @@ class distanceNormalConsistency
         public normalConsistency
 {
 
+private:
+
+    // Member Functions
+    virtual void runNormalConsistencyAlgorithm(
+        triSurfaceFront& front,
+        const volScalarField& signedDistance,
+        const pointScalarField& pointSignedDistance // Not used by this alg.
+    ) const;
+
 public:
 
     TypeName ("nearestDistance");
@@ -93,13 +102,6 @@ public:
     // Destructor
         virtual ~distanceNormalConsistency() {};
 
-    // Member Functions
-
-        virtual void makeFrontNormalsConsistent(
-            triSurfaceFront& front,
-            const volScalarField& signedDistance,
-            const pointScalarField& pointSignedDistance // Not used by this alg.
-        ) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

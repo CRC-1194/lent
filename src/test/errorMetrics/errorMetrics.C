@@ -59,6 +59,8 @@ Description
 
 #include "errorMetrics.H"
 
+#include <algorithm>
+
 namespace Foam {
 namespace FrontTracking {
 
@@ -67,9 +69,9 @@ scalar errorMetrics::powerMeanError(scalar x) const
 {
     scalar result = 0.0;
 
-    forAll(errorSet_, I)
+    for (const auto& error : errorSet_)
     {
-        result += std::pow(errorSet_[I], x);
+        result += std::pow(error, x);
     }
 
     result /= errorSet_.size();
@@ -81,9 +83,25 @@ scalar errorMetrics::powerMeanError(scalar x) const
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 errorMetrics::errorMetrics(const List<scalar>& errorSet)
 :
-    errorSet_(errorSet)
+    errorSet_{}
 {
+    errorSet_.resize(errorSet.size());
+
+    forAll(errorSet, I)
+    {
+        errorSet_[I] = errorSet[I];
+    }
+
+    std::sort(errorSet_.begin(), errorSet_.end());
 }
+
+errorMetrics::errorMetrics(const std::vector<scalar>& errorSet)
+:
+    errorSet_{errorSet}
+{
+    std::sort(errorSet_.begin(), errorSet_.end());
+}
+
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
@@ -99,7 +117,97 @@ scalar errorMetrics::quadraticMeanError() const
 
 scalar errorMetrics::maximumError() const
 {
-    return max(errorSet_);
+    scalar max = 0.0;
+
+    for (const auto& error : errorSet_)
+    {
+        if (mag(error) > max)
+        {
+            max = error;
+        }
+    }
+    return max;
+}
+
+scalar errorMetrics::medianError() const
+{
+    const auto& size = errorSet_.size();
+
+    if (size%2 == 1)
+    {
+        return errorSet_[(size - 1)/2];
+    }
+    else
+    {
+        return (errorSet_[size/2] + errorSet_[size/2 - 1])/2.0;
+    }
+}
+
+scalar errorMetrics::standardDeviation() const
+{
+    scalar stdDev = 0.0;
+
+    auto mean = arithmeticMeanError();
+
+    for (const auto& x : errorSet_)
+    {
+        stdDev += (x - mean)*(x - mean);
+    }
+
+    return sqrt(stdDev/errorSet_.size());
+}
+
+std::map<scalar, label> errorMetrics::errorDistribution( const label& resolution) const
+{
+    std::map<scalar, label> distribution{};
+
+    // Remember that data set is sorted, so no need to search for min and max
+    auto minError = errorSet_[0];
+    auto maxError = errorSet_[errorSet_.size() - 1];
+
+    scalar increment = (maxError - minError)/resolution;
+    scalar key = minError + 0.5*increment;
+    scalar limit = minError + increment;
+
+    distribution[key] = 0;
+
+    for (const auto& error : errorSet_)
+    {
+        if (error < limit)
+        {
+            ++distribution[key];
+        }
+        else
+        {
+            // Ensure empty intervals are considered correctly
+            do
+            {
+                key += increment;
+                limit += increment;
+                distribution[key] = 0;
+
+            }
+            while (error >= limit);
+
+            ++distribution[key];
+        }
+    }
+
+    return distribution;
+}
+
+std::map<scalar, scalar> errorMetrics::errorDistributionNormalized(const label& resolution) const
+{
+    std::map<scalar, scalar> normalizedDistribution{};
+
+    auto distribution = errorDistribution(resolution);
+
+    for (const auto& entry : distribution)
+    {
+        normalizedDistribution[entry.first] = scalar(entry.second)/scalar(errorSet_.size());
+    }
+
+    return normalizedDistribution;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

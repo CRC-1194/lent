@@ -96,9 +96,10 @@ tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
 
     const dimensionedScalar sigma = transportProperties.lookup("sigma");  
     
-    const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
+    const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName());     
+    const auto& cellCurvatureField = cellCurvature(mesh, frontMesh).ref();
 
-    return fvc::interpolate(sigma * cellCurvature(mesh,frontMesh)) * fvc::snGrad(fvc::average(fvc::interpolate(filterField)));
+    return fvc::interpolate(sigma * cellCurvatureField) * fvc::snGrad(filterField);
 }
 
 tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
@@ -106,6 +107,19 @@ tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
     const triSurfaceFront& frontMesh 
 ) const
 {
+    /*
+    const Time& runTime = mesh.time(); 
+
+    const dictionary& transportProperties = 
+        runTime.lookupObject<dictionary>("transportProperties");
+
+    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+    
+    const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
+    const auto& cellCurvatureField = cellCurvature(mesh, frontMesh).ref();
+
+    return sigma * cellCurvatureField * fvc::grad(filterField);
+    */
     return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
 }
 

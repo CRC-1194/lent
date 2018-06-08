@@ -64,6 +64,8 @@ Description
 #include "triSurface.H"
 #include "error.H"
 
+#include <vector>
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -91,6 +93,9 @@ class triSurfaceFront
     // Prepend zeros.
     label prependZeros_;
 
+    // Topological information required for parabolda fitting
+    std::vector<std::vector<label>> twoRingNeighbours_;
+
     // Compute the iso-surface.
     void computeIsoSurface(
         const volScalarField& cellsToElementsDist,
@@ -110,6 +115,13 @@ class triSurfaceFront
     // index prepended with zeros + extension. 
     fileName actualFileName() const;
 
+    // Write fields registered to the front to the vtk file to enable visualization
+    // in paraview
+    void writeVTKWithFields(Ostream& os) const;
+
+    void computeTwoRingNeighbours();
+    std::vector<label> neighbourPoints(const label& pointLabel, const label& exclude=-1) const;
+
 public:
 
     TypeName ("triSurfaceFront");
@@ -128,11 +140,7 @@ public:
         return localFaces().size(); 
     }
 
-    // Return non-const access to face normals.
-    pointField& storedFaceNormals()
-    {
-        return const_cast<pointField&>(faceNormals());
-    } 
+    void displace(const Field<Vector<double>>& displacements);
 
     bool writeObject
     (
@@ -142,6 +150,11 @@ public:
     ) const;
 
     bool writeData(Foam::Ostream& os) const;
+
+    const std::vector<std::vector<label>>& twoRingNeighbours() const
+    {
+        return twoRingNeighbours_;
+    }
 
     // Member operators
     void operator=(const triSurfaceFront& rhs);

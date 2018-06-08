@@ -59,31 +59,53 @@ Description
 #include "analyticalPlane.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include <iomanip>
+
 namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(analyticalPlane, 0);
     addToRunTimeSelectionTable(analyticalSurface, analyticalPlane, Dictionary);
 
+
+// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+vector analyticalPlane::normalize(const vector& normalVector) const
+{
+    if (mag(normalVector) > SMALL)
+    {
+        return normalVector / mag(normalVector);
+    }
+    else
+    {
+        return normalVector / (mag(normalVector) + SMALL);
+    }
+}
+
+void analyticalPlane::updateDistanceToOrigin()
+{
+    distanceOrigin_ = unitNormal_ & refPoint_;
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 analyticalPlane::analyticalPlane(const dictionary& configDict)
 :
-    analyticalSurface(configDict)
+    analyticalSurface{configDict},
+    refPoint_{configDict.lookup("referencePoint")},
+    unitNormal_{configDict.lookup("normalVector")}
 {
-    refPoint_ = configDict.lookup("referencePoint");
-    unitNormal_ = configDict.lookup("normalVector");
-    unitNormal_ = unitNormal_ / mag(unitNormal_);
-    distanceOrigin_ = unitNormal_ & refPoint_;
+    unitNormal_ = normalize(unitNormal_);
+    updateDistanceToOrigin();
 }
 
 analyticalPlane::analyticalPlane(const point& refPoint, const vector& normal)
 :
-    analyticalSurface()
+    analyticalSurface{},
+    refPoint_{refPoint},
+    unitNormal_{normal}
 {
-    refPoint_ = refPoint;
-    unitNormal_ = normal;
-    unitNormal_ /= mag(unitNormal_);
-    distanceOrigin_ = unitNormal_ & refPoint_;
+    unitNormal_ = normalize(unitNormal_);
+    updateDistanceToOrigin();
 }
 
 
@@ -100,22 +122,7 @@ scalar analyticalPlane::signedDistance(const point& trialPoint) const
 
 point analyticalPlane::normalProjectionToSurface(point& trialPoint) const
 {
-    point projected(0.0, 0.0, 0.0);
-
-    // Projection method fails for zero vector, thus provide 
-    // alternative method for this case
-    if (fabs(trialPoint & trialPoint) > SMALL)
-    {
-        scalar projectedDistanceToOrigin = unitNormal_ & trialPoint;
-
-        projected = projectedDistanceToOrigin / distanceOrigin_ * trialPoint;
-    }
-    else
-    {
-        projected = distanceOrigin_ * unitNormal_;
-    }
-
-    return projected;
+    return (trialPoint - ((trialPoint - refPoint_) & (unitNormal_*unitNormal_)));
 }
 
 vector analyticalPlane::normalToPoint(const point& trialPoint) const
@@ -135,6 +142,30 @@ point analyticalPlane::intersection(const point& pointA, const point& pointB) co
         intersect = distanceRatio*pointB + (1.0 - distanceRatio) * pointA;
 
         return intersect;
+}
+
+void analyticalPlane::normal(const vector& newNormal)
+{
+    unitNormal_ = normalize(newNormal);
+    updateDistanceToOrigin();
+}
+
+void analyticalPlane::referencePoint(const point& newRefPoint)
+{
+    refPoint_ = newRefPoint;
+    updateDistanceToOrigin();
+}
+
+void analyticalPlane::writeParameters(const word fileName) const
+{
+    auto outputFile = outputStream(fileName);
+
+    outputFile.stdStream() << std::setprecision(15);
+
+    outputFile << "-------------------------------\n"
+               << "type " << this->type() << '\n'
+               << "referencePoint " << refPoint_ << '\n'
+               << "normal " << unitNormal_ << '\n';
 }
 
 
