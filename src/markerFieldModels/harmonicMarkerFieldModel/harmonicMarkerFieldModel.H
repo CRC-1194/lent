@@ -84,20 +84,11 @@ public:
 
     TypeName ("harmonic");
 
-    // Constructors
-
-        harmonicMarkerFieldModel(const dictionary& configDict);
-
-    //- Destructor
-    virtual ~harmonicMarkerFieldModel();
+    using markerFieldModel::markerFieldModel;
 
     // Member Functions
+    virtual void calcMarkerField(volScalarField& markerField) const;
 
-        virtual void calcMarkerField(
-            volScalarField& markerField,
-            const volScalarField& signedDistance,
-            const volScalarField& searchDistanceSqr
-        ) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

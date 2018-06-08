@@ -66,7 +66,7 @@ Description
 #include "refCount.H"
 #include "volFieldsFwd.H"
 #include "triSurfaceFront.H"
-#include "triSurfaceFrontFields.H"
+#include "triSurfaceFields.H"
 #include "frontMeshSearch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -100,42 +100,39 @@ public:
     );
 
     // Constructors
-
-        frontVelocityCalculator(const dictionary& configDict);
+    frontVelocityCalculator(const dictionary& configDict);
 
     // Selectors
-
-        static tmp<frontVelocityCalculator> New(const dictionary& configDict);
+    static tmp<frontVelocityCalculator> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~frontVelocityCalculator();
+    virtual ~frontVelocityCalculator() = default;
 
     // Member Functions
+    bool pointIsInCell(
+        const point p,
+        const label cellLabel,
+        const fvMesh& mesh,
+        scalar tolerance=-SMALL
+    ) const
+    {
+        return searchAlgTmp_->pointIsInCell(p, cellLabel, mesh, tolerance);
+    }
 
-        bool pointIsInCell(
-            const point p,
-            const label cellLabel,
-            const fvMesh& mesh,
-            scalar tolerance=SMALL
-        ) const
-        {
-            return searchAlgTmp_->pointIsInCell(p, cellLabel, mesh, tolerance);
-        }
+    label cellContainingPoint(
+        const point& p,
+        const fvMesh& mesh,
+        const label seedCell = -1
+    ) const
+    {
+        return searchAlgTmp_->cellContainingPoint(p, mesh, seedCell);
+    }
 
-        label cellContainingPoint(
-            const point& p,
-            const fvMesh& mesh,
-            const label seedCell = -1
-        ) const
-        {
-            return searchAlgTmp_->cellContainingPoint(p, mesh, seedCell);
-        }
-
-        virtual void calcFrontVelocity(
-            triSurfaceFrontVectorField& frontVelocity,
-            const volVectorField& U,
-            labelList& elementCells
-        ) const = 0;
+    virtual void calcFrontVelocity(
+        triSurfacePointVectorField& frontVelocity,
+        const volVectorField& U,
+        labelList& elementCells
+    ) const = 0;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

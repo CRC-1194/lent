@@ -53,10 +53,12 @@ Description
 
 #include "fvCFD.H"
 #include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
-#include "lentMethod.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
+#include "turbulentTransportModel.H"
+#include "pimpleControl.H"
 
-#include "lentTests.H"
+#include "lentMethod.H"
+#include "lentGtest.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -81,7 +83,7 @@ TEST_F(lentTests, lentReconstruction)
 
     triSurfaceFront front(
         IOobject(
-            "front.stl",
+            "front",
             "front",
             runTime,
             IOobject::MUST_READ,
@@ -99,11 +101,11 @@ TEST_F(lentTests, lentReconstruction)
 
     while (runTime.run()) {
 
+        ASSERT_TRUE(NORMALS_ARE_CONSISTENT(front));
+
         runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
-
-        twoPhaseProperties.correct();
 
         lent.calcSignedDistances(
             signedDistance,
@@ -113,11 +115,9 @@ TEST_F(lentTests, lentReconstruction)
             front
         );
 
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+        lent.calcMarkerField(markerField);
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-        TEST_NORMAL_CONSISTENCY(front);
 
         runTime.write();
 
@@ -127,7 +127,7 @@ TEST_F(lentTests, lentReconstruction)
     }
 
     Info<< "End\n" << endl;
-}
+};
 
 int mainArgc;
 char** mainArgv;

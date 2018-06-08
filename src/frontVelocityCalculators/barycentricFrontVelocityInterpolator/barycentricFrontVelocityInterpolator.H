@@ -90,7 +90,7 @@ public:
     // Member Functions
 
         void calcFrontVelocity(
-            triSurfaceFrontVectorField& frontVelocity,
+            triSurfacePointVectorField& frontVelocity,
             const volVectorField& U,
             labelList& elementCells
         ) const;

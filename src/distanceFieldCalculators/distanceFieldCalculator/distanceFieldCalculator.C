@@ -145,7 +145,7 @@ void distanceFieldCalculator::calcCellSearchDistance(
 
         forAll(mesh.boundary()[patchI], faceI)
         {
-            searchDistanceSqr[faceCells[faceI]] += (1 /
+            searchDistanceSqr[faceCells[faceI]] += (2 /
                     (deltaCoeffsBoundary[faceI] *
                      deltaCoeffsBoundary[faceI]));
         }
@@ -160,8 +160,6 @@ void distanceFieldCalculator::calcCellSearchDistance(
 
     // Expand the distance by the bandwidth.
     searchDistanceSqr == searchDistanceSqr * narrowBandWidth_ * narrowBandWidth_;
-
-    searchDistanceSqr.correctBoundaryConditions();
 }
 
 void distanceFieldCalculator::calcPointSearchDistance(

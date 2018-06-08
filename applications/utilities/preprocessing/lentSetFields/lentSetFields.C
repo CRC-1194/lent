@@ -54,9 +54,6 @@ Description
 
 
 #include "fvCFD.H"
-#include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
-
 #include "lentMethod.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -68,16 +65,15 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
-
     #include "createFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     triSurfaceFront front(
         IOobject(
-            "front.stl",
             "front",
-            runTime,
+            "front",
+            mesh,
             IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         )
@@ -85,11 +81,8 @@ int main(int argc, char *argv[])
 
     lentMethod lent(front, mesh);
 
-    Info << "Calculating the search distance fields...";
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
-    Info << "Done." << endl;
 
-    Info << "Calculating the signed distance fields...";
     lent.calcSignedDistances(
         signedDistance,
         pointSignedDistance,
@@ -97,11 +90,8 @@ int main(int argc, char *argv[])
         pointSearchDistanceSqr,
         front
     );
-    Info << "Done." << endl;
 
-    Info << "Calculating the markerField field...";
-    lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
-    Info << "Done." << endl;
+    lent.calcMarkerField(markerField);
 
     runTime.writeNow();
 

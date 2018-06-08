@@ -81,21 +81,21 @@ class timeStepFrontReconstructionModel
 
 public:
 
-    TypeName ("timeStepReconstruction");
+    TypeName ("timeStepInterval");
 
     // Constructors
-
-        timeStepFrontReconstructionModel(const dictionary& configDict);
-
-    //- Destructor
-    virtual ~timeStepFrontReconstructionModel();
+    explicit timeStepFrontReconstructionModel(const dictionary& configDict);
 
     // Member Functions
+    virtual bool reconstructionRequired(
+        const triSurfaceFront& front,
+        const volScalarField& signedDistance
+    ) const;
 
-        virtual bool reconstructionRequired(
-            const triSurfaceFront& front,
-            const volScalarField& signedDistance
-        ) const;
+    label reconstructionInterval()  const
+    {
+        return reconstructionInterval_; 
+    }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

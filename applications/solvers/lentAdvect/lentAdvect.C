@@ -52,13 +52,12 @@ Description
 
 
 #include "fvCFD.H"
-#include "subCycle.H"
 #include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
-#include "turbulenceModel.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
+#include "turbulentTransportModel.H"
 #include "pimpleControl.H"
-#include "fvIOoptionList.H"
 
+#include "lentTests.H"
 #include "lentMethod.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -71,11 +70,18 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMesh.H"
 
+    #include "createTimeControls.H"
     #include "initContinuityErrs.H"
     #include "createFields.H"
     #include "readTimeControls.H"
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
+
+    // Update the advection velocity from function objects and overwrite 
+    // intial values.  
+    auto& functionObjects = runTime.functionObjects(); 
+    functionObjects.execute(); 
+    U.write(); 
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -83,29 +89,11 @@ int main(int argc, char *argv[])
 
     triSurfaceFront front(
         IOobject(
-            "front.stl",
             "front",
-            runTime,
+            "front",
+            mesh,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
-        )
-    );
-
-    triSurfaceFrontGeoMesh frontMesh(front);
-
-    triSurfaceFrontVectorField frontVelocity(
-        IOobject(
-            "frontVelocity",
-            runTime.timeName(),
-            runTime,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        front,
-        dimensionedVector(
-            "zero",
-            dimLength / dimTime,
-            vector(0,0,0)
         )
     );
 
@@ -113,9 +101,21 @@ int main(int argc, char *argv[])
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
 
+    lent.calcSignedDistances(
+        signedDistance,
+        pointSignedDistance,
+        searchDistanceSqr,
+        pointSearchDistanceSqr,
+        front
+    );
+
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
+
+    lent.calcMarkerField(markerField);
+    markerField.write(); 
     front.write();
+
 
     while (runTime.run())
     {
@@ -129,7 +129,14 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        twoPhaseProperties.correct();
+        lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
+        lent.evolveFront(front, U.oldTime());
+
+        if (Test::normalsAreInconsistent(front))
+        {
+            Info << "Inconsistent front normals." << endl;
+        }
 
         lent.calcSignedDistances(
             signedDistance,
@@ -139,13 +146,12 @@ int main(int argc, char *argv[])
             front
         );
 
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+        lent.calcMarkerField(markerField);
 
-        lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-        lent.calcFrontVelocity(frontVelocity, U);
-
-        lent.evolveFront(front, frontVelocity);
+        // Update viscosity. 
+        mixture.correct();
+        // Update density field.
+        rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
         runTime.write();
 

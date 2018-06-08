@@ -54,13 +54,12 @@ Description
 #include "fvCFD.H"
 #include "dynamicFvMesh.H"
 #include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
-#include "turbulenceModel.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
+#include "turbulentTransportModel.H"
 #include "pimpleControl.H"
-#include "fvIOoptionList.H"
 #include "lentMethod.H"
 
-// Time Measurements
+// Time Measurements // FIXME: Compile into lentTests.so. TM.
 //#include <chrono>
 //#include <fstream>
 //#include <algorithm>
@@ -245,6 +244,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createDynamicFvMesh.H"
 
+    #include "createTimeControls.H"
     #include "initContinuityErrs.H"
     #include "createFields.H"
     #include "readTimeControls.H"
@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
 
     triSurfaceFront front(
         IOobject(
-            "front.stl",
+            "front",
             "front",
             runTime,
             IOobject::MUST_READ,
@@ -272,9 +272,7 @@ int main(int argc, char *argv[])
         )
     );
 
-    triSurfaceFrontGeoMesh frontMesh(front);
-
-    triSurfaceFrontVectorField frontVelocity(
+    triSurfacePointVectorField frontVelocity(
         IOobject(
             "frontVelocity",
             runTime.timeName(),
@@ -319,6 +317,7 @@ int main(int argc, char *argv[])
         //timing.stop("Search Distance");
 
         //timing.start("Signed Distance");
+        // FIXME: Cleanup interface.  
         lent.calcSignedDistances(
             signedDistance,
             pointSignedDistance,
@@ -329,7 +328,7 @@ int main(int argc, char *argv[])
         //timing.stop("Signed Distance");
 
         //timing.start("MarkerField");
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+        lent.calcMarkerField(markerField);
         //timing.stop("MarkerField");
 
         // FIXME: heisenbug in Debug mode: field checking probably fails TM, Mar 05 14
@@ -339,12 +338,8 @@ int main(int argc, char *argv[])
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
         //timing.stop("Reconstruction");
 
-        //timing.start("Velocity Calculation");
-        lent.calcFrontVelocity(frontVelocity, U);
-        //timing.stop("Velocity Calculation");
-
         //timing.start("Front Evolution");
-        lent.evolveFront(front, frontVelocity);
+        lent.evolveFront(front, U.oldTime());
         //timing.stop("Front Evolution");
 
         //timing.start("Writing");

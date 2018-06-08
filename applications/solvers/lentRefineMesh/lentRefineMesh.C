@@ -53,11 +53,10 @@ Description
 
 #include "fvCFD.H"
 #include "dynamicFvMesh.H"
-#include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
-#include "fvIOoptionList.H"
-
 #include "lentMethod.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
+#include "turbulentTransportModel.H"
+#include "pimpleControl.H"
 
 using namespace FrontTracking;
 
@@ -75,7 +74,7 @@ int main(int argc, char *argv[])
 
     triSurfaceFront front(
         IOobject(
-            "front.stl",
+            "front",
             "front",
             runTime,
             IOobject::MUST_READ,
@@ -109,7 +108,7 @@ int main(int argc, char *argv[])
             front
         );
 
-        lent.calcMarkerField(markerField, signedDistance, searchDistanceSqr);
+        lent.calcMarkerField(markerField);
 
         runTime.write();
 

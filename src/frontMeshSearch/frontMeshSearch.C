@@ -159,7 +159,7 @@ label frontMeshSearch::cellContainingPoint(
 {
     //appendLabelAndWriteCellSet(seedCell);
 
-    if (pointIsInCell(p, seedCell, mesh))
+    if (pointIsInCell(p, seedCell, mesh, -SMALL)) // FIXME: Tolerance data member? TM.
     {
         //appendLabelAndWriteCellSet(seedCell);
         return seedCell;
@@ -191,7 +191,7 @@ label frontMeshSearch::cellContainingPoint(
 
         //Info << "minDistance = " << minDistance << endl;
 
-        if (pointIsInCell(p, neighborCell, mesh))
+        if (pointIsInCell(p, neighborCell, mesh, -SMALL)) // FIXME: Tolerance data member? TM.
         {
             //appendLabelAndWriteCellSet(neighborCell);
             lastDistance_ = minDistance;
@@ -212,7 +212,7 @@ label frontMeshSearch::cellContainingPoint(
         }
     }
 
-    if (pointIsInCell(p, minDistanceCell, mesh))
+    if (pointIsInCell(p, minDistanceCell, mesh, -SMALL)) // FIXME: Tolerance data member? TM. 
     {
         //appendLabelAndWriteCellSet(seedCell);
         lastDistance_ = minDistance;
@@ -228,7 +228,7 @@ label frontMeshSearch::cellContainingPoint(
         {
             //Info << "skipping to cell " << minDistanceCell << endl;
             lastDistance_ = minDistance;
-            return cellContainingPoint(p, mesh, minDistanceCell);
+            return cellContainingPoint(p, mesh, minDistanceCell); 
         }
     }
 
@@ -250,37 +250,16 @@ bool frontMeshSearch::pointIsInCell(
 
     bool pointIsInside = true;
 
-    //Info << "point " << p << endl;
-
-    // For all face labels of the cell.
     forAll (cell, I)
     {
-        label faceLabel = cell[I];
+        const auto faceI = cell[I];
+        const auto dist = (p - Cf[faceI]) & Sf[faceI]; 
 
-        vector faceNormal = Sf[faceLabel];
+        if ((cellLabel == own[faceI]) && (dist > tolerance))
+            return false;
 
-        // If the cell does not own the face.
-        if (! (cellLabel == own[cell[I]]))
-        {
-            faceNormal *= -1;
-        }
-
-        // Compute the vector from the face center to the point p.
-        vector fp = p - Cf[cell[I]];
-
-        if ((fp & faceNormal) > tolerance)
-        {
-
-            //Info << "point outside face = " << (fp & faceNormal) << endl;
-            pointIsInside = false;
-            break;
-        }
-
-        //else
-        //{
-            //Info << "point inside face = " << (fp & faceNormal) << endl;
-        //}
-
+        if ((cellLabel != own[faceI]) && (dist <= tolerance))
+            return false;
     }
 
     return pointIsInside;
@@ -291,6 +270,8 @@ labelList frontMeshSearch::pointCellStencil(
     const fvMesh& mesh
 ) const
 {
+    labelList result;
+
     const faceList& faces = mesh.faces();
     const cellList& cells = mesh.cells();
     const labelListList& pointCells = mesh.pointCells();
@@ -307,44 +288,12 @@ labelList frontMeshSearch::pointCellStencil(
             newNeighborCells.insert(addedNeighborCells[J]);
         }
     }
+    // TODO: Improve efficiency, use OpenFOAM HashSet<label>. TM. 
+    result.resize(newNeighborCells.size());
 
-    return labelList(newNeighborCells.begin(), newNeighborCells.end());
-}
+    std::copy(newNeighborCells.begin(), newNeighborCells.end(), result.begin()); 
 
-void frontMeshSearch::updateElementCells(
-    DynamicList<label>& elementCells,
-    const triSurfaceFront& front,
-    const fvMesh& mesh
-) const
-{
-    const List<labelledTri>& elements = front.localFaces();
-    const pointField& vertices = front.points();
-
-    forAll (elementCells, elementI)
-    {
-        const triFace& element = elements[elementI];
-
-        forAll (element, vertexI)
-        {
-            label foundCell = -1;
-
-            const point& vertex = vertices[element[vertexI]];
-
-            if (!pointIsInCell(vertex, elementCells[elementI], mesh))
-            {
-                foundCell  = cellContainingPoint(
-                    vertex,
-                    mesh,
-                    elementCells[elementI]
-                );
-
-                if (foundCell > 0)
-                {
-                    elementCells[elementI] = foundCell;
-                }
-            }
-        }
-    }
+    return result;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

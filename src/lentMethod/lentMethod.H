@@ -64,16 +64,18 @@ Description
 
 #include "regIOobject.H"
 #include "typeInfo.H"
-#include "triSurfaceFront.H"
 #include "fvMesh.H"
-
+#include "lentCommunication.H"
+#include "triSurfaceFront.H"
 #include "distanceFieldCalculator.H"
 #include "frontReconstructionModel.H"
 #include "frontReconstructor.H"
-#include "triSurfaceFrontFields.H"
-#include "frontVelocityCalculator.H"
+#include "triSurfaceFields.H"
 #include "frontMotionSolver.H"
 #include "markerFieldModel.H"
+#include "frontSurfaceTensionForceModel.H"
+#include "lentInterpolation.H"
+#include "triSurfaceFrontFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -88,14 +90,14 @@ class lentMethod
 :
     public regIOobject
 {
-    // Triangles-cells map.
-    DynamicList<label> elementCells_;
+    // Method configuration dictionary.
+    IOdictionary lentControlDict_;
+
+    // Front <-> volume mesh communication maps. 
+    lentCommunication communicationMaps_;   
 
     // Front reconstruction flag.
     mutable bool frontIsReconstructed_;
-
-    // Lent method configuration dictionary.
-    IOdictionary lentControlDict_;
 
     // Field calculator
     tmp<distanceFieldCalculator> distanceFieldCalculatorTmp_;
@@ -106,17 +108,17 @@ class lentMethod
     // Front reconstructor.
     tmp<frontReconstructor> frontReconstructorTmp_;
 
-    // Search algorithm.
-    tmp<frontMeshSearch> searchAlgorithmTmp_;
-
-    // Velocity calculator.
-    tmp<frontVelocityCalculator> frontVelocityCalculatorTmp_;
-
-    //// Front motion solver.
+    // Front motion solver.
     tmp<frontMotionSolver> frontMotionSolverTmp_;
 
     // MarkerField model.
     tmp<markerFieldModel> markerFieldModelTmp_;
+
+    // Surface tension force model.
+    tmp<frontSurfaceTensionForceModel> surfaceTensionForceModelTmp_;
+
+    // Member Operators
+        void operator=(const lentMethod&); // FIXME: Private in lentCommunication. TM.
 
 public:
 
@@ -130,10 +132,10 @@ public:
             word dictName="lentSolution"
         );
 
-        lentMethod(const lentMethod& copy);
+        lentMethod(const lentMethod& copy) = default;
 
     //- Destructor
-    virtual ~lentMethod();
+    virtual ~lentMethod() = default;
 
     // Member Functions
 
@@ -151,11 +153,7 @@ public:
             const triSurfaceFront& front
         );
 
-        void calcMarkerField(
-            volScalarField& markerField,
-            const volScalarField& signedDistance,
-            const volScalarField& searchDistanceSqr
-        ) const;
+        void calcMarkerField(volScalarField& markerField) const;
 
         void reconstructFront(
             triSurfaceFront& front,
@@ -169,21 +167,45 @@ public:
         }
 
         void calcFrontVelocity(
-            triSurfaceFrontVectorField& frontVelocity,
+            triSurfaceFrontPointVectorField & frontVelocity,
             const volVectorField& U
         );
 
         void evolveFront(
             triSurfaceFront& front,
-            const triSurfaceFrontVectorField& frontVelocity
-        ) const;
+            const volVectorField& cellVelocity
+        );
+        
+        tmp<surfaceScalarField> faceSurfaceTensionForce(
+            const fvMesh& mesh, 
+            const triSurfaceFront& frontMesh
+        ) const
+        {
+            return surfaceTensionForceModelTmp_->faceSurfaceTensionForce(mesh, frontMesh); 
+        }
+
+        tmp<volVectorField> cellSurfaceTensionForce(
+            const fvMesh& mesh, 
+            const triSurfaceFront& frontMesh
+        ) const
+        {
+            return surfaceTensionForceModelTmp_->cellSurfaceTensionForce(mesh, frontMesh); 
+        }
+
+        const dictionary& dict() const
+        {
+            return lentControlDict_;
+        }
+
+        const frontSurfaceTensionForceModel& surfaceTensionForceModel() const
+        {
+            return surfaceTensionForceModelTmp_();  
+        }
+
+        void calcFrontNormals(triSurfaceFront& front) const; 
 
         // Empty writer: regIOobject is used only for registry queries.
         bool writeData(Ostream& os) const;
-
-    // Member Operators
-    //
-        void operator=(const lentMethod&);
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

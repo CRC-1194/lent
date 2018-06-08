@@ -98,22 +98,19 @@ public:
     );
 
     // Constructors
-
-        explicit frontReconstructionModel(const dictionary& configDict);
-
-    // Selectors
-
-        static tmp<frontReconstructionModel> New(const dictionary& configDict);
+    explicit frontReconstructionModel(const dictionary& configDict) {};
 
     // Destructor
-        virtual ~frontReconstructionModel();
+    virtual ~frontReconstructionModel() = default;
+
+    // Selectors
+    static tmp<frontReconstructionModel> New(const dictionary& configDict);
 
     // Member Functions
-
-        virtual bool reconstructionRequired(
-            const triSurfaceFront& front,
-            const volScalarField& signedDistance
-        ) const = 0;
+    virtual bool reconstructionRequired(
+        const triSurfaceFront& front,
+        const volScalarField& signedDistance
+    ) const = 0;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

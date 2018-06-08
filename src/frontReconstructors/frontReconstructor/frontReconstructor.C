@@ -100,11 +100,6 @@ frontReconstructor::New(const dictionary& configDict)
     return tmp<frontReconstructor> (cstrIter()(configDict));
 }
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-frontReconstructor::~frontReconstructor()
-{}
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking

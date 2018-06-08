@@ -60,7 +60,6 @@ Description
 #define lentTests_H
 
 #include "triSurface.H"
-#include "gtest.h"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -68,29 +67,37 @@ namespace Foam {
     namespace FrontTracking {
         namespace Test {
 
-bool triSurfaceNormalsAreConsistent(const triSurface& front)
+bool normalsAreConsistent(const triSurface& front)
 {
     const labelListList& edgeFaces = front.edgeFaces();
     const vectorField& faceNormals = front.faceNormals();
 
-    bool normalsAreConsistent = true;
-
     forAll (edgeFaces, I)
     {
-        const vector& n0 = faceNormals[edgeFaces[I][0]];
-        const vector& n1 = faceNormals[edgeFaces[I][1]];
-
-        if ((n0 & n1) < 0)
+        if (edgeFaces[I].size() > 1)
         {
-            normalsAreConsistent = false;
+            const vector& n0 = faceNormals[edgeFaces[I][0]];
+            const vector& n1 = faceNormals[edgeFaces[I][1]];
+
+            if ((n0 & n1) < 0)
+            {
+                Info << "Inconsistent normals. Faces = " 
+                    << edgeFaces[I][0] << " | " << edgeFaces[I][1] << endl;
+                return false;
+            }
         }
     }
-    return normalsAreConsistent;
+    return true;
+}
+
+bool normalsAreInconsistent(const triSurface& front)
+{
+    return ! normalsAreConsistent(front); 
 }
 
 class triSurfaceSizeChange
 {
-    int lastSize_ = 0;
+    int lastSize_;
 
     const triSurface& t_;
 
@@ -100,6 +107,7 @@ class triSurfaceSizeChange
 
         triSurfaceSizeChange(const triSurface& t, double allowedChange=0.2)
             :
+                lastSize_(0),
                 t_(t),
                 allowedChange_(allowedChange)
         {}
@@ -122,18 +130,6 @@ class triSurfaceSizeChange
             }
 
             lastSize_ = triSurfaceSize;
-        }
-};
-
-// Classes for testing the application code.
-
-class lentTests : public ::testing::Test
-{
-    protected:
-        template<typename Front>
-        void TEST_NORMAL_CONSISTENCY(Front const & front)
-        {
-            ASSERT_TRUE(triSurfaceNormalsAreConsistent(front));
         }
 };
 

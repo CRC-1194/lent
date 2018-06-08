@@ -3,4 +3,17 @@ cd ${0%/*} || exit 1    # run from this directory
 
 set -x 
 
-wmake libso 
+
+if [ "$WM_PROJECT_DIR" != "" ]; 
+then 
+    wmake libso 
+else
+    echo "OpenFOAM project is either not available or not configured properly. Source the project's etc/bashrc file." 
+fi
+
+if [ "$GEOMTRANSPORT" != "" ]; 
+then
+    wmake libso geometrical
+else
+    echo "GEOMTRANSPORT project is either not available or not configured properly. Source the project's etc/bashrc file. Skipping the compilation of the hybrid LENT/GEOMETRANSPORT library."  
+fi

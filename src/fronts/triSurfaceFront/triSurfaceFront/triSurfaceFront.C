@@ -75,67 +75,70 @@ namespace Foam
 namespace Foam {
     namespace FrontTracking {
 
-fileName triSurfaceFront::zeroPaddedFileName(word extension) const
+fileName triSurfaceFront::zeroPaddedFileName(word writeFormat) const
 {
-    // Separate the file name and the extension.
-    fileName file = IOobject::name();
-    fileName baseName = file.name(true);
+    // Get the time index from Time.
+    string index = Foam::name(IOobject::time().timeIndex());
 
-    string indexString = Foam::name(IOobject::time().timeIndex());
-    // Pad the base name with zeros
-    std::string paddedZeros = std::string (
-        prependZeros_ - indexString.size(),
-        '0'
-    );
+    // Pad the index string with zeros.
+    std::string paddedIndex = std::string(prependZeros_ - index.size(), '0');
 
     // Append the index string to the padded name.
-    paddedZeros.append(indexString);
+    paddedIndex.append(index);
 
-    fileName finalName = path() + "/" + baseName + "-" +
-        paddedZeros + "." + extension;
-
-    return finalName;
+    // Create the final name from the path, the IOobject name and the
+    // extension.
+    return (
+        IOobject::path() + "/" + IOobject::name() +  "-" 
+        + paddedIndex + "." + writeFormat
+    );
 }
 
-fileName triSurfaceFront::existingFrontFileName(const IOobject& io)
+fileName triSurfaceFront::actualFileName() const
 {
-    fileName modifiedFileName = io.filePath();
+    // Get the initial full path name from the IOobject. 
+    fileName actualFileName = IOobject::path() + 
+        "/" + IOobject::name() + "." + writeFormat_; 
 
-    const Time& runTime = io.time();
+    // Padd the name with zeros and add extension to the IOobject file name
+    // so that ParaView can open the temporal file sequence.
+    actualFileName = zeroPaddedFileName(writeFormat_);
 
-    if (runTime.timeIndex() > 0)
-    {
-        modifiedFileName = zeroPaddedFileName(writeFormat_);
-    }
-
-    return modifiedFileName;
+    return actualFileName;
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 triSurfaceFront::triSurfaceFront(
     const IOobject& io,
+    word readFormat,
     word writeFormat,
     label prependZeros
 )
 :
-    regIOobject(io),
+    objectRegistry(io),
+    //regIOobject(io), 
     triSurface(),
+    readFormat_(readFormat),
     writeFormat_(writeFormat),
     prependZeros_(prependZeros)
 {
-    fileName file = existingFrontFileName(io);
 
-    static_cast<triSurface&>(*this) = triSurface(file);
+    // FIXME: Work here to re-start the computation from latestTime.  Get the
+    // current file name of the front from the IOobject using runTime and
+    // readFormat. . TM.  
+    fileName initialFileName = IOobject::path() + 
+        "/" + IOobject::name() + "." + readFormat_; 
+
+    // Construct the triSurface from the current file. 
+    static_cast<triSurface&>(*this) = triSurface(initialFileName);
 }
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 bool triSurfaceFront::write() const
 {
-    fileName paddedName = zeroPaddedFileName(writeFormat_);
-
-    triSurface::write(paddedName);
+    triSurface::write(actualFileName());
 
     return true;
 }
@@ -154,17 +157,40 @@ bool triSurfaceFront::writeObject
     IOstream::compressionType cmp
 ) const
 {
-    triSurface::write(zeroPaddedFileName(writeFormat_));
+    triSurface::write(actualFileName());
 
     return true;
 }
 
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
+void triSurfaceFront::operator=(const triSurface& rhs)
+{
+    triSurface::operator=(rhs);  
+}
 
 void triSurfaceFront::operator=(const isoSurface& rhs)
 {
+    this->clearOut(); 
 
-    static_cast<triSurface*>(this)->operator=(static_cast<const triSurface&> (rhs));
+    auto& thisPoints = this->storedPoints(); 
+    auto& thisFaces = this->storedFaces(); 
+
+    const auto& rhsPoints = rhs.localPoints();  
+    const auto& rhsFaces = rhs.localFaces(); 
+
+    thisPoints = rhsPoints; 
+    thisFaces.resize(rhsFaces.size());
+    forAll(rhsFaces, faceI)
+    {
+        auto& thisFace = thisFaces[faceI]; 
+        const auto& rhsFace = rhsFaces[faceI]; 
+        thisFace.resize(rhsFace.size()); 
+        forAll(rhsFace, pointI)
+        {
+            thisFace[pointI] = rhsFace[pointI]; 
+            thisFace.region() = 0;  
+        }
+    }
 }
 
 // ************************************************************************* //

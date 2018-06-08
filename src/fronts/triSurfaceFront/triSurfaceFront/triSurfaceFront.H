@@ -32,6 +32,7 @@ Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
+    A registered triSurface that can be used with tmp<>.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -60,7 +61,7 @@ Description
 #define triSurfaceFront_H
 
 #include "isoSurface.H"
-#include "triSurfaceMesh.H"
+#include "triSurface.H"
 #include "error.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -77,9 +78,13 @@ namespace FrontTracking
 class triSurfaceFront
     :
         public refCount,
-        public regIOobject,
+        public objectRegistry, 
+        //public regIOobject, 
         public triSurface
 {
+    // Read format.
+    word readFormat_;
+
     // Write format.
     word writeFormat_;
 
@@ -94,27 +99,40 @@ class triSurfaceFront
         const scalar mergeTol=1e-06
     );
 
-    // Write the indexed front file.
+    // Create the file name with IOobject::name, extension and timeIndex
+    // paddeed with zeros. 
     fileName zeroPaddedFileName(word extension) const;
 
     template<class Displacement>
     void executeMovePoints(const Displacement& d);
 
-    fileName existingFrontFileName(const IOobject& io);
+    // Get the actual file name of the stored front. IOobject::name + time
+    // index prepended with zeros + extension. 
+    fileName actualFileName() const;
 
 public:
 
     TypeName ("triSurfaceFront");
 
     // Constructors
-
-    triSurfaceFront(const IOobject& io, word writeFormat="vtk", label prependZeros=8);
+    triSurfaceFront(const IOobject& io, word readFormat="stl", word writeFormat="vtk", label prependZeros=8);
 
     //- Destructor
     virtual ~triSurfaceFront() {};
 
     // Member Functions
     bool write() const;
+
+    label nFaces() const 
+    {
+        return localFaces().size(); 
+    }
+
+    // Return non-const access to face normals.
+    pointField& storedFaceNormals()
+    {
+        return const_cast<pointField&>(faceNormals());
+    } 
 
     bool writeObject
     (
@@ -127,6 +145,8 @@ public:
 
     // Member operators
     void operator=(const triSurfaceFront& rhs);
+    void operator=(const triSurface& rhs);
+
     void operator=(const isoSurface& rhs);
 };
 

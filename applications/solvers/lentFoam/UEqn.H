@@ -1,20 +1,18 @@
-    surfaceScalarField muEff
-    (
-        "muEff",
-        twoPhaseProperties.muf()
-      + fvc::interpolate(rho*turbulence->nut())
-    );
+    MRF.correctBoundaryVelocity(U);
 
     fvVectorMatrix UEqn
     (
         fvm::ddt(rho, U)
       + fvm::div(rhoPhi, U)
-      - fvm::laplacian(muEff, U)
-      - (fvc::grad(U) & fvc::grad(muEff))
-    //- fvc::div(muEff*(fvc::interpolate(dev(fvc::grad(U))) & mesh.Sf()))
+      + MRF.DDt(rho, U)
+      + turbulence->divDevRhoReff(rho, U)
+     ==
+        fvOptions(rho, U)
     );
 
     UEqn.relax();
+
+    fvOptions.constrain(UEqn);
 
     if (pimple.momentumPredictor())
     {
@@ -22,13 +20,19 @@
         (
             UEqn
          ==
+
+            lent.cellSurfaceTensionForce(mesh, front)
+
+            + 
+            
             fvc::reconstruct
             (
                 (
-                    fvc::interpolate(interface.sigmaK())*fvc::snGrad(markerField)
                   - ghf*fvc::snGrad(rho)
                   - fvc::snGrad(p_rgh)
                 ) * mesh.magSf()
             )
         );
+
+        fvOptions.correct(U);
     }

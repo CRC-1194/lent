@@ -118,7 +118,7 @@ public:
             const point p,
             const label cellLabel,
             const fvMesh& mesh,
-            scalar tolerance=SMALL
+            scalar tolerance=0
         ) const;
 
         virtual label cellContainingPoint(
@@ -129,19 +129,6 @@ public:
 
         labelList pointCellStencil(
             label cellLabel,
-            const fvMesh& mesh
-        ) const;
-
-        // TM March 07 14
-        // Updates elementCells using previous elementCells values as seed cells.
-
-        // Works directly for a static mesh - the lentMethodDynamic is made
-        // responsible for updating elementCells for topological changes of the
-        // volume mesh.
-
-        void updateElementCells(
-            DynamicList<label>& elementCells,
-            const triSurfaceFront& front,
             const fvMesh& mesh
         ) const;
 

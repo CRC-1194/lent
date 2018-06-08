@@ -85,19 +85,10 @@ public:
     TypeName ("sharp");
 
     // Constructors
-
-        sharpMarkerFieldModel(const dictionary& configDict);
-
-    //- Destructor
-    virtual ~sharpMarkerFieldModel();
+    using markerFieldModel::markerFieldModel;  
 
     // Member Functions
-
-        virtual void calcMarkerField(
-            volScalarField& markerField,
-            const volScalarField& signedDistance,
-            const volScalarField& searchDistanceSqr
-        ) const;
+    virtual void calcMarkerField(volScalarField& markerField) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

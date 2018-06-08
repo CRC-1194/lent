@@ -71,44 +71,26 @@ namespace FrontTracking {
     defineTypeNameAndDebug(sharpMarkerFieldModel, 0);
     addToRunTimeSelectionTable(markerFieldModel, sharpMarkerFieldModel, Dictionary);
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-sharpMarkerFieldModel::sharpMarkerFieldModel(const dictionary& configDict)
-:
-    markerFieldModel(configDict)
-{}
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-sharpMarkerFieldModel::~sharpMarkerFieldModel()
-{}
-
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 void sharpMarkerFieldModel::calcMarkerField(
-    volScalarField& markerField,
-    const volScalarField& signedDistance,
-    const volScalarField& searchDistanceSqr
+    volScalarField& markerField
 ) const
 {
+    const fvMesh& mesh = markerField.mesh(); 
+
+    const volScalarField& signedDistance = 
+        mesh.lookupObject<volScalarField>(cellDistFieldName()); 
+
     forAll (markerField, cellI)
     {
-        scalar searchDistance = sqrt(searchDistanceSqr[cellI]);
-
-        if (mag(signedDistance[cellI]) < 0.5 * searchDistance)
+        if (signedDistance[cellI] > 0)
         {
-            markerField[cellI] = 0.5;
+            markerField[cellI] = 1;
         }
-        else
+        else if (signedDistance[cellI] < 0)
         {
-            if (signedDistance[cellI] > 0)
-            {
-                markerField[cellI] = 1;
-            }
-            if (signedDistance[cellI] < 0)
-            {
-                markerField[cellI] = 0;
-            }
+            markerField[cellI] = 0;
         }
     }
 }

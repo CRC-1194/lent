@@ -1,0 +1,10 @@
+# Description
+# Clear all OpenFOAM cases in subdirectories (recursive).
+
+# Authors
+# Tomislav Maric tomislav<<dot>>maric<<a>>gmx<<dot>>com
+
+pyFoamClearCase.py . 
+rm -rf front/front-0*
+rm -rf VTK 
+

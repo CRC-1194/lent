@@ -100,11 +100,6 @@ frontVelocityCalculator::New(const dictionary& configDict)
     return tmp<frontVelocityCalculator> (cstrIter()(configDict));
 }
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-frontVelocityCalculator::~frontVelocityCalculator()
-{}
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking

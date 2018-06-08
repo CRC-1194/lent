@@ -91,29 +91,29 @@ void naiveNarrowBandPropagation::ensureNarrowBand(
     const labelList& own = mesh.owner();
     const labelList& nei = mesh.neighbour();
 
-    label jumpFace = -1;
+    bool jumpFound = true; 
 
-    do
+    while(jumpFound)
     {
-        jumpFace = -1;
+        jumpFound = false; 
         forAll (own, faceI)
         {
             if ((signedDistance[own[faceI]] < 0) &&
                 (signedDistance[nei[faceI]] == L))
             {
-                jumpFace = faceI;
                 signedDistance[nei[faceI]] *= -1;
+                jumpFound = true; 
             }
             if ((signedDistance[nei[faceI]] < 0) &&
                 (signedDistance[own[faceI]] == L))
             {
-                jumpFace = faceI;
                 signedDistance[own[faceI]] *= -1;
+                jumpFound = true; 
             }
         }
-    } while (jumpFace >= 0);
+    } 
 
-    signedDistance.boundaryField().evaluate();
+    signedDistance.correctBoundaryConditions(); 
 }
 
 void naiveNarrowBandPropagation::ensureNarrowBand(
@@ -125,31 +125,31 @@ void naiveNarrowBandPropagation::ensureNarrowBand(
 
     const labelListList& pointPoints = pMesh().pointPoints();
 
-    label jumpPoint = -1;
+    //label jumpPoint = -1;
+    bool jumpFound = true;
 
-    do
+    while(jumpFound)
     {
-        jumpPoint = -1;
+        jumpFound = false;  
 
         forAll (pointPoints, pointI)
         {
-            const labelList& pointIpoints = pointPoints[pointI];
+            const labelList& neighborPoints = pointPoints[pointI];
 
-            forAll(pointIpoints, pointJ)
+            forAll(neighborPoints, pointJ)
             {
                 if
                 (
-                    (pointSignedDistance[pointIpoints[pointJ]] == L) &&
+                    (pointSignedDistance[neighborPoints[pointJ]] == L) &&
                     (pointSignedDistance[pointI] < 0)
                 )
                 {
-                    jumpPoint = pointIpoints[pointJ];
-                    pointSignedDistance[pointIpoints[pointJ]] *= -1;
+                    jumpFound = true; 
+                    pointSignedDistance[neighborPoints[pointJ]] *= -1;
                 }
             }
         }
-
-    } while (jumpPoint >= 0);
+    }
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

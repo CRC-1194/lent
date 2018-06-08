@@ -98,23 +98,20 @@ public:
     );
 
     // Constructors
-
-        frontReconstructor(const dictionary& configDict);
+    explicit frontReconstructor(const dictionary& configDict);
 
     // Selectors
-
-        static tmp<frontReconstructor> New(const dictionary& configDict);
+    static tmp<frontReconstructor> New(const dictionary& configDict);
 
     // Destructor
-        virtual ~frontReconstructor();
+    virtual ~frontReconstructor() = default;
 
     // Member Functions
-
-        virtual labelList reconstructFront(
-            triSurfaceFront& front,
-            const volScalarField& signedDistance,
-            const pointScalarField& pointSignedDistance
-        ) const = 0;
+    virtual void reconstructFront(
+        triSurfaceFront& front,
+        const volScalarField& signedDistance,
+        const pointScalarField& pointSignedDistance
+    ) const = 0;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

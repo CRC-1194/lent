@@ -84,23 +84,31 @@ barycentricFrontVelocityInterpolator::barycentricFrontVelocityInterpolator(const
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 void barycentricFrontVelocityInterpolator::calcFrontVelocity(
-    triSurfaceFrontVectorField& frontVelocity,
+    triSurfacePointVectorField& frontVelocity,
     const volVectorField& U,
     labelList& elementCells
 ) const
 {
-    const triSurfaceFront& front = frontVelocity.mesh();
+    const triSurface& front = frontVelocity.mesh();
 
     frontVelocity.resize(front.nPoints());
 
+    frontVelocity = dimensionedVector("zero", dimVelocity, vector(0,0,0)); 
+
     interpolationCellPoint<vector> barycentric(U);
+
+    // FIXME: Replace the barycentricVelocityInterpolator by a derived class of 
+    // lentInterpolation. TM.
 
     const List<labelledTri>& elements = front.localFaces();
     const pointField& vertices = front.points();
 
     const fvMesh& mesh = U.mesh();
 
-    forAll (elementCells, elementI)
+    // Why not triSurfacePointVectorField? 
+    // FIXME: Remove the search. 
+    // FIXME: Investigate theh triSurfacePointVectorField are the faces only moved, or the points? 
+    forAll (elementCells, elementI) // FIXME: Remove the search, update element cells in the lentCommunication class. TM. 
     {
         const triFace& element = elements[elementI];
 
@@ -110,9 +118,9 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
 
             const point& vertex = vertices[element[vertexI]]; 
 
-            if (!pointIsInCell(vertex, elementCells[elementI], mesh))
+            if (!pointIsInCell(vertex, elementCells[elementI], mesh)) 
             {
-                foundCell  = cellContainingPoint(
+                foundCell = cellContainingPoint(
                     vertex,
                     mesh,
                     elementCells[elementI]
@@ -122,6 +130,14 @@ void barycentricFrontVelocityInterpolator::calcFrontVelocity(
                 {
                     elementCells[elementI] = foundCell;
                 }
+            }
+            else
+            {
+                // FIXME: Investigate what happens if KVS doesn't locate the point. Move to 
+                // lentCommunication anyway. TM.
+                //FatalErrorIn("barycentricFrontVelocityInterpolator::calcFrontVelocity")
+                    //<< "Element cell not found." << endl;
+                foundCell = elementCells[elementI];
             }
 
             if (foundCell > 0)
