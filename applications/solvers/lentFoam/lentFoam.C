@@ -68,6 +68,39 @@ Description
 
 using namespace FrontTracking;
 
+bool phiConverged(const surfaceScalarField& phi)
+{
+    // TODO: read this from fvSolution
+    scalar relTolerance = 1.0e-6;
+
+    auto maxRelDelta = max(mag(phi - phi.prevIter()))/(max(mag(phi)).value() + SMALL);
+
+    Info << "\nRel. phi change = " << maxRelDelta.value() << endl;
+
+    if (maxRelDelta.value() < relTolerance)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool useExplicitVelocityUpdate(const surfaceScalarField& phi, const pimpleControl& pimple)
+{
+    bool explicitUpdate = true;
+
+    if (pimple.corr() != 1)
+    {
+        explicitUpdate = !phiConverged(phi);
+    }
+
+    phi.storePrevIter();
+
+    return explicitUpdate;
+}
+
 void correctFrontIfRequested(triSurfaceFront& front, const dictionary& configDict)
 {
     if (configDict.found("frontSurface"))
@@ -198,6 +231,8 @@ int main(int argc, char *argv[])
 
         Info << "p-U algorithm ... " << endl;
         // --- Pressure-velocity PIMPLE corrector loop
+        bool explicitUpdate = true;
+        
         while (pimple.loop())
         {
             // The momentum flux is computed from MULES as  
@@ -215,6 +250,13 @@ int main(int argc, char *argv[])
                 // new approach: vol fraction based calculation of rho at the face
                 // only works for a sharp, vol-fraction like markerfield
                 #include "computeRhoPhi.H"
+            }
+
+            // Check if fluxes have converged and ensure that once the explicit
+            // update is disabled, it stays disabled
+            if (explicitUpdate)
+            {
+                explicitUpdate = useExplicitVelocityUpdate(phi, pimple);
             }
         
             #include "UEqn.H"
@@ -241,6 +283,7 @@ int main(int argc, char *argv[])
         Info << "Done." << endl;
 
         runTime.write();
+        front.write();
 
         Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"

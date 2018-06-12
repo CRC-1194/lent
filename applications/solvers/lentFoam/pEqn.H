@@ -51,11 +51,10 @@
             // correcting the velocity. TM
             
             // First order accurate explicit update of the velocity field.
-            #include "U_reconstruct.H"
-            
-            // Assemble the matrix anew. TM.  
-            // Update the momentum flux using the volume conservative flux.
-            //#include "U_solveMomentumEq.H"
+            if (explicitUpdate)
+            {
+                #include "U_reconstruct.H"
+            }
         }
     }
 
