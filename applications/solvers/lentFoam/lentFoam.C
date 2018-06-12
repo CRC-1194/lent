@@ -56,10 +56,10 @@ Description
 #include "EulerDdtScheme.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulentTransportModel.H"
-#include "pimpleControl.H"
 #include "fvOptions.H"
 #include "CorrectPhi.H"
 #include "lentMethod.H"
+#include "lentSolutionControl.H"
 #include "analyticalSurface.H"
 
 #include "alphaFace.H"
@@ -67,39 +67,6 @@ Description
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
-
-bool phiConverged(const surfaceScalarField& phi)
-{
-    // TODO: read this from fvSolution
-    scalar relTolerance = 1.0e-6;
-
-    auto maxRelDelta = max(mag(phi - phi.prevIter()))/(max(mag(phi)).value() + SMALL);
-
-    Info << "\nRel. phi change = " << maxRelDelta.value() << endl;
-
-    if (maxRelDelta.value() < relTolerance)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-bool useExplicitVelocityUpdate(const surfaceScalarField& phi, const pimpleControl& pimple)
-{
-    bool explicitUpdate = true;
-
-    if (pimple.corr() != 1)
-    {
-        explicitUpdate = !phiConverged(phi);
-    }
-
-    phi.storePrevIter();
-
-    return explicitUpdate;
-}
 
 void correctFrontIfRequested(triSurfaceFront& front, const dictionary& configDict)
 {
@@ -118,13 +85,14 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMesh.H"
 
-    pimpleControl pimple(mesh);
-
     #include "createTimeControls.H"
     #include "initContinuityErrs.H"
     #include "createFields.H"
     #include "createMRF.H"
     #include "createFvOptions.H"
+
+    lentSolutionControl lentSC(mesh, phi, "PIMPLE");
+
     #include "correctPhi.H"
 
     turbulence->validate();
@@ -219,7 +187,6 @@ int main(int argc, char *argv[])
             );
         }
 
-
         lent.calcMarkerField(markerField);
 
         // Update the viscosity. 
@@ -228,51 +195,45 @@ int main(int argc, char *argv[])
         // Update density field.
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
-
         Info << "p-U algorithm ... " << endl;
-        // --- Pressure-velocity PIMPLE corrector loop
-        bool explicitUpdate = true;
-        
-        while (pimple.loop())
+
+        // --- Pressure-velocity lentSolutionControl corrector loop
+        while (lentSC.loop())
         {
             // The momentum flux is computed from MULES as  
             // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
             // However, LENT has no ability to compute the volumetric phase flux. 
             // TODO: examine the impact of the momentum flux computation and devise
             // more accurate approach if required (TT)
-            if (lent.dict().subDict("markerFieldModel").lookup("nSmoothingSteps") > 0)
+            if (lentSC.updateMomentumFlux())
             {
-                // old approach, only works for diffuse markerfield
-                rhoPhi == fvc::interpolate(rho) * phi;
-            }
-            else
-            {
-                // new approach: vol fraction based calculation of rho at the face
-                // only works for a sharp, vol-fraction like markerfield
-                #include "computeRhoPhi.H"
+                if (lent.dict().subDict("markerFieldModel").lookup("nSmoothingSteps") > 0)
+                {
+                    // old approach, only works for diffuse markerfield
+                    rhoPhi == fvc::interpolate(rho) * phi;
+                }
+                else
+                {
+                    // new approach: vol fraction based calculation of rho at the face
+                    // only works for a sharp, vol-fraction like markerfield
+                    #include "computeRhoPhi.H"
+                }
             }
 
-            // Check if fluxes have converged and ensure that once the explicit
-            // update is disabled, it stays disabled
-            if (explicitUpdate)
-            {
-                explicitUpdate = useExplicitVelocityUpdate(phi, pimple);
-            }
-        
             #include "UEqn.H"
 
             //--- Pressure corrector loop
-            while (pimple.correct())
+            while (lentSC.adaptiveCorrect())
             {
                 #include "pEqn.H"
             }
 
-            if (pimple.turbCorr())
+            if (lentSC.turbCorr())
             {
                 turbulence->correct();
             }
 
-            if (pimple.finalIter())
+            if (lentSC.finalIter())
             {
                 #include "U_solveMomentumEq.H"
             }
@@ -283,7 +244,8 @@ int main(int argc, char *argv[])
         Info << "Done." << endl;
 
         runTime.write();
-        front.write();
+        // This is a workaround to ensure the actual front mesh is written (TT)
+        //front.write();
 
         Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"

@@ -48,7 +48,7 @@ bool lentSolutionControl::volFluxesAreConverged()
     if (maxRelDelta.value() < relTolVolFlux_)
     {
         Info << "\nVolumetric fluxes have converged. Last relative change: "
-             << maxRelDelta.value() << endl;
+             << maxRelDelta.value() << nl << endl;
         return true;
     }
     else
@@ -67,7 +67,7 @@ bool lentSolutionControl::pressureIsConverged()
 
     // This is adapted from pimpleControl::criteriaSatisfied()
     const dictionary& solverDict = mesh_.solverPerformanceDict();
-    label pressureFieldIndex = -1;
+    label pressureFieldIndex = -2;
     Pair<scalar> residuals{GREAT, GREAT};
 
     forAllConstIters(solverDict, iter)
@@ -104,7 +104,7 @@ void lentSolutionControl::checkParameterCompatibility() const
         FatalErrorIn
         (
             "lentSolutionControl::checkParameterCompatibility()"
-        )   << "Unknown velocityUpdateType " << ut << "; valid options are"
+        )   << "Unknown velocityUpdateType " << ut << "; valid options are "
         << "none, adaptive, alwaysOn" << endl
         << exit(FatalError);
     }
@@ -138,34 +138,13 @@ void lentSolutionControl::checkParameterCompatibility() const
 
 void lentSolutionControl::displayConfiguration() const
 {
-    Info << "\n--------------------------------------------------" 
-         << "\nConfiguration of solution procedure"
-         << "\n--------------------------------------------------"
+    Info << "\n--------------------------------------------------------" 
+         << "\nConfiguration of lent solution procedure parameters"
+         << "\n--------------------------------------------------------"
          << endl;
 
-    Info << "PIMPLE configuration:\n";
-
-    if (residualControl_.empty())
-    {
-        Info<< ": no residual control data found. "
-            << "Calculations will employ " << nCorrPIMPLE_
-            << " outer corrector loops" << nl;
-    }
-    else
-    {
-        Info<< ": max outer iterations = " << nCorrPIMPLE_ << nl;
-
-        for (const fieldData& ctrl : residualControl_)
-        {
-            Info<< "    field " << ctrl.name << token::TAB
-                << ": relTol " << ctrl.relTol
-                << ", tolerance " << ctrl.absTol
-                << nl;
-        }
-    }
-
-    Info << "LentSolutionControl specific parameters:\n"
-         << "\tResolve convective non-linearity: " << resolveConvectiveNonlinearity_
+    Info << "\tMaximum number of inner iterations: " << nCorrPISO_
+         << "\n\tResolve convective non-linearity: " << resolveConvectiveNonlinearity_
          << "\n\tUse adaptive inner iteration strategy: " << adaptiveInnerIteration_
          << "\n\tExplicit velocity update: " << explicitVelocityUpdateType_;
 
@@ -173,9 +152,11 @@ void lentSolutionControl::displayConfiguration() const
     {
         Info << "\n\tRelative tolerance for volumetric flux change: "
              << relTolVolFlux_
-             << "\nExplicit velocity update will be disabled when this"
-             << " tolerance is reached.\n";
+             << "\n\tExplicit velocity update will be disabled when this"
+             << " tolerance is reached.";
     }
+
+    Info << nl << nl;
 }
 
 
@@ -210,14 +191,8 @@ lentSolutionControl::lentSolutionControl(fvMesh& mesh, const surfaceScalarField&
 {
     read();
 
-    // TODO: add some checks for contradicting parameter sets.
-    // E.g. it makes no sense to have more than one inner iteration without
-    // the explicit velocity update.
     checkParameterCompatibility();
 
-    // Catch those combinations here.
-    // TODO: output information of solution control configuration
-    // analogue to pimpleControl
     displayConfiguration(); 
 }
 
@@ -235,8 +210,8 @@ bool lentSolutionControl::adaptiveCorrect()
         performInnerIteration = false;
     }
 
-    // Check adaptive conditions
-    if (adaptiveInnerIteration_)
+    // Check adaptive conditions 
+    if (adaptiveInnerIteration_ && corrPISO_ > 1)
     {
         // Residual condition
         if (pressureIsConverged())
@@ -245,7 +220,7 @@ bool lentSolutionControl::adaptiveCorrect()
         }
         // Without explicit velocity update, further inner iterations have no
         // effect
-        else if (!explicitVelocityUpdate_ && corrPISO_ > 1)
+        else if (!explicitVelocityUpdate_)
         {
             performInnerIteration = false;
         }

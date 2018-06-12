@@ -30,14 +30,17 @@ Description
     Allows for more fine grained control than the pimple control class
     it inherits from.
 
-    Required parameters to be set in fvSolution:
-
-    TODO: add example dictionary
-
+    Required parameters to be set in fvSolution in addition to PIMPLE
+    parameters:
+        - updateMomentumFlux (yes/no)
+        - adaptiveInnerIteration (yes/no)
+        - velocityUpdateType (none/adaptive/alwaysOn)
+    
+    if velocityUpdateType == "adaptive":
+        - phiChangeTolerance scalar
+        
 SourceFiles
-    lentSolutionControlI.H
     lentSolutionControl.C
-    lentSolutionControlIO.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -62,6 +65,7 @@ class lentSolutionControl
 {
 
     // Private data
+    
     // Field references
     const surfaceScalarField& volumetricFluxes_;
 
@@ -124,10 +128,6 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-//#include "lentSolutionControlI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
