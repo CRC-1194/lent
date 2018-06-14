@@ -244,8 +244,12 @@ int main(int argc, char *argv[])
         Info << "Done." << endl;
 
         runTime.write();
+        
         // This is a workaround to ensure the actual front mesh is written (TT)
-        //front.write();
+        if (runTime.writeTime())
+        {
+            front.write();
+        }
 
         Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
