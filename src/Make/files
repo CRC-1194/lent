@@ -74,6 +74,8 @@ cellToVertexInterpolation/interpolationCellPointTaylorExtended/makeInterpolation
 
 lentMethod/lentMethod.C
 
+lentSolutionControls/lentSolutionControl/lentSolutionControl.C
+
 test/lentMarkerFieldTest/lentMarkerFieldTest.C
 test/errorMetrics/errorMetrics.C
 test/randomization/noiseGenerator/noiseGenerator.C

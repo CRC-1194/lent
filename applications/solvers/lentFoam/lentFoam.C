@@ -56,10 +56,10 @@ Description
 #include "EulerDdtScheme.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulentTransportModel.H"
-#include "pimpleControl.H"
 #include "fvOptions.H"
 #include "CorrectPhi.H"
 #include "lentMethod.H"
+#include "lentSolutionControl.H"
 #include "analyticalSurface.H"
 
 #include "alphaFace.H"
@@ -85,13 +85,14 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMesh.H"
 
-    pimpleControl pimple(mesh);
-
     #include "createTimeControls.H"
     #include "initContinuityErrs.H"
     #include "createFields.H"
     #include "createMRF.H"
     #include "createFvOptions.H"
+
+    lentSolutionControl lentSC(mesh, phi, "PIMPLE");
+
     #include "correctPhi.H"
 
     turbulence->validate();
@@ -186,7 +187,6 @@ int main(int argc, char *argv[])
             );
         }
 
-
         lent.calcMarkerField(markerField);
 
         // Update the viscosity. 
@@ -195,42 +195,45 @@ int main(int argc, char *argv[])
         // Update density field.
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
-
         Info << "p-U algorithm ... " << endl;
-        // --- Pressure-velocity PIMPLE corrector loop
-        while (pimple.loop())
+
+        // --- Pressure-velocity lentSolutionControl corrector loop
+        while (lentSC.loop())
         {
             // The momentum flux is computed from MULES as  
             // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
             // However, LENT has no ability to compute the volumetric phase flux. 
             // TODO: examine the impact of the momentum flux computation and devise
             // more accurate approach if required (TT)
-            if (lent.dict().subDict("markerFieldModel").lookup("nSmoothingSteps") > 0)
+            if (lentSC.updateMomentumFlux())
             {
-                // old approach, only works for diffuse markerfield
-                rhoPhi == fvc::interpolate(rho) * phi;
+                if (lent.dict().subDict("markerFieldModel").lookup("nSmoothingSteps") > 0)
+                {
+                    // old approach, only works for diffuse markerfield
+                    rhoPhi == fvc::interpolate(rho) * phi;
+                }
+                else
+                {
+                    // new approach: vol fraction based calculation of rho at the face
+                    // only works for a sharp, vol-fraction like markerfield
+                    #include "computeRhoPhi.H"
+                }
             }
-            else
-            {
-                // new approach: vol fraction based calculation of rho at the face
-                // only works for a sharp, vol-fraction like markerfield
-                #include "computeRhoPhi.H"
-            }
-        
+
             #include "UEqn.H"
 
             //--- Pressure corrector loop
-            while (pimple.correct())
+            while (lentSC.adaptiveCorrect())
             {
                 #include "pEqn.H"
             }
 
-            if (pimple.turbCorr())
+            if (lentSC.turbCorr())
             {
                 turbulence->correct();
             }
 
-            if (pimple.finalIter())
+            if (lentSC.finalIter())
             {
                 #include "U_solveMomentumEq.H"
             }
@@ -241,6 +244,12 @@ int main(int argc, char *argv[])
         Info << "Done." << endl;
 
         runTime.write();
+        
+        // This is a workaround to ensure the actual front mesh is written (TT)
+        if (runTime.writeTime())
+        {
+            front.write();
+        }
 
         Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
