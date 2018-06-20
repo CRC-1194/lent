@@ -23,16 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontCurvatureModel
+    Foam::frontToMeshTransferModel
 
 SourceFiles
-    frontCurvatureModel.C
+    frontToMeshTransferModel.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+    Interface for different front to mesh transfer approaches intended
+    for curvature propagation. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,50 +57,40 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef frontToMeshTransferModel_H
+#define frontToMeshTransferModel_H
 
-#ifndef frontCurvatureModel_H
-#define frontCurvatureModel_H
 
 #include "typeInfo.H"
 #include "tmp.H"
 #include "refCount.H"
 #include "volFieldsFwd.H"
 #include "triSurfaceFront.H"
+#include "triSurfaceFrontFieldsFwd.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
+
 /*---------------------------------------------------------------------------*\
-                         Class frontCurvatureModel Declaration
+                         Class frontToMeshTransferModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class frontCurvatureModel
-    :
-        public refCount
+class frontToMeshTransferModel
+:
+    public refCount
 {
-private:
-
-    word curvatureInputFieldName_;
-    mutable label lastTimeUpdated_;
-
-    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
-    void initializeCellCurvatureField(const fvMesh&) const; 
-
-protected:
-    mutable tmp<volScalarField> cellCurvatureTmp_;
-
-    bool curvatureNeedsUpdate(const fvMesh&) const;
-    void curvatureUpdated(const fvMesh&) const;
 
 public:
 
-    TypeName("divGrad");
+    // Static data members
+    TypeName("abstract");
 
     declareRunTimeSelectionTable (
         tmp,
-        frontCurvatureModel,
+        frontToMeshTransferModel,
         Dictionary,
         (
             const dictionary& configDict
@@ -107,33 +98,31 @@ public:
         (configDict)
     );
 
-    // Constructors
-    frontCurvatureModel(const dictionary& configDict);  
 
-    // Destructor
-    virtual ~frontCurvatureModel() = default;
+    // Constructors
+    frontToMeshTransferModel(const dictionary& configDict);
+
 
     // Selectors
-    static tmp<frontCurvatureModel> New(const dictionary& configDict);
+    static tmp<frontToMeshTransferModel> New(const dictionary& configDict);
+
+
+    //- Destructor
+    virtual ~frontToMeshTransferModel() = default;
+
 
     // Member Functions
-    
-    const word curvatureInputFieldName() const
-    {
-        return curvatureInputFieldName_; 
-    }
+    virtual void transferCurvature(
+        const triSurfaceFrontVectorField& curvatureNormals,
+        const triSurfaceFront& front,
+        const fvMesh& mesh
+    ) const = 0;
 
-    virtual tmp<volScalarField> cellCurvature(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const;  
+    virtual tmp<volScalarField> cellCurvature() const = 0;  
 
-    virtual tmp<surfaceScalarField> faceCurvature(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const; 
-
+    virtual tmp<surfaceScalarField> faceCurvature() const = 0; 
 };
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -61,6 +61,7 @@ Description
 #include "frontTriangleCurvatureModel.H"
 
 #include "addToRunTimeSelectionTable.H"
+#include "surfaceInterpolate.H"
 
 #include "lentCommunication.H"
 
@@ -133,6 +134,10 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
                     ) / triArea[I];
     }
 
+    const auto& frontToMesh = frontToMeshTmp_.ref();
+    frontToMesh.transferCurvature(cn, front, mesh);
+
+    /*
     // Distribute curvature from front to Eulerian mesh
     auto& cellCurvature = cellCurvatureTmp_.ref();
     cellCurvature *= 0.0;
@@ -177,6 +182,7 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
             cellCurvature[I] = cellCurvature[triangleToCell[hitObject.index()]];
         }
     }
+    */
 }
 
 
@@ -187,9 +193,47 @@ frontTriangleCurvatureModel::frontTriangleCurvatureModel(const dictionary& confi
     normalCalculatorTmp_{
         frontVertexNormalCalculator::New(configDict.subDict("normalCalculator"))
     },
+    frontToMeshTmp_{
+        frontToMeshTransferModel::New(configDict.subDict("frontToMeshTransfer"))
+    },
     curvatureNormalTmp_{}
 {}
 
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(
+    const fvMesh& mesh,
+    const triSurfaceFront& frontMesh
+) const
+{
+    Info << "Callling cell Curvature" << endl;
+
+    if (curvatureNeedsUpdate(mesh))
+    {
+        computeCurvature(mesh, frontMesh);
+        curvatureUpdated(mesh); 
+    }
+
+    const auto& frontToMesh = frontToMeshTmp_.ref();
+    return frontToMesh.cellCurvature();
+}
+
+tmp<surfaceScalarField> frontTriangleCurvatureModel::faceCurvature(
+    const fvMesh& mesh, 
+    const triSurfaceFront& frontMesh
+) const
+{
+    if (curvatureNeedsUpdate(mesh))
+    {
+        computeCurvature(mesh, frontMesh);
+        curvatureUpdated(mesh); 
+    }
+
+    Info << "Callling face Curvature" << endl;
+    const auto& frontToMesh = frontToMeshTmp_.ref();
+    return frontToMesh.faceCurvature();
+    //return fvc::interpolate(frontToMesh.cellCurvature());
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

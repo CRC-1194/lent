@@ -97,9 +97,17 @@ tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
     const dimensionedScalar sigma = transportProperties.lookup("sigma");  
     
     const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName());     
-    const auto& cellCurvatureField = cellCurvature(mesh, frontMesh).ref();
+    const auto& faceCurvatureField = faceCurvature(mesh, frontMesh).ref();
 
-    return fvc::interpolate(sigma * cellCurvatureField) * fvc::snGrad(filterField);
+    // FIXME: for a reason I do not yet understand, the orientation of the
+    // surface tension field on the cell faces is 'unoriented' and will cause
+    // an error when being added/subtracted to other face force fields.
+    // For now, just manually set the resulting field to 'oriented' as the
+    // original snGrad(alpha) field (TT)
+    auto faceSurfaceTensionTmp = sigma * faceCurvatureField * fvc::snGrad(filterField);
+    faceSurfaceTensionTmp.ref().setOriented();
+    
+    return faceSurfaceTensionTmp;
 }
 
 tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
@@ -107,19 +115,6 @@ tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
     const triSurfaceFront& frontMesh 
 ) const
 {
-    /*
-    const Time& runTime = mesh.time(); 
-
-    const dictionary& transportProperties = 
-        runTime.lookupObject<dictionary>("transportProperties");
-
-    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
-    
-    const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
-    const auto& cellCurvatureField = cellCurvature(mesh, frontMesh).ref();
-
-    return sigma * cellCurvatureField * fvc::grad(filterField);
-    */
     return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
 }
 
