@@ -142,8 +142,7 @@ void triangleInCellTransferModel::transferCurvature(
 
 tmp<volScalarField> triangleInCellTransferModel::cellCurvature() const
 {
-    const auto& cellCurvatureField = cellCurvatureTmp_.ref();
-    return tmp<volScalarField>{cellCurvatureField};
+    return cellCurvatureTmp_;
 }
 
 tmp<surfaceScalarField> triangleInCellTransferModel::faceCurvature() const

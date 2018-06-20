@@ -206,8 +206,6 @@ tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(
     const triSurfaceFront& frontMesh
 ) const
 {
-    Info << "Callling cell Curvature" << endl;
-
     if (curvatureNeedsUpdate(mesh))
     {
         computeCurvature(mesh, frontMesh);
@@ -229,10 +227,8 @@ tmp<surfaceScalarField> frontTriangleCurvatureModel::faceCurvature(
         curvatureUpdated(mesh); 
     }
 
-    Info << "Callling face Curvature" << endl;
     const auto& frontToMesh = frontToMeshTmp_.ref();
     return frontToMesh.faceCurvature();
-    //return fvc::interpolate(frontToMesh.cellCurvature());
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
