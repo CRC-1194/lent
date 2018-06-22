@@ -56,7 +56,9 @@ class lentCurvatureTest
 {
     // Private data
     tmp<volScalarField> filterFieldTmp_;
+    tmp<surfaceScalarField> faceFilterFieldTmp_;
     tmp<volScalarField> relativeDeltaFieldTmp_;
+    tmp<surfaceScalarField> relativeFaceDeltaFieldTmp_;
 
     noiseGenerator noiseGen_;
     tmp<frontExactSurfaceCurvatureModel> exactCurvatureModelTmp_;

@@ -136,53 +136,6 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
 
     const auto& frontToMesh = frontToMeshTmp_.ref();
     frontToMesh.transferCurvature(cn, front, mesh);
-
-    /*
-    // Distribute curvature from front to Eulerian mesh
-    auto& cellCurvature = cellCurvatureTmp_.ref();
-    cellCurvature *= 0.0;
-
-    // TODO: this kind of interpolation / transfer should be moved to
-    // lentInterpolation or lentCommunication (TT)
-    const lentCommunication& communication = 
-        mesh.lookupObject<lentCommunication>(
-            lentCommunication::registeredName(front,mesh)
-    ); 
-
-    //------------------------------------------------------------------------
-    // Arithmetic mean of all trianglesin cell
-    const auto& trianglesInCell = communication.interfaceCellToTriangles();
-    const auto& faceNormal = front.Sf();
-
-    for (const auto& cellTrianglesMap : trianglesInCell)
-    {
-        const auto& cellLabel = cellTrianglesMap.first;
-        const auto& triangleLabels = cellTrianglesMap.second;
-
-        for (const auto& tl : triangleLabels)
-        {
-            cellCurvature[cellLabel] += mag(cn[tl])*sign(cn[tl]&faceNormal[tl]);
-        }
-
-        cellCurvature[cellLabel] /= triangleLabels.size();
-    }
-
-    //------------------------------------------------------------------------
-
-    // Propagate to non-interface cells
-    const auto& cellToTriangle = communication.cellsTriangleNearest();
-    const auto& triangleToCell = communication.triangleToCell();
-
-    forAll(cellToTriangle, I)
-    {
-        const auto& hitObject = cellToTriangle[I];
-        
-        if (hitObject.hit())
-        {
-            cellCurvature[I] = cellCurvature[triangleToCell[hitObject.index()]];
-        }
-    }
-    */
 }
 
 

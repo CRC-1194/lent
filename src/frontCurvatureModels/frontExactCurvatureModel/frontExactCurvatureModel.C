@@ -122,7 +122,7 @@ tmp<surfaceScalarField> frontExactCurvatureModel::faceCurvature(
                 IOobject::AUTO_WRITE
             ),
             mesh,
-            dimensionedScalar("zero", pow(dimLength, -2), 0) 
+            dimensionedScalar("zero", pow(dimLength, -1), 0) 
         )
     );
 
