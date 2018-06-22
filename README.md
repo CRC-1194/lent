@@ -14,12 +14,13 @@ Mathematics Department, Mathematical Modeling and Analysis Institute, TU Darmsta
 
 ### Prerequisites
 
-* OpenFOAM versions: 2.2.x  
+* OpenFOAM versions: 
+    * OpenFOAM-plus (0770f9a384bb74492751c6b8068f2c01fac2c49f (master branch)
 * Compilers: gcc-4.8.2 and gcc-4.9.0
 * `subversion` and `cmake` for compiling Google Test 
 * gmsh or paraview for surface mesh generation
 * admesh for normal consistency 
-
+* eigen3
 
 ### Compiling Google Test
 
