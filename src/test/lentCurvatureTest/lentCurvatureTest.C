@@ -60,12 +60,29 @@ void lentCurvatureTest::randomSetup()
     faceFilterField = mag(fvc::snGrad(markerField))
                         * dimensionedScalar{"one", dimLength, 1.0};
 
-    // TODO: boundary faces are not processed yet (TT)
     forAll(faceFilterField, I)
     {
         if (faceFilterField[I] > SMALL)
         {
             faceFilterField[I] = 1.0;
+        }
+    }
+
+    // Boundary
+    // TODO: Think about reasonable filtering approach once we start to treat
+    // contact line problems.
+    // For now, disable boundary faces since their snGrad depends on the
+    // boundary condition of the markerfield
+    forAll(faceFilterField.boundaryFieldRef(), I)
+    {
+        auto& bField = faceFilterField.boundaryFieldRef()[I];
+
+        forAll(bField, K)
+        {
+            if (bField[K] > SMALL)
+            {
+                bField[K] = 0.0;
+            }
         }
     }
 }
@@ -117,7 +134,8 @@ void lentCurvatureTest::evaluateMetrics()
     auto& exactCurvatureModel = exactCurvatureModelTmp_.ref();
     auto& numericalCurvatureModel = numericalCurvatureModelTmp_.ref();
     auto& exactCurvatureField = exactCurvatureModel.cellCurvature(mesh(), frontRef()).ref();
-    auto& numericalCurvatureField = numericalCurvatureModel.cellCurvature(mesh(), frontRef()).ref();
+    tmp<volScalarField> numericalCurvatureFieldTmp = numericalCurvatureModel.cellCurvature(mesh(), frontRef());
+    volScalarField& numericalCurvatureField = numericalCurvatureFieldTmp.ref();
 
     const auto& filterField = filterFieldTmp_.ref();
     exactCurvatureField *= filterField;

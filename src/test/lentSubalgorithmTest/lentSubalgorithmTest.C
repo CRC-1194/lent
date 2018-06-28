@@ -146,6 +146,13 @@ void lentSubalgorithmTest::setupFrontFromSurface(const bool correct)
     {
         surfaceTmp_.ref().moveFrontToSurface(front_);   
     }
+
+    // Already write front here so it is available for inspection in case
+    // the test crashes (TT)
+    if (writeFields_)
+    {
+        front_.write();
+    }
 }
 
 

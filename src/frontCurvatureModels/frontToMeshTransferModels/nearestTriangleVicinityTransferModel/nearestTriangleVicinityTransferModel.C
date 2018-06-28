@@ -129,16 +129,33 @@ void nearestTriangleVicinityTransferModel::computeTrianglesInCellNeighbourhoodMa
     const auto& markerField = mesh.lookupObject<volScalarField>(markerFieldName_);
     const auto& triasInCell = communication.interfaceCellToTriangles();
 
+    // Add all cells considered an interface cell to the map. A cell is considered
+    // an interface cell if either
+    //      a) its markerfield value is 0 < alpha < 1
+    //      or
+    //      b) it contains triangles according to lent communication
     forAll(markerField, I)
     {
-        if (!isInterfaceCell(markerField[I]))
+        if (isInterfaceCell(markerField[I]))
         {
-            continue;
+            trianglesInCellNeighbourhood_[I] = std::vector<label>{};
         }
+    }
 
-        auto neighbourCellIDs = cellNeighbourhood(I, mesh);
-        auto& trianglesinNeighbourhood = trianglesInCellNeighbourhood_[I];
+    // FIXME: under which conditions can a cell contain a triangle and have
+    // a markerfield value of 0 or 1 assuming all information is up-to-date? (TT)
+    for (const auto& cellTriaMap : triasInCell)
+    {
+        if (trianglesInCellNeighbourhood_.find(cellTriaMap.first) == trianglesInCellNeighbourhood_.end())
+        {
+            trianglesInCellNeighbourhood_[cellTriaMap.first] = std::vector<label>{};
+        }
+    }
 
+    for (auto& cellTriaMap: trianglesInCellNeighbourhood_)
+    {
+        auto neighbourCellIDs = cellNeighbourhood(cellTriaMap.first, mesh);
+        auto& trianglesInNeighbourhood = trianglesInCellNeighbourhood_[cellTriaMap.first];
         for (const auto& cellID : neighbourCellIDs)
         {
             if (triasInCell.find(cellID) != triasInCell.end())
@@ -147,12 +164,18 @@ void nearestTriangleVicinityTransferModel::computeTrianglesInCellNeighbourhoodMa
 
                 for (const auto& triaID : containedTriangles)
                 {
-                    trianglesinNeighbourhood.push_back(triaID);
+                    trianglesInNeighbourhood.push_back(triaID);
                 }
             }
         }
 
-        assert(trianglesinNeighbourhood.size() > 0
+        // TODO: if this assertion is violated, it means that there is bulk cell
+        // (probably in the narrow band) that falsely assumes a value of
+        // 0 < alpha < 1.
+        // Using the interface cells to triangles / vertices connectivity could be
+        // the basis (at least for the sharp markerfield model) to catch the
+        // cells with erroneous alpha values
+        assert(trianglesInNeighbourhood.size() > 0
                 && "Error: Neighbourhood of interface cell contains no triangles");
     }
 }
@@ -259,7 +282,7 @@ scalar nearestTriangleVicinityTransferModel::weight(const scalar& distance) cons
     // TODO: Reasonable weighting approach with regard to distance? (TT)
     //
     // Normalize the distance with the search radius? Then the weighting problem
-    // can be investigared on a unit sphere (TT)
+    // can be investigated on a unit sphere (TT)
     return 1.0;
 }
 
@@ -315,6 +338,33 @@ std::vector<label> nearestTriangleVicinityTransferModel::cellNeighbourhood(const
     return neighbourCellLabels;
 }
 
+nearestTriangleVicinityTransferModel::labelPair nearestTriangleVicinityTransferModel::patchIDAndLocalIndex(const label& faceID) const
+{
+    const auto& faceCurvature = faceCurvatureTmp_.ref();
+
+    if (faceID < faceCurvature.size())
+    {
+        return labelPair{-1,faceID};
+    }
+    else
+    {
+        const auto& boundary = faceCurvature.boundaryField();
+
+        forAll(boundary, patchI)
+        {
+            const auto& patch = boundary[patchI].patch();
+
+            if (patch.start() <= faceID && faceID < patch.start() + patch.size())
+            {
+                return labelPair{patchI, faceID - patch.start()};
+            }
+        }
+    }
+
+    // Should never be reached, will cause a runtime error
+    return labelPair{-1,-1};
+}
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -368,7 +418,7 @@ void nearestTriangleVicinityTransferModel::transferCurvature(
          << " triangles per neighbourhood" << nl << endl;
     */
     // end debugging
-
+    
     const auto& faceCentres = mesh.Cf();
     const auto& cells = mesh.cells();
 
@@ -380,19 +430,43 @@ void nearestTriangleVicinityTransferModel::transferCurvature(
 
         for (const auto& faceID : facesOfCell)
         {
-            // Avoid duplicate curvature transfer for faces belonging to
-            // two interface cells
-            if (faceCurvature[faceID] != 0.0)
+            auto patchIDElementID = patchIDAndLocalIndex(faceID);
+
+            // The following distiction is a consquence of how OpenFOAM
+            // stores and provides access to boundary fields
+            //
+            // Inner faces
+            if (patchIDElementID.first < 0)
             {
-                continue;
+                // Avoid duplicate curvature transfer for faces belonging to
+                // two interface cells
+                if (faceCurvature[faceID] != 0.0)
+                {
+                    continue;
+                }
+
+                auto closestElementInfo = closestFrontElement(faceCentres[faceID], cellTrianglesMap.second, front);
+                auto containingCellID = cellContainingClosestElement(closestElementInfo.first, communication);
+                auto trianglesInVicinity = computeTrianglesInVicinity(closestElementInfo.second, trianglesInCellNeighbourhood_.at(containingCellID), front);
+                faceCurvature[faceID] = weightedCurvatureAverage(closestElementInfo.second, trianglesInVicinity, curvatureNormals, front);
             }
+            else
+            // Boundary faces
+            {
+                // Avoid duplicate curvature transfer for faces belonging to
+                // two interface cells
+                if (faceCurvature.boundaryField()[patchIDElementID.first][patchIDElementID.second] != 0.0)
+                {
+                    continue;
+                }
 
-            auto closestElementInfo = closestFrontElement(faceCentres[faceID], cellTrianglesMap.second, front);
-            auto containingCellID = cellContainingClosestElement(closestElementInfo.first, communication);
+                const auto& faceCentre = faceCurvature.boundaryField()[patchIDElementID.first].patch().Cf()[patchIDElementID.second];
 
-            auto trianglesInVicinity = computeTrianglesInVicinity(closestElementInfo.second, trianglesInCellNeighbourhood_.at(containingCellID), front);
-
-            faceCurvature[faceID] = weightedCurvatureAverage(closestElementInfo.second, trianglesInVicinity, curvatureNormals, front);
+                auto closestElementInfo = closestFrontElement(faceCentre, cellTrianglesMap.second, front);
+                auto containingCellID = cellContainingClosestElement(closestElementInfo.first, communication);
+                auto trianglesInVicinity = computeTrianglesInVicinity(closestElementInfo.second, trianglesInCellNeighbourhood_.at(containingCellID), front);
+                faceCurvature.boundaryFieldRef()[patchIDElementID.first][patchIDElementID.second] = weightedCurvatureAverage(closestElementInfo.second, trianglesInVicinity, curvatureNormals, front);
+            }
         }
     }
 
@@ -400,7 +474,9 @@ void nearestTriangleVicinityTransferModel::transferCurvature(
 
 tmp<volScalarField> nearestTriangleVicinityTransferModel::cellCurvature() const
 {
-    return fvc::average(faceCurvatureTmp_);
+    // NOTE: directly passing the tmp object will cause its deallocation (TT)
+    const auto& faceCurvature = faceCurvatureTmp_.ref();
+    return fvc::average(faceCurvature);
 }
 
 tmp<surfaceScalarField> nearestTriangleVicinityTransferModel::faceCurvature() const

@@ -89,6 +89,7 @@ public:
 
     // Type aliases
     using labelPointPair = std::pair<label, point>;
+    using labelPair = std::pair<label, label>;
 
 private:
 
@@ -142,6 +143,10 @@ private:
     // Taken from Dual Kriging interpolation
     void removeDuplicates(std::vector<label>& listOfLabels) const;
     std::vector<label> cellNeighbourhood(const label& cellLabel, const fvMesh& mesh) const;
+
+    // FIXME: workaround for access to boundary faces. More efficient
+    // approach possible? (TT)
+    labelPair patchIDAndLocalIndex(const label& faceID) const;
 
 
 public:
