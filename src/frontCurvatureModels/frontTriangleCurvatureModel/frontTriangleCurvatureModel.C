@@ -83,7 +83,7 @@ void frontTriangleCurvatureModel::initializeCurvatureNormal(const fvMesh& mesh, 
     {
         curvatureNormalTmp_ = 
             tmp<triSurfaceFrontVectorField> 
-            (
+            {
                 new triSurfaceFrontVectorField
                 (
                     IOobject(
@@ -100,11 +100,18 @@ void frontTriangleCurvatureModel::initializeCurvatureNormal(const fvMesh& mesh, 
                         vector(0.0,0.0,0.0)
                     )
                 )
-            );
+            };
+
+        return;
     }
     else if (curvatureNormalTmp_->size() != front.UList<labelledTri>::size())
     {
         curvatureNormalTmp_->resize(front.UList<labelledTri>::size());
+    }
+
+    for (auto& cn : curvatureNormalTmp_.ref())
+    {
+        cn = vector{0,0,0};
     }
 }
 
@@ -113,7 +120,6 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
     initializeCurvatureNormal(mesh, front);
 
     auto& cn = curvatureNormalTmp_.ref();
-    cn *= 0.0;
 
     const auto& normalCalculator = normalCalculatorTmp_.ref();
     auto frontVertexNormalsTmp = normalCalculator.vertexNormals(mesh, front);

@@ -42,6 +42,11 @@ void lentCurvatureTest::randomSetup()
     // connectivity
     computeFrontSignedDistances();
 
+    if (!useFrontSignedDistance_)
+    {
+        computeExactSignedDistances();
+    }
+
     const auto& exactCurvatureModel = exactCurvatureModelTmp_.ref();
     const auto& front = frontRef();
 
@@ -110,13 +115,8 @@ void lentCurvatureTest::perturbInputFields()
     if (!useFrontSignedDistance_ && distanceNoise_ > SMALL)
     {
         auto& signedDistance = lookupSignedDistance();
-        const auto& C = mesh().C();
-        const auto& surface = surfaceRef();
 
-        forAll(signedDistance, I)
-        {
-            signedDistance[I] = surface.signedDistance(C[I]);
-        }
+        computeExactSignedDistances();
 
         noiseGen_.addNoiseTo<scalar,List>(signedDistance, distanceNoise_);
     }

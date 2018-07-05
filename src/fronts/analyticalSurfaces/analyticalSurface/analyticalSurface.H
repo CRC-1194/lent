@@ -121,6 +121,7 @@ public:
     virtual vector normalToPoint(const point&) const {return vector{0,0,0};};
     virtual point intersection(const point&, const point&) const {return point{0,0,0};};
     virtual void moveFrontToSurface(triSurfaceFront& front) const;
+    virtual void makeNormalOrientationConsistent(triSurfaceFront& front, const bool outwardOrientation=true) const;
     virtual scalar curvatureAt(const point& p) const {return 0.0;};
 
     virtual void randomize(){};

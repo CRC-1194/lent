@@ -205,7 +205,19 @@ tmp<surfaceScalarField> frontCurvatureModel::faceCurvature(
     const triSurfaceFront& frontMesh
 ) const
 {
-    const auto& cellCurvatureField = cellCurvatureTmp_.ref();
+    // Curses upon you, tmp... (TT)
+    if (cellCurvatureTmp_.empty())
+    {
+        initializeCellCurvatureField(mesh);
+    }
+
+    if (curvatureNeedsUpdate(mesh))
+    {
+        computeCurvature(mesh, frontMesh);
+        curvatureUpdated(mesh); 
+    }
+
+    const auto& cellCurvatureField = cellCurvatureTmp_;
     return fvc::interpolate(cellCurvatureField); 
 }
 

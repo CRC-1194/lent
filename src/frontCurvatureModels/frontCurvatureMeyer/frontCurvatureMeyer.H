@@ -66,6 +66,7 @@ Description
 #define frontCurvatureMeyer_H
 
 #include "frontCurvatureModel.H"
+#include "frontToMeshTransferModel.H"
 #include "lentInterpolation.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -85,6 +86,7 @@ class frontCurvatureMeyer
 private:
     
     mutable tmp<triSurfaceFrontPointVectorField> curvatureNormalTmp_;
+    tmp<frontToMeshTransferModel> frontToMeshTmp_;
 
     void initializeCurvatureNormal(const fvMesh&, const triSurfaceFront&) const;
 
@@ -105,6 +107,17 @@ public:
     scalar getAngle(vector& a, vector& b) const;
 
     scalar cot(vector a, vector b) const;
+
+    // Member Functions
+    virtual tmp<volScalarField> cellCurvature(
+        const fvMesh&, 
+        const triSurfaceFront&
+    ) const;  
+
+    virtual tmp<surfaceScalarField> faceCurvature(
+        const fvMesh&, 
+        const triSurfaceFront&
+    ) const; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

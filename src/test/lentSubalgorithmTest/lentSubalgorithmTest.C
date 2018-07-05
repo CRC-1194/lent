@@ -144,7 +144,8 @@ void lentSubalgorithmTest::setupFrontFromSurface(const bool correct)
 
     if (correct)
     {
-        surfaceTmp_.ref().moveFrontToSurface(front_);   
+        surfaceTmp_.ref().moveFrontToSurface(front_);
+        surfaceTmp_.ref().makeNormalOrientationConsistent(front_);
     }
 
     // Already write front here so it is available for inspection in case

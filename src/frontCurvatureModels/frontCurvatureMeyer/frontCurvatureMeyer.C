@@ -77,37 +77,47 @@ void frontCurvatureMeyer::initializeCurvatureNormal(const fvMesh& mesh, const tr
 {
     const Time& runTime = mesh.time();  
 
-    curvatureNormalTmp_ =
-        tmp<triSurfaceFrontPointVectorField>
-        {
-            new triSurfaceFrontPointVectorField
-            (
-                IOobject(
-                    "curvature_normal", 
-                    runTime.timeName(), 
-                    front,
-                    IOobject::NO_READ, 
-                    IOobject::AUTO_WRITE
-                ), 
-                front, 
-                dimensionedVector(
-                    "zero", 
-                    dimless/dimLength, 
-                    vector(0.0,0.0,0.0)
+    if (curvatureNormalTmp_.empty())
+    {
+        curvatureNormalTmp_ =
+            tmp<triSurfaceFrontPointVectorField>
+            {
+                new triSurfaceFrontPointVectorField
+                (
+                    IOobject(
+                        "curvature_normal", 
+                        runTime.timeName(), 
+                        front,
+                        IOobject::NO_READ, 
+                        IOobject::AUTO_WRITE
+                    ), 
+                    front, 
+                    dimensionedVector(
+                        "zero", 
+                        dimless/dimLength, 
+                        vector(0.0,0.0,0.0)
+                    )
                 )
-            )
-        };
+            };
+
+        return;
+    }
+    else if (curvatureNormalTmp_->size() != front.localPoints().size())
+    {
+        curvatureNormalTmp_->resize(front.localPoints().size());
+    }
+
+    for (auto& cn : curvatureNormalTmp_.ref())
+    {
+        cn = vector{0,0,0};
+    }
 }
 
 void frontCurvatureMeyer::computeCurvature(const fvMesh& mesh, const triSurfaceFront& frontMesh) const
 {
-    if (curvatureNormalTmp_.empty())
-    {
-        initializeCurvatureNormal(mesh, frontMesh);
-    }
+    initializeCurvatureNormal(mesh, frontMesh);
 
     auto& cn = curvatureNormalTmp_.ref();
-    cn *= 0.0;
 
     // TODO: modify so that mutliple patches, e.g. in the case of
     // bubble breakup, are supported
@@ -186,36 +196,41 @@ void frontCurvatureMeyer::computeCurvature(const fvMesh& mesh, const triSurfaceF
         cn[Vl] = cn[Vl] / (2.0 * Amix);
     }
 
-    auto& cellCurvature = cellCurvatureTmp_.ref(); 
-    cellCurvature *= 0.0;
-
-    // TODO: this kind of interpolation / transfer should be moved to
-    // lentInterpolation or lentCommunication
-    const lentCommunication& communication = 
-        mesh.lookupObject<lentCommunication>(
-            lentCommunication::registeredName(frontMesh,mesh)
-    ); 
-
-    const auto& cellsTriangleNearest = communication.cellsTriangleNearest();
-    const auto& frontNormals = frontMesh.Sf();
-
-    forAll(cellsTriangleNearest, I)
+    // ---------------------------------------------------------------
+    triSurfaceFrontVectorField cnTria
     {
-        const auto& hitObject = cellsTriangleNearest[I];
+                    IOobject(
+                        "curvature_normal", 
+                        mesh.time().timeName(), 
+                        frontMesh,
+                        IOobject::NO_READ, 
+                        IOobject::AUTO_WRITE
+                    ), 
+                    frontMesh, 
+                    dimensionedVector(
+                        "zero", 
+                        dimless, 
+                        vector(0.0,0.0,0.0)
+                    )
+    };
 
-        if (hitObject.hit())
+    // FIXME: currently only values located at triangles - not at vertices -
+    // can be transfered to the Eulerian mesh. Thus, average the vertex values
+    // for each triangle and then perform the transfer
+    forAll(cnTria, I)
+    {
+        const auto& aFace = localFaces[I];
+
+        for (const auto& vertexID : aFace)
         {
-            const auto& aFace = localFaces[hitObject.index()];
-
-            forAll(aFace, K)
-            {
-                // TODO: add sign to curvature (TT)
-                cellCurvature[I] += mag(cn[aFace[K]])*sign(cn[aFace[K]]&frontNormals[hitObject.index()]);
-            }
+            cnTria[I] += cn[vertexID];
         }
     }
 
-    cellCurvature /= 3.0;
+    cnTria /= 3.0;
+
+    const auto& frontToMesh = frontToMeshTmp_.ref();
+    frontToMesh.transferCurvature(cnTria, frontMesh, mesh);
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -223,7 +238,10 @@ void frontCurvatureMeyer::computeCurvature(const fvMesh& mesh, const triSurfaceF
 frontCurvatureMeyer::frontCurvatureMeyer(const dictionary& configDict) 
     :
         frontCurvatureModel{configDict},
-        curvatureNormalTmp_{}
+        curvatureNormalTmp_{},
+        frontToMeshTmp_{
+            frontToMeshTransferModel::New(configDict.subDict("frontToMeshTransfer"))
+        }
 {}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -267,6 +285,37 @@ scalar frontCurvatureMeyer::cot(vector a, vector b) const
 {
     return a & b / mag(a ^ b);
 }
+
+tmp<volScalarField> frontCurvatureMeyer::cellCurvature(
+    const fvMesh& mesh,
+    const triSurfaceFront& frontMesh
+) const
+{
+    if (curvatureNeedsUpdate(mesh))
+    {
+        computeCurvature(mesh, frontMesh);
+        curvatureUpdated(mesh); 
+    }
+
+    const auto& frontToMesh = frontToMeshTmp_.ref();
+    return frontToMesh.cellCurvature();
+}
+
+tmp<surfaceScalarField> frontCurvatureMeyer::faceCurvature(
+    const fvMesh& mesh, 
+    const triSurfaceFront& frontMesh
+) const
+{
+    if (curvatureNeedsUpdate(mesh))
+    {
+        computeCurvature(mesh, frontMesh);
+        curvatureUpdated(mesh); 
+    }
+
+    const auto& frontToMesh = frontToMeshTmp_.ref();
+    return frontToMesh.faceCurvature();
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
