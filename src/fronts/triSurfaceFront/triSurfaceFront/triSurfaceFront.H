@@ -156,6 +156,9 @@ public:
         return twoRingNeighbours_;
     }
 
+    point geometricCentre() const;
+    scalar convexFrontVolume() const;
+
     // Member operators
     void operator=(const triSurfaceFront& rhs);
     void operator=(const triSurface& rhs);

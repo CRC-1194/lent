@@ -268,6 +268,42 @@ void triSurfaceFront::displace(const Field<Vector<double> >& displacements)
     clearGeom();
 }
 
+point triSurfaceFront::geometricCentre() const
+{
+    point geoCentre{0,0,0};
+
+    for (const auto& vertex : this->points())
+    {
+        geoCentre += vertex;
+    }
+
+    geoCentre /= this->points().size();
+
+    return geoCentre;
+}
+
+scalar triSurfaceFront::convexFrontVolume() const
+{
+    // NOTE: as the name suggests, this simple approach only works
+    // for convex interfaces (TT)
+    // Just uses a tetrahedral decompostion of the enclosed volume and
+    // the triple product
+    scalar volume{0.0};
+
+    const auto& V = this->points();
+    const List<labelledTri>& triangles = static_cast<const List<labelledTri>& > (*this);
+    const auto gc = geometricCentre();
+
+    for (const auto& T : triangles)
+    {
+        volume += mag(((V[T[1]] - V[T[0]]) ^ (V[T[2]] - V[T[0]])) & (gc - V[T[0]]));
+    }
+
+    volume /= 6.0;
+
+    return volume;
+}
+
 // * * * * * * * * * * * * * * Member Operators * * * * * * * * * * * * * * //
 void triSurfaceFront::operator=(const triSurface& rhs)
 {

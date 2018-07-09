@@ -1,0 +1,18 @@
+EXE_INC = \
+    -std=c++14 \
+    -isystem$(EIGEN_HEADERS) \
+    -I$(LENT_PROJECT)/applications/testing \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/sampling/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LENT_PROJECT)/src/lnInclude 
+
+EXE_LIBS = \
+    -L$(FOAM_USER_LIBBIN) \
+    -lfiniteVolume \
+    -lmeshTools \
+    -lsampling \
+    -lsurfMesh \
+    -llent 
+
