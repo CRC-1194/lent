@@ -23,18 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::analyticalSurface
+    Foam::frontToMeshTransferModel
 
 SourceFiles
-    analyticalSurface.C
+    frontToMeshTransferModel.C
 
 Author
-    Tobias Tolle   tolle@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Abstract base class for definition of (simple) analytical surfaces.
-    Intended for directly constructing a front or setting an exact signed
-    distance field.
+    Interface for different front to mesh transfer approaches intended
+    for curvature propagation. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -58,81 +57,72 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef analyticalSurface_H
-#define analyticalSurface_H
+#ifndef frontToMeshTransferModel_H
+#define frontToMeshTransferModel_H
 
-#include "fvMesh.H"
-#include "refCount.H"
-#include "tmp.H"
+
 #include "typeInfo.H"
-
+#include "tmp.H"
+#include "refCount.H"
+#include "volFieldsFwd.H"
 #include "triSurfaceFront.H"
+#include "triSurfaceFrontFieldsFwd.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
-namespace FrontTracking{
+namespace FrontTracking {
+
 
 /*---------------------------------------------------------------------------*\
-                         Class analyticalSurface Declaration
+                         Class frontToMeshTransferModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class analyticalSurface
+class frontToMeshTransferModel
 :
-    public refCount 
+    public refCount
 {
-protected:
-    OFstream outputStream(const word& fileName) const;
 
 public:
 
-    TypeName ("abstract");
-
-    // Constructors
-    analyticalSurface() = default;
-    explicit analyticalSurface(const dictionary& configDict);
+    // Static data members
+    TypeName("abstract");
 
     declareRunTimeSelectionTable (
         tmp,
-        analyticalSurface,
+        frontToMeshTransferModel,
         Dictionary,
-        (const dictionary& configDict),
+        (
+            const dictionary& configDict
+        ),
         (configDict)
     );
 
+
+    // Constructors
+    frontToMeshTransferModel(const dictionary& configDict);
+
+
     // Selectors
-    static tmp<analyticalSurface> New(const dictionary& configDict);
+    static tmp<frontToMeshTransferModel> New(const dictionary& configDict);
 
-    // Destructor
-    virtual ~analyticalSurface() = default;
 
-    // Member functions
-    virtual scalar distance(const point&) const {return 0.0;};
-    virtual scalar signedDistance(const point&) const {return 0.0;};
+    //- Destructor
+    virtual ~frontToMeshTransferModel() = default;
 
-    template<class Container, class PointField>
-    void setDistance(Container& distanceField, const PointField& points) const;
 
-    void setDistance(volScalarField& signedDistance) const;
-    void setDistance(surfaceScalarField& signedDistance) const;
-    void setDistance(pointScalarField& signedDistance) const;
+    // Member Functions
+    virtual void transferCurvature(
+        const triSurfaceFrontVectorField& curvatureNormals,
+        const triSurfaceFront& front,
+        const fvMesh& mesh
+    ) const = 0;
 
-    virtual point normalProjectionToSurface(point&) const {return point{0,0,0};};
-    virtual vector normalToPoint(const point&) const {return vector{0,0,0};};
-    virtual point intersection(const point&, const point&) const {return point{0,0,0};};
-    virtual void moveFrontToSurface(triSurfaceFront& front) const;
-    virtual void makeNormalOrientationConsistent(triSurfaceFront& front, const bool outwardOrientation=true) const;
-    virtual scalar curvatureAt(const point& p) const {return 0.0;};
+    virtual tmp<volScalarField> cellCurvature() const = 0;  
 
-    virtual void randomize(){};
-    virtual void randomPlacementIn(const boundBox& bbox){};
-    virtual void writeParameters(const word fileName) const {};
+    virtual tmp<surfaceScalarField> faceCurvature() const = 0; 
 };
 
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include "analyticalSurfaceI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -141,8 +131,6 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

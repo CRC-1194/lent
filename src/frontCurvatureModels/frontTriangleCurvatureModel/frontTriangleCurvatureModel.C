@@ -61,6 +61,7 @@ Description
 #include "frontTriangleCurvatureModel.H"
 
 #include "addToRunTimeSelectionTable.H"
+#include "surfaceInterpolate.H"
 
 #include "lentCommunication.H"
 
@@ -82,7 +83,7 @@ void frontTriangleCurvatureModel::initializeCurvatureNormal(const fvMesh& mesh, 
     {
         curvatureNormalTmp_ = 
             tmp<triSurfaceFrontVectorField> 
-            (
+            {
                 new triSurfaceFrontVectorField
                 (
                     IOobject(
@@ -99,11 +100,18 @@ void frontTriangleCurvatureModel::initializeCurvatureNormal(const fvMesh& mesh, 
                         vector(0.0,0.0,0.0)
                     )
                 )
-            );
+            };
+
+        return;
     }
     else if (curvatureNormalTmp_->size() != front.UList<labelledTri>::size())
     {
         curvatureNormalTmp_->resize(front.UList<labelledTri>::size());
+    }
+
+    for (auto& cn : curvatureNormalTmp_.ref())
+    {
+        cn = vector{0,0,0};
     }
 }
 
@@ -112,7 +120,6 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
     initializeCurvatureNormal(mesh, front);
 
     auto& cn = curvatureNormalTmp_.ref();
-    cn *= 0.0;
 
     const auto& normalCalculator = normalCalculatorTmp_.ref();
     auto frontVertexNormalsTmp = normalCalculator.vertexNormals(mesh, front);
@@ -133,50 +140,8 @@ void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const tri
                     ) / triArea[I];
     }
 
-    // Distribute curvature from front to Eulerian mesh
-    auto& cellCurvature = cellCurvatureTmp_.ref();
-    cellCurvature *= 0.0;
-
-    // TODO: this kind of interpolation / transfer should be moved to
-    // lentInterpolation or lentCommunication (TT)
-    const lentCommunication& communication = 
-        mesh.lookupObject<lentCommunication>(
-            lentCommunication::registeredName(front,mesh)
-    ); 
-
-    //------------------------------------------------------------------------
-    // Arithmetic mean of all trianglesin cell
-    const auto& trianglesInCell = communication.interfaceCellToTriangles();
-    const auto& faceNormal = front.Sf();
-
-    for (const auto& cellTrianglesMap : trianglesInCell)
-    {
-        const auto& cellLabel = cellTrianglesMap.first;
-        const auto& triangleLabels = cellTrianglesMap.second;
-
-        for (const auto& tl : triangleLabels)
-        {
-            cellCurvature[cellLabel] += mag(cn[tl])*sign(cn[tl]&faceNormal[tl]);
-        }
-
-        cellCurvature[cellLabel] /= triangleLabels.size();
-    }
-
-    //------------------------------------------------------------------------
-
-    // Propagate to non-interface cells
-    const auto& cellToTriangle = communication.cellsTriangleNearest();
-    const auto& triangleToCell = communication.triangleToCell();
-
-    forAll(cellToTriangle, I)
-    {
-        const auto& hitObject = cellToTriangle[I];
-        
-        if (hitObject.hit())
-        {
-            cellCurvature[I] = cellCurvature[triangleToCell[hitObject.index()]];
-        }
-    }
+    const auto& frontToMesh = frontToMeshTmp_.ref();
+    frontToMesh.transferCurvature(cn, front, mesh);
 }
 
 
@@ -187,9 +152,43 @@ frontTriangleCurvatureModel::frontTriangleCurvatureModel(const dictionary& confi
     normalCalculatorTmp_{
         frontVertexNormalCalculator::New(configDict.subDict("normalCalculator"))
     },
+    frontToMeshTmp_{
+        frontToMeshTransferModel::New(configDict.subDict("frontToMeshTransfer"))
+    },
     curvatureNormalTmp_{}
 {}
 
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+tmp<volScalarField> frontTriangleCurvatureModel::cellCurvature(
+    const fvMesh& mesh,
+    const triSurfaceFront& frontMesh
+) const
+{
+    if (curvatureNeedsUpdate(mesh))
+    {
+        computeCurvature(mesh, frontMesh);
+        curvatureUpdated(mesh); 
+    }
+
+    const auto& frontToMesh = frontToMeshTmp_.ref();
+    return frontToMesh.cellCurvature();
+}
+
+tmp<surfaceScalarField> frontTriangleCurvatureModel::faceCurvature(
+    const fvMesh& mesh, 
+    const triSurfaceFront& frontMesh
+) const
+{
+    if (curvatureNeedsUpdate(mesh))
+    {
+        computeCurvature(mesh, frontMesh);
+        curvatureUpdated(mesh); 
+    }
+
+    const auto& frontToMesh = frontToMeshTmp_.ref();
+    return frontToMesh.faceCurvature();
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

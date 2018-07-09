@@ -152,6 +152,34 @@ void analyticalSurface::moveFrontToSurface(triSurfaceFront& front) const
     front.clearGeom();
 }
 
+void analyticalSurface::makeNormalOrientationConsistent(triSurfaceFront& front, const bool outwardOrientation) const
+{
+    // enforce recomputation of front normals to ensure they are up-to-date
+    // with the front vertex positions
+    front.clearGeom();
+
+    scalar orientation = 1.0;
+
+    if (!outwardOrientation)
+    {
+        orientation = -1.0;
+    }
+
+    List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);
+    auto& triangleNormals = const_cast<pointField&>(front.faceNormals());
+    const auto& faceCentres = front.Cf();
+
+    forAll(triangles, I)
+    {
+        auto normal = orientation*normalToPoint(faceCentres[I]);
+        if ((normal & triangleNormals[I]) < 0.0)
+        {
+            triangles[I].flip();
+            triangleNormals[I] *= -1.0;
+        }
+    }
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

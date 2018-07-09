@@ -62,6 +62,7 @@ Description
 #define frontTriangleCurvatureModel_H
 
 #include "frontCurvatureModel.H"
+#include "frontToMeshTransferModel.H"
 #include "frontVertexNormalCalculator.H"
 #include "lentCommunication.H"
 #include "triSurfaceFrontFields.H"
@@ -82,6 +83,7 @@ class frontTriangleCurvatureModel
 {
     // Private data
     tmp<frontVertexNormalCalculator> normalCalculatorTmp_;
+    tmp<frontToMeshTransferModel> frontToMeshTmp_;
     mutable tmp<triSurfaceFrontVectorField> curvatureNormalTmp_;
 
     // Private Member Functions
@@ -97,6 +99,18 @@ public:
         
     //- Destructor
     virtual ~frontTriangleCurvatureModel() = default;
+
+
+    // Member Functions
+    virtual tmp<volScalarField> cellCurvature(
+        const fvMesh&, 
+        const triSurfaceFront&
+    ) const;  
+
+    virtual tmp<surfaceScalarField> faceCurvature(
+        const fvMesh&, 
+        const triSurfaceFront&
+    ) const; 
 };
 
 

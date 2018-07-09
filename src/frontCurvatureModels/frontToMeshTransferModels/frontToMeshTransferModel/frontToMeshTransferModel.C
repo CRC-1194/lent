@@ -23,21 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::frontCurvatureMeyer
+    Foam::frontToMeshTransferModel
 
 SourceFiles
-    frontCurvatureMeyer.C
+    frontToMeshTransferModel.C
 
 Author
-    Tobias Tolle bt@lefou-familie.org
-
-Contributors 
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-
-    Curvature model that averages the input field and computes the curvature
-    using the divergence of the normal field.
+    Interface for different front to mesh transfer approaches intended
+    for curvature propagation. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -61,64 +57,50 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-
-#ifndef frontCurvatureMeyer_H
-#define frontCurvatureMeyer_H
-
-#include "frontCurvatureModel.H"
 #include "frontToMeshTransferModel.H"
-#include "lentInterpolation.H"
+#include "addToRunTimeSelectionTable.H" 
+#include "dictionary.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 namespace Foam {
 namespace FrontTracking {
 
-/*---------------------------------------------------------------------------*\
-                         Class frontCurvatureMeyer Declaration
-\*---------------------------------------------------------------------------*/
+    defineTypeNameAndDebug(frontToMeshTransferModel, 0);
+    defineRunTimeSelectionTable(frontToMeshTransferModel, Dictionary);
 
-class frontCurvatureMeyer
-    :
-        public frontCurvatureModel 
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+frontToMeshTransferModel::frontToMeshTransferModel(const dictionary& configDict)
+:
+    refCount{}
+{}
+
+
+// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
+
+tmp<frontToMeshTransferModel>
+frontToMeshTransferModel::New(const dictionary& configDict)
 {
+    const word name = configDict.lookup("type");
 
-private:
-    
-    mutable tmp<triSurfaceFrontPointVectorField> curvatureNormalTmp_;
-    tmp<frontToMeshTransferModel> frontToMeshTmp_;
+    DictionaryConstructorTable::iterator cstrIter =
+        DictionaryConstructorTablePtr_->find(name);
 
-    void initializeCurvatureNormal(const fvMesh&, const triSurfaceFront&) const;
+    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    {
+        FatalErrorIn (
+            "frontToMeshTransferModel::New(const word& name)"
+        )   << "Unknown frontToMeshTransferModel type "
+            << name << nl << nl
+            << "Valid frontToMeshTransferModels are : " << endl
+            << DictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalError);
+    }
 
-    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
+    return tmp<frontToMeshTransferModel> (cstrIter()(configDict));
+}
 
-public:
-
-    TypeName ("Meyer");
-
-    // Constructors
-    frontCurvatureMeyer(const dictionary& configDict);
-
-    virtual ~frontCurvatureMeyer() = default;  
-
-    // Member functions
-    labelList orderVertices(labelledTri& tri, label V) const; 
-
-    scalar getAngle(vector& a, vector& b) const;
-
-    scalar cot(vector a, vector b) const;
-
-    // Member Functions
-    virtual tmp<volScalarField> cellCurvature(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const;  
-
-    virtual tmp<surfaceScalarField> faceCurvature(
-        const fvMesh&, 
-        const triSurfaceFront&
-    ) const; 
-};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -129,7 +111,4 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
-
 // ************************************************************************* //

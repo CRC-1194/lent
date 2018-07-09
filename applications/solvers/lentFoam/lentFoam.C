@@ -75,6 +75,7 @@ void correctFrontIfRequested(triSurfaceFront& front, const dictionary& configDic
         auto surfaceTmp = analyticalSurface::New(configDict.subDict("frontSurface"));
         const auto& frontSurface = surfaceTmp.ref();
         frontSurface.moveFrontToSurface(front);
+        frontSurface.makeNormalOrientationConsistent(front);
         Info << "Front has been corrected" << endl;
     }
 }

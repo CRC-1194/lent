@@ -86,11 +86,12 @@ private:
 
     virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
     void initializeCellCurvatureField(const fvMesh&) const; 
-    bool curvatureNeedsUpdate(const fvMesh&) const;
-    void curvatureUpdated(const fvMesh&) const;
 
 protected:
     mutable tmp<volScalarField> cellCurvatureTmp_;
+
+    bool curvatureNeedsUpdate(const fvMesh&) const;
+    void curvatureUpdated(const fvMesh&) const;
 
 public:
 
