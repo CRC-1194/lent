@@ -53,7 +53,9 @@ Description
 #include "fvCFD.H"
 
 #include "analyticalSurface.H"
-#include "frontConstructor.H"
+#include "lentMethod.H"
+
+#include <fstream>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -64,8 +66,50 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
+    #include "createFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    
+    // Ensure that the front file exists
+    std::ofstream frontFile("constant/front.stl");
+    frontFile.close();
+    
+    triSurfaceFront front(
+        IOobject(
+            "front",
+            "front",
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        )
+    );
+
+    lentMethod lent(front, mesh);
+
+    tmp<analyticalSurface> analyticalSurfaceTmp(
+        analyticalSurface::New(lent.dict().subDict("frontSurface"))
+    );
+
+    auto& surface = analyticalSurfaceTmp.ref();
+
+    Info << "Constructing front from analytical surface..." << endl;
+
+    surface.setDistance(signedDistance);
+    surface.setDistance(pointSignedDistance);
+
+    lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
+    surface.moveFrontToSurface(front);
+
+    front.triSurface::write("constant/front.stl");
+
+    Info << "Done!" << endl;
+
+    Info<< "\nEnd\n" << endl;
+
+    return 0;
+    //----------------
+    /*
     IOdictionary lentControlDict(
         IOobject(
            "lentSolution",
@@ -76,22 +120,22 @@ int main(int argc, char *argv[])
         )
     );
 
-    Info << "Constructing front..." << endl;
 
-    tmp<analyticalSurface> analyticalSurfaceTmp(
-        analyticalSurface::New(lentControlDict.subDict("analyticalSurface"))
-    );
 
     frontConstructor buildFront(analyticalSurfaceTmp, mesh);
 
     triSurface front = buildFront.createTriSurface();
 
-    front.write("front/front.stl");
+    // Regularize surface mesh
+    frontSmoother smoother{0.33, 3, "pointsAndEdges"};
+    smoother.smoothFront(front, mesh);
 
-    Info << "Done!" << endl;
+    analyticalSurfaceTmp.ref().moveFrontToSurface(front);
 
-    Info<< "\nEnd\n" << endl;
+    front.write("constant/front.stl");
+
     return 0;
+    */
 }
 
 

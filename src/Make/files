@@ -80,7 +80,7 @@ lentMethod/lentMethod.C
 
 lentSolutionControls/lentSolutionControl/lentSolutionControl.C
 
-test/lentMarkerFieldTest/lentMarkerFieldTest.C
+test/lentMarkerFieldTest/lentGlobalMarkerFieldTest/lentGlobalMarkerFieldTest.C
 test/errorMetrics/errorMetrics.C
 test/randomization/noiseGenerator/noiseGenerator.C
 test/randomization/randomNumberGenerator/randomNumberGenerator.C

@@ -23,16 +23,23 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::lentMarkerFieldTest
+    Foam::lentGlobalMarkerFieldTest
 
 SourceFiles
-    lentMarkerFieldTest.C
+    lentGlobalMarkerFieldTest.C
 
 Author
-    Tobias Tolle   tolle@csi.tu-darmstadt.de
+    Tobias Tolle   tolle@mma.tu-darmstadt.de
 
 Description
-    This class provides all tests related to the marker field model.
+    This class defines markerfield tests on a full domain scale.
+    The following properties are tested:
+        * boundedness of the marker field: alpha in [0;1]
+        * relative global volume error based on the front volume
+
+    For now, this test does not make use of exact signed distances and assumes
+    that the alpha value of the dispersed phase is 0.0.
+    
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,15 +63,12 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentMarkerFieldTest_H
-#define lentMarkerFieldTest_H
+#ifndef lentGlobalMarkerFieldTest_H
+#define lentGlobalMarkerFieldTest_H
 
-#include <utility>
+#include "lentSubalgorithmTest.H"
+#include "noiseGenerator.H"
 
-#include "fvCFD.H"
-
-#include "cutCellVolumeCalculator.H"
-#include "triSurfaceFront.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -72,51 +76,46 @@ namespace Foam {
 namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class lentMarkerFieldTest Declaration
+                         Class lentGlobalMarkerFieldTest Declaration
 \*---------------------------------------------------------------------------*/
 
-class lentMarkerFieldTest
+class lentGlobalMarkerFieldTest
+:
+    public lentSubalgorithmTest
 {
+
+private:
+
     // Private data
-    const volScalarField& markerField_;
-    const triSurfaceFront& front_;
-    const dictionary& configDict_;
-
-    cutCellVolumeCalculator localVolCalc_;
-
-    scalar meshVolume_;
-    scalar interfaceVolume_;
-
-    scalar interfaceVolMarkerField_;
-    scalar interfaceVolGeometric_;
-
-    scalar frontVolMarkerField_;
-    scalar frontVolGeometric_;
+    noiseGenerator noiseGen_;
+    
+    Switch correctFront_;
+    vector frontNoise_;
+    word phaseIndicatorFieldName_;
 
     // Private Member Functions
-    label numberInterfaceCells() const;
-    void markerFieldVolumes();
-    void meshVolumes();
-    void geometricVolumes();
+    bool markerFieldIsBounded(const volScalarField& markerField) const;
+    scalar computeMarkerFieldVolume(const volScalarField& markerField) const;
+    
+protected:
+
+    virtual void randomSetup();
+    virtual void perturbInputFields();
+    virtual void computeApproximatedFields();
+    virtual void evaluateMetrics();
 
 
 public:
 
     // Constructors
-    lentMarkerFieldTest(const volScalarField& markerField,
-                        const triSurfaceFront& front,
-                        const dictionary& configDict);
+    lentGlobalMarkerFieldTest(const fvMesh& mesh, triSurfaceFront& front);
 
 
     //- Destructor
-    ~lentMarkerFieldTest();
+    virtual ~lentGlobalMarkerFieldTest() = default;
 
 
-    // Member Functions aka Tests
-    bool boundedness() const;
-    scalar globalVolume() const;
-    scalar interfaceVolume() const;
-    List<scalar> localVolume() const;
+    // Member Functions
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

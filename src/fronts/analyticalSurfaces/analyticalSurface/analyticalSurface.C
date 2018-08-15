@@ -140,7 +140,7 @@ void analyticalSurface::setDistance(pointScalarField& signedDistance) const
     // vertices of the fvMesh including boundary points? (TT)
 }
 
-void analyticalSurface::moveFrontToSurface(triSurfaceFront& front) const
+void analyticalSurface::moveFrontToSurface(triSurface& front) const
 {
     auto& points = const_cast<pointField&>(front.points());
 
@@ -152,7 +152,7 @@ void analyticalSurface::moveFrontToSurface(triSurfaceFront& front) const
     front.clearGeom();
 }
 
-void analyticalSurface::makeNormalOrientationConsistent(triSurfaceFront& front, const bool outwardOrientation) const
+void analyticalSurface::makeNormalOrientationConsistent(triSurface& front, const bool outwardOrientation) const
 {
     // enforce recomputation of front normals to ensure they are up-to-date
     // with the front vertex positions
