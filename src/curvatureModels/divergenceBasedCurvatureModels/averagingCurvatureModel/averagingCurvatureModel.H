@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2016 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018 AUTHOR,AFFILIATION
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,23 +22,21 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::lentCurvatureTest
+    Foam::averagingCurvatureModel
 
 Description
 
 SourceFiles
-    lentCurvatureTestI.H
-    lentCurvatureTest.C
-    lentCurvatureTestIO.C
+    averagingCurvatureModelI.H
+    averagingCurvatureModel.C
+    averagingCurvatureModelIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentCurvatureTest_H
-#define lentCurvatureTest_H
+#ifndef averagingCurvatureModel_H
+#define averagingCurvatureModel_H
 
-#include "analyticalSurfaceCurvatureModel.H"
-#include "lentSubalgorithmTest.H"
-#include "noiseGenerator.H"
+#include "divergenceBasedCurvatureModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -47,44 +45,35 @@ namespace FrontTracking {
 
 
 /*---------------------------------------------------------------------------*\
-                         Class lentCurvatureTest Declaration
+                         Class averagingCurvatureModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class lentCurvatureTest
+class averagingCurvatureModel
 :
-    public lentSubalgorithmTest
+    public divergenceBasedCurvatureModel
 {
+
+private:
+
     // Private data
-    tmp<volScalarField> filterFieldTmp_;
-    tmp<surfaceScalarField> faceFilterFieldTmp_;
-    tmp<volScalarField> relativeDeltaFieldTmp_;
-    tmp<surfaceScalarField> relativeFaceDeltaFieldTmp_;
-
-    noiseGenerator noiseGen_;
-    tmp<analyticalSurfaceCurvatureModel> exactCurvatureModelTmp_;
-    tmp<curvatureModel> numericalCurvatureModelTmp_;
-
-    Switch correctFront_;
-    Switch useFrontSignedDistance_;
-    vector frontNoise_;
-    scalar distanceNoise_;
+    label averagingIterations_;  
 
 
     // Private Member Functions
-    virtual void randomSetup();
-    virtual void perturbInputFields();
-    virtual void computeApproximatedFields();
-    virtual void evaluateMetrics();
+    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
 
 
 public:
 
+    TypeName ("averaging");
+
     // Constructors
-    lentCurvatureTest(const fvMesh& mesh, triSurfaceFront& front);
+    averagingCurvatureModel(const dictionary& configDict);
 
 
     //- Destructor
-    virtual ~lentCurvatureTest() = default;
+    virtual ~averagingCurvatureModel() = default;
+
 
 };
 

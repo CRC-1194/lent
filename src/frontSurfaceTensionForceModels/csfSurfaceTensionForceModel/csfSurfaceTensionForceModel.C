@@ -97,8 +97,9 @@ tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
     const dimensionedScalar sigma = transportProperties.lookup("sigma");  
     
     const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName());     
-    const auto& faceCurvatureField = faceCurvature(mesh, frontMesh).ref();
 
+    auto faceCurvatureFieldPtr = faceCurvature(mesh, frontMesh);
+    const auto& faceCurvatureField = *faceCurvatureFieldPtr;
     // FIXME: for a reason I do not yet understand, the orientation of the
     // surface tension field on the cell faces is 'unoriented' and will cause
     // an error when being added/subtracted to other face force fields.

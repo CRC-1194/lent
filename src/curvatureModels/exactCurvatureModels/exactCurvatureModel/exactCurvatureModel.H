@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2016 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018 AUTHOR,AFFILIATION
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,76 +22,83 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::lentCurvatureTest
+    Foam::exactCurvatureModel
 
 Description
 
 SourceFiles
-    lentCurvatureTestI.H
-    lentCurvatureTest.C
-    lentCurvatureTestIO.C
+    exactCurvatureModelI.H
+    exactCurvatureModel.C
+    exactCurvatureModelIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentCurvatureTest_H
-#define lentCurvatureTest_H
+#ifndef exactCurvatureModel_H
+#define exactCurvatureModel_H
 
-#include "analyticalSurfaceCurvatureModel.H"
-#include "lentSubalgorithmTest.H"
-#include "noiseGenerator.H"
+
+#include "surfaceFields.H"
+#include "typeInfo.H"
+
+#include "CurvatureBufferLogic.H"
+#include "curvatureModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-
 /*---------------------------------------------------------------------------*\
-                         Class lentCurvatureTest Declaration
+                         Class exactCurvatureModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class lentCurvatureTest
+class exactCurvatureModel
 :
-    public lentSubalgorithmTest
+    public curvatureModel,
+    protected CurvatureBufferLogic<surfaceScalarField, fvMesh, scalar>
 {
+
+private:
+
     // Private data
-    tmp<volScalarField> filterFieldTmp_;
-    tmp<surfaceScalarField> faceFilterFieldTmp_;
-    tmp<volScalarField> relativeDeltaFieldTmp_;
-    tmp<surfaceScalarField> relativeFaceDeltaFieldTmp_;
-
-    noiseGenerator noiseGen_;
-    tmp<analyticalSurfaceCurvatureModel> exactCurvatureModelTmp_;
-    tmp<curvatureModel> numericalCurvatureModelTmp_;
-
-    Switch correctFront_;
-    Switch useFrontSignedDistance_;
-    vector frontNoise_;
-    scalar distanceNoise_;
-
+    const Switch write_; 
+    mutable std::shared_ptr<volScalarField> cellCurvaturePtr_{nullptr};
+    mutable bool cellCurvatureInitialized_{false};
 
     // Private Member Functions
-    virtual void randomSetup();
-    virtual void perturbInputFields();
-    virtual void computeApproximatedFields();
-    virtual void evaluateMetrics();
-
+    void initializeCellCurvatureBuffer(const fvMesh&) const;
+    void updateCurvatureBuffers(const fvMesh&, const triSurfaceFront&) const;
 
 public:
 
+    TypeName ("exactCurvatureInterface")
+
     // Constructors
-    lentCurvatureTest(const fvMesh& mesh, triSurfaceFront& front);
+    exactCurvatureModel(const dictionary& configDict);
+
+    
+    // Destructor
+    virtual ~exactCurvatureModel() = default;
 
 
-    //- Destructor
-    virtual ~lentCurvatureTest() = default;
+    // Member Functions
+    virtual std::shared_ptr<volScalarField> cellCurvature(
+        const fvMesh&, 
+        const triSurfaceFront&
+    ) const;  
 
+    virtual std::shared_ptr<surfaceScalarField> faceCurvature(
+        const fvMesh&, 
+        const triSurfaceFront&
+    ) const; 
+
+    virtual scalar curvatureAtPoint(const point& P) const = 0;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace FrontTracking
+} // End namespace FrontTracking 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

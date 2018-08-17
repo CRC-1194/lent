@@ -67,7 +67,7 @@ Description
 #include "volFieldsFwd.H"
 #include "surfaceFieldsFwd.H"
 #include "triSurfaceFront.H"
-#include "frontCurvatureModel.H"
+//#include "frontCurvatureModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

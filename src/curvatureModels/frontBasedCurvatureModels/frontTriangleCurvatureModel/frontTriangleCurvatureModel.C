@@ -23,16 +23,18 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::curvatureBasedSurfaceTensionForceModel
+    Foam::frontTriangleCurvatureModel
 
 SourceFiles
-    curvatureBasedSurfaceTensionForceModel.C
+    frontTriangleCurvatureModel.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+
+    Curvature model based on the surface tension model described in the
+    2012 paper of Tukovic and Jasak
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,25 +58,59 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include "frontTriangleCurvatureModel.H"
 
-#include "curvatureBasedSurfaceTensionForceModel.H"
 #include "addToRunTimeSelectionTable.H"
+#include "surfaceInterpolate.H"
+
+#include "lentCommunication.H"
+
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(curvatureBasedSurfaceTensionForceModel, 0);
+    defineTypeNameAndDebug(frontTriangleCurvatureModel, 0);
+    addToRunTimeSelectionTable(curvatureModel, frontTriangleCurvatureModel, Dictionary);
 
-// * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
-//
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+void frontTriangleCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurfaceFront& front) const
+{
+    auto& cn = *curvatureBuffer(front);
 
-curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(const dictionary& configDict)
-    :
-        frontSurfaceTensionForceModel(configDict),
-        curvatureModelTmp_(curvatureModel::New(configDict.subDict("curvatureModel"))) 
+    const auto& normalCalculator = normalCalculatorTmp_.ref();
+    auto frontVertexNormalsTmp = normalCalculator.vertexNormals(mesh, front);
+    auto& n = frontVertexNormalsTmp.ref();
+
+    const auto& faces = front.localFaces();
+    const auto& p = front.localPoints();
+    const auto& triArea = front.magSf();
+
+    forAll(faces, I)
+    {
+        const auto& f = faces[I];
+
+        cn[I] = 0.5*(
+                        ((p[f[1]] - p[f[0]]) ^ (n[f[1]] + n[f[0]]))
+                      + ((p[f[2]] - p[f[1]]) ^ (n[f[2]] + n[f[1]]))
+                      + ((p[f[0]] - p[f[2]]) ^ (n[f[0]] + n[f[2]]))
+                    ) / triArea[I];
+    }
+}
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+frontTriangleCurvatureModel::frontTriangleCurvatureModel(const dictionary& configDict)
+:
+    frontBasedCurvatureModel{configDict},
+    normalCalculatorTmp_{
+        frontVertexNormalCalculator::New(configDict.subDict("normalCalculator"))
+    }
 {}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

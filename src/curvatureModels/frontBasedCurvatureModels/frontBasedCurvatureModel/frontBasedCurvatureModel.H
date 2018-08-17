@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2016 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018 AUTHOR,AFFILIATION
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,23 +22,26 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::lentCurvatureTest
+    Foam::frontBasedCurvatureModel
 
 Description
 
 SourceFiles
-    lentCurvatureTestI.H
-    lentCurvatureTest.C
-    lentCurvatureTestIO.C
+    frontBasedCurvatureModelI.H
+    frontBasedCurvatureModel.C
+    frontBasedCurvatureModelIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentCurvatureTest_H
-#define lentCurvatureTest_H
+#ifndef frontBasedCurvatureModel_H
+#define frontBasedCurvatureModel_H
 
-#include "analyticalSurfaceCurvatureModel.H"
-#include "lentSubalgorithmTest.H"
-#include "noiseGenerator.H"
+#include "CurvatureBufferLogic.H"
+#include "curvatureModel.H"
+#include "frontToMeshTransferModel.H"
+
+#include "surfaceFields.H"
+#include "typeInfo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -47,45 +50,53 @@ namespace FrontTracking {
 
 
 /*---------------------------------------------------------------------------*\
-                         Class lentCurvatureTest Declaration
+                         Class frontBasedCurvatureModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class lentCurvatureTest
+class frontBasedCurvatureModel
 :
-    public lentSubalgorithmTest
+    public curvatureModel,
+    protected CurvatureBufferLogic<triSurfaceFrontVectorField, triSurfaceFront, vector>
 {
+
+private:
+
     // Private data
-    tmp<volScalarField> filterFieldTmp_;
-    tmp<surfaceScalarField> faceFilterFieldTmp_;
-    tmp<volScalarField> relativeDeltaFieldTmp_;
-    tmp<surfaceScalarField> relativeFaceDeltaFieldTmp_;
-
-    noiseGenerator noiseGen_;
-    tmp<analyticalSurfaceCurvatureModel> exactCurvatureModelTmp_;
-    tmp<curvatureModel> numericalCurvatureModelTmp_;
-
-    Switch correctFront_;
-    Switch useFrontSignedDistance_;
-    vector frontNoise_;
-    scalar distanceNoise_;
+    tmp<frontToMeshTransferModel> frontToMeshTmp_;
 
 
     // Private Member Functions
-    virtual void randomSetup();
-    virtual void perturbInputFields();
-    virtual void computeApproximatedFields();
-    virtual void evaluateMetrics();
+    void updateCurvatureBuffers(const fvMesh&, const triSurfaceFront&) const;
+    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const = 0;
 
 
 public:
 
+    TypeName ("frontCurvatureInterface");
+
     // Constructors
-    lentCurvatureTest(const fvMesh& mesh, triSurfaceFront& front);
+    frontBasedCurvatureModel(const dictionary& configDict);
 
 
     //- Destructor
-    virtual ~lentCurvatureTest() = default;
+    virtual ~frontBasedCurvatureModel(){};
 
+
+    // Member Functions
+    virtual std::shared_ptr<volScalarField> cellCurvature(
+        const fvMesh&, 
+        const triSurfaceFront&
+    ) const;  
+
+    virtual std::shared_ptr<surfaceScalarField> faceCurvature(
+        const fvMesh&, 
+        const triSurfaceFront&
+    ) const; 
+
+    virtual std::shared_ptr<triSurfaceFrontVectorField> frontCurvatureNormal(
+        const fvMesh&,
+        const triSurfaceFront&
+    ) const;
 };
 
 

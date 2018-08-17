@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2016 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018 AUTHOR,AFFILIATION
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,70 +22,66 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::lentCurvatureTest
+    Foam::CurvatureBufferLogic
 
 Description
 
 SourceFiles
-    lentCurvatureTestI.H
-    lentCurvatureTest.C
-    lentCurvatureTestIO.C
+    CurvatureBufferLogicI.H
+    CurvatureBufferLogic.C
+    CurvatureBufferLogicIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentCurvatureTest_H
-#define lentCurvatureTest_H
+#ifndef CurvatureBufferLogic_H
+#define CurvatureBufferLogic_H
 
-#include "analyticalSurfaceCurvatureModel.H"
-#include "lentSubalgorithmTest.H"
-#include "noiseGenerator.H"
+#include "fvMesh.H"
+#include "pTraits.H"
+
+#include <memory>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-
 /*---------------------------------------------------------------------------*\
-                         Class lentCurvatureTest Declaration
+                         Class CurvatureBufferLogic Declaration
 \*---------------------------------------------------------------------------*/
-
-class lentCurvatureTest
-:
-    public lentSubalgorithmTest
+template<class fieldType, class meshType, class tensorType>
+class CurvatureBufferLogic
 {
+
+private:
+
     // Private data
-    tmp<volScalarField> filterFieldTmp_;
-    tmp<surfaceScalarField> faceFilterFieldTmp_;
-    tmp<volScalarField> relativeDeltaFieldTmp_;
-    tmp<surfaceScalarField> relativeFaceDeltaFieldTmp_;
-
-    noiseGenerator noiseGen_;
-    tmp<analyticalSurfaceCurvatureModel> exactCurvatureModelTmp_;
-    tmp<curvatureModel> numericalCurvatureModelTmp_;
-
-    Switch correctFront_;
-    Switch useFrontSignedDistance_;
-    vector frontNoise_;
-    scalar distanceNoise_;
-
+    word bufferFieldName_{"curvature"};
+    mutable bool bufferInitialized_{false};
+    mutable label lastTimeUpdated_{-1};
+    mutable std::shared_ptr<fieldType> curvatureBufferPtr_{nullptr};
 
     // Private Member Functions
-    virtual void randomSetup();
-    virtual void perturbInputFields();
-    virtual void computeApproximatedFields();
-    virtual void evaluateMetrics();
+    void initializeBufferField(const meshType&) const;
 
 
 public:
 
     // Constructors
-    lentCurvatureTest(const fvMesh& mesh, triSurfaceFront& front);
+    CurvatureBufferLogic(){};
+    CurvatureBufferLogic(const word& bufferFieldName);
 
 
     //- Destructor
-    virtual ~lentCurvatureTest() = default;
+    ~CurvatureBufferLogic() = default;
 
+
+    // Member Functions
+    bool curvatureRequiresUpdate(const fvMesh&) const;
+    void curvatureUpdated(const fvMesh&) const;
+    void resizeBufferField(const label, const meshType&) const;
+    void setBufferToZero(const meshType&) const;
+    std::shared_ptr<fieldType> curvatureBuffer(const meshType&) const;
 };
 
 
@@ -96,6 +92,10 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "CurvatureBufferLogicI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
