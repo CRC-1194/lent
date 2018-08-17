@@ -23,16 +23,21 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::curvatureBasedSurfaceTensionForceModel
+    Foam::meyerCurvatureModel
 
 SourceFiles
-    curvatureBasedSurfaceTensionForceModel.C
+    meyerCurvatureModel.C
 
 Author
+    Tobias Tolle bt@lefou-familie.org
+
+Contributors 
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+
+    Curvature model that averages the input field and computes the curvature
+    using the divergence of the normal field.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,24 +62,48 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "curvatureBasedSurfaceTensionForceModel.H"
-#include "addToRunTimeSelectionTable.H"
+#ifndef meyerCurvatureModel_H
+#define meyerCurvatureModel_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "frontBasedCurvatureModel.H"
+#include "lentInterpolation.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(curvatureBasedSurfaceTensionForceModel, 0);
+/*---------------------------------------------------------------------------*\
+                         Class meyerCurvatureModel Declaration
+\*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
-//
-
-curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(const dictionary& configDict)
+class meyerCurvatureModel
     :
-        frontSurfaceTensionForceModel(configDict),
-        curvatureModelTmp_(curvatureModel::New(configDict.subDict("curvatureModel"))) 
-{}
+        public frontBasedCurvatureModel
+{
+
+private:
+    
+    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
+
+public:
+
+    TypeName ("Meyer");
+
+    // Constructors
+    meyerCurvatureModel(const dictionary& configDict);
+
+    virtual ~meyerCurvatureModel() = default;  
+
+    // Member functions
+    labelList orderVertices(labelledTri& tri, label V) const; 
+
+    scalar getAngle(vector& a, vector& b) const;
+
+    scalar cot(vector a, vector b) const;
+
+    // Member Functions
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -85,5 +114,7 @@ curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(c
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

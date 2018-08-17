@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2016 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018 AUTHOR,AFFILIATION
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,23 +22,23 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::lentCurvatureTest
+    Foam::compactLevelSetCurvatureModel
 
 Description
 
 SourceFiles
-    lentCurvatureTestI.H
-    lentCurvatureTest.C
-    lentCurvatureTestIO.C
+    compactLevelSetCurvatureModelI.H
+    compactLevelSetCurvatureModel.C
+    compactLevelSetCurvatureModelIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentCurvatureTest_H
-#define lentCurvatureTest_H
+#ifndef compactLevelSetCurvatureModel_H
+#define compactLevelSetCurvatureModel_H
 
-#include "analyticalSurfaceCurvatureModel.H"
-#include "lentSubalgorithmTest.H"
-#include "noiseGenerator.H"
+#include "divergenceBasedCurvatureModel.H"
+
+#include <vector>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -47,44 +47,48 @@ namespace FrontTracking {
 
 
 /*---------------------------------------------------------------------------*\
-                         Class lentCurvatureTest Declaration
+                         Class compactLevelSetCurvatureModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class lentCurvatureTest
+class compactLevelSetCurvatureModel
 :
-    public lentSubalgorithmTest
+    public divergenceBasedCurvatureModel
 {
+
+private:
+
     // Private data
-    tmp<volScalarField> filterFieldTmp_;
-    tmp<surfaceScalarField> faceFilterFieldTmp_;
-    tmp<volScalarField> relativeDeltaFieldTmp_;
-    tmp<surfaceScalarField> relativeFaceDeltaFieldTmp_;
-
-    noiseGenerator noiseGen_;
-    tmp<analyticalSurfaceCurvatureModel> exactCurvatureModelTmp_;
-    tmp<curvatureModel> numericalCurvatureModelTmp_;
-
-    Switch correctFront_;
-    Switch useFrontSignedDistance_;
-    vector frontNoise_;
-    scalar distanceNoise_;
+    word distanceCorrection_;
 
 
     // Private Member Functions
-    virtual void randomSetup();
-    virtual void perturbInputFields();
-    virtual void computeApproximatedFields();
-    virtual void evaluateMetrics();
+    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
+
+    void applySphereCorrection(
+            const fvMesh& mesh,
+            const triSurfaceFront& front
+    ) const;
+
+    void applyInterpolationCorrection(
+            const fvMesh& mesh,
+            const triSurfaceFront& front
+    ) const;
+
+    std::vector<label> findNeighbourCells(const fvMesh& mesh, const label& cellLabel) const;
+
 
 
 public:
 
+    TypeName ("compactDivGrad");
+
     // Constructors
-    lentCurvatureTest(const fvMesh& mesh, triSurfaceFront& front);
+    compactLevelSetCurvatureModel(const dictionary& configDict);
 
 
     //- Destructor
-    virtual ~lentCurvatureTest() = default;
+    virtual ~compactLevelSetCurvatureModel() = default;
+
 
 };
 

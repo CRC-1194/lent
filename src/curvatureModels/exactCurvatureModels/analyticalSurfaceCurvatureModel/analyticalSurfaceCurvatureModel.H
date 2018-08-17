@@ -23,16 +23,20 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::curvatureBasedSurfaceTensionForceModel
+    Foam::analyticalSurfaceCurvatureModel
 
 SourceFiles
-    curvatureBasedSurfaceTensionForceModel.C
+    analyticalSurfaceCurvatureModel.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle tolle@mma.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+
+    Curvature model that uses an analytical surface description to
+    provide the curvature.
+    Expects a subdict named "frontSurface" with the parameters for an
+    analyticalSurface.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,26 +60,48 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef analyticalSurfaceCurvatureModel_H
+#define analyticalSurfaceCurvatureModel_H
 
-#include "curvatureBasedSurfaceTensionForceModel.H"
-#include "addToRunTimeSelectionTable.H"
+#include "exactCurvatureModel.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "analyticalSurface.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(curvatureBasedSurfaceTensionForceModel, 0);
+/*---------------------------------------------------------------------------*\
+                         Class analyticalSurfaceCurvatureModel Declaration
+\*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
-//
+class analyticalSurfaceCurvatureModel
+:
+    public exactCurvatureModel
+{
 
-curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(const dictionary& configDict)
-    :
-        frontSurfaceTensionForceModel(configDict),
-        curvatureModelTmp_(curvatureModel::New(configDict.subDict("curvatureModel"))) 
-{}
+private:
 
+    // Private data
+    tmp<analyticalSurface> surfaceTmp_;
+
+public:
+
+    TypeName ("exactCurvature");
+
+    // Constructors
+    explicit analyticalSurfaceCurvatureModel(const dictionary& configDict);
+    explicit analyticalSurfaceCurvatureModel(const dictionary& configDict,
+                                             const analyticalSurface& surface);
+    
+    // Destructor
+    virtual ~analyticalSurfaceCurvatureModel() = default;
+
+
+    // Member Functions
+    scalar curvatureAtPoint(const point& P) const;
+};
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
@@ -85,5 +111,7 @@ curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(c
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

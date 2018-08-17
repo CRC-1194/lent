@@ -23,16 +23,20 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::curvatureBasedSurfaceTensionForceModel
+    Foam::curvatureModel
 
 SourceFiles
-    curvatureBasedSurfaceTensionForceModel.C
+    curvatureModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
+Contributors
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
+
 Description
-    Interface for the front curvature models. 
+
+    Interface for the curvature models. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,24 +61,64 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "curvatureBasedSurfaceTensionForceModel.H"
-#include "addToRunTimeSelectionTable.H"
+#ifndef curvatureModel_H
+#define curvatureModel_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "typeInfo.H"
+#include "tmp.H"
+#include "refCount.H"
+#include "triSurfaceFront.H"
+
+#include <memory>
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(curvatureBasedSurfaceTensionForceModel, 0);
+/*---------------------------------------------------------------------------*\
+                         Class curvatureModel Declaration
+\*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
-//
-
-curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(const dictionary& configDict)
+class curvatureModel
     :
-        frontSurfaceTensionForceModel(configDict),
-        curvatureModelTmp_(curvatureModel::New(configDict.subDict("curvatureModel"))) 
-{}
+        public refCount
+{
+
+public:
+
+    TypeName("curvatureModelInterface");
+
+    declareRunTimeSelectionTable (
+        tmp,
+        curvatureModel,
+        Dictionary,
+        (
+            const dictionary& configDict
+        ),
+        (configDict)
+    );
+
+    // Constructors
+    curvatureModel(const dictionary& configDict) {};  
+
+    // Destructor
+    virtual ~curvatureModel() = default;
+
+    // Selectors
+    static tmp<curvatureModel> New(const dictionary& configDict);
+
+    // Member Functions
+    virtual std::shared_ptr<volScalarField> cellCurvature(
+        const fvMesh&, 
+        const triSurfaceFront&
+    ) const = 0;  
+
+    virtual std::shared_ptr<surfaceScalarField> faceCurvature(
+        const fvMesh&, 
+        const triSurfaceFront&
+    ) const = 0; 
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -85,5 +129,7 @@ curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(c
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

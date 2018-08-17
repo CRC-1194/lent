@@ -23,16 +23,17 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::curvatureBasedSurfaceTensionForceModel
+    Foam::frontToMeshTransferModel
 
 SourceFiles
-    curvatureBasedSurfaceTensionForceModel.C
+    frontToMeshTransferModel.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+    Interface for different front to mesh transfer approaches intended
+    for curvature propagation. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,25 +57,74 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef frontToMeshTransferModel_H
+#define frontToMeshTransferModel_H
 
-#include "curvatureBasedSurfaceTensionForceModel.H"
-#include "addToRunTimeSelectionTable.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "typeInfo.H"
+#include "tmp.H"
+#include "refCount.H"
+#include "volFieldsFwd.H"
+#include "triSurfaceFront.H"
+#include "triSurfaceFrontFieldsFwd.H"
+
+#include <memory>
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(curvatureBasedSurfaceTensionForceModel, 0);
 
-// * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
-//
+/*---------------------------------------------------------------------------*\
+                         Class frontToMeshTransferModel Declaration
+\*---------------------------------------------------------------------------*/
 
-curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(const dictionary& configDict)
-    :
-        frontSurfaceTensionForceModel(configDict),
-        curvatureModelTmp_(curvatureModel::New(configDict.subDict("curvatureModel"))) 
-{}
+class frontToMeshTransferModel
+:
+    public refCount
+{
+
+public:
+
+    // Static data members
+    TypeName("abstract");
+
+    declareRunTimeSelectionTable (
+        tmp,
+        frontToMeshTransferModel,
+        Dictionary,
+        (
+            const dictionary& configDict
+        ),
+        (configDict)
+    );
+
+
+    // Constructors
+    frontToMeshTransferModel(const dictionary& configDict);
+
+
+    // Selectors
+    static tmp<frontToMeshTransferModel> New(const dictionary& configDict);
+
+
+    //- Destructor
+    virtual ~frontToMeshTransferModel() = default;
+
+
+    // Member Functions
+    virtual void transferCurvature(
+        const triSurfaceFrontVectorField& curvatureNormals,
+        const triSurfaceFront& front,
+        const fvMesh& mesh
+    ) const = 0;
+
+    virtual std::shared_ptr<volScalarField> cellCurvature(const fvMesh&) const = 0;  
+
+    virtual std::shared_ptr<surfaceScalarField> faceCurvature(const fvMesh&) const = 0; 
+};
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -85,5 +135,7 @@ curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(c
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

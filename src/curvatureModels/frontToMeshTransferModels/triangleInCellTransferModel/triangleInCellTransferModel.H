@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2016 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018 AUTHOR,AFFILIATION
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,76 +22,72 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::lentCurvatureTest
+    Foam::triangleInCellTransferModel
 
 Description
 
 SourceFiles
-    lentCurvatureTestI.H
-    lentCurvatureTest.C
-    lentCurvatureTestIO.C
+    triangleInCellTransferModelI.H
+    triangleInCellTransferModel.C
+    triangleInCellTransferModelIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef lentCurvatureTest_H
-#define lentCurvatureTest_H
+#ifndef triangleInCellTransferModel_H
+#define triangleInCellTransferModel_H
 
-#include "analyticalSurfaceCurvatureModel.H"
-#include "lentSubalgorithmTest.H"
-#include "noiseGenerator.H"
+#include "CurvatureBufferLogic.H"
+#include "frontToMeshTransferModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-
 /*---------------------------------------------------------------------------*\
-                         Class lentCurvatureTest Declaration
+                         Class triangleInCellTransferModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class lentCurvatureTest
+class triangleInCellTransferModel
 :
-    public lentSubalgorithmTest
+    public frontToMeshTransferModel,
+    protected CurvatureBufferLogic<volScalarField, fvMesh, scalar>
 {
     // Private data
-    tmp<volScalarField> filterFieldTmp_;
-    tmp<surfaceScalarField> faceFilterFieldTmp_;
-    tmp<volScalarField> relativeDeltaFieldTmp_;
-    tmp<surfaceScalarField> relativeFaceDeltaFieldTmp_;
-
-    noiseGenerator noiseGen_;
-    tmp<analyticalSurfaceCurvatureModel> exactCurvatureModelTmp_;
-    tmp<curvatureModel> numericalCurvatureModelTmp_;
-
-    Switch correctFront_;
-    Switch useFrontSignedDistance_;
-    vector frontNoise_;
-    scalar distanceNoise_;
-
 
     // Private Member Functions
-    virtual void randomSetup();
-    virtual void perturbInputFields();
-    virtual void computeApproximatedFields();
-    virtual void evaluateMetrics();
 
 
 public:
 
+    // Static data members
+    TypeName ("triangleInCell");
+
+
     // Constructors
-    lentCurvatureTest(const fvMesh& mesh, triSurfaceFront& front);
+    triangleInCellTransferModel(const dictionary& configDict);
 
 
     //- Destructor
-    virtual ~lentCurvatureTest() = default;
+    virtual ~triangleInCellTransferModel() = default;
 
+
+    // Member Functions
+    virtual void transferCurvature(
+        const triSurfaceFrontVectorField& curvatureNormals,
+        const triSurfaceFront& front,
+        const fvMesh& mesh
+    ) const;
+
+    virtual std::shared_ptr<volScalarField> cellCurvature(const fvMesh&) const;  
+
+    virtual std::shared_ptr<surfaceScalarField> faceCurvature(const fvMesh&) const; 
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace FrontTracking
+} // End namespace FrontTracking 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

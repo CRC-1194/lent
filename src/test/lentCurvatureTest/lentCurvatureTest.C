@@ -47,12 +47,6 @@ void lentCurvatureTest::randomSetup()
         computeExactSignedDistances();
     }
 
-    const auto& exactCurvatureModel = exactCurvatureModelTmp_.ref();
-    const auto& front = frontRef();
-
-    // Compute reference curvature, stored in the curvature model
-    exactCurvatureModel.cellCurvature(mesh(), front).ref();
-
     // The markerfield is required to setup the filter field
     auto& markerField = lookupField<volScalarField>("alpha.water");
     lent().calcMarkerField(markerField);
@@ -125,7 +119,7 @@ void lentCurvatureTest::perturbInputFields()
 void lentCurvatureTest::computeApproximatedFields()
 {
     const auto& numericalCurvatureModel = numericalCurvatureModelTmp_.ref();
-    numericalCurvatureModel.cellCurvature(mesh(), frontRef()).ref();
+    numericalCurvatureModel.cellCurvature(mesh(), frontRef());
 }
 
 void lentCurvatureTest::evaluateMetrics()
@@ -133,9 +127,10 @@ void lentCurvatureTest::evaluateMetrics()
     // Get fields and compute error field
     auto& exactCurvatureModel = exactCurvatureModelTmp_.ref();
     auto& numericalCurvatureModel = numericalCurvatureModelTmp_.ref();
-    auto& exactCurvatureField = exactCurvatureModel.cellCurvature(mesh(), frontRef()).ref();
-    tmp<volScalarField> numericalCurvatureFieldTmp = numericalCurvatureModel.cellCurvature(mesh(), frontRef());
-    volScalarField& numericalCurvatureField = numericalCurvatureFieldTmp.ref();
+    auto exactCurvatureFieldPtr = exactCurvatureModel.cellCurvature(mesh(), frontRef());
+    auto& exactCurvatureField = *exactCurvatureFieldPtr;
+    auto numericalCurvatureFieldPtr = numericalCurvatureModel.cellCurvature(mesh(), frontRef());
+    auto& numericalCurvatureField = *numericalCurvatureFieldPtr;
 
     const auto& filterField = filterFieldTmp_.ref();
     exactCurvatureField *= filterField;
@@ -168,10 +163,10 @@ void lentCurvatureTest::evaluateMetrics()
 
     // Evaluation for curvature at faces -> location where the curvature
     // is needed for discretization of the surface tension force
-    auto exactFaceCurvatureTmp = exactCurvatureModel.faceCurvature(mesh(), frontRef()); 
-    const auto& exactFaceCurvature = exactFaceCurvatureTmp.ref();
-    auto numericalFaceCurvatureTmp = numericalCurvatureModel.faceCurvature(mesh(), frontRef());
-    const auto& numericalFaceCurvature = numericalFaceCurvatureTmp.ref();
+    auto exactFaceCurvaturePtr = exactCurvatureModel.faceCurvature(mesh(), frontRef());
+    const auto& exactFaceCurvature = *exactFaceCurvaturePtr;
+    auto numericalFaceCurvaturePtr = numericalCurvatureModel.faceCurvature(mesh(), frontRef());
+    const auto& numericalFaceCurvature = *numericalFaceCurvaturePtr;
     auto& relativeFaceDeltaField = relativeFaceDeltaFieldTmp_.ref();
     
     relativeFaceDeltaField = mag(numericalFaceCurvature - exactFaceCurvature)/(mag(exactFaceCurvature) + dSMALL);
@@ -199,12 +194,12 @@ lentCurvatureTest::lentCurvatureTest(const fvMesh& mesh, triSurfaceFront& front)
     frontNoise_ = testDict().lookup("frontNoise");
     distanceNoise_ = readScalar(testDict().lookup("distanceNoise"));
 
-    exactCurvatureModelTmp_ = tmp<frontExactSurfaceCurvatureModel>{
-        new frontExactSurfaceCurvatureModel(lentDict().subDict("exactCurvatureModel"), surfaceRef())
+    exactCurvatureModelTmp_ = tmp<analyticalSurfaceCurvatureModel>{
+        new analyticalSurfaceCurvatureModel(lentDict().subDict("exactCurvatureModel"), surfaceRef())
     };
 
-    numericalCurvatureModelTmp_ = tmp<frontCurvatureModel>{
-        frontCurvatureModel::New(lentDict().subDict("numericalCurvatureModel"))
+    numericalCurvatureModelTmp_ = tmp<curvatureModel>{
+        curvatureModel::New(lentDict().subDict("numericalCurvatureModel"))
     };
 
     // Initialize Fields

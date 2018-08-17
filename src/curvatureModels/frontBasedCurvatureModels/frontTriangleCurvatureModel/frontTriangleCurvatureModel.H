@@ -23,16 +23,18 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::curvatureBasedSurfaceTensionForceModel
+    Foam::frontTriangleCurvatureModel
 
 SourceFiles
-    curvatureBasedSurfaceTensionForceModel.C
+    frontTriangleCurvatureModel.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+
+    Curvature model based on the surface tension model described in the
+    2012 paper of Tukovic and Jasak
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,25 +58,48 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef frontTriangleCurvatureModel_H
+#define frontTriangleCurvatureModel_H
 
-#include "curvatureBasedSurfaceTensionForceModel.H"
-#include "addToRunTimeSelectionTable.H"
+#include "frontBasedCurvatureModel.H"
+#include "frontVertexNormalCalculator.H"
+#include "lentCommunication.H"
+#include "triSurfaceFrontFields.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(curvatureBasedSurfaceTensionForceModel, 0);
 
-// * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
-//
+/*---------------------------------------------------------------------------*\
+                         Class frontTriangleCurvatureModel Declaration
+\*---------------------------------------------------------------------------*/
 
-curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(const dictionary& configDict)
-    :
-        frontSurfaceTensionForceModel(configDict),
-        curvatureModelTmp_(curvatureModel::New(configDict.subDict("curvatureModel"))) 
-{}
+class frontTriangleCurvatureModel
+:
+    public frontBasedCurvatureModel
+{
+    // Private data
+    tmp<frontVertexNormalCalculator> normalCalculatorTmp_;
+
+    // Private Member Functions
+    virtual void computeCurvature(const fvMesh&, const triSurfaceFront&) const;
+
+public:
+
+    TypeName ("frontTriangle");
+    
+    // Constructors
+    frontTriangleCurvatureModel(const dictionary& configDict);
+        
+    //- Destructor
+    virtual ~frontTriangleCurvatureModel() = default;
+
+
+    // Member Functions
+};
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -85,5 +110,7 @@ curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(c
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

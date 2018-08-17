@@ -23,16 +23,20 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::curvatureBasedSurfaceTensionForceModel
+    Foam::analyticalSurfaceCurvatureModel
 
 SourceFiles
-    curvatureBasedSurfaceTensionForceModel.C
+    analyticalSurfaceCurvatureModel.C
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tobias Tolle tolle@mma.tu-darmstadt.de
 
 Description
-    Interface for the front curvature models. 
+
+    Curvature model that uses an analytical surface description to
+    provide the curvature.
+    Expects a subdict named "frontSurface" with the parameters for an
+    analyticalSurface.
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -56,8 +60,7 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-
-#include "curvatureBasedSurfaceTensionForceModel.H"
+#include "analyticalSurfaceCurvatureModel.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -65,16 +68,28 @@ Description
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(curvatureBasedSurfaceTensionForceModel, 0);
+    defineTypeNameAndDebug(analyticalSurfaceCurvatureModel, 0);
+    addToRunTimeSelectionTable(curvatureModel, analyticalSurfaceCurvatureModel, Dictionary);
 
-// * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
-//
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(const dictionary& configDict)
-    :
-        frontSurfaceTensionForceModel(configDict),
-        curvatureModelTmp_(curvatureModel::New(configDict.subDict("curvatureModel"))) 
+analyticalSurfaceCurvatureModel::analyticalSurfaceCurvatureModel(const dictionary& configDict)
+:
+    exactCurvatureModel{configDict},
+    surfaceTmp_{analyticalSurface::New(configDict.subDict("frontSurface"))}
 {}
+
+analyticalSurfaceCurvatureModel::analyticalSurfaceCurvatureModel(const dictionary& configDict, const analyticalSurface& surface)
+:
+    exactCurvatureModel{configDict},
+    surfaceTmp_{surface}
+{}
+
+// * * * * * * * * * * * * * * * * Public member functions * * * * * * * * * //
+scalar analyticalSurfaceCurvatureModel::curvatureAtPoint(const point& P) const
+{
+    return surfaceTmp_->curvatureAt(P);
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

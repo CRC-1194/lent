@@ -23,16 +23,20 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::curvatureBasedSurfaceTensionForceModel
+    Foam::curvatureModel
 
 SourceFiles
-    curvatureBasedSurfaceTensionForceModel.C
+    curvatureModel.C
 
 Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
+Contributors
+    Tobias Tolle    tolle@mma.tu-darmstadt.de
+
 Description
-    Interface for the front curvature models. 
+
+    Interface for the curvature models. 
 
     You may refer to this software as :
     //- full bibliographic data to be provided
@@ -57,24 +61,41 @@ Description
 \*---------------------------------------------------------------------------*/
 
 
-#include "curvatureBasedSurfaceTensionForceModel.H"
-#include "addToRunTimeSelectionTable.H"
+#include "curvatureModel.H"
+#include "dictionary.H"
+#include "addToRunTimeSelectionTable.H" 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
 namespace FrontTracking {
 
-    defineTypeNameAndDebug(curvatureBasedSurfaceTensionForceModel, 0);
+    defineTypeNameAndDebug(curvatureModel, 0);
+    defineRunTimeSelectionTable(curvatureModel, Dictionary);
 
-// * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
-//
+// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
+tmp<curvatureModel>
+curvatureModel::New(const dictionary& configDict)
+{
+    const word name = configDict.lookup("type");
 
-curvatureBasedSurfaceTensionForceModel::curvatureBasedSurfaceTensionForceModel(const dictionary& configDict)
-    :
-        frontSurfaceTensionForceModel(configDict),
-        curvatureModelTmp_(curvatureModel::New(configDict.subDict("curvatureModel"))) 
-{}
+    DictionaryConstructorTable::iterator cstrIter =
+        DictionaryConstructorTablePtr_->find(name);
+
+    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    {
+        FatalErrorIn (
+            "curvatureModel::New(const word& name)"
+        )   << "Unknown curvatureModel type "
+            << name << nl << nl
+            << "Valid curvatureModels are : " << endl
+            << DictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalError);
+    }
+
+    return tmp<curvatureModel> (cstrIter()(configDict));
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
