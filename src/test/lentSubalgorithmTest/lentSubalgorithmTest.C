@@ -115,6 +115,36 @@ void lentSubalgorithmTest::computeExactSignedDistances() const
     frontSurface.setDistance(pointSignedDistance);
 }
 
+void lentSubalgorithmTest::computeExactSignedDistancesNarrowBand() const
+{
+    // Only compute the exact signed distance in the narrow band
+    const auto& frontSurface = surfaceTmp_.ref();
+
+    // cell-centred distances
+    auto& signedDistance = lookupSignedDistance();
+    const auto& C = mesh().C();
+
+    forAll(signedDistance, I)
+    {
+        if (mag(signedDistance[I]) < GREAT)
+        {
+            signedDistance[I] = frontSurface.signedDistance(C[I]);
+        }
+    }
+    
+    // cell-corner distances
+    auto& pointSignedDistance = lookupPointSignedDistance();
+    const auto& P = mesh().points();
+
+    forAll(pointSignedDistance, I)
+    {
+        if (mag(pointSignedDistance[I]) < GREAT)
+        {
+            pointSignedDistance[I] = frontSurface.signedDistance(P[I]);
+        }
+    }
+}
+
 void lentSubalgorithmTest::computeFrontSignedDistances()
 {
     auto& signedDistance = lookupSignedDistance();

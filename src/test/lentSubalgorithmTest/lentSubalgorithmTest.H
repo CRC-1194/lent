@@ -170,6 +170,7 @@ protected:
     }
 
     void computeExactSignedDistances() const;
+    void computeExactSignedDistancesNarrowBand() const;
     void computeFrontSignedDistances();
     void setupFrontFromSurface(const bool correct);
 

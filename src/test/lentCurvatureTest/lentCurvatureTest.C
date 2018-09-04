@@ -44,7 +44,7 @@ void lentCurvatureTest::randomSetup()
 
     if (!useFrontSignedDistance_)
     {
-        computeExactSignedDistances();
+        computeExactSignedDistancesNarrowBand();
     }
 
     // The markerfield is required to setup the filter field
