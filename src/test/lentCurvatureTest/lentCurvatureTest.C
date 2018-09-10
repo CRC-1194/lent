@@ -133,13 +133,12 @@ void lentCurvatureTest::evaluateMetrics()
     auto& numericalCurvatureField = *numericalCurvatureFieldPtr;
 
     const auto& filterField = filterFieldTmp_.ref();
-    exactCurvatureField *= filterField;
-    numericalCurvatureField *= filterField;
 
     auto& relativeDeltaField = relativeDeltaFieldTmp_.ref();
     dimensionedScalar dSMALL("SMALL", pow(dimLength,-1), SMALL);
 
     relativeDeltaField = mag(numericalCurvatureField - exactCurvatureField)/(mag(exactCurvatureField) + dSMALL);
+    relativeDeltaField *= filterField;
 
     // Rename curvature fields so they can be distinguished
     exactCurvatureField.rename("exact_cell_curvature");
