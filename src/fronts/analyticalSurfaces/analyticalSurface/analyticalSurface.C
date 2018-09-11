@@ -154,8 +154,8 @@ void analyticalSurface::moveFrontToSurface(triSurface& front) const
 
 void analyticalSurface::makeNormalOrientationConsistent(triSurface& front, const bool outwardOrientation) const
 {
-    // enforce recomputation of front normals to ensure they are up-to-date
-    // with the front vertex positions
+    // Enforce recomputation of front normals to ensure they are up-to-date
+    // with the front vertex positions (TT)
     front.clearGeom();
 
     scalar orientation = 1.0;
@@ -175,9 +175,11 @@ void analyticalSurface::makeNormalOrientationConsistent(triSurface& front, const
         if ((normal & triangleNormals[I]) < 0.0)
         {
             triangles[I].flip();
-            triangleNormals[I] *= -1.0;
         }
     }
+
+    // Delete all deman driven data to ensure correctness and consistency (TT)
+    front.clearOut();
 }
 
 
