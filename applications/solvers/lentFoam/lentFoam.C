@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
             // more accurate approach if required (TT)
             if (lentSC.updateMomentumFlux())
             {
-                if (lent.dict().subDict("markerFieldModel").lookup("nSmoothingSteps") > 0)
+                if (lent.dict().subDict("markerFieldModel").get<label>("nSmoothingSteps") > 0)
                 {
                     // old approach, only works for diffuse markerfield
                     rhoPhi == fvc::interpolate(rho) * phi;
