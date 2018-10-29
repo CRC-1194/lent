@@ -70,19 +70,16 @@ class lentSolutionControl
     const surfaceScalarField& volumetricFluxes_;
 
     // User defined flags for solution control
-    bool resolveConvectiveNonlinearity_;
-    bool adaptiveInnerIteration_;
-    // Valid parameters: "none", "adaptive", "alwaysOn"
-    word explicitVelocityUpdateType_;
     scalar relTolVolFlux_;
+    scalar absTolVolFlux_;
 
     // Internal parameters for solution control
-    bool explicitVelocityUpdate_;
+    bool fluxesHaveConverged_;
 
     // Private Member Functions
     bool volFluxesAreConverged();
-    bool pressureIsConverged();
-    void checkParameterCompatibility() const;
+    void checkFluxConvergence();
+    bool pressureIsConverged() const;
     void displayConfiguration() const;
 
     
@@ -90,8 +87,11 @@ protected:
 
     // Protected Member Functions
 
+        //- Return true if all convergence checks are satisfied
+        virtual bool criteriaSatisfied() override;
+
         //- Read controls from fvSolution dictionary
-        virtual void read();
+        virtual void read() override;
 
 
 public:

@@ -39,25 +39,52 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 bool lentSolutionControl::volFluxesAreConverged()
 {
+    // Reset the flux convergence flag for a new time step
+    if (firstIter())
+    {
+        fluxesHaveConverged_ = false;
+    }
+    // To avoid oscillatory behaviour, disable the flux convergence check
+    // once the test was successful within a time step
+    else if (!fluxesHaveConverged_)
+    {
+        checkFluxConvergence();
+    }
+
+    volumetricFluxes_.storePrevIter();
+
+    return fluxesHaveConverged_;
+}
+
+void lentSolutionControl::checkFluxConvergence()
+{
     // TODO: check how residuals are computed and mimick this
     // for convergence check of the volumetric fluxes
     // Discuss with Tomislav what would be reasonable. For now, use
     // max norm
-    auto maxRelDelta = max(mag(volumetricFluxes_ - volumetricFluxes_.prevIter()))/(max(mag(volumetricFluxes_)).value() + SMALL);
+    auto maxRelDelta = max(mag(volumetricFluxes_ - volumetricFluxes_.prevIter())
+                        /(max(mag(volumetricFluxes_)).value() + SMALL));
+    auto maxAbsDelta = max(mag(volumetricFluxes_ - volumetricFluxes_.prevIter()));
 
-    if (maxRelDelta.value() < relTolVolFlux_)
+    if (maxRelDelta.value() < relTolVolFlux_ || maxAbsDelta.value() < absTolVolFlux_)
     {
-        Info << "\nVolumetric fluxes have converged. Last relative change: "
-             << maxRelDelta.value() << nl << endl;
-        return true;
+        Info << "\nVolumetric fluxes have converged:\n\tLast relative change: "
+             << maxRelDelta.value() << nl
+             << "\tLast absolute change: "
+             << maxAbsDelta.value() << nl
+             << endl;
+        fluxesHaveConverged_ = true;
     }
     else
     {
-        return false;
+        Info << "\nPhi change = " << maxRelDelta.value() << nl
+             << "max(mag(phi)) = " << max(mag(volumetricFluxes_)).value() << nl
+             << "Abs phi change = " << maxAbsDelta.value() << nl
+             << endl;
     }
 }
 
-bool lentSolutionControl::pressureIsConverged()
+bool lentSolutionControl::pressureIsConverged() const
 {
     // Expect no convergence in first inner iteration of first outer iteration
     if (firstIter() && corrPISO_ == 1)
@@ -95,47 +122,6 @@ bool lentSolutionControl::pressureIsConverged()
     }
 }
 
-void lentSolutionControl::checkParameterCompatibility() const
-{
-    const word& ut = explicitVelocityUpdateType_;
-
-    if (!(ut == "none" || ut == "adaptive" || ut == "alwaysOn"))
-    {
-        FatalErrorIn
-        (
-            "lentSolutionControl::checkParameterCompatibility()"
-        )   << "Unknown velocityUpdateType " << ut << "; valid options are "
-        << "none, adaptive, alwaysOn" << endl
-        << exit(FatalError);
-    }
-
-    if (nCorrPISO() > 1 && explicitVelocityUpdateType_ == "none")
-    {
-        Info << "\nWarning: n = " << nCorrPISO() << " inner iterations set"
-             << ", but explicit velocity update is disabled. This makes no sense."
-             << endl;
-    }
-
-    // Residual controlled velocity solution in combination with explicit velocity
-    // update is a bad idea as the explicit update may prevent the fulfillment
-    // of the accuracy requirement for the initial residual
-    if (!residualControl_.empty())
-    {
-        for (const auto& residualData : residualControl_)
-        {
-            if (residualData.name == "U" && explicitVelocityUpdateType_ == "alwaysOn")
-            {
-                FatalErrorIn
-                (
-                    "lentSolutionControl::checkParameterCompatibility()"
-                )   << "VelocityUpdateType is " << ut << "; this will not work with"
-                << " a residual controlled solution of the velocity." << endl
-                << exit(FatalError);
-            }
-        }
-    }
-}
-
 void lentSolutionControl::displayConfiguration() const
 {
     Info << "\n--------------------------------------------------------" 
@@ -144,37 +130,28 @@ void lentSolutionControl::displayConfiguration() const
          << endl;
 
     Info << "\tMaximum number of inner iterations: " << nCorrPISO_
-         << "\n\tResolve convective non-linearity: " << resolveConvectiveNonlinearity_
-         << "\n\tUse adaptive inner iteration strategy: " << adaptiveInnerIteration_
-         << "\n\tExplicit velocity update: " << explicitVelocityUpdateType_;
-
-    if (explicitVelocityUpdateType_ == "adaptive")
-    {
-        Info << "\n\tRelative tolerance for volumetric flux change: "
-             << relTolVolFlux_
-             << "\n\tExplicit velocity update will be disabled when this"
-             << " tolerance is reached.";
-    }
+         << "\n\tFlux convergence thresholds:"
+         << "\n\t\tRelative change: " << relTolVolFlux_
+         << "\n\t\tAbsolute change: " << absTolVolFlux_;
 
     Info << nl << nl;
 }
 
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+bool lentSolutionControl::criteriaSatisfied()
+{
+    return volFluxesAreConverged() && pimpleControl::criteriaSatisfied();
+}
+
 void lentSolutionControl::read()
 {
     pimpleControl::read();
 
     const dictionary& lentSCDict = dict();
 
-    resolveConvectiveNonlinearity_ = lentSCDict.lookupType<bool>("updateMomentumFlux");
-    adaptiveInnerIteration_ = lentSCDict.lookupType<bool>("adaptiveInnerIteration");
-    explicitVelocityUpdateType_ = lentSCDict.lookupType<word>("velocityUpdateType");
-
-    if (explicitVelocityUpdateType_ == "adaptive")
-    {
-        relTolVolFlux_ = readScalar(lentSCDict.lookup("phiChangeTolerance"));
-    }
+    relTolVolFlux_ = lentSCDict.get<scalar>("phiChangeTolerance");
+    //absTolVolFlux_ = lentSCDict.get<scalar>("phiChangeTolerance");
 }
 
 
@@ -183,15 +160,10 @@ lentSolutionControl::lentSolutionControl(fvMesh& mesh, const surfaceScalarField&
 :
     pimpleControl{mesh, dictName},
     volumetricFluxes_{phi},
-    resolveConvectiveNonlinearity_{true},
-    adaptiveInnerIteration_{true},
-    explicitVelocityUpdateType_{"adaptive"},
     relTolVolFlux_{1.0e-8},
-    explicitVelocityUpdate_{true}
+    absTolVolFlux_{1.0e-18}
 {
     read();
-
-    checkParameterCompatibility();
 
     displayConfiguration(); 
 }
@@ -209,18 +181,10 @@ bool lentSolutionControl::adaptiveCorrect()
     {
         performInnerIteration = false;
     }
-
-    // Check adaptive conditions 
-    if (adaptiveInnerIteration_ && corrPISO_ > 1)
+    else if (corrPISO_ > 1)
     {
         // Residual condition
         if (pressureIsConverged())
-        {
-            performInnerIteration = false;
-        }
-        // Without explicit velocity update, further inner iterations have no
-        // effect
-        else if (!explicitVelocityUpdate_)
         {
             performInnerIteration = false;
         }
@@ -236,40 +200,16 @@ bool lentSolutionControl::adaptiveCorrect()
 
 bool lentSolutionControl::explicitVelocityUpdate()
 {
-    if (explicitVelocityUpdateType_ == "none")
-    {
-        explicitVelocityUpdate_ = false;
-    }
-    else if (explicitVelocityUpdateType_ == "alwaysOn")
-    {
-        explicitVelocityUpdate_ = true;
-    }
-    else if (explicitVelocityUpdateType_ == "adaptive")
-    {
-        // Explicit update must be re-enabled for each new time step
-        if (firstIter())
-        {
-            explicitVelocityUpdate_ = true;
-        }
-        else
-        {
-            if (explicitVelocityUpdate_)
-            {
-                explicitVelocityUpdate_ = !volFluxesAreConverged();
-            }
-        }
-
-        volumetricFluxes_.storePrevIter();
-    }
-
-    return explicitVelocityUpdate_;
+    // Explicit update of velocity is only required if the pressure field
+    // has changed
+    return !pressureIsConverged();
 }
 
 bool lentSolutionControl::updateMomentumFlux() const
 {
     // Update of momentum fluxes in the first outer iteration
     // has to be ensured
-    return firstIter() || resolveConvectiveNonlinearity_;
+    return firstIter() || !fluxesHaveConverged_;
 }
 
 
