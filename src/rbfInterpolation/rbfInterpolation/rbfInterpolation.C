@@ -42,6 +42,7 @@ SourceFiles
 \*---------------------------------------------------------------------------*/
 
 #include "rbfInterpolation.H"
+#include <limits>
 
 namespace RBF 
 {
@@ -54,22 +55,69 @@ rbfInterpolation<Points, Values>::rbfInterpolation
 (
     Points const& points, 
     Values const& values, 
-    Kernel kernel
+    Kernel kernel, 
+    scalingType scaling
 )
 :
             pointsRef_(points), 
             valuesRef_(values),
             Npts_(pointsRef_.size()), 
             b_(Nbetas_ + Npts_), 
-            kernel_(kernel)
+            kernel_(kernel), 
+            rs_(1.0)
 {
-    interpolate(); 
+    interpolate(scaling); 
 }
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
+template<typename Points, typename Values>
+double rbfInterpolation<Points, Values>::maxCentroidRadius(Points const& points) const
+{
+    double rmax = -std::numeric_limits<double>::infinity(); 
+
+    auto pointsCentroid = Numeric::centroid(points);
+
+    for (const auto& point : pointsRef_)
+    {
+        const double dist = Numeric::distance(pointsCentroid, point); 
+        if (dist > rmax)
+            rmax = dist; 
+    }
+
+    return rmax; 
+}
+
+template<typename Points, typename Values>
+double rbfInterpolation<Points, Values>::meanCentroidRadius(Points const& points) const
+{
+    double rcmean = 0.;  
+
+    auto pointsCentroid = Numeric::centroid(points);
+    for (const auto& point : pointsRef_)
+        rcmean += Numeric::distance(pointsCentroid, point); 
+
+    rcmean /= points.size(); 
+
+    return rcmean; 
+}
+
+template<typename Points, typename Values>
+double rbfInterpolation<Points, Values>::rmsRadius(Points const& points) const
+{
+    double rrms = 0.;  
+
+    for (const auto& pointI : pointsRef_)
+        for (const auto& pointJ : pointsRef_)
+        rrms += Numeric::distance_sqr(pointI, pointJ); 
+
+    rrms = std::sqrt(rrms / points.size());  
+
+    return rrms; 
+}
+
 template<typename Points, typename Values> 
-void rbfInterpolation<Points, Values>::interpolate()
+void rbfInterpolation<Points, Values>::interpolate(scalingType scaling)
 {
         using namespace Eigen; 
         using namespace Numeric;
@@ -78,15 +126,23 @@ void rbfInterpolation<Points, Values>::interpolate()
 
         MatrixXd A (Ntotal, Ntotal);
 
+        // Compute the scaling RBF radius as the maximal radius between a point 
+        // p and the centroid of the set of points in O(2n). 
+        if (scaling == scalingType::MAX_CENTROID_RADIUS)
+            rs_ = maxCentroidRadius(pointsRef_);  
+
+        if (scaling == scalingType::MEAN_CENTROID_RADIUS)
+            rs_ = meanCentroidRadius(pointsRef_);  
+
+        if (scaling == scalingType::RMS_RADIUS)
+            rs_ = rmsRadius(pointsRef_);  
+
         // Fill the RBF matrix block and set the source term.
         for (ptSizeType j = 0; j < Npts_; ++j)
         {
             b_[j] = valuesRef_[j]; 
             for (ptSizeType i = 0; i < Npts_ ; ++i)
-                // FIXME: 
-                // Compute and use the point radius for scaling RBFs. 
-                // Check how to incorporate default arguments.
-                A(i,j) = kernel_(distance(pointsRef_[i], pointsRef_[j]));
+                A(i,j) = kernel_(distance(pointsRef_[i], pointsRef_[j]), rs_);
         }
         b_.tail(Nbetas_) = VectorXd::Zero(Nbetas_); 
 
@@ -105,13 +161,14 @@ void rbfInterpolation<Points, Values>::interpolate()
         }
         A.bottomRightCorner(Nbetas_, Nbetas_) = MatrixXd::Zero(Nbetas_, Nbetas_); 
 
-        // Solve for the RBF coeffs and store them.
-        LDLT_ = A.ldlt(); 
-        x_ = LDLT_.solve(b_);
+        // Solve for the RBF interpolation coeffs.
+        x_ = A.colPivHouseholderQr().solve(b_);
 }
 
 
+
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
 
 template<typename Points, typename Values> 
 template<typename Point> 
@@ -119,10 +176,9 @@ double rbfInterpolation<Points, Values>::interpolate(Point const& evalPoint) con
 {
     double result = 0.; 
 
-    // TODO: Reuse point radius. 
     for (ptSizeType i = 0; i < Npts_; ++i)
         result += x_[i] * 
-                  kernel_(Numeric::distance(evalPoint, pointsRef_[i])); 
+                  kernel_(Numeric::distance(evalPoint, pointsRef_[i]), rs_); 
 
     result += x_[Npts_]; 
 

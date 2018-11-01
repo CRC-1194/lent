@@ -40,22 +40,22 @@ namespace RBF
     {
         {
             "WENDLAND_C0",
-            [](double r, double rs=1.0, double n = 1.) 
+            [](const double r, const double rs=1.0, const double n = 1.) 
             { 
                 return std::pow(1. - (r / rs),2); 
             } 
         },
         {
             "WENDLAND_C2",
-            [](double r, double rs=1.0, double n = 1.) 
+            [](const double r, const double rs=1.0, const double n = 1.) 
             { 
                 const auto eta = r / rs;
                 return std::pow(1. - eta, 4) * (4.*eta + 1.); 
             }
         },
         {
-            "WENDLAND_C4", 
-            [](double r, double rs=1.0, double n = 1.) 
+            "WENDLAND_C4",
+            [](const double r, const double rs=1.0, const double n = 1.) 
             {
                 const auto eta = r / rs; 
                 return std::pow(1. - eta, 6) * (35.*std::pow(eta, 2)  + 18.*eta + 3.);
@@ -63,7 +63,7 @@ namespace RBF
         },
         {
             "WENDLAND_C6",
-            [](double r, double rs=1.0, double n = 1.) 
+            [](const double r, const double rs=1.0, const double n = 1.) 
             {
                 const auto eta = r / rs;
                 return pow((1. - eta), 8) * (32.*std::pow(eta, 3) + 25.*std::pow(eta, 2) + 8.*(eta) +  1.);
@@ -72,21 +72,21 @@ namespace RBF
         },
         {
             "LINEAR",
-            [](double r, double rs=1.0, double n = 1.) 
+            [](const double r, const double rs=1.0, const double n = 1.) 
             {
                 return r / rs;
             }
         },
         {
             "CUBIC_SPLINE",
-            [](double r, double rs=1.0, double n = 1.) 
+            [](const double r, const double rs=1.0, const double n = 1.) 
             {
                 return std::pow(r / rs, 3);
             }
         },
         {
             "LINEAR_CUBIC_SPLINE",
-            [](double r, double rs=1.0, double n = 1.) 
+            [](const double r, const double rs=1.0, const double n = 1.) 
             {
                 const auto eta = r / rs;
                 return eta - std::pow(eta, 3);
@@ -94,46 +94,46 @@ namespace RBF
         },
         {
             "TRUNCATED_POWER",
-            [](double r, double rs=1.0, double n = 1.) 
+            [](const double r, const double rs=1.0, const double n = 1.) 
             {
                 return std::pow(1. - (r / rs), n);
             }
         },
         {
             "MULTIQUADRIC",
-            [](double r, double rs=1.0, double n = 1.) 
+            [](const double r, const double rs=1.0, const double n = 1.) 
             {
                 return std::sqrt(1. + std::pow(r / rs, 2));
             }
         },
         {
             "INVERSE_MULTIQUADRIC", 
-            [](double r, double rs=1.0, double n = 1.) 
+            [](const double r, const double rs=1.0, const double n = 1.) 
             {
                 return std::pow(1 + (r / rs), -n);
             }
         },
         {
             "INVERSE_QUADRATIC",
-            [](double r, double rs=1.0, double n = 1.) 
+            [](const double r, const double rs=1.0, const double n = 1.) 
             {
                 return 1.0  / (1.0 + std::pow(r / rs, 2));
             }
         }, 
         {
             "THIN_PLATE_SPLINE", 
-            [](double r, double rs=1.0, double n = 1.) 
+            [](const double r, const double rs=1.0, const double n = 1.) 
             {
                 const auto eta = r / rs; 
-                return eta * eta * std::log(eta + std::numeric_limits<double>::epsilon());
+                return eta * eta * std::log(eta + std::numeric_limits<const double>::epsilon());
             }
         },
         {
             "GAUSSIAN", 
-            [](double r, double rs=1.0, double n = 1.) 
+            [](const double r, const double rs=1.0, const double n = 1.) 
             {
                 const auto eta = r / rs; 
-                return std::exp(-n * n * eta * eta);
+                return std::exp(- n * n * eta * eta);
             }
         }
     };
