@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Version:  2.2.x                               
-    \\  /    A nd           | Copyright held by original author
+   \\    /   O peration     | 
+    \\  /    A nd           | Copyright (C) 2018 Tomislav Maric, TU Darmstadt 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,10 +23,23 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tomislav Maric maric@mma.tu-darmstadt.de
 
 Description
-    Test application for the interpolation methods used by the LENT method.
+    Test application for the RBF interpolation over random points. 
+
+    Generates an increased number of random points and interpolates 
+
+    f(x,y,z) = 1 + x^2 + y^2 + z^2 using all functions from rbFunctions.H 
+
+    and checks that the solution of the linear system is under a prescribed
+    tolerance at nodal points. 
+
+    TODO: 
+
+    1. Add a map of interesting functions to loop over: 
+        1.1 A signed distance to a sphere. 
+        1.2 Harmonic potential for the velocity fields used for the advection. 
 
 \*---------------------------------------------------------------------------*/
 
