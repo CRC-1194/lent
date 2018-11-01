@@ -155,7 +155,7 @@ TEST(RBF, RANDOM_POINTS)
             const auto& nodalValues = nodalValuesMap.at(Npts);
 
             // Compute the RBF interpolant.
-            auto rbf = build_rbf(
+            auto rbf = make_rbf(
                 nodalPoints, 
                 nodalValues, 
                 [&rbfName](double r, double rs) 

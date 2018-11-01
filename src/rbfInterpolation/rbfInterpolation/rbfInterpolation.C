@@ -42,6 +42,8 @@ SourceFiles
 \*---------------------------------------------------------------------------*/
 
 #include "rbfInterpolation.H"
+#include "rbfGeometry.H"
+
 #include <limits>
 
 namespace RBF 
@@ -70,51 +72,6 @@ rbfInterpolation<Points, Values>::rbfInterpolation
 }
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-template<typename Points, typename Values>
-double rbfInterpolation<Points, Values>::maxCentroidRadius(Points const& points) const
-{
-    double rmax = -std::numeric_limits<double>::infinity(); 
-
-    auto pointsCentroid = Numeric::centroid(points);
-
-    for (const auto& point : pointsRef_)
-    {
-        const double dist = Numeric::distance(pointsCentroid, point); 
-        if (dist > rmax)
-            rmax = dist; 
-    }
-
-    return rmax; 
-}
-
-template<typename Points, typename Values>
-double rbfInterpolation<Points, Values>::meanCentroidRadius(Points const& points) const
-{
-    double rcmean = 0.;  
-
-    auto pointsCentroid = Numeric::centroid(points);
-    for (const auto& point : pointsRef_)
-        rcmean += Numeric::distance(pointsCentroid, point); 
-
-    rcmean /= points.size(); 
-
-    return rcmean; 
-}
-
-template<typename Points, typename Values>
-double rbfInterpolation<Points, Values>::rmsRadius(Points const& points) const
-{
-    double rrms = 0.;  
-
-    for (const auto& pointI : pointsRef_)
-        for (const auto& pointJ : pointsRef_)
-        rrms += Numeric::distance_sqr(pointI, pointJ); 
-
-    rrms = std::sqrt(rrms / points.size());  
-
-    return rrms; 
-}
 
 template<typename Points, typename Values> 
 void rbfInterpolation<Points, Values>::interpolate(scalingType scaling)

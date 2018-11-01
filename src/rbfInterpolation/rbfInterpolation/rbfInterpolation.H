@@ -49,79 +49,6 @@ SourceFiles
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// FIXME: Move the Numeric namespace to rbfNumeric.H.
-namespace Numeric 
-{
-    template<typename PointA, typename PointB> 
-    double distance_sqr(PointA const& pA, PointB const & pB)
-    {
-        return pow(pB[0] - pA[0], 2) + 
-               pow(pB[1] - pA[1], 2) + 
-               pow(pB[2] - pA[2], 2);
-    }
-
-    template<typename PointA, typename PointB> 
-    double distance(PointA const& pA, PointB const & pB)
-    {
-        return std::sqrt(distance_sqr(pA, pB));
-    }
-
-    template<typename PointA, typename PointB> 
-    PointA operator+(PointA const& p, PointB const&q)
-    {
-        return PointA {p[0] + q[0], p[1] + q[1], p[2] + q[2]}; 
-    }
-
-    template<typename Point> 
-    void operator /=(Point& p, double d) 
-    {
-        p[0] = p[0] / d; 
-        p[1] = p[1] / d; 
-        p[2] = p[2] / d; 
-    }
-
-    template<typename Points> 
-    typename Points::value_type centroid(Points const& points)
-    {
-        typename Points::value_type centroid {0.,0.,0.}; 
-
-        for (const auto& point : points)
-            centroid = centroid + point; 
-
-        centroid /= points.size(); 
-
-        return centroid; 
-    }
-
-    // - Compute the fill distance of the point set. 
-    // - Used as 'h' for O(h^p) convergence tests.
-    template<typename Points> 
-    double fillDistance(Points const & points)
-    {
-        double maxi = -std::numeric_limits<double>::infinity();  
-        using sizeType = decltype(points.size());  
-
-        for (sizeType i = 0; i < points.size(); ++i)
-        {
-            double minj = std::numeric_limits<double>::infinity();
-            for (sizeType j = 0; j < points.size(); ++j)
-            {
-                if (i != j)
-                {
-                    const double dist = distance(points[i], points[j]);
-                    if (dist < minj)
-                        minj = dist; 
-                }
-            }
-            if (minj > maxi)
-                maxi = minj;
-        }
-
-        return maxi; 
-    }
-
-}
-
 namespace RBF 
 {
 
@@ -134,6 +61,7 @@ using sizeType = decltype(pointVector().size());
                          Class rbfInterpolation Declaration
 \*---------------------------------------------------------------------------*/
 
+// Different scaling types used for the rbfInterpolation.
 enum class scalingType 
 {
     NONE, 
@@ -162,11 +90,6 @@ class rbfInterpolation final
 
     // Private Member Functions
     
-        //- Compute the RBF scaling radius using distance to centroid. 
-        double maxCentroidRadius(Points const& p) const;
-        double meanCentroidRadius(Points const& p) const;
-        double rmsRadius(Points const& p) const;
-
         //- Construct and solve the linear system of the RBF interpolation.
         void interpolate(scalingType scaling); 
 
@@ -205,17 +128,17 @@ public:
 
 
     // Member Operators
-        rbfInterpolation& operator=(const rbfInterpolation&) = default;
+        rbfInterpolation& operator=(const rbfInterpolation&) = delete;
 
         //- Move assign
         rbfInterpolation&& operator=(rbfInterpolation&&) = delete;
 
 };
 
-// RBF interpolation factory.
+// RBF interpolation factory function template.
 template<typename Points, typename Values, typename Kernel> 
 rbfInterpolation<Points, Values> 
-build_rbf(
+make_rbf(
     Points const& points, 
     Values const& values, 
     Kernel kernel, 
