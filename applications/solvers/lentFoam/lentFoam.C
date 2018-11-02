@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     #include "createMRF.H"
     #include "createFvOptions.H"
 
-    lentSolutionControl lentSC(mesh, phi, "PIMPLE");
+    lentSolutionControl lentSC(mesh, phi);
 
     #include "correctPhi.H"
 
@@ -142,9 +142,6 @@ int main(int argc, char *argv[])
     correctFrontIfRequested(front, lent.dict());
 
     front.write();
-
-    // TODO: move this into a preprocessing application
-    Info << "Minimal characteristic length of triangle: " << Foam::sqrt(min(front.magSf())) << endl;
 
     // TODO: Examine the internal p-U coupling loop. Update on markerField? TM.  
     while (runTime.run())
@@ -224,7 +221,7 @@ int main(int argc, char *argv[])
             #include "UEqn.H"
 
             //--- Pressure corrector loop
-            while (lentSC.adaptiveCorrect())
+            while (lentSC.correctPressure())
             {
                 #include "pEqn.H"
             }
@@ -232,11 +229,6 @@ int main(int argc, char *argv[])
             if (lentSC.turbCorr())
             {
                 turbulence->correct();
-            }
-
-            if (lentSC.finalIter())
-            {
-                #include "U_solveMomentumEq.H"
             }
         }
         Info << "Done." << endl;

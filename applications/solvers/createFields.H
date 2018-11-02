@@ -197,7 +197,7 @@
     (
         p,
         p_rgh,
-        mesh.solutionDict().subDict("PIMPLE"),
+        mesh.solutionDict().subDict("lentSC"),
         pRefCell,
         pRefValue
     );

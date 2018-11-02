@@ -37,31 +37,24 @@ namespace FrontTracking {
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-bool lentSolutionControl::volFluxesAreConverged()
-{
-    // Reset the flux convergence flag for a new time step
-    if (firstIter())
-    {
-        fluxesHaveConverged_ = false;
-    }
-    // To avoid oscillatory behaviour, disable the flux convergence check
-    // once the test was successful within a time step
-    else if (!fluxesHaveConverged_)
-    {
-        checkFluxConvergence();
-    }
-
-    volumetricFluxes_.storePrevIter();
-
-    return fluxesHaveConverged_;
-}
-
 void lentSolutionControl::checkFluxConvergence()
 {
-    // TODO: check how residuals are computed and mimick this
-    // for convergence check of the volumetric fluxes
-    // Discuss with Tomislav what would be reasonable. For now, use
-    // max norm
+    // No convergence check in the first outer iteration
+    if (firstIter())
+    {
+        volumetricFluxes_.storePrevIter();
+        return;
+    }
+
+    // Stop flux convergence checks once convergence has been reached
+    if (fluxesHaveConverged_)
+    {
+        return;
+    }
+
+    // OpenFOAM uses a so-called normalized residual for convergence control
+    // which can be comapred in some way with a L1-norm.
+    // However, for the fluxes the max-norm is employed
     auto maxRelDelta = max(mag(volumetricFluxes_ - volumetricFluxes_.prevIter())
                         /(max(mag(volumetricFluxes_)).value() + SMALL));
     auto maxAbsDelta = max(mag(volumetricFluxes_ - volumetricFluxes_.prevIter()));
@@ -82,6 +75,8 @@ void lentSolutionControl::checkFluxConvergence()
              << "Abs phi change = " << maxAbsDelta.value() << nl
              << endl;
     }
+
+    volumetricFluxes_.storePrevIter();
 }
 
 bool lentSolutionControl::pressureIsConverged() const
@@ -122,6 +117,13 @@ bool lentSolutionControl::pressureIsConverged() const
     }
 }
 
+void lentSolutionControl::resetControlFlags()
+{
+    fluxesHaveConverged_ = false;
+    updateMomentumFlux_ = true;
+    pressureHasConverged_ = false;
+}
+
 void lentSolutionControl::displayConfiguration() const
 {
     Info << "\n--------------------------------------------------------" 
@@ -130,6 +132,8 @@ void lentSolutionControl::displayConfiguration() const
          << endl;
 
     Info << "\tMaximum number of inner iterations: " << nCorrPISO_
+         << "\n\tMaximum number of outer iterations with momentum flux"
+         << " update: " << maxFluxUpdateIterations_
          << "\n\tFlux convergence thresholds:"
          << "\n\t\tRelative change: " << relTolVolFlux_
          << "\n\t\tAbsolute change: " << absTolVolFlux_;
@@ -139,11 +143,6 @@ void lentSolutionControl::displayConfiguration() const
 
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
-bool lentSolutionControl::criteriaSatisfied()
-{
-    return volFluxesAreConverged() && pimpleControl::criteriaSatisfied();
-}
-
 void lentSolutionControl::read()
 {
     pimpleControl::read();
@@ -151,7 +150,17 @@ void lentSolutionControl::read()
     const dictionary& lentSCDict = dict();
 
     relTolVolFlux_ = lentSCDict.get<scalar>("phiChangeTolerance");
-    //absTolVolFlux_ = lentSCDict.get<scalar>("phiChangeTolerance");
+
+    // Optional
+    if (lentSCDict.found("absPhiChangeTolerance"))
+    {
+        absTolVolFlux_ = lentSCDict.get<scalar>("absPhiChangeTolerance");
+    }
+
+    if (lentSCDict.found("maxFluxUpdateIterations"))
+    {
+        maxFluxUpdateIterations_ = lentSCDict.get<label>("maxFluxUpdateIterations");
+    }
 }
 
 
@@ -161,7 +170,11 @@ lentSolutionControl::lentSolutionControl(fvMesh& mesh, const surfaceScalarField&
     pimpleControl{mesh, dictName},
     volumetricFluxes_{phi},
     relTolVolFlux_{1.0e-8},
-    absTolVolFlux_{1.0e-18}
+    absTolVolFlux_{1.0e-18},
+    maxFluxUpdateIterations_{nCorrPIMPLE_},
+    fluxesHaveConverged_{false},
+    updateMomentumFlux_{true},
+    pressureHasConverged_{false}
 {
     read();
 
@@ -170,7 +183,59 @@ lentSolutionControl::lentSolutionControl(fvMesh& mesh, const surfaceScalarField&
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-bool lentSolutionControl::adaptiveCorrect()
+label lentSolutionControl::maxFluxUpdateIterations() const
+{
+    return maxFluxUpdateIterations_;
+}
+
+scalar lentSolutionControl::relativeVolumetricFluxTolerance() const
+{
+    return relTolVolFlux_;
+}
+
+scalar lentSolutionControl::absoluteVolumetricFluxTolerance() const
+{
+    return absTolVolFlux_;
+}
+
+bool lentSolutionControl::loop()
+{
+    read();
+
+    ++corr_;
+
+    setFirstIterFlag();
+
+    // Reset control flags in the first iteration of a new time step
+    if (firstIter())
+    {
+        resetControlFlags();
+    }
+
+    // Check for convergence or exceeding the maximum of outer iterations
+    if (fluxesHaveConverged_ && pressureHasConverged_)
+    {
+        Info << "LentSC: converged in " << corr_ - 1 << " iterations." << endl;
+        corr_ = 0;
+        return false;
+    }
+    else if (corr_ == nCorrPIMPLE_ + 1)
+    {
+        Info << "LentSC: not converged in " << nCorrPIMPLE_ << " iterations" << endl;
+        corr_ = 0;
+        return false;
+    }
+
+    Info << "LentSC: iteration " << corr_ << endl;
+
+    // Checking here for flux convergence ensures a final outer iteration based
+    // on the converged fluxes
+    checkFluxConvergence();
+
+    return true;
+}
+
+bool lentSolutionControl::correctPressure()
 {
     bool performInnerIteration = true;
 
@@ -192,6 +257,11 @@ bool lentSolutionControl::adaptiveCorrect()
 
     if (!performInnerIteration)
     {
+        // The condition below is met when the initial residual of the pressure
+        // equation is lower than the prescribed threshold from fvSolution
+        // in the first corrector iteration
+        // ===> pressure has converged
+        pressureHasConverged_ = (corrPISO_ == 2);
         corrPISO_ = 0;
     }
 
@@ -205,11 +275,17 @@ bool lentSolutionControl::explicitVelocityUpdate()
     return !pressureIsConverged();
 }
 
-bool lentSolutionControl::updateMomentumFlux() const
+bool lentSolutionControl::updateMomentumFlux()
 {
-    // Update of momentum fluxes in the first outer iteration
-    // has to be ensured
-    return firstIter() || !fluxesHaveConverged_;
+    // Final update of momentum fluxes after convergence of the volumetric fluxes
+    if (fluxesHaveConverged_)
+    {
+        updateMomentumFlux_ = false;
+        return true;
+    }
+
+    return (corr_ <= maxFluxUpdateIterations_ + 1)
+                && (firstIter() || updateMomentumFlux_);
 }
 
 
