@@ -47,7 +47,7 @@ Description
 #include "argList.H"
 #include "messageStream.H"
 #include "rbFunctions.H"
-#include "rbfInterpolation.H"
+#include "rbfInterpolationEigen.H"
 
 #include <random>
 #include <cmath>
@@ -59,9 +59,198 @@ Description
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+// Extract these into functions
+template<typename Points, typename Distribution, typename Generator>
+void seedPoints(
+    Points& points, 
+    Distribution& dis, 
+    Generator& gen
+)
+{
+    for (auto& point : points)
+    {
+        point[0] = dis(gen);  
+        point[1] = dis(gen);  
+        point[2] = dis(gen);  
+    }
+};
+
+template<typename Values, typename Points>
+void setValuesXnYnZn(Values& values, Points const& points, double N)
+{
+    const long unsigned int Npoints = points.size();
+    const long unsigned int Nvalues = values.size(); 
+    EXPECT_EQ(Npoints, Nvalues);
+    for (long unsigned int i = 0; i < Npoints; ++i)
+        values[i] = pow(points[i][0], N) 
+            + pow(points[i][1], N) + pow(points[i][2], N);
+};
+
+// Harmonic scalar potential in 3D that results in divergence-free
+// velocities.
+//template<typename Points, typename Values>
+//void setValuesShear3D(auto& values, const auto& points, double omega)
+//{
+    //const sizeType Nvals = values.size(); 
+    //assert(Nvals == points.size()); 
+    ////for (sizeType i = 0; i < points.size(); ++i)
+        ////values[i] = cos(omega * points[i][0]) 
+            ///[>cos(points[i][1], n) + pow(points[i][2], n);
+//}
+
+//template<int N>
+//constexpr decltype(auto) make_set_valuesXnYnZn()
+//{
+    //return [](auto& values, const auto& points) { return setValues1xnynzn(values, points, N); };
+//}
+
+//auto setValuesX2Y2Z2 = make_set_valuesXnYnZn<2>(); 
+//auto setValues1x2y2z2 = make_set_values<3>();  
+//auto setValues1x2y2z2 = make_set_values<4>();  
+
 using namespace RBF;
 
-TEST(RBF, RANDOM_POINTS)
+TEST(RBF_EIGEN, CLASS_INTERFACE)
+{
+    std::random_device rd;  
+    std::mt19937 gen(rd()); 
+    std::uniform_real_distribution<> dis(0, 1.0);
+
+    using pointVector = rbfInterpolationEigen::pointVector; 
+    using realVector = rbfInterpolationEigen::realVector; 
+
+    // TODO: Loop 100 times over the test. 
+    const unsigned int testSize = 64; 
+
+    pointVector nodalPoints(testSize); 
+    seedPoints(nodalPoints, dis, gen);
+
+    // TODO: Loop over exact value functions. 
+    realVector nodalValues(nodalPoints.size()); 
+    setValuesXnYnZn(nodalValues, nodalPoints, 2);
+
+    unsigned long int Npoints = nodalPoints.size(); 
+    unsigned long int Nvalues = nodalValues.size(); 
+
+    ASSERT_EQ(Npoints, Nvalues);
+
+    // For all RBF kernels.
+    for (const auto & nameKernelPair : RBF::rbfKernels)
+    {
+        const auto rbfName = nameKernelPair.first; 
+
+        auto rbfKernel = [rbfName](double r, double rs) 
+        { return RBF::rbfKernels.at(rbfName)(r, rs, 1.0); };
+
+        // Emtpy construction test.
+        rbfInterpolationEigen rbfEmpty; 
+        // Factorization and sytem solution.
+        rbfEmpty.interpolate(nodalPoints, nodalValues, rbfKernel);
+
+        // Construct with factorization. 
+        rbfInterpolationEigen rbfFactorized(nodalPoints, rbfKernel);  
+        // Solve with given values. 
+        // This assumes nodalPoints are those given to the constructor! 
+        rbfFactorized.interpolate(nodalPoints, nodalValues);
+
+        // Do all at once: assemble and solve the system.
+        rbfInterpolationEigen rbfFull(nodalPoints, nodalValues, rbfKernel);  
+
+        realVector rbfEmptyVals (nodalValues.size()); 
+        realVector rbfFactorizedVals (nodalValues.size()); 
+        realVector rbfFullVals (nodalValues.size()); 
+
+        for(decltype(nodalValues.size()) i = 0; i < nodalValues.size(); ++i)
+        {
+            rbfEmptyVals[i] = 
+                rbfEmpty.evaluate(nodalPoints[i], nodalPoints, nodalValues);  
+            rbfFactorizedVals[i] = 
+                rbfFactorized.evaluate(nodalPoints[i], nodalPoints, nodalValues);  
+            rbfFullVals[i] = 
+                rbfFull.evaluate(nodalPoints[i], nodalPoints, nodalValues);  
+        }
+
+        // Solutions constructed by different member functions are equally accurate. 
+        const auto eEmpty = rbfEmptyVals - nodalValues;
+        const auto lInfEmpty = eEmpty.lpNorm<Eigen::Infinity>();
+        EXPECT_LE(lInfEmpty, 1e-10) // Tolerance depends on the linear solver. 
+            << "RBF = " << rbfName << "\n"
+            << "Npoints = " << Npoints << "\n";
+        
+        const auto eFactorized = rbfFactorizedVals - nodalValues;
+        const auto lInfFactorized = eFactorized.lpNorm<Eigen::Infinity>();
+        EXPECT_LE(lInfFactorized, 1e-10) // Tolerance depends on the linear solver. 
+            << "RBF = " << rbfName << "\n"
+            << "Npoints = " << Npoints << "\n";
+
+        const auto eFull = rbfFullVals - nodalValues;
+        const auto lInfFull = eFull.lpNorm<Eigen::Infinity>();
+        EXPECT_LE(lInfFull, 1e-10) // Tolerance depends on the linear solver.
+            << "RBF = " << rbfName << "\n"
+            << "Npoints = " << Npoints << "\n";
+
+        // Solutions constructed by different member functions are the same. 
+        const auto eEmptyFactorized = rbfEmptyVals - rbfFactorizedVals;
+        const auto lInfEmptyFactorized = eEmptyFactorized.lpNorm<Eigen::Infinity>();
+        EXPECT_LE(lInfEmptyFactorized, 1e-15)
+            << "RBF = " << rbfName << "\n"
+            << "Npoints = " << Npoints << "\n";
+
+        const auto eEmptyFull = rbfEmptyVals - rbfFullVals;
+        const auto lInfEmptyFull = eEmptyFull.lpNorm<Eigen::Infinity>();
+        EXPECT_LE(lInfEmptyFull, 1e-15)
+            << "RBF = " << rbfName << "\n"
+            << "Npoints = " << Npoints << "\n";
+
+        const auto eFactorizedFull = rbfFactorizedVals - rbfFullVals;
+        const auto lInfFactorizedFull = eFactorizedFull.lpNorm<Eigen::Infinity>();
+        EXPECT_LE(lInfFactorizedFull, 1e-15)
+            << "RBF = " << rbfName << "\n"
+            << "Npoints = " << Npoints << "\n";
+
+
+        // Interpolation using a copy of the values must produce the same result. 
+        auto nodalValuesCopy (nodalValues); 
+
+        rbfEmpty.interpolate(nodalPoints, nodalValuesCopy); 
+        rbfFactorized.interpolate(nodalPoints, nodalValuesCopy); 
+        rbfFull.interpolate(nodalPoints, nodalValuesCopy); 
+
+        realVector rbfEmptyValsCopy (nodalValues.size()); 
+        realVector rbfFactorizedValsCopy (nodalValues.size()); 
+        realVector rbfFullValsCopy (nodalValues.size()); 
+
+        for(decltype(nodalValuesCopy.size()) i = 0; i < nodalValuesCopy.size(); ++i)
+        {
+            rbfEmptyValsCopy[i] = 
+                rbfEmpty.evaluate(nodalPoints[i], nodalPoints, nodalValues);  
+            rbfFactorizedValsCopy[i] = 
+                rbfFactorized.evaluate(nodalPoints[i], nodalPoints, nodalValues);  
+            rbfFullValsCopy[i] = 
+                rbfFull.evaluate(nodalPoints[i], nodalPoints, nodalValues);  
+        }
+
+        const auto eEmptyCopy = rbfEmptyValsCopy - rbfEmptyVals; 
+        const auto eEmptyLinf = eEmptyCopy.lpNorm<Eigen::Infinity>(); 
+        EXPECT_LE(eEmptyLinf, 1e-15)
+            << "RBF = " << rbfName << "\n"
+            << "Npoints = " << Npoints << "\n";
+
+        const auto eFactorizedCopy = rbfFactorizedValsCopy - rbfFactorizedVals; 
+        const auto eFactorizedLinf = eFactorizedCopy.lpNorm<Eigen::Infinity>(); 
+        EXPECT_LE(eFactorizedLinf, 1e-15)
+            << "RBF = " << rbfName << "\n"
+            << "Npoints = " << Npoints << "\n";
+
+        const auto eFullCopy = rbfFullValsCopy - rbfFullVals; 
+        const auto eFullLinf = eFullCopy.lpNorm<Eigen::Infinity>(); 
+        EXPECT_LE(eFullLinf, 1e-15)
+            << "RBF = " << rbfName << "\n"
+            << "Npoints = " << Npoints << "\n";
+    }
+}
+
+TEST(RBF_EIGEN, RANDOM_POINTS)
 {
     // Random point generation initialization 
     // Make these variables global.
@@ -69,32 +258,13 @@ TEST(RBF, RANDOM_POINTS)
     std::mt19937 gen(rd()); 
     std::uniform_real_distribution<> dis(0, 1.0);
 
-    // Extract these into functions.
-    auto seedPoints = [&dis,&gen](auto& points)
-    {
-        for (auto& point : points)
-        {
-            point[0] = dis(gen);  
-            point[1] = dis(gen);  
-            point[2] = dis(gen);  
-        }
-    };
+    using sizeType = rbfInterpolationEigen::sizeType; 
+    using pointVector = rbfInterpolationEigen::pointVector; 
+    using realVector = rbfInterpolationEigen::realVector; 
 
-    // Extract into a function.
-    auto setValues1x2y2z2 = [](const auto& points, auto& values)
-    {
-        // Set the explicit values equal to 
-        // u(x) = 1 + x^2 + y^2, which is the exact solution to the
-        // Poisson equation \nabla^2 u = 6.
-        const sizeType Nvals = values.size(); 
-        assert(Nvals == points.size()); 
-        for (sizeType i = 0; i < points.size(); ++i)
-            values[i] = 1 + pow(points[i][0], 3) 
-                + pow(points[i][1], 3) + pow(points[i][2], 3);
-    };
 
     // RBF interpolation is used within LENT on small stencils.  
-    const std::vector<sizeType> testSizes = {16, 32, 64, 128, 256}; 
+    const std::vector<sizeType> testSizes = {16, 32, 64, 128}; 
 
     // Initialize the nodal point and value data. 
     std::map<int, pointVector> nodalPointsMap; 
@@ -108,11 +278,11 @@ TEST(RBF, RANDOM_POINTS)
     {
         // Initialize and set the random nodal points. 
         nodalPointsMap[Npts] = pointVector(Npts, {0,0,0}); 
-        seedPoints(nodalPointsMap[Npts]);
+        seedPoints(nodalPointsMap[Npts], dis, gen);
 
         // Initialize and set the random nodal values. 
         nodalValuesMap[Npts] = realVector(Npts); 
-        setValues1x2y2z2(nodalPointsMap[Npts], nodalValuesMap[Npts]);
+        setValuesXnYnZn(nodalValuesMap[Npts], nodalPointsMap.at(Npts), 2.0);
 
         // Write nodal points to a file.
         const auto& nodalPoints = nodalPointsMap.at(Npts); 
@@ -155,16 +325,17 @@ TEST(RBF, RANDOM_POINTS)
             const auto& nodalValues = nodalValuesMap.at(Npts);
 
             // Compute the RBF interpolant.
-            auto rbf = make_rbf(
+            auto rbfKernel = [&rbfName](double r, double rs) 
+            { return RBF::rbfKernels.at(rbfName)(r, rs, 1.0); };
+            auto rbf = rbfInterpolationEigen(
                 nodalPoints, 
                 nodalValues, 
-                [&rbfName](double r, double rs) 
-                { return RBF::rbfKernels.at(rbfName)(r, rs, 1.0); }
+                rbfKernel
             );
             
             realVector nodalRbfValues(nodalPoints.size());
             for(sizeType i = 0; i < nodalPoints.size(); ++i)
-                nodalRbfValues[i] = rbf.interpolate(nodalPoints[i]);
+                nodalRbfValues[i] = rbf.evaluate(nodalPoints[i], nodalPoints, nodalValues);
 
             const auto nodalErrors = (nodalRbfValues - nodalValues);
             // Use long double for the result to counter error cancellation.
@@ -177,14 +348,14 @@ TEST(RBF, RANDOM_POINTS)
 
             sizeType Ntest = 10000; // Number of sampling points. 
             pointVector testPoints (Ntest, {0,0,0});
-            seedPoints(testPoints);
+            seedPoints(testPoints, dis, gen);
 
             realVector testValuesRBF (Ntest); 
             for (sizeType i = 0; i < Ntest; ++i)
-                testValuesRBF[i] = rbf.interpolate(testPoints[i]);
+                testValuesRBF[i] = rbf.evaluate(testPoints[i], nodalPoints, nodalValues);
             
             realVector testValuesExact (Ntest); 
-            setValues1x2y2z2(testPoints, testValuesExact); 
+            setValuesXnYnZn(testValuesExact, testPoints, 2.0); 
 
             // Simple output: multidimensional indexed CSV for use with pandas.DataFrame.
             const auto testError = (testValuesRBF - testValuesExact);
