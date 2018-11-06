@@ -61,18 +61,17 @@ void lentSolutionControl::checkFluxConvergence()
 
     if (maxRelDelta.value() < relTolVolFlux_ || maxAbsDelta.value() < absTolVolFlux_)
     {
-        Info << "\nVolumetric fluxes have converged:\n\tLast relative change: "
+        Info << "Volumetric fluxes have converged:\n\tRelative change: "
              << maxRelDelta.value() << nl
-             << "\tLast absolute change: "
-             << maxAbsDelta.value() << nl
+             << "\tAbsolute change: "
+             << maxAbsDelta.value()
              << endl;
         fluxesHaveConverged_ = true;
     }
     else
     {
-        Info << "\nPhi change = " << maxRelDelta.value() << nl
-             << "max(mag(phi)) = " << max(mag(volumetricFluxes_)).value() << nl
-             << "Abs phi change = " << maxAbsDelta.value() << nl
+        Info << "\tRelative phi change = " << maxRelDelta.value() << nl
+             << "\tAbsolute phi change = " << maxAbsDelta.value()
              << endl;
     }
 
