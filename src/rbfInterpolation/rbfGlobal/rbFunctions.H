@@ -21,6 +21,9 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Description
+    A global map of RBF kernels. 
+
 \*---------------------------------------------------------------------------*/
 
 #ifndef rbFunctions_H
@@ -31,6 +34,8 @@ License
 #include <string>
 #include <cmath>
 
+namespace Foam
+{
 namespace RBF
 {
     using rbfFunctionType = std::function<double(double, double, double)>;
@@ -137,7 +142,8 @@ namespace RBF
             }
         }
     };
-}
+} // End namespace RBF
+} // End namespace Foam 
 
 // ************************************************************************* //
 

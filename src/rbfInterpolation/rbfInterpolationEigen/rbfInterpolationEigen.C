@@ -37,6 +37,25 @@ Description
 
     It is not applicable for a large number of points/values. 
 
+    NO LOGICAL CHECKS ARE PERFORMED FOR EFFICIENCY REASONS
+
+        - To evaluate the interpolant at a point, the RBF system needs to
+          be first factorized, then interpolated (solved).
+
+        - This allows the user to first factorize the system, and then 
+          re-use the factorization with different source terms, and then
+          evaluate the interpolant at a point in the stencil.
+
+        1. It is assumed that the factorization, interpolation and evaluation
+           is performed with the same set of nodal points. 
+        2. It is assumed that the nodal points and nodal values have the same
+           length. 
+        3. It is assumed that the system has bee factorized and solved for the
+           evaluation execution. 
+        4. It is assumed that the evaluation point is "within" the stencil: 
+           evaluation far away from the nodal points results in a higher 
+           interpolation error.
+
 SourceFiles
     rbfInterpolationEigen.H
     rbfInterpolationEigen.C
@@ -46,8 +65,8 @@ SourceFiles
 #include "rbfInterpolationEigen.H"
 #include "rbfGeometry.H"
 
-#include <limits>
-
+namespace Foam
+{
 namespace RBF 
 {
 
@@ -55,30 +74,45 @@ namespace RBF
 
 rbfInterpolationEigen::rbfInterpolationEigen()
 :
+    A_(), 
     matrixFactorization_(), 
     rbfCoeffs_(), 
     kernel_(),
-    supportRadius_(1.0),
-    factorized_(false), 
-    interpolated_(false)
+    support_(supportType::GLOBAL_SUPPORT), 
+    supportRadius_(1.0)
+{}
+
+template<typename Kernel> 
+rbfInterpolationEigen::rbfInterpolationEigen
+(
+    const Kernel& kernel, 
+    supportType support
+)
+:
+    A_(), 
+    matrixFactorization_(), 
+    rbfCoeffs_(), 
+    kernel_(kernel), 
+    support_(support),
+    supportRadius_(1.0)
 {}
 
 template<typename Points, typename Kernel> 
 rbfInterpolationEigen::rbfInterpolationEigen
 (
     Points const& points, 
-    Kernel kernel, 
-    supportType support 
+    const Kernel& kernel, 
+    const supportType support 
 )
 :
+    A_(points.size() + Npoly_, points.size() + Npoly_), 
     matrixFactorization_(), 
     rbfCoeffs_(), 
     kernel_(kernel), 
-    supportRadius_(1.0), 
-    factorized_(false),
-    interpolated_(false)
+    support_(support),
+    supportRadius_(1.0)
 {
-    factorize(points, support); 
+    factorize(points); 
 }
 
 template<typename Points, typename Values, typename Kernel> 
@@ -86,51 +120,47 @@ rbfInterpolationEigen::rbfInterpolationEigen
 (
     Points const& points, 
     Values const& values, 
-    Kernel kernel, 
-    supportType support 
+    const Kernel& kernel, 
+    const supportType support 
 )
 :
+    A_(points.size() + Npoly_, points.size() + Npoly_), 
     matrixFactorization_(), 
     rbfCoeffs_(), 
     kernel_(kernel), 
-    supportRadius_(1.0),
-    factorized_(false),
-    interpolated_(false)
+    support_(support),
+    supportRadius_(1.0)
 {
-    interpolate(points, values, support);
+    factorize(points); 
+    interpolate(points, values);
 }
 
-// * * * * * * * * * * * * * * Member Functions * * * * * * * * * * * * * * //
-//
+// * * * * * * * * * * Private Member Functions * * * * * * * * * * * * * * //
+
 template<typename Points> 
-Eigen::MatrixXd rbfInterpolationEigen::matrix
-(
-    Points const& points, 
-    supportType support 
-)
+void rbfInterpolationEigen::factorize(Points const& points)
 {
-    // NRVO initialization.
-    Eigen::MatrixXd A (points.size() + Npoly_, points.size() + Npoly_);
+    A_.resize(points.size() + Npoly_, points.size() + Npoly_); 
 
-    if (support == supportType::MAX_CENTROID_RADIUS)
-        supportRadius_ = Numeric::maxCentroidRadius(points);  
+    if (support_ == supportType::MAX_CENTROID_RADIUS)
+        supportRadius_ = Geometry::maxCentroidRadius(points);  
 
-    if (support == supportType::MEAN_CENTROID_RADIUS)
-        supportRadius_ = Numeric::meanCentroidRadius(points);  
+    if (support_ == supportType::MEAN_CENTROID_RADIUS)
+        supportRadius_ = Geometry::meanCentroidRadius(points);  
 
-    if (support == supportType::RMS_RADIUS)
-        supportRadius_ = Numeric::rmsRadius(points);  
+    if (support_ == supportType::RMS_RADIUS)
+        supportRadius_ = Geometry::rmsRadius(points);  
 
     const auto Npoints = points.size(); 
 
     // Fill the RBF kernel coefficients block.
     for (sizeType j = 0; j < Npoints; ++j)
         for (sizeType i = 0; i < Npoints ; ++i)
-            A(i,j) = kernel_(Numeric::distance(points[i], points[j]), supportRadius_);
+            A_(i,j) = kernel_(Geometry::distance(points[i], points[j]), supportRadius_);
 
     // Fill the linear polynomial coefficients block.
-    auto P = A.topRightCorner(Npoints, Npoly_);  
-    auto Pt = A.bottomLeftCorner(Npoly_, Npoints);
+    auto P = A_.topRightCorner(Npoints, Npoly_);  
+    auto Pt = A_.bottomLeftCorner(Npoly_, Npoints);
     for(sizeType i = 0; i < Npoints; ++i)
     {
         P(i, 0) = 1.; 
@@ -142,78 +172,64 @@ Eigen::MatrixXd rbfInterpolationEigen::matrix
         }
     }
     // Fill the lower right block with 0s.
-    A.bottomRightCorner(Npoly_, Npoly_) = Eigen::MatrixXd::Zero(Npoly_, Npoly_); 
-    
-    return A; 
+    A_.bottomRightCorner(Npoly_, Npoly_) = MatrixType::Zero(Npoly_, Npoly_); 
+
+    // Assemble the matrix and factorize it in place. 
+    //matrixFactorization_ = A_.llt(); 
+    //matrixFactorization_ = A_.ldlt(); 
+    //matrixFactorization_ = A_.householderQr(); 
+    matrixFactorization_ = A_.partialPivLu(); 
 }
 
-template<typename Points> 
-void rbfInterpolationEigen::factorize
-(
-    Points const& points, 
-    supportType support 
-)
+template<typename Points, typename Kernel> 
+void rbfInterpolationEigen::factorize(Points const& points, const Kernel& kernel)
 {
-    Eigen::MatrixXd A = matrix(points, support);  
-
-    matrixFactorization_ = A.colPivHouseholderQr(); 
-
-    factorized_ = true;
+    kernel_ = kernel;   
+    factorize(points); 
 }
 
 template<typename Points, typename Values>
 void rbfInterpolationEigen::interpolate
 (
     Points const& points, 
-    Values const& values, 
-    supportType support 
+    Values const& values
 ) 
 {
-    if (! factorized_)
-        factorize(points, support);
-
     // Extend the "values" source term with 0s of the linear polynomial. 
-  Eigen::VectorXd source(Npoly_ + points.size()); 
+    Eigen::VectorXd source(Npoly_ + points.size()); 
     source.head(points.size()) = values; 
     source.tail(Npoly_) = Eigen::VectorXd::Zero(Npoly_); 
 
     // Solve for the RBF coefficients.
     rbfCoeffs_ = matrixFactorization_.solve(source);
-
-    interpolated_ = true;
 }
 
 template<typename Points, typename Values, typename Kernel>
-void rbfInterpolationEigen::interpolate 
+void rbfInterpolationEigen::interpolate
 (
     Points const& points, 
     Values const& values, 
-    Kernel kernel, 
-    supportType support 
-) 
+    const Kernel& kernel
+)
 {
-    kernel_ = kernel;
-    interpolate(points, values, support); 
+    kernel_ = kernel; 
+    interpolate(points, values);
 }
 
 template<typename Point, typename Points, typename Values> 
 double rbfInterpolationEigen::evaluate(
     Point const& point, 
     Points const& points, 
-    Values const& values, 
-    supportType support 
+    Values const& values
 ) 
 {
     double result = 0.; 
 
     const auto Npoints = points.size(); 
 
-    if (! interpolated_)
-        interpolate(points, values, support);
-
     for (sizeType i = 0; i < Npoints; ++i)
         result += rbfCoeffs_[i] * 
-                  kernel_(Numeric::distance(point, points[i]), supportRadius_); 
+                  kernel_(Geometry::distance(point, points[i]), supportRadius_); 
 
     result += rbfCoeffs_[Npoints]; 
 
@@ -225,6 +241,7 @@ double rbfInterpolationEigen::evaluate(
 
 
 } // End namespace RBF
+} // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

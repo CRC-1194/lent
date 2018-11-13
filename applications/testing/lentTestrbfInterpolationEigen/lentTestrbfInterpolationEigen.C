@@ -108,6 +108,7 @@ void setValuesXnYnZn(Values& values, Points const& points, double N)
 //auto setValues1x2y2z2 = make_set_values<3>();  
 //auto setValues1x2y2z2 = make_set_values<4>();  
 
+using namespace Foam;
 using namespace RBF;
 
 TEST(RBF_EIGEN, CLASS_INTERFACE)
@@ -144,16 +145,16 @@ TEST(RBF_EIGEN, CLASS_INTERFACE)
 
         // Emtpy construction test.
         rbfInterpolationEigen rbfEmpty; 
-        // Factorization and sytem solution.
+        // Factorize and solve the system.
+        rbfEmpty.factorize(nodalPoints, rbfKernel); 
         rbfEmpty.interpolate(nodalPoints, nodalValues, rbfKernel);
 
-        // Construct with factorization. 
+        // Construct and factorize. 
         rbfInterpolationEigen rbfFactorized(nodalPoints, rbfKernel);  
-        // Solve with given values. 
-        // This assumes nodalPoints are those given to the constructor! 
+        // Solve. 
         rbfFactorized.interpolate(nodalPoints, nodalValues);
 
-        // Do all at once: assemble and solve the system.
+        // Construct, factorize and solve. 
         rbfInterpolationEigen rbfFull(nodalPoints, nodalValues, rbfKernel);  
 
         realVector rbfEmptyVals (nodalValues.size()); 
@@ -297,7 +298,7 @@ TEST(RBF_EIGEN, RANDOM_POINTS)
         }
 
         // Compute the fill distance of the point set. 
-        hMap[Npts] = Numeric::fillDistance(nodalPoints);
+        hMap[Npts] = Geometry::fillDistance(nodalPoints);
     }
     nodalPointFile.close();
 
@@ -360,7 +361,7 @@ TEST(RBF_EIGEN, RANDOM_POINTS)
             // Simple output: multidimensional indexed CSV for use with pandas.DataFrame.
             const auto testError = (testValuesRBF - testValuesExact);
             const auto Einf =  testError.lpNorm<Eigen::Infinity>(); 
-            const auto Ermse = testError.lpNorm<2>() / sqrt(testError.size()); 
+            const auto Ermse = testError.lpNorm<2>() / std::sqrt(testError.size()); 
 
             errorFile << rbfName << "," << Npts << "," << Einf << "," 
                 << Ermse << std::endl; 

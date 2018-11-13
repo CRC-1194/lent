@@ -26,10 +26,12 @@ License
 #ifndef rbfGeometry_H
 #define rbfGeometry_H
 
+namespace Foam 
+{
 namespace RBF
 {
 
-namespace Numeric 
+namespace Geometry
 {
 
     template<typename PointA, typename PointB> 
@@ -106,11 +108,11 @@ namespace Numeric
     {
         double rmax = -std::numeric_limits<double>::infinity(); 
 
-        auto pointsCentroid = Numeric::centroid(points);
+        auto pointsCentroid = centroid(points);
 
         for (const auto& point : points)
         {
-            const double dist = Numeric::distance(pointsCentroid, point); 
+            const double dist = distance(pointsCentroid, point); 
             if (dist > rmax)
                 rmax = dist; 
         }
@@ -124,9 +126,9 @@ namespace Numeric
     {
         double rcmean = 0.;  
 
-        auto pointsCentroid = Numeric::centroid(points);
+        auto pointsCentroid = centroid(points);
         for (const auto& point : points)
-            rcmean += Numeric::distance(pointsCentroid, point); 
+            rcmean += distance(pointsCentroid, point); 
 
         rcmean /= points.size(); 
 
@@ -142,16 +144,16 @@ namespace Numeric
 
         for (const auto& pointI : points)
             for (const auto& pointJ : points)
-            rrms += Numeric::distance_sqr(pointI, pointJ); 
+            rrms += distance_sqr(pointI, pointJ); 
 
         rrms = std::sqrt(rrms / points.size());  
 
         return rrms; 
     }
 
-} // End namespace Numeric
-
+} // End namespace Geometry 
 } // End namespace RBF 
+} // End namespace Foam  
 
 
 // ************************************************************************* //

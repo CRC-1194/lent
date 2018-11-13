@@ -1,0 +1,8 @@
+EXE_INC = \
+    -std=c++2a \
+    -isystem$(EIGEN_HEADERS) \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+
+EXE_LIBS = \
+    -lmeshTools \
+    -lfiniteVolume 
