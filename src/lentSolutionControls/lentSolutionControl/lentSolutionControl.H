@@ -26,18 +26,28 @@ Class
 
 Description
     Class to control the solution procedure of the discretized
-    Navier Stokes system.
-    Allows for more fine grained control than the pimple control class
-    it inherits from.
+    Navier Stokes system for two-phase systems.
+    This control class respects and resolves the non-linearity of
+    the convective term up to a prescribed tolerance. After reaching this
+    tolerance, the momentum fluxes (rhoPhi) are kept constant for the remaining
+    outer iterations.
+    Update of the momentum fluxes can be controlled by the three parameters
+    described below. Both the relative change and the absolute change
+    take the maximum norm of the the relative / absolute flux change field.
+    The user can also prescribe a maximum number of outer iterations in which
+    the momentum fluxes are updated. Beyond this iteration number the
+    momentum fluxes are frozen irrespective if the convergence criteria are
+    fulfilled.
+    Note that the change based criteria are linked with a logical OR. So
+    enforcing the fulfillment of both criteria is currently not possible.
 
-    Required parameters to be set in fvSolution in addition to PIMPLE
-    parameters:
-        - updateMomentumFlux (yes/no)
-        - adaptiveInnerIteration (yes/no)
-        - velocityUpdateType (none/adaptive/alwaysOn)
-    
-    if velocityUpdateType == "adaptive":
-        - phiChangeTolerance scalar
+    Required parameters:
+        - phiChangeTolerance: threshold for realtive flux change convergence
+
+    Optional parameters:
+        - absPhiChangeTolerance: threshold for abslute flux change convergence
+        - maxFluxUpdateIterations: number of outer iterations after which the
+                update of momentum fluxes is stopped.
         
 SourceFiles
     lentSolutionControl.C
@@ -70,19 +80,20 @@ class lentSolutionControl
     const surfaceScalarField& volumetricFluxes_;
 
     // User defined flags for solution control
-    bool resolveConvectiveNonlinearity_;
-    bool adaptiveInnerIteration_;
-    // Valid parameters: "none", "adaptive", "alwaysOn"
-    word explicitVelocityUpdateType_;
     scalar relTolVolFlux_;
+    scalar absTolVolFlux_;
+    label maxFluxUpdateIterations_;
 
-    // Internal parameters for solution control
-    bool explicitVelocityUpdate_;
+    // Logical flags which indicate different convergence states
+    bool fluxesHaveConverged_;
+    bool updateMomentumFlux_;
+    bool pressureHasConverged_;
 
     // Private Member Functions
-    bool volFluxesAreConverged();
-    bool pressureIsConverged();
-    void checkParameterCompatibility() const;
+    void checkFluxConvergence();
+    bool pressureIsConverged() const;
+
+    void resetControlFlags();
     void displayConfiguration() const;
 
     
@@ -91,7 +102,7 @@ protected:
     // Protected Member Functions
 
         //- Read controls from fvSolution dictionary
-        virtual void read();
+        virtual void read() override;
 
 
 public:
@@ -113,11 +124,15 @@ public:
     // Member Functions
 
         // Access
+        label maxFluxUpdateIterations() const;
+        scalar relativeVolumetricFluxTolerance() const;
+        scalar absoluteVolumetricFluxTolerance() const;
 
         // Solution control
-        bool adaptiveCorrect();
+        bool loop() override;
+        bool correctPressure();
         bool explicitVelocityUpdate();
-        bool updateMomentumFlux() const;
+        bool updateMomentumFlux();
 };
 
 
