@@ -20,8 +20,8 @@ STRUCTS=${STRUCTS//\/home/-S \/home}
 echo "/usr/bin/time hpcstruct -I $LENT_PROJECT/+ $FOAM_USER_LIBBIN/liblent.so"
 /usr/bin/time hpcstruct -I $LENT_PROJECT/+ $FOAM_USER_LIBBIN/liblent.so 
 
-echo "/usr/bin/time hpcprof -o database -S $APPLICATION.hpcstruct -S liblent.so.hpcstruct
+echo "/usr/bin/time hpcprof -o database-$MEASUREMENTS -S $APPLICATION.hpcstruct -S liblent.so.hpcstruct
 $STRUCTS -I $LENT_PROJECT/+ $MEASUREMENTS"
 
-/usr/bin/time hpcprof -o database -S $APPLICATION.hpcstruct -S liblent.so.hpcstruct \
+/usr/bin/time hpcprof -o database-$MEASUREMENTS -S $APPLICATION.hpcstruct -S liblent.so.hpcstruct \
     $STRUCTS -I $LENT_PROJECT/+ $MEASUREMENTS
