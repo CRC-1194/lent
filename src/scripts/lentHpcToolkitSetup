@@ -1,5 +1,7 @@
 #! /usr/bin/bash
 
+echo "This script should only be executed once each time OpenFOAM is (re-)compiled."
+
 HPCRUN=$(which hpcrun)
 HPCRUN=${HPCRUN%%/bin*}
 HPCTOOLKIT_LIB=$HPCRUN/lib/hpctoolkit
@@ -15,7 +17,6 @@ function make_hpcstruct {
 
 }
 
-# TODO: HPCToolkit library versions are fixed, find them dynamically. 
 hpcstruct -o $HPCSTRUCT_OUTPUT/libhpcrun.so.hpcstruct $HPCTOOLKIT_LIB/libhpcrun.so.0.0.0
 hpcstruct -o $HPCSTRUCT_OUTPUT/libmonitor.so.0.0.0.hpcstruct $HPCTOOLKIT_LIB/ext-libs/libmonitor.so.0.0.0
 
@@ -24,9 +25,3 @@ make_hpcstruct libfiniteVolume.so $FOAM_LIBBIN
 make_hpcstruct libsampling.so $FOAM_LIBBIN
 make_hpcstruct libOpenFOAM.so  $FOAM_LIBBIN
 
-#LIBSTDCPP=$( ldconfig -p | grep libstdc++ | head -n 1)
-#LIBSTDCPP=${LIBSTDCPP%%(*}
-#make_hpcstruct $LIBSTDCPP /usr/lib
-#hpcstruct /usr/lib/libstdc++.so.6.0.25
-#hpcstruct /usr/lib/libc-2.28.9000.so
-#hpcstruct /usr/lib/libnss_files-2.28.9000.so
