@@ -1,0 +1,6 @@
+#! /usr/bin/bash
+
+rm -rf *hpc* 
+rm -rf *database*
+rm -rf *measurement* 
+rm -rf *.hpcstruct

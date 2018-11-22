@@ -1,0 +1,27 @@
+#! /usr/bin/bash
+
+APPLICATION=$1
+EVENTS=$2
+MEASUREMENTS=$3
+
+
+# Creating structures for the profiled application and liblent.so
+
+echo "/usr/bin/time hpcrun -o $MEASUREMENTS $EVENTS $APPLICATION"
+/usr/bin/time hpcrun -o $MEASUREMENTS $EVENTS $APPLICATION 
+
+echo "/usr/bin/time hpcstruct -I $LENT_PROJECT/+ $(which  "$APPLICATION")"
+/usr/bin/time hpcstruct -I $LENT_PROJECT/+ $(which  "$APPLICATION") 
+
+# Profiling 
+STRUCTS=$(ls $WM_PROJECT_DIR/build/*.hpcstruct)
+STRUCTS=${STRUCTS//\/home/-S \/home}
+
+echo "/usr/bin/time hpcstruct -I $LENT_PROJECT/+ $FOAM_USER_LIBBIN/liblent.so"
+/usr/bin/time hpcstruct -I $LENT_PROJECT/+ $FOAM_USER_LIBBIN/liblent.so 
+
+echo "/usr/bin/time hpcprof -o database -S $APPLICATION.hpcstruct -S liblent.so.hpcstruct
+$STRUCTS -I $LENT_PROJECT/+ $MEASUREMENTS"
+
+/usr/bin/time hpcprof -o database -S $APPLICATION.hpcstruct -S liblent.so.hpcstruct \
+    $STRUCTS -I $LENT_PROJECT/+ $MEASUREMENTS
