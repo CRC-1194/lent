@@ -96,6 +96,15 @@ curvatureModel::New(const dictionary& configDict)
     return tmp<curvatureModel> (cstrIter()(configDict));
 }
 
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+std::shared_ptr<volVectorField> curvatureModel::cellInterfaceNormals(
+    const fvMesh& mesh,
+    const triSurfaceFront& front
+) const
+{
+    notImplemented("cellInterfaceNormals");
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

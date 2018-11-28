@@ -203,6 +203,15 @@ public:
             return surfaceTensionForceModelTmp_->cellSurfaceTensionForce(mesh, frontMesh); 
         }
 
+        tmp<fvMatrix<vector>> surfaceTensionImplicitPart(
+            const volVectorField& velocity,
+            const volScalarField& markerField,
+            const triSurfaceFront& front
+        ) const
+        {
+            return surfaceTensionForceModelTmp_->surfaceTensionImplicitPart(velocity, markerField, front);
+        }
+
         const dictionary& dict() const
         {
             return lentControlDict_;

@@ -5,7 +5,10 @@
         fvm::ddt(rho, U)
       + fvm::div(rhoPhi, U)
       + MRF.DDt(rho, U)
+      // see method divDevRhoReff(...) in "linearViscousStress.C"
+      // for OpenFOAM's discretization of the diffusion term 
       + turbulence->divDevRhoReff(rho, U)
+      - lent.surfaceTensionImplicitPart(U, markerField, front)
      ==
         fvOptions(rho, U)
     );

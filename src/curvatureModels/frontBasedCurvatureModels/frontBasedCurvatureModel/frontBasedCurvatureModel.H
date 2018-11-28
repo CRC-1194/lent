@@ -86,17 +86,22 @@ public:
     virtual std::shared_ptr<volScalarField> cellCurvature(
         const fvMesh&, 
         const triSurfaceFront&
-    ) const;  
+    ) const override;  
 
     virtual std::shared_ptr<surfaceScalarField> faceCurvature(
         const fvMesh&, 
         const triSurfaceFront&
-    ) const; 
+    ) const override; 
 
     virtual std::shared_ptr<triSurfaceFrontVectorField> frontCurvatureNormal(
         const fvMesh&,
         const triSurfaceFront&
     ) const;
+
+    virtual std::shared_ptr<volVectorField> cellInterfaceNormals(
+        const fvMesh&,
+        const triSurfaceFront&
+    ) const override;
 };
 
 
