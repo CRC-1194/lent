@@ -113,6 +113,18 @@ std::shared_ptr<surfaceScalarField> divergenceBasedCurvatureModel::faceCurvature
 
     return std::shared_ptr<surfaceScalarField>{faceCurvatureTmp.ptr()};
 }
+
+std::shared_ptr<volVectorField> divergenceBasedCurvatureModel::cellInterfaceNormals(
+    const fvMesh& mesh,
+    const triSurfaceFront& front
+) const
+{
+    const auto& curvatureInputField = inputField(mesh);
+
+    auto interfaceNormalsTmp = fvc::grad(curvatureInputField)/(mag(fvc::grad(curvatureInputField)) + SMALL);
+
+    return std::shared_ptr<volVectorField>{interfaceNormalsTmp.ptr()};
+}
     
 const word& divergenceBasedCurvatureModel::inputFieldName() const
 {
