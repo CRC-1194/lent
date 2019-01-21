@@ -5,7 +5,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export CXXFLAGS=$WM_CXXFLAGS
 
 export LENT_PROJECT=${DIR%%/etc*}
-export LENT_DEBUG="-g3 -ggdb3" 
 
 export PATH=$LENT_PROJECT/src/scripts:$LENT_PROJECT/src/scripts/verification:$PATH
 

@@ -38,11 +38,18 @@ Description
 
 #include "rbFunctions.H"
 #include "rbfCellsInterpolationEigen.H"
+#include "analyticalEllipsoid.H"
+#include "sphereHypersurface.H"
+#include "ellipsoidHypersurface.H"
+#include "rbfIsoPointCalculator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace Foam;
 using namespace RBF;
+using namespace FrontTracking;
+
+#include "lentTestrbfCellsInterpolationEigenTemplates.H"
 
 int main(int argc, char **argv)
 {
@@ -50,72 +57,100 @@ int main(int argc, char **argv)
     #include "createTime.H"
     #include "createMesh.H"
 
-    // Cell centered (volume) field.
-    volScalarField cellField 
-    (
-        IOobject
-        (
-            "cellField",
-            runTime.timeName(), 
-            mesh, 
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ), 
-        // FIXME: Replace this with a function.
-        Foam::pow(mesh.C().component(0),2) + 
-        Foam::pow(mesh.C().component(1),2) + 
-        Foam::pow(mesh.C().component(2),2) 
-    );
+    if(mesh.nCells() > 64 * 64 * 64) 
+        WarningIn(__PRETTY_FUNCTION__) 
+            << "Request for memory may be too large. " << endl
+            << "The RBF system factorization is memory intensive," 
+            << "the program may run out of memory." << endl
+            << "Memory usage of the RBF factorization is NxN x nCells x 64 bits, " << endl
+            << "where N is the size of the RBF system.\n";
 
-    // Point-centered (cell-corner) field.
-    pointMesh pointMesh(mesh); 
-    pointScalarField cornerField 
-    (
-        IOobject
-        (
-            "cornerField",
-            runTime.timeName(), 
-            mesh, 
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ), 
-        pointMesh, 
-        dimensionedScalar("cornerField", Foam::pow(dimLength,2), 0)
-    );
+    #include "createFields.H"
 
-    // Write the fields.
-    cornerField.write();
-    cellField.write(); 
-
-    // FIXME: Abstract this into some kind of a setter function for the point field. 
     const auto& meshPoints = mesh.points(); 
-    forAll(cornerField, pointI)
+    const auto& cellCenters = mesh.C(); 
+
+    // Error file.
+    OFstream errorFile ("lentTestrbfCellsInterpolationEigen.dat"); 
+    errorFile << "RBF,SURFACE,LINF_BCC,LINF_BCC-FVM" << endl; 
+
+    using rbfKernelType = std::tuple_element_t<0, rbfTuple>;
+    
+    Info << "RBF Kernel = " << rbfKernelType::name() << endl;
+
+    // Initialize and factorize the RBF interpolation linear equation systems. 
+    Info << "Factorizing the interpolation matrices... "; 
+    rbfCellsInterpolationEigen<rbfKernelType> cellRbfsBcc(mesh, stencilType::BCC); 
+    rbfCellsInterpolationEigen<rbfKernelType> cellRbfsBccFvm(mesh, stencilType::BCC_FVM); 
+    Info << "done." << endl; 
+
+    for (decltype(radii.size()) testI = 0; testI < radii.size(); ++testI)
     {
-        cornerField[pointI] = Foam::pow(meshPoints[pointI][0], 2) +
-            Foam::pow(meshPoints[pointI][1], 2) +
-            Foam::pow(meshPoints[pointI][1], 2);
+        runTime.setTime(testI, testI); 
+        Info<< "Test = " << runTime.timeName() << nl << endl;
+
+        // Reset the errors.
+        LinfEllipsoidBcc == linfInit;  
+        LinfEllipsoidBccFvm == linfInit;
+        LinfSphereBcc == linfInit;  
+        LinfSphereBccFvm == linfInit;
+
+        // BEGIN ELLIPSOID TEST
+        // - Set signed distance fields.
+        ellipsoidHypersurface ellipsoid (aAxes[testI], bAxes[testI], cAxes[testI]); 
+        surfaceSetField(veField, cellCenters, ellipsoid);
+        surfaceSetField(peField, meshPoints, ellipsoid);
+        
+        // - Interpolate new field values. 
+        cellRbfsBcc.solve(veField, peField); 
+        evaluateLinfErrors(LinfEllipsoidBcc, randPointsInCells, 
+                           ellipsoid, cellRbfsBcc);
+
+        cellRbfsBccFvm.solve(veField, peField); 
+        evaluateLinfErrors(LinfEllipsoidBccFvm, randPointsInCells, 
+                           ellipsoid, cellRbfsBccFvm);
+
+        // Report ellipsoid errors.
+        auto LinfBcc = max(LinfEllipsoidBcc).value(); 
+        auto LinfBccFvm = max(LinfEllipsoidBccFvm).value(); 
+        errorFile << rbfKernelType::name() << "," << "ELLIPSOID," 
+            << LinfBcc << "," << LinfBccFvm << endl;
+        Info << "Linf ellipsoid, BCC stencil = " 
+            << LinfBcc << endl;
+        Info << "Linf ellipsoid, BCC_FVM stencil = " 
+            << LinfBccFvm << endl;
+
+        // END ELLIPSOID TEST
+
+        // BEGIN SPHERE TEST
+        // - Set signed distance fields.
+        sphereHypersurface sphere(point(0.,0.,0.), radii[testI]); 
+        surfaceSetField(psField, meshPoints, sphere);
+        surfaceSetField(vsField, cellCenters, sphere);
+
+        // - Interpolate new field values. 
+        cellRbfsBcc.solve(vsField, psField); 
+        evaluateLinfErrors(LinfSphereBcc, randPointsInCells, 
+                           sphere, cellRbfsBcc);
+
+        cellRbfsBccFvm.solve(vsField, psField); 
+        evaluateLinfErrors(LinfSphereBccFvm, randPointsInCells, 
+                           sphere, cellRbfsBccFvm);
+        
+        // Report sphere errors.
+        LinfBcc = max(LinfSphereBcc).value(); 
+        LinfBccFvm = max(LinfSphereBccFvm).value(); 
+        errorFile << rbfKernelType::name() << "," << "SPHERE," 
+            << LinfBcc << "," << LinfBccFvm << endl;
+        Info << "Linf sphere, BCC stencil = " << LinfBcc << endl;
+        Info << "Linf sphere, BCC_FVM stencil = " << LinfBccFvm << endl;
+        // END SPHERE TEST
+        
+        runTime.writeNow(); 
+        runTime.printExecutionTime(Info);
     }
 
-    // For all kernels...
-    const std::string rbfName ("MULTIQUADRIC");
-    auto rbfKernel = [rbfName](double r, double rs) { return rbfKernels.at(rbfName)(r, rs, 1.0); };  
-
-    // Construct 
-    // - Assemble the point stencils from the mesh and set the RBF interpolation kernels.
-    // - Factorize the lineary systems based on the set kernel and calculated stencils. 
-    rbfCellsInterpolationEigen cellRbfs(mesh, rbfKernel, stencilType::BCC_FVM); 
-    //cellRbfs.interpolate(cellField, cornerField); 
-
-
-    // TESTS: 
-    // For each cell, sample the RBF interpolant randomly, evaluate Einf and Ermse
-    //      - Store Einf and Ermse fields for visualization.
-    //      - Compute the E_inf for the mesh. 
-    //      - Write error data into a file: Ncells, E_inf 
-
     Info<< nl;
-    runTime.printExecutionTime(Info);
-
     Info<< "End\n" << endl;
 
     return 0;
