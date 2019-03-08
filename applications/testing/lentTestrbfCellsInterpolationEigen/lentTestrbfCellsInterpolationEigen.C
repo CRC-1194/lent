@@ -63,92 +63,39 @@ int main(int argc, char **argv)
             << "The RBF system factorization is memory intensive," 
             << "the program may run out of memory." << endl
             << "Memory usage of the RBF factorization is NxN x nCells x 64 bits, " << endl
-            << "where N is the size of the RBF system.\n";
+            << "where N is the number of points in the RBF stencil.\n";
 
-    #include "createFields.H"
+    // Initialize the surface test fields.
+    surfaceTestFields ellFields(mesh, "Ellipsoid"); 
+    surfaceTestFields sphFields(mesh, "Sphere"); 
 
-    const auto& meshPoints = mesh.points(); 
-    const auto& cellCenters = mesh.C(); 
+    // Populate mesh cells with nPointsPerCell random points.
+    const label nPointsPerCell = 10; 
+    Info << "Generating " << nPointsPerCell << " random sampling points per cell ..."; 
+    using pointVectorVector = std::vector<std::vector<point>>;
+    pointVectorVector randPointsInCells
+    (
+        mesh.nCells(), 
+        std::vector<point>(nPointsPerCell, point(VGREAT, VGREAT, VGREAT))
+    );
+    genRandomPointsInCells(randPointsInCells, mesh, nPointsPerCell);
+    Info << "Done." << endl;
 
     // Error file.
     OFstream errorFile ("lentTestrbfCellsInterpolationEigen.dat"); 
     errorFile << "RBF,SURFACE,LINF_BCC,LINF_BCC-FVM" << endl; 
 
-    using rbfKernelType = std::tuple_element_t<0, rbfTuple>;
-    
-    Info << "RBF Kernel = " << rbfKernelType::name() << endl;
-
-    // Initialize and factorize the RBF interpolation linear equation systems. 
-    Info << "Factorizing the interpolation matrices... "; 
-    rbfCellsInterpolationEigen<rbfKernelType> cellRbfsBcc(mesh, stencilType::BCC); 
-    rbfCellsInterpolationEigen<rbfKernelType> cellRbfsBccFvm(mesh, stencilType::BCC_FVM); 
-    Info << "done." << endl; 
-
-    for (decltype(radii.size()) testI = 0; testI < radii.size(); ++testI)
-    {
-        runTime.setTime(testI, testI); 
-        Info<< "Test = " << runTime.timeName() << nl << endl;
-
-        // Reset the errors.
-        LinfEllipsoidBcc == linfInit;  
-        LinfEllipsoidBccFvm == linfInit;
-        LinfSphereBcc == linfInit;  
-        LinfSphereBccFvm == linfInit;
-
-        // BEGIN ELLIPSOID TEST
-        // - Set signed distance fields.
-        ellipsoidHypersurface ellipsoid (aAxes[testI], bAxes[testI], cAxes[testI]); 
-        surfaceSetField(veField, cellCenters, ellipsoid);
-        surfaceSetField(peField, meshPoints, ellipsoid);
-        
-        // - Interpolate new field values. 
-        cellRbfsBcc.solve(veField, peField); 
-        evaluateLinfErrors(LinfEllipsoidBcc, randPointsInCells, 
-                           ellipsoid, cellRbfsBcc);
-
-        cellRbfsBccFvm.solve(veField, peField); 
-        evaluateLinfErrors(LinfEllipsoidBccFvm, randPointsInCells, 
-                           ellipsoid, cellRbfsBccFvm);
-
-        // Report ellipsoid errors.
-        auto LinfBcc = max(LinfEllipsoidBcc).value(); 
-        auto LinfBccFvm = max(LinfEllipsoidBccFvm).value(); 
-        errorFile << rbfKernelType::name() << "," << "ELLIPSOID," 
-            << LinfBcc << "," << LinfBccFvm << endl;
-        Info << "Linf ellipsoid, BCC stencil = " 
-            << LinfBcc << endl;
-        Info << "Linf ellipsoid, BCC_FVM stencil = " 
-            << LinfBccFvm << endl;
-
-        // END ELLIPSOID TEST
-
-        // BEGIN SPHERE TEST
-        // - Set signed distance fields.
-        sphereHypersurface sphere(point(0.,0.,0.), radii[testI]); 
-        surfaceSetField(psField, meshPoints, sphere);
-        surfaceSetField(vsField, cellCenters, sphere);
-
-        // - Interpolate new field values. 
-        cellRbfsBcc.solve(vsField, psField); 
-        evaluateLinfErrors(LinfSphereBcc, randPointsInCells, 
-                           sphere, cellRbfsBcc);
-
-        cellRbfsBccFvm.solve(vsField, psField); 
-        evaluateLinfErrors(LinfSphereBccFvm, randPointsInCells, 
-                           sphere, cellRbfsBccFvm);
-        
-        // Report sphere errors.
-        LinfBcc = max(LinfSphereBcc).value(); 
-        LinfBccFvm = max(LinfSphereBccFvm).value(); 
-        errorFile << rbfKernelType::name() << "," << "SPHERE," 
-            << LinfBcc << "," << LinfBccFvm << endl;
-        Info << "Linf sphere, BCC stencil = " << LinfBcc << endl;
-        Info << "Linf sphere, BCC_FVM stencil = " << LinfBccFvm << endl;
-        // END SPHERE TEST
-        
-        runTime.writeNow(); 
-        runTime.printExecutionTime(Info);
-    }
+    // Tests the RBF interpolation with an ellipsoid and sphere hypersurface
+    // whose radii increase with respect to the mesh size. 
+    testRbfEllipsoidSphere<rbfTuple>
+    (
+        mesh, 
+        runTime,  
+        randPointsInCells,
+        ellFields,
+        sphFields,
+        errorFile
+    );
 
     Info<< nl;
     Info<< "End\n" << endl;
