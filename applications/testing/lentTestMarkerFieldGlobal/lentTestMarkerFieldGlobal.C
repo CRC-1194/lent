@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     triSurfaceFront front(
         IOobject(
             "front",
-            "front",
+            "constant",
             runTime,
             IOobject::MUST_READ,
             IOobject::AUTO_WRITE
@@ -84,8 +84,7 @@ int main(int argc, char *argv[])
 
     lentGlobalMarkerFieldTest markerfieldTest{mesh, front};
 
-    markerfieldTest.runAllTests();
-    markerfieldTest.writeResults("globalMarkerFieldTestResults.csv");
+    markerfieldTest.runAllTests("globalMarkerFieldTestResults.csv");
 
     Info<< "\nEnd\n" << endl;
     return 0;
