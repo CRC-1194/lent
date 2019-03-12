@@ -205,6 +205,130 @@ scalar analyticalEllipsoid::bisection(const std::function< scalar(scalar)>& root
     return midPoint;
 }
 
+scalar analyticalEllipsoid::signedDistanceRefSytem(const point P) const
+{
+    auto surfaceProjectionP = normalProjectionToSurfaceRefSystem(P);
+
+    return sign(levelSetValueOf(P))*mag(surfaceProjectionP - P);
+}
+
+point analyticalEllipsoid::normalProjectionToSurfaceRefSystem(point P) const
+{
+    point pointOnSurface{0,0,0};
+
+    // Move point to first quadrant of reference frame
+    auto p = P;
+    forAll(p, I)
+    {
+        p[I] = fabs(p[I]);
+    }
+
+    vector q{oneBySemiAxisSqr_};
+    auto minDistanceParameter = [&q,&p](scalar t)
+            {
+                auto term1 = p.x()/(1.0 + q.x()*t);
+                auto term2 = p.y()/(1.0 + q.y()*t);
+                auto term3 = p.z()/(1.0 + q.z()*t);
+
+                return q.x()*term1*term1 + q.y()*term2*term2
+                        + q.z()*term3*term3 - 1.0;
+            };
+
+    // The minor and the major semi axis are required to compute the
+    // appropriate parameter range (TT)
+    parameterPair interval{};
+    auto minI = minorSemiAxisIndex();
+    interval[0] = -1.0/q[minI] + p[minI]/sqrt(q[minI]);
+    interval[1] = -1.0/q[minI]
+                 + sqrt(p.x()*p.x()/q.x() + p.y()*p.y()/q.y()
+                         + p.z()*p.z()/q.z());
+
+    auto lambdaMin = bisection(minDistanceParameter, interval);
+    
+    pointOnSurface.x() = p.x() / (1.0 + q.x()*lambdaMin);
+    pointOnSurface.y() = p.y() / (1.0 + q.y()*lambdaMin);
+    pointOnSurface.z() = p.z() / (1.0 + q.z()*lambdaMin);
+
+    // Move point on surface to correct quadrant
+    forAll(pointOnSurface, I)
+    {
+        pointOnSurface[I] *= sign(P[I]);
+    }
+
+    return pointOnSurface;
+}
+
+vector analyticalEllipsoid::normalToPointRefSystem(const point P) const
+{
+    // NOTE: using the level set gradient rather than the connection
+    // between the refPoint and pointOnSurface is more stable for points
+    // close to the interface (TT)
+    auto pointOnSurface = normalProjectionToSurfaceRefSystem(P);
+    auto gradient = levelSetGradientAt(pointOnSurface);
+
+    return gradient/mag(gradient);
+}
+
+point analyticalEllipsoid::intersectionRefSystem(const point pointA, const point pointB) const
+{
+    // NOTE: this function is intended to find a unique intersection
+    // between A and B. The case of A and B spanning the ellipsoid
+    // is not covered yet. (TT)
+    auto lSetValueA = levelSetValueOf(pointA);
+    auto lSetValueB = levelSetValueOf(pointB);
+
+    // TODO: special case in which A and B form a tangent to the ellipsoid
+    // is not covered yet. (TT)
+    if (sign(lSetValueA) == sign(lSetValueB))
+    {
+        // Fatal Error
+        FatalErrorInFunction
+            << "Error: there is no intersection with ellipsoid between "
+            << "point " << pointA << " and point " << pointB
+            << abort(FatalError);
+    }
+    else if (lSetValueA == 0.0)
+    {
+        return pointA;
+    }
+    else if (lSetValueB == 0.0)
+    {
+        return pointB;
+    }
+
+    auto connection = pointA - pointB;
+    auto basePoint = pointB;
+
+    // Ensure the direction points from inside the ellipsoid to the outside.
+    // In this case solution of the quadratic equation will yield a positive
+    // and a negative lambda with the positive one being the sought after (TT)
+    if (lSetValueA < 0.0)
+    {
+        connection = pointB -pointA;
+        basePoint = pointA;
+    }
+    
+    // Compute intersection using line approach
+    auto lamdbas = intersectEllipsoidWithLine(pointA, connection);
+    
+    // Decide which lambda is the sought after
+    scalar lamdba = lamdbas[0];
+
+    if (lamdbas[1] > 0.0)
+    {
+        lamdba = lamdbas[1];
+    }
+    
+    return basePoint + lamdba*connection;
+}
+
+scalar analyticalEllipsoid::curvatureAtRefSystem(const point P) const
+{
+    auto pOnEllipsoid = normalProjectionToSurfaceRefSystem(P);
+
+    return ellipsoidCurvature(pOnEllipsoid);
+}
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 analyticalEllipsoid::analyticalEllipsoid(const dictionary& configDict)
 :
@@ -232,7 +356,6 @@ analyticalEllipsoid::analyticalEllipsoid(const point& centre, const vector& semi
     }
 } 
 
-
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 scalar analyticalEllipsoid::distance(const point& trialPoint) const
 {
@@ -241,139 +364,34 @@ scalar analyticalEllipsoid::distance(const point& trialPoint) const
 
 scalar analyticalEllipsoid::signedDistance(const point& trialPoint) const
 {
-    auto copyPoint{trialPoint};
-    auto projectedPoint = moveToReferenceFrame(trialPoint);
-    auto surfaceProjection = normalProjectionToSurface(copyPoint);
-
-    return sign(levelSetValueOf(projectedPoint))*mag(surfaceProjection - projectedPoint);
+    return signedDistanceRefSytem(moveToReferenceFrame(trialPoint));
 }
 
 point analyticalEllipsoid::normalProjectionToSurface(point& trialPoint) const
 {
-    point pointOnSurface{0,0,0};
-
-    // Move trial point to first quadrant of reference frame
-    auto refPoint = moveToReferenceFrame(trialPoint);
-    auto p = refPoint;
-    forAll(p, I)
-    {
-        p[I] = fabs(p[I]);
-    }
-
-    vector q{oneBySemiAxisSqr_};
-    auto minDistanceParameter = [&q,&p](scalar t)
-            {
-                auto term1 = p.x()/(1.0 + q.x()*t);
-                auto term2 = p.y()/(1.0 + q.y()*t);
-                auto term3 = p.z()/(1.0 + q.z()*t);
-
-                return q.x()*term1*term1 + q.y()*term2*term2
-                        + q.z()*term3*term3 - 1.0;
-            };
-
-    // The minor and the major semi axis are rquired to compute the
-    // appropriate parameter range (TT)
-    parameterPair interval{};
-    auto minI = minorSemiAxisIndex();
-    interval[0] = -1.0/q[minI] + p[minI]/sqrt(q[minI]);
-    interval[1] = -1.0/q[minI]
-                 + sqrt(p.x()*p.x()/q.x() + p.y()*p.y()/q.y()
-                         + p.z()*p.z()/q.z());
-
-    auto lambdaMin = bisection(minDistanceParameter, interval);
-    
-    pointOnSurface.x() = p.x() / (1.0 + q.x()*lambdaMin);
-    pointOnSurface.y() = p.y() / (1.0 + q.y()*lambdaMin);
-    pointOnSurface.z() = p.z() / (1.0 + q.z()*lambdaMin);
-
-    // Move point on surface to correct quadrant
-    forAll(pointOnSurface, I)
-    {
-        pointOnSurface[I] *= sign(refPoint[I]);
-    }
-
-    return pointOnSurface + centre_;
+    return centre_ + normalProjectionToSurfaceRefSystem(moveToReferenceFrame(trialPoint));
 }
 
 vector analyticalEllipsoid::normalToPoint(const point& trialPoint) const
 {
-    // NOTE: using the level set gradient rather than the connection
-    // between the refPoint and pointOnSurface is more stable for points
-    // close to the interface (TT)
-    point copyPoint{trialPoint};
-    auto pointOnSurface = normalProjectionToSurface(copyPoint);
-    pointOnSurface = moveToReferenceFrame(pointOnSurface);
-    auto gradient = levelSetGradientAt(pointOnSurface);
-
-    return gradient/mag(gradient);
+    return normalToPointRefSystem(moveToReferenceFrame(trialPoint));
 }
 
 point analyticalEllipsoid::intersection(const point& pointA,
                                      const point& pointB) const
 {
-    // NOTE: this function is intended to find a unique intersection
-    // between A and B. The case of A and B spanning the ellipsoid
-    // is not covered yet. (TT)
-    
-    // Move to reference frame
-    auto refPointA = moveToReferenceFrame(pointA);
-    auto refPointB = moveToReferenceFrame(pointB);
-
-    auto lSetValueA = levelSetValueOf(refPointA);
-    auto lSetValueB = levelSetValueOf(refPointB);
-
-    // TODO: special case in which A and B form a tangent to the ellipsoid
-    // is not covered yet. (TT)
-    if (sign(lSetValueA) == sign(lSetValueB))
-    {
-        // Fatal Error
-        FatalErrorInFunction
-            << "Error: there is no intersection with ellipsoid between "
-            << "point " << pointA << " and point " << pointB
-            << abort(FatalError);
-    }
-    else if (lSetValueA == 0.0)
-    {
-        return pointA;
-    }
-    else if (lSetValueB == 0.0)
-    {
-        return pointB;
-    }
-
-    auto connection = refPointA - refPointB;
-    auto basePoint = refPointB;
-
-    // Ensure the direction points from inside the ellipsoid to the outside.
-    // In this case solution of the quadratic equation will yield a positive
-    // and a negative lambda with the positive one being the sought after (TT)
-    if (lSetValueA < 0.0)
-    {
-        connection = refPointB -refPointA;
-        basePoint = refPointA;
-    }
-    
-    // Compute intersection using line approach
-    auto lamdbas = intersectEllipsoidWithLine(refPointA, connection);
-    
-    // Decide which lambda is the sought after
-    scalar lamdba = lamdbas[0];
-
-    if (lamdbas[1] > 0.0)
-    {
-        lamdba = lamdbas[1];
-    }
-    
-    return basePoint + lamdba*connection + centre_;
+    return centre_ + intersectionRefSystem(moveToReferenceFrame(pointA),
+                                            moveToReferenceFrame(pointB));
 }
 
 scalar analyticalEllipsoid::curvatureAt(const point& p) const
 {
-    point pCopy{p};
-    auto pOnEllipsoid = normalProjectionToSurface(pCopy);
-    pOnEllipsoid = moveToReferenceFrame(pOnEllipsoid);
+    return curvatureAtRefSystem(moveToReferenceFrame(p));
+}
 
-    return ellipsoidCurvature(pOnEllipsoid);
+point analyticalEllipsoid::centre() const
+{
+    return centre_;
 }
 
 vector analyticalEllipsoid::semiAxes() const
@@ -386,6 +404,16 @@ vector analyticalEllipsoid::semiAxes() const
     }
 
     return semiAxes;
+}
+
+void analyticalEllipsoid::oneBySemiAxisSquare(const vector& oneBySemiAxisSquare)
+{
+    oneBySemiAxisSqr_ = oneBySemiAxisSquare;
+}
+
+void analyticalEllipsoid::centre(const vector& newCentre)
+{
+    centre_ = newCentre;
 }
 
 void analyticalEllipsoid::semiAxes(const vector& newSemiAxes)

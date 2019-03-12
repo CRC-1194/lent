@@ -91,6 +91,10 @@ private:
     point centre_;
     vector oneBySemiAxisSqr_;
 
+    // NOTE: all private member functions functions assume that the given point
+    // arguments are in the elliposid's reference frame. The axes orientation is the
+    // same as in the global coordinate system, but the origin is located at the
+    // centroid of the ellipsoid.
     scalar levelSetValueOf(const point& aPoint) const;
     vector levelSetGradientAt(const point& aPoint) const;
     point moveToReferenceFrame(const point& aPoint) const;
@@ -99,7 +103,15 @@ private:
     label minorSemiAxisIndex() const;
     // TODO: extract bisection method since it may be used else wehere (TT)
     scalar bisection(const std::function<scalar(scalar)>& rootFunction, parameterPair interval) const;
-    
+
+    // Counterparts of public interface functions formulated in the
+    // ellipsoid reference system
+    scalar signedDistanceRefSytem(const point P) const;
+    point normalProjectionToSurfaceRefSystem(point P) const;
+    vector normalToPointRefSystem(const point P) const;
+    point intersectionRefSystem(const point A, const point B) const;
+    scalar curvatureAtRefSystem(const point P) const;
+     
 
 public:
 
@@ -122,23 +134,12 @@ public:
     virtual point intersection(const point& pointA, const point& pointB) const;
     virtual scalar curvatureAt(const point& p) const;
 
-    virtual point centre() const
-    {
-        return centre_;
-    }
-
+    virtual point centre() const;
     virtual vector semiAxes() const;
     
-    virtual void oneBySemiAxisSquare(const vector& oneBySemiAxisSquare)
-    {
-        oneBySemiAxisSqr_ = oneBySemiAxisSquare;
-    }
-
-    virtual void centre(const vector& newCentre)
-    {
-        centre_ = newCentre;
-    }
-
+    // Set new parameters for the ellipsoid
+    virtual void oneBySemiAxisSquare(const vector& oneBySemiAxisSquare);
+    virtual void centre(const vector& newCentre);
     virtual void semiAxes(const vector& newSemiAxes);
 
     virtual void writeParameters(const word fileName) const;
