@@ -60,87 +60,93 @@ SourceFiles
     rbfInterpolationEigen.H
     rbfInterpolationEigen.C
 
+Author: 
+    Tomislav Maric, maric@mma.tu-darmstadt.de
+    TU Darmstadt, Mathematical modeling and analysis group 
+
 \*---------------------------------------------------------------------------*/
 
 #include "rbfInterpolationEigen.H"
 #include "rbfGeometry.H"
+#include "vector.H"
 
-namespace Foam
-{
-namespace RBF 
-{
+namespace Foam { namespace RBF {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-rbfInterpolationEigen::rbfInterpolationEigen()
+template<typename Kernel>
+rbfInterpolationEigen<Kernel>::rbfInterpolationEigen()
 :
-    A_(), 
-    matrixFactorization_(), 
-    rbfCoeffs_(), 
-    kernel_(),
+    kernel_(), 
     support_(supportType::GLOBAL_SUPPORT), 
-    supportRadius_(1.0)
+    supportRadius_(1.0),
+    matrix_(), 
+    matrixFactorization_(), 
+    source_(), 
+    rbfCoeffs_()
 {}
 
 template<typename Kernel> 
-rbfInterpolationEigen::rbfInterpolationEigen
-(
-    const Kernel& kernel, 
-    supportType support
-)
+rbfInterpolationEigen<Kernel>::rbfInterpolationEigen(const supportType support)
 :
-    A_(), 
+    kernel_(), 
+    support_(support), 
+    supportRadius_(1.0),
+    matrix_(), 
     matrixFactorization_(), 
-    rbfCoeffs_(), 
-    kernel_(kernel), 
-    support_(support),
-    supportRadius_(1.0)
+    source_(), 
+    rbfCoeffs_()
 {}
 
-template<typename Points, typename Kernel> 
-rbfInterpolationEigen::rbfInterpolationEigen
+template<typename Kernel> 
+template<typename Points> 
+rbfInterpolationEigen<Kernel>::rbfInterpolationEigen
 (
     Points const& points, 
-    const Kernel& kernel, 
     const supportType support 
 )
 :
-    A_(points.size() + Npoly_, points.size() + Npoly_), 
+    kernel_(), 
+    support_(support), 
+    supportRadius_(1.0),
+    matrix_(points.size() + Npoly_, points.size() + Npoly_), 
     matrixFactorization_(), 
-    rbfCoeffs_(), 
-    kernel_(kernel), 
-    support_(support),
-    supportRadius_(1.0)
+    source_(Npoly_ + points.size()),
+    rbfCoeffs_(Npoly_ + points.size())
 {
     factorize(points); 
 }
 
-template<typename Points, typename Values, typename Kernel> 
-rbfInterpolationEigen::rbfInterpolationEigen
+template<typename Kernel>
+template<typename Points, typename Values> 
+rbfInterpolationEigen<Kernel>::rbfInterpolationEigen
 (
     Points const& points, 
     Values const& values, 
-    const Kernel& kernel, 
     const supportType support 
 )
 :
-    A_(points.size() + Npoly_, points.size() + Npoly_), 
+    kernel_(), 
+    support_(support), 
+    supportRadius_(1.0),
+    matrix_(points.size() + Npoly_, points.size() + Npoly_), 
     matrixFactorization_(), 
-    rbfCoeffs_(), 
-    kernel_(kernel), 
-    support_(support),
-    supportRadius_(1.0)
+    source_(Npoly_ + points.size()),
+    rbfCoeffs_(Npoly_ + points.size())
 {
     factorize(points); 
-    interpolate(points, values);
+    solve(points, values);
 }
 
 // * * * * * * * * * * Private Member Functions * * * * * * * * * * * * * * //
 
+template<typename Kernel>
 template<typename Points> 
-void rbfInterpolationEigen::factorize(Points const& points)
+void rbfInterpolationEigen<Kernel>::factorize(Points const& points)
 {
-    A_.resize(points.size() + Npoly_, points.size() + Npoly_); 
+    matrix_.resize(points.size() + Npoly_, points.size() + Npoly_); 
+
+    supportRadius_ = 1.0;
 
     if (support_ == supportType::MAX_CENTROID_RADIUS)
         supportRadius_ = Geometry::maxCentroidRadius(points);  
@@ -153,14 +159,19 @@ void rbfInterpolationEigen::factorize(Points const& points)
 
     const auto Npoints = points.size(); 
 
+    using sizeType = decltype(points.size()); 
+
     // Fill the RBF kernel coefficients block.
     for (sizeType j = 0; j < Npoints; ++j)
         for (sizeType i = 0; i < Npoints ; ++i)
-            A_(i,j) = kernel_(Geometry::distance(points[i], points[j]), supportRadius_);
+        {
+            const double dist = Geometry::distance(points[i], points[j]); 
+            matrix_(i,j) = kernel_(dist, supportRadius_);
+        }
 
     // Fill the linear polynomial coefficients block.
-    auto P = A_.topRightCorner(Npoints, Npoly_);  
-    auto Pt = A_.bottomLeftCorner(Npoly_, Npoints);
+    auto P = matrix_.topRightCorner(Npoints, Npoly_);  
+    auto Pt = matrix_.bottomLeftCorner(Npoly_, Npoints);
     for(sizeType i = 0; i < Npoints; ++i)
     {
         P(i, 0) = 1.; 
@@ -172,64 +183,47 @@ void rbfInterpolationEigen::factorize(Points const& points)
         }
     }
     // Fill the lower right block with 0s.
-    A_.bottomRightCorner(Npoly_, Npoly_) = MatrixType::Zero(Npoly_, Npoly_); 
+    matrix_.bottomRightCorner(Npoly_, Npoly_) = MatrixType::Zero(Npoly_, Npoly_); 
 
-    // Assemble the matrix and factorize it in place. 
-    //matrixFactorization_ = A_.llt(); 
-    //matrixFactorization_ = A_.ldlt(); 
-    //matrixFactorization_ = A_.householderQr(); 
-    matrixFactorization_ = A_.partialPivLu(); 
+    // Factorize the matrix.
+    matrixFactorization_.compute(matrix_); 
 }
 
-template<typename Points, typename Kernel> 
-void rbfInterpolationEigen::factorize(Points const& points, const Kernel& kernel)
-{
-    kernel_ = kernel;   
-    factorize(points); 
-}
-
+template<typename Kernel>
 template<typename Points, typename Values>
-void rbfInterpolationEigen::interpolate
+void rbfInterpolationEigen<Kernel>::solve
 (
     Points const& points, 
     Values const& values
 ) 
 {
     // Extend the "values" source term with 0s of the linear polynomial. 
-    Eigen::VectorXd source(Npoly_ + points.size()); 
-    source.head(points.size()) = values; 
-    source.tail(Npoly_) = Eigen::VectorXd::Zero(Npoly_); 
+    source_.resize(Npoly_ + points.size()); 
+    source_.head(points.size()) = values; 
+    source_.tail(Npoly_) = Eigen::VectorXd::Zero(Npoly_); 
 
     // Solve for the RBF coefficients.
-    rbfCoeffs_ = matrixFactorization_.solve(source);
+    rbfCoeffs_ = matrixFactorization_.solve(source_);
 }
 
-template<typename Points, typename Values, typename Kernel>
-void rbfInterpolationEigen::interpolate
-(
-    Points const& points, 
-    Values const& values, 
-    const Kernel& kernel
-)
-{
-    kernel_ = kernel; 
-    interpolate(points, values);
-}
-
-template<typename Point, typename Points, typename Values> 
-double rbfInterpolationEigen::evaluate(
+template<typename Kernel> 
+template<typename Point, typename Points> 
+double rbfInterpolationEigen<Kernel>::value(
     Point const& point, 
-    Points const& points, 
-    Values const& values
-) 
+    Points const& points
+)  const
 {
     double result = 0.; 
 
     const auto Npoints = points.size(); 
 
+    using sizeType = decltype(points.size()); 
     for (sizeType i = 0; i < Npoints; ++i)
+    {
+        const double dist = Geometry::distance(point, points[i]); 
         result += rbfCoeffs_[i] * 
-                  kernel_(Geometry::distance(point, points[i]), supportRadius_); 
+                  kernel_(dist, supportRadius_); 
+    }
 
     result += rbfCoeffs_[Npoints]; 
 
@@ -239,9 +233,31 @@ double rbfInterpolationEigen::evaluate(
     return result;
 }
 
+template<typename Kernel> 
+template<typename Vector, typename Points> 
+Vector rbfInterpolationEigen<Kernel>::grad(
+    Vector const& point, 
+    Points const& points
+)  const
+{
+    Vector result (0,0,0);  
 
-} // End namespace RBF
-} // End namespace Foam
+    const auto Npoints = points.size(); 
+
+    using sizeType = decltype(points.size()); 
+    for (sizeType i = 0; i < Npoints; ++i)
+        result += rbfCoeffs_[i] * kernel_.template grad<Vector>(point, points[i]); 
+
+    result += Vector(
+        rbfCoeffs_[Npoints + 1], 
+        rbfCoeffs_[Npoints + 2],  
+        rbfCoeffs_[Npoints + 3]  
+    );
+
+    return result;
+}
+
+}} // End namespace Foam::RBF 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -33,117 +33,348 @@ Description
 #include <map>
 #include <string>
 #include <cmath>
+#include <tuple>
+#include <array>
+#include "rbfGeometry.H"
 
-namespace Foam
-{
-namespace RBF
-{
+namespace Foam { namespace RBF {
+
     using rbfFunctionType = std::function<double(double, double, double)>;
     using rbfTableType = std::map<std::string, rbfFunctionType>;
 
-    static const rbfTableType rbfKernels = 
+    template<typename Derived>
+    struct rbfKernelBase
     {
+        template<typename Vector> 
+        inline Vector grad(Vector const& point, Vector const& pointi, const double rs = 1.0) const
         {
-            "WENDLAND_C0",
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            { 
-                return std::pow(1. - (r / rs),2); 
-            } 
-        },
-        {
-            "WENDLAND_C2",
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            { 
-                const auto eta = r / rs;
-                return std::pow(1. - eta, 4) * (4.*eta + 1.); 
-            }
-        },
-        {
-            "WENDLAND_C4",
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            {
-                const auto eta = r / rs; 
-                return std::pow(1. - eta, 6) * (35.*std::pow(eta, 2)  + 18.*eta + 3.);
-            }
-        },
-        {
-            "WENDLAND_C6",
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            {
-                const auto eta = r / rs;
-                return pow((1. - eta), 8) * (32.*std::pow(eta, 3) + 25.*std::pow(eta, 2) + 8.*(eta) +  1.);
-            }
+            Vector result(
+                point[0] - pointi[0],
+                point[1] - pointi[1],
+                point[2] - pointi[2]
+            );
 
-        },
-        {
-            "LINEAR",
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            {
-                return r / rs;
-            }
-        },
-        {
-            "CUBIC_SPLINE",
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            {
-                return std::pow(r / rs, 3);
-            }
-        },
-        {
-            "LINEAR_CUBIC_SPLINE",
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            {
-                const auto eta = r / rs;
-                return eta - std::pow(eta, 3);
-            }
-        },
-        {
-            "TRUNCATED_POWER",
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            {
-                return std::pow(1. - (r / rs), n);
-            }
-        },
-        {
-            "MULTIQUADRIC",
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            {
-                return std::sqrt(1. + std::pow(r / rs, 2));
-            }
-        },
-        {
-            "INVERSE_MULTIQUADRIC", 
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            {
-                return std::pow(1 + (r / rs), -n);
-            }
-        },
-        {
-            "INVERSE_QUADRATIC",
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            {
-                return 1.0  / (1.0 + std::pow(r / rs, 2));
-            }
-        }, 
-        {
-            "THIN_PLATE_SPLINE", 
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            {
-                const auto eta = r / rs; 
-                return eta * eta * std::log(eta + std::numeric_limits<const double>::epsilon());
-            }
-        },
-        {
-            "GAUSSIAN", 
-            [](const double r, const double rs=1.0, const double n = 1.) 
-            {
-                const auto eta = r / rs; 
-                return std::exp(- n * n * eta * eta);
-            }
+            const double r = Geometry::distance(point, pointi);
+
+            result *= static_cast<Derived const*>(this)->ddr(r, rs) / 
+                (r + std::numeric_limits<double>::epsilon());
+
+            return result; 
         }
     };
-} // End namespace RBF
-} // End namespace Foam 
+
+    // Not using OpenFOAM TypeName to avoid virtual functions for efficiency.
+    // These function objects should be inlined completely. TM.
+    struct WENDLAND_C0
+        :
+            public rbfKernelBase<WENDLAND_C0>
+    {
+        static const std::string name_; 
+        static const std::string& name() { return name_; };  
+
+        inline double operator()(const double r, const double rs) const
+        {
+            const double x = 1. - (r / rs);
+            return x * x; 
+        }
+
+        inline double ddr(const double r, const double rs = 1.0) const
+        {
+            return - 1.0 / rs; 
+        }
+
+    };
+    const std::string WENDLAND_C0::name_ = "WENDLAND_C0";
+    
+    struct WENDLAND_C2
+        :
+            public rbfKernelBase<WENDLAND_C2>
+    {
+        static const std::string name_; 
+        static const std::string& name() { return name_; };  
+
+        inline double operator()(const double r, const double rs=1.0) const
+        { 
+            const double eta = r / rs;
+            return std::pow(1. - eta, 4) * (4.*eta + 1.); 
+        }
+
+        inline double ddr(const double r, const double rs = 1.0) const
+        {
+            return  20. * r* pow(r - rs,3) / pow(rs,5);
+        }
+    };
+
+    const std::string WENDLAND_C2::name_ = "WENDLAND_C2";
+    
+    struct WENDLAND_C4
+        :
+            public rbfKernelBase<WENDLAND_C4>
+    {
+        static const std::string name_; 
+        static const std::string& name() { return name_; };  
+
+        inline double operator()(const double r, const double rs=1.0) const  
+        {
+            const double eta = r / rs; 
+            return std::pow(1. - eta, 6) * 
+                (35.*std::pow(eta, 2) + 18.*eta + 3.);
+        }
+
+        inline double ddr(const double r, const double rs=1.0) const  
+        {
+            double rrs5 = pow(r-rs,5);
+            double rs7 = rs*rs*rs*rs*rs*rs*rs;
+            return 280.*r*r*rrs5/(rs7 * rs) + 56.*r*rrs5/rs7;
+        }
+    };
+
+    const std::string WENDLAND_C4::name_ = "WENDLAND_C4";
+
+    struct WENDLAND_C6
+        :
+            public rbfKernelBase<WENDLAND_C6>
+    {
+        static const std::string name_; 
+        static const std::string& name() { return name_; };  
+
+        inline double operator()(const double r, const double rs=1.0) const 
+        {
+            const auto eta = r / rs;
+            return pow((1. - eta), 8) * (32.*std::pow(eta, 3) + 
+                    25.*std::pow(eta, 2) + 8.*(eta) +  1.);
+        }
+
+        inline double ddr(const double r, const double rs=1.0) const 
+        {
+            double rrs7 = pow(r - rs,7);
+            double rs9 = rs*rs*rs*rs*rs*rs*rs*rs*rs;
+            return 352.0*r*r*r*rrs7/(rs9 * rs * rs) + 
+                154.0*r*r*rrs7/(rs9 * rs) + 
+                22.0*r*rrs7/rs9;
+        }
+    };
+
+    const std::string WENDLAND_C6::name_ = "WENDLAND_C6";
+
+    struct LINEAR
+        :
+            public rbfKernelBase<LINEAR>
+    {
+        static const std::string name_;  
+        static const std::string& name() { return name_; };  
+
+        inline double operator()(const double r, const double rs=1.0) const 
+        {
+            return r / rs;
+        }
+
+        inline double ddr(const double r, const double rs=1.0) const 
+        {
+            return 1.0 / rs;
+        }
+    };
+    const std::string LINEAR::name_ = "LINEAR";
+
+    struct CUBIC_SPLINE
+        :
+            public rbfKernelBase<CUBIC_SPLINE>
+    {
+        static const std::string name_; 
+        static const std::string& name() { return name_; };  
+
+        inline double operator()(const double r, const double rs=1.0) const
+        {
+            return std::pow(r / rs, 3.0);
+        }
+
+        inline double ddr(const double r, const double rs=1.0) const
+        {
+            return 3.0 * (r*r) / (rs*rs);
+        }
+    };
+    const std::string CUBIC_SPLINE::name_ = "CUBIC_SPLINE";
+
+    struct LINEAR_CUBIC_SPLINE
+        :
+            public rbfKernelBase<LINEAR_CUBIC_SPLINE>
+    {
+        static const std::string name_; 
+        static const std::string& name() { return name_; };  
+
+        inline double operator()(const double r, const double rs=1.0) const
+        {
+            const auto eta = r / rs;
+            return eta - std::pow(eta, 3);
+        }
+
+        inline double ddr(const double r, const double rs=1.0) const
+        {
+            double rssqr = rs*rs; 
+            return (-3*r*r + rssqr)/(rssqr * rs);
+        }
+    };
+    const std::string LINEAR_CUBIC_SPLINE::name_ = "LINEAR_CUBIC_SPLINE";
+
+    struct TRUNCATED_POWER
+    {
+        static const std::string name_; 
+        static const std::string& name() { return name_; };  
+
+        inline double operator()
+        (
+            const double r, 
+            const double rs=1.0, 
+            const double n = 1.
+        ) const
+        {
+            return std::pow(1. - (r / rs), n);
+        }
+    };
+    const std::string TRUNCATED_POWER::name_ = "TRUNCATED_POWER";
+
+    struct MULTIQUADRIC
+        :
+            public rbfKernelBase<MULTIQUADRIC>
+    {
+        static const std::string name_; 
+        static const std::string& name() { return name_; };  
+
+        inline double operator()(const double r, const double rs=1.0) const
+        {
+            return std::sqrt(1. + std::pow(r / rs, 2));
+        }
+
+        inline double ddr(const double r, const double rs=1.0) const
+        {
+            double rssqr = rs*rs;
+            return r / (rssqr*sqrt(r*r/rssqr + 1.0));
+        }
+    };
+    const std::string MULTIQUADRIC::name_ = "MULTIQUADRIC";
+
+    struct INVERSE_MULTIQUADRIC
+        :
+            public rbfKernelBase<INVERSE_MULTIQUADRIC>
+    {
+        static const std::string name_; 
+        static const std::string& name() { return name_; };  
+        
+        inline double operator() (const double r, const double rs=1.0) const 
+        {
+            return 1.0 / (1 + (r / rs));
+        }
+
+        inline double ddr(const double r, const double rs=1.0) const 
+        {
+            double s = r+rs;
+            return  -rs / (s*s);
+        }
+    };
+    const std::string INVERSE_MULTIQUADRIC::name_ = "INVERSE_MULTIQUADRIC";
+
+    struct INVERSE_QUADRATIC
+        :
+            public rbfKernelBase<INVERSE_QUADRATIC>
+    {
+        static const std::string name_;
+        static const std::string& name() { return name_; };  
+
+        inline double operator()(const double r, const double rs=1.0) const
+        {
+            double eta = r / rs;
+            return 1.0  / (1.0 + eta*eta);
+        }
+
+        inline double ddr(const double r, const double rs=1.0) const
+        {
+            double rssqr = rs*rs;
+            return -2*r*rssqr/((r*r + rssqr)*(r*r + rssqr));
+        }
+    }; 
+    const std::string INVERSE_QUADRATIC::name_ = "INVERSE_QUADRATIC"; 
+
+    struct THIN_PLATE_SPLINE
+        :
+            public rbfKernelBase<THIN_PLATE_SPLINE>
+    {
+        static const std::string name_; 
+        static const std::string& name() { return name_; };  
+
+        inline double operator()(const double r, const double rs=1.0) const 
+        {
+            const auto eta = r / rs; 
+            return eta * eta * 
+                std::log(eta + std::numeric_limits<double>::epsilon());
+        }
+
+        inline double ddr(const double r, const double rs=1.0) const 
+        {
+            const double eps = std::numeric_limits<double>::epsilon();
+            return r*(r + 2*(eps*rs + r)*log((eps*rs + r)/rs))/(rs*rs*(eps*rs + r));
+        }
+    };
+    const std::string THIN_PLATE_SPLINE::name_ = "THIN_PLATE_SPLINE"; 
+
+    struct GAUSSIAN
+        :
+            public rbfKernelBase<GAUSSIAN>
+    {
+        static const std::string name_; 
+        static const std::string& name() { return name_; };  
+
+        inline double operator()(const double r, const double rs=1.0) const 
+        {
+            const auto eta = r / rs; 
+            return std::exp(-eta * eta);
+        }
+
+        inline double ddr(const double r, const double rs=1.0) const 
+        {
+            double rssqr = rs*rs;  
+            return -2.*r*exp(-(r*r)/rssqr)/rssqr;
+        }
+    };
+    const std::string GAUSSIAN::name_ = "GAUSSIAN"; 
+
+    using wendlandRbfTuple = std::tuple
+    <
+        WENDLAND_C0,
+        WENDLAND_C2,
+        WENDLAND_C4,
+        WENDLAND_C6
+    >;
+
+    using rbfTupleAll = std::tuple
+    <
+        WENDLAND_C0,
+        WENDLAND_C2,
+        WENDLAND_C4,
+        WENDLAND_C6,
+        LINEAR,
+        CUBIC_SPLINE,
+        LINEAR_CUBIC_SPLINE,
+        MULTIQUADRIC,
+        INVERSE_MULTIQUADRIC,
+        INVERSE_QUADRATIC,
+        THIN_PLATE_SPLINE,
+        GAUSSIAN
+    >;
+
+    using rbfTuple = std::tuple
+    <
+        WENDLAND_C2,
+        WENDLAND_C4,
+        LINEAR,
+        CUBIC_SPLINE,
+        LINEAR_CUBIC_SPLINE,
+        MULTIQUADRIC,
+        INVERSE_QUADRATIC,
+        THIN_PLATE_SPLINE,
+        GAUSSIAN
+    >;
+
+}} // End namespace Foam::RBF 
 
 // ************************************************************************* //
 

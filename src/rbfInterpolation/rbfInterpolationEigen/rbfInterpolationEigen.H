@@ -60,6 +60,11 @@ SourceFiles
     rbfInterpolationEigen.H
     rbfInterpolationEigen.C
 
+
+Author: 
+    Tomislav Maric, maric@mma.tu-darmstadt.de
+    TU Darmstadt, Mathematical modeling and analysis group 
+
 \*---------------------------------------------------------------------------*/
 
 #ifndef rbfInterpolationEigen_H
@@ -68,35 +73,31 @@ SourceFiles
 #include <Eigen/Dense>
 #include "rbfConfig.H"
 #include <memory>
+#include <string>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
-namespace RBF 
-{
+namespace Foam { namespace RBF { 
 
 /*---------------------------------------------------------------------------*\
                          Class rbfInterpolationEigen Declaration
 \*---------------------------------------------------------------------------*/
 
+template<typename Kernel>
 class rbfInterpolationEigen final 
 {
 
 public:
 
-    // Eigen-based type aliases. 
-    using realVector = Eigen::VectorXd;  
-    using rbfPoint = std::array<double, 3>; 
-    using pointVector = std::vector<rbfPoint>;
-    using sizeType = decltype(pointVector().size()); 
-
+    // Extract this as a template parameter?
     using MatrixType = Eigen::Matrix
     <
         double, 
         Eigen::Dynamic, 
         Eigen::Dynamic, 
-        Eigen::ColMajor
+        Eigen::ColMajor, 
+        37, // Max row size for a regular dodecahedron cell.
+        37  // Max column size for a regular dodecahedron cell.
     >;
 
     // Constructors
@@ -110,28 +111,23 @@ public:
         //- Move construct 
         rbfInterpolationEigen(rbfInterpolationEigen&&) = default; 
 
-        //- Construct the RBF kernel only
-        template<typename Kernel>
-        rbfInterpolationEigen(
-            const Kernel& kernel, 
-            const supportType support = supportType::GLOBAL_SUPPORT
-        );
+        //- Construct 
+        rbfInterpolationEigen (const supportType support);
 
-        //- Construct from points, and the RBF kernel, factorize only.
-        template<typename Points, typename Kernel>
-        rbfInterpolationEigen(
-            Points const& points, 
-            const Kernel& kernel, 
-            const supportType support = supportType::GLOBAL_SUPPORT
-        );
-
-        //- Construct from points, and the RBF kernel, solve for values.
-        template<typename Points, typename Values, typename Kernel>
+        //- Construct and factorize. 
+        template<typename Points>
         rbfInterpolationEigen
         (
             Points const& points, 
-            Values const& values,
-            const Kernel& kernel,
+            const supportType support = supportType::GLOBAL_SUPPORT
+        );
+
+        //- Construct, factorize, solve. 
+        template<typename Points, typename Values>
+        rbfInterpolationEigen
+        (
+            Points const& points, 
+            Values const& values, 
             const supportType support = supportType::GLOBAL_SUPPORT
         );
 
@@ -140,40 +136,23 @@ public:
 
     // Member Functions
 
-        // Factorize with the initialized Kernel.
+        // Factorize with the given Kernel.
         template<typename Points>
         void factorize(Points const& points); 
-
-        // Factorize with the given Kernel.
-        template<typename Points, typename Kernel>
-        void factorize(Points const& points, const Kernel& kernel); 
-
-        // Factorize with a new Kernel.
-        template<typename Points, typename Values, typename Kernel>
-        void factorize (Points const& points, const Kernel&  kernel); 
     
         //- Factorize and solve using the initialized Kernel.
         template<typename Points, typename Values>
-        void interpolate (Points const& points, Values const& values); 
-
-        //- Factorize and solve using a new Kernel.
-        template<typename Points, typename Values, typename Kernel>
-        void interpolate
-        (
-            Points const& points, 
-            Values const& values,
-            const Kernel& kernel
-        ); 
+        void solve(Points const& points, Values const& values); 
 
         //- Evaluate the RBF interpolant at a point. 
         //- Assumes that the RBF has been factorized and interpolated!
-        template<typename Point, typename Points, typename Values> 
-        inline double evaluate
-        (
-            Point const& evalPoint, 
-            Points const& points, 
-            Values const& values
-        );
+        template<typename Point, typename Points> 
+        inline double value(Point const& evalPoint, Points const& points) const;
+
+        //- Evaluate the RBF gradient at a point. 
+        //- Assumes that the RBF has been factorized and interpolated!
+        template<typename Vector=Eigen::Vector3d, typename Points> 
+        inline Vector grad(Vector const& evalPoint, Points const& points) const;
 
     // Member Operators
         rbfInterpolationEigen& operator=(const rbfInterpolationEigen&) = default;
@@ -181,40 +160,44 @@ public:
         //- Move assign
         rbfInterpolationEigen& operator=(rbfInterpolationEigen&&) = default;
 
+        std::string name() const
+        {
+            return kernel_.name();
+        }
+
+        const Eigen::VectorXd& coeffs() const
+        {
+            return rbfCoeffs_;
+        }
+
+        decltype(auto) nCoeffs() const
+        {
+            return rbfCoeffs_.size();
+        }
+
 private:
 
     // 3D linear polynomial coefficient dimension, dim(a0 + a1x + a2y + a3z) = 4. 
     constexpr static int Npoly_= 4; 
 
-    // Once it has been factorized, copying makes no sense.
+    const Kernel kernel_; 
 
-    MatrixType A_; 
-    //Eigen::LLT<MatrixType> matrixFactorization_; 
-    //Eigen::LDLT<MatrixType> matrixFactorization_; 
-    //Eigen::HouseholderQR<MatrixType> matrixFactorization_; 
-    Eigen::PartialPivLU<MatrixType> matrixFactorization_; 
-    //Eigen::ColPivHouseholderQR<MatrixType> matrixFactorization_; 
+    const supportType support_; 
 
-    // RBF interpolant coefficients. 
-    Eigen::VectorXd rbfCoeffs_; 
-
-    // RBF kernel function signature.
-    using kernelFunction = std::function<double(double, double)>; 
-
-    // RBF kernel function.
-    kernelFunction kernel_; 
-
-    // RBF support type.
-    supportType support_;
-
-    // RBF scaling radius for compact support.
     double supportRadius_; 
+
+    MatrixType matrix_; 
+
+    Eigen::PartialPivLU<MatrixType> matrixFactorization_; 
+
+    Eigen::VectorXd source_; 
+
+    Eigen::VectorXd rbfCoeffs_; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace RBF
-} // End namespace Foam 
+}} // End namespace Foam::RBF
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
