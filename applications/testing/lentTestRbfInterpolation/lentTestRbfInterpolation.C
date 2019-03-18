@@ -237,6 +237,8 @@ void test_rbf_values_and_grads(
             << "RBF coeffs = " << rbfCoeffs << std::endl;
 
     const double EPS = std::numeric_limits<double>::epsilon();
+    
+    // Test value and gradient evaluation at nodal points.
     for (decltype(nodalPoints.size()) pointI = 0; pointI < nodalPoints.size(); ++pointI)
     {
         const auto rbfNodalValue = rbf.value(nodalPoints[pointI], nodalPoints);
@@ -259,19 +261,42 @@ void test_rbf_values_and_grads(
             << "Rbf grad = " << rbfNodalGrad << std::endl
             << "Error = " << rbfNodalGradErrMag << std::endl;
     }
- 
+
+    // Values at test points.
     for (decltype(testPoints.size()) pointI = 0; pointI < testPoints.size(); ++pointI)
     {
         const auto rbfValue = rbf.value(testPoints[pointI], nodalPoints);
         const auto planeValue = testPlane.value(testPoints[pointI]);
         const auto testError = std::abs(rbfValue - planeValue); 
-
         ASSERT_LE(testError, 8 * EPS)
             << rbfKernelType::name() << std::endl;
     }
 
-    // GENERIC TEST LOOP  
-    // - Call yourself for the next RBF kernel or stop.
+    // Gradients at test points. 
+    for (decltype(testPoints.size()) pointI = 0; pointI < testPoints.size(); ++pointI)
+    {
+        const auto rbfTestValue = rbf.value(testPoints[pointI], nodalPoints);
+        const auto testPlaneValue = testPlane.value(testPoints[pointI]);
+        const auto testError = std::abs(rbfTestValue - testPlaneValue); 
+
+        ASSERT_LE(testError, 8 * EPS)
+            << rbfKernelType::name() << std::endl
+            << "Plane point = " << testPlane.point() << std::endl
+            << "Plane normal = " << testPlane.normal() << std::endl;
+
+        Eigen::Vector3d rbfTestGrad = rbf.grad(testPoints[pointI], nodalPoints); 
+        Eigen::Vector3d rbfTestErr = rbfTestGrad - testPlane.normal(); 
+        const auto rbfTestGradErrMag = std::sqrt(rbfTestErr.dot(rbfTestErr));
+
+        ASSERT_LE(rbfTestGradErrMag, 64 * EPS) 
+            << rbfKernelType::name() << std::endl
+            << "Plane point = " << testPlane.point() << std::endl
+            << "Plane normal = " << testPlane.normal() << std::endl
+            << "Rbf grad = " << rbfTestGrad << std::endl
+            << "Error = " << rbfTestGradErrMag << std::endl;
+    }
+ 
+    // Loop over RBF kernels.
     if constexpr (N + 1 < std::tuple_size_v<RbfTuple>) 
         test_rbf_values_and_grads<RbfTuple, Points, RealVector, Plane, N + 1>(
                 nodalPoints, 
@@ -343,7 +368,7 @@ void set_plane_values(
         vals[pI] = plane.value(points[pI]);
 }
 
-TEST(RBF_EIGEN, PLANE_SIGNED_DISTANCE)
+TEST(RBF_EIGEN, STENCILS)
 {
 
     pointVector testPoints(1000); 
@@ -367,41 +392,20 @@ TEST(RBF_EIGEN, PLANE_SIGNED_DISTANCE)
             testPlane
         ); 
 
-        // BCC_FVM "1 + x**2 + y**2 + z**2" test 
-        
-        //realVector bcc1x2y2z2Values (bccPoints.size()); 
-        //test_rbf_values_and_grads<rbfTuple>(
-            //bccPoints, 
-            //bcc1x2y2z2Values, 
-            //testPoints, 
-            //testPlane
-        //); 
-
         // END BCC Stencil
 
         // BCC_FVM Stencil
         
         // BCC_FVM plane test
-        //realVector bccFvmPlaneValues (bccFvmPoints.size()); 
-        //set_plane_values(bccFvmPlaneValues, bccFvmPoints, testPlane);
+        realVector bccFvmPlaneValues (bccFvmPoints.size()); 
+        set_plane_values(bccFvmPlaneValues, bccFvmPoints, testPlane);
 
-        //test_rbf_values_and_grads<rbfTuple>(
-            //bccFvmPoints, 
-            //bccFvmPlaneValues, 
-            //testPoints, 
-            //testPlane
-        //); 
-        
-        // BCC_FVM 1 + x**2 + y**2 + z**2 test 
-        //realVector bccFvmPlaneValues (bccFvmPoints.size()); 
-        //set_plane_values(bccFvmPlaneValues, testPoints, testPlane);
-
-        //test_rbf_values_and_grads<rbfTuple>(
-            //bccFvmPoints, 
-            //bccFvmPlaneValues, 
-            //testPoints, 
-            //testPlane
-        //); 
+        test_rbf_values_and_grads<rbfTuple>(
+            bccFvmPoints, 
+            bccFvmPlaneValues, 
+            testPoints, 
+            testPlane
+        ); 
         
         // END BCC_FVM Stencil
     }
