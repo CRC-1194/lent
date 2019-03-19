@@ -3,12 +3,12 @@ EXE_INC = \
     -isystem$(EIGEN_HEADERS) \
     -I$(LENT_GTEST_INC) \
     -I$(LIB_SRC)/OpenFOAM/lnInclude \
-    -I$(LENT_PROJECT)/src/rbfInterpolation/lnInclude \
+    -I$(LENT_PROJECT)/src/lnInclude \
     -I$(LENT_PROJECT)/third-party/googletest/googletest/include \
     -I$(LENT_PROJECT)/third-party/googletest/googletest/include/gtest
 
 EXE_LIBS = \
-    -L$(LENT_GTEST_LIB) \
     -L$(FOAM_USER_LIBBIN) \
+    -L$(LENT_GTEST_LIB) \
     -lOpenFOAM \
-    -lgtest 
+    -lgtest

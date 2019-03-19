@@ -56,8 +56,13 @@ namespace Foam { namespace RBF {
 
             const double r = Geometry::distance(point, pointi);
 
-            result *= static_cast<Derived const*>(this)->ddr(r, rs) / 
-                (r + std::numeric_limits<double>::epsilon());
+            if (r < std::numeric_limits<double>::epsilon())
+                result *= static_cast<Derived const*>(this)->ddr(r,rs) / 
+                    (r + std::numeric_limits<double>::epsilon());
+            else
+            {
+                result *= static_cast<Derived const*>(this)->ddr(r,rs) / r; 
+            }
 
             return result; 
         }
@@ -101,7 +106,10 @@ namespace Foam { namespace RBF {
 
         inline double ddr(const double r, const double rs = 1.0) const
         {
-            return  20. * r* pow(r - rs,3) / pow(rs,5);
+            double rrs = r - rs;
+            double rrs3 = rrs*rrs*rrs;
+
+            return  (20. * r * rrs3) / (rs*rs*rs*rs*rs);
         }
     };
 
