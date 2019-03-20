@@ -43,6 +43,7 @@ Author
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <sstream>
 #include "gtest.h"
 
 using namespace Foam;
@@ -195,8 +196,8 @@ TEST(RBF_EIGEN, CLASS_INTERFACE)
     test_rbf_interface<rbfTuple>(nodalPoints); 
 }
 
-// Tests the Linf value errors for nodalValues at nodalPoints and testValues
-// at testPoints (tolerance-based).
+// Value Linf is near machine tolerance at nodal points and test points. 
+// Gradient Linf is near machine tolerance at nodal points and test points.
 template
 <
     typename RbfTuple, 
@@ -205,7 +206,7 @@ template
     typename Surface, 
     int N = 0
 > 
-void test_rbf_values_and_grads(
+void test_rbf_plane(
     Points const& nodalPoints, 
     RealVector const& nodalValues,
     Points const& testPoints, 
@@ -220,6 +221,7 @@ void test_rbf_values_and_grads(
 
     const auto& rbfCoeffs = rbf.coeffs(); 
 
+    // Are RBF coefficients in the floating point range?
     for (decltype(rbfCoeffs.size()) cI = 0; cI < rbfCoeffs.size(); ++cI)
         ASSERT_TRUE((std::numeric_limits<double>::lowest() < rbfCoeffs[cI]) &&
                     (rbfCoeffs[cI] < std::numeric_limits<double>::max()))
@@ -238,19 +240,19 @@ void test_rbf_values_and_grads(
             << rbfKernelType::name() << std::endl
             << "Surface = " << surf << std::endl;
 
-        Eigen::Vector3d rbfNodalGrad = 
-            rbf.template grad<Eigen::Vector3d>(nodalPoints[pointI], nodalPoints); 
-        Eigen::Vector3d surfGrad = 
-            surf.template grad<Eigen::Vector3d>(nodalPoints[pointI]); 
-        Eigen::Vector3d rbfNodalErr = rbfNodalGrad - surfGrad;
-        const auto rbfNodalGradErrMag = std::sqrt(rbfNodalErr.dot(rbfNodalErr));
-        ASSERT_LE(rbfNodalGradErrMag, 128 * EPS) // Evaluation of RBF gradients near nodal points is unstable.
-            << rbfKernelType::name() << std::endl
-            << "Surface = " << surf << std::endl
-            << "Rbf grad = " << rbfNodalGrad << std::endl
-            << "Surf grad = " << surfGrad << std::endl
-            << "Error = " << rbfNodalGradErrMag << std::endl
-            << "Point = " << nodalPoints[pointI] << std::endl;
+            Eigen::Vector3d rbfNodalGrad = 
+                rbf.template grad<Eigen::Vector3d>(nodalPoints[pointI], nodalPoints); 
+            Eigen::Vector3d surfGrad = 
+                surf.template grad<Eigen::Vector3d>(nodalPoints[pointI]); 
+            Eigen::Vector3d rbfNodalErr = rbfNodalGrad - surfGrad;
+            const auto rbfNodalGradErrMag = std::sqrt(rbfNodalErr.dot(rbfNodalErr));
+            ASSERT_LE(rbfNodalGradErrMag, 128 * EPS) // Evaluation of RBF gradients near nodal points is unstable.
+                << rbfKernelType::name() << std::endl
+                << "Surface = " << surf << std::endl
+                << "Rbf grad = " << rbfNodalGrad << std::endl
+                << "Surf grad = " << surfGrad << std::endl
+                << "Error = " << rbfNodalGradErrMag << std::endl
+                << "Point = " << nodalPoints[pointI] << std::endl;
     }
 
     // Gradients and values at test points. 
@@ -262,31 +264,34 @@ void test_rbf_values_and_grads(
 
         ASSERT_LE(testError, 8 * EPS)
             << rbfKernelType::name() << std::endl
-            << "Surface = " << surf << std::endl;
-
-        Eigen::Vector3d rbfTestGrad = rbf.grad(testPoints[pointI], nodalPoints); 
-        Eigen::Vector3d surfGrad = 
-            surf.template grad<Eigen::Vector3d>(testPoints[pointI]); 
-        Eigen::Vector3d rbfTestErr = rbfTestGrad - surfGrad;
-        const auto rbfTestGradErrMag = std::sqrt(rbfTestErr.dot(rbfTestErr));
-
-        ASSERT_LE(rbfTestGradErrMag, 64 * EPS) 
             << "Surface = " << surf << std::endl
-            << "Rbf grad = " << rbfTestGrad << std::endl
-            << "Surf grad = " << surfGrad << std::endl
-            << "Error = " << rbfTestGradErrMag << std::endl
             << "Point = " << testPoints[pointI] << std::endl;
+
+            Eigen::Vector3d rbfTestGrad = rbf.grad(testPoints[pointI], nodalPoints); 
+            Eigen::Vector3d surfGrad = 
+                surf.template grad<Eigen::Vector3d>(testPoints[pointI]); 
+            Eigen::Vector3d rbfTestErr = rbfTestGrad - surfGrad;
+            const auto rbfTestGradErrMag = std::sqrt(rbfTestErr.dot(rbfTestErr));
+
+            ASSERT_LE(rbfTestGradErrMag, 64 * EPS) 
+                << "Surface = " << surf << std::endl
+                << "Rbf grad = " << rbfTestGrad << std::endl
+                << "Surf grad = " << surfGrad << std::endl
+                << "Error = " << rbfTestGradErrMag << std::endl
+                << "Point = " << testPoints[pointI] << std::endl;
+        
     }
- 
+
     // Loop over RBF kernels.
     if constexpr (N + 1 < std::tuple_size_v<RbfTuple>) 
-        test_rbf_values_and_grads<RbfTuple, Points, RealVector, Surface, N + 1>(
+        test_rbf_plane<RbfTuple, Points, RealVector, Surface, N + 1>(
                 nodalPoints, 
                 nodalValues,
                 testPoints, 
                 surf 
             );
 }
+
 
 TEST(RBF_EIGEN, PLANE_STENCILS)
 {
@@ -303,7 +308,7 @@ TEST(RBF_EIGEN, PLANE_STENCILS)
         realVector bccPlaneValues (bccPoints.size()); 
         set_surface_values(bccPlaneValues, bccPoints, testPlane);
 
-        test_rbf_values_and_grads<rbfTuple>(
+        test_rbf_plane<rbfTuple>(
             bccPoints, 
             bccPlaneValues, 
             testPoints, 
@@ -314,7 +319,7 @@ TEST(RBF_EIGEN, PLANE_STENCILS)
         realVector bccFvmPlaneValues (bccFvmPoints.size()); 
         set_surface_values(bccFvmPlaneValues, bccFvmPoints, testPlane);
 
-        test_rbf_values_and_grads<rbfTuple>(
+        test_rbf_plane<rbfTuple>(
             bccFvmPoints, 
             bccFvmPlaneValues, 
             testPoints, 
@@ -323,36 +328,195 @@ TEST(RBF_EIGEN, PLANE_STENCILS)
     }
 }
 
+template
+<
+    typename RbfTuple, 
+    typename Points, 
+    typename RealVector, 
+    typename Surface, 
+    int N = 0
+> 
+void test_rbf_surface(
+    Points const& nodalPoints, 
+    RealVector const& nodalValues,
+    Surface const& surf, 
+    std::string testName, 
+    int nTestPoints=3
+)
+{
+    using rbfKernelType = std::tuple_element_t<N, RbfTuple>;
+    using rbfInterpolation = rbfInterpolationEigen<rbfKernelType>; 
+
+    // Construct the RBF interpolants, factorize the systems and solve them. 
+    rbfInterpolation rbf(nodalPoints, nodalValues);  
+
+    const auto& rbfCoeffs = rbf.coeffs(); 
+
+    // Are RBF coefficients in the floating point range?
+    for (decltype(rbfCoeffs.size()) cI = 0; cI < rbfCoeffs.size(); ++cI)
+        ASSERT_TRUE((std::numeric_limits<double>::lowest() < rbfCoeffs[cI]) &&
+                    (rbfCoeffs[cI] < std::numeric_limits<double>::max()))
+            << "RBF coeffs = " << rbfCoeffs << std::endl;
+
+    const double EPS = std::numeric_limits<double>::epsilon();
+    
+    // Test values at nodal points.
+    for (decltype(nodalPoints.size()) pointI = 0; pointI < nodalPoints.size(); ++pointI)
+    {
+        const auto rbfNodalValue = rbf.value(nodalPoints[pointI], nodalPoints);
+        const auto surfValue = surf.value(nodalPoints[pointI]);
+        const auto nodalValError = std::abs(rbfNodalValue - surfValue); 
+                
+        ASSERT_LE(nodalValError, 32 * EPS)
+            << rbfKernelType::name() << std::endl
+            << "Surface = " << surf << std::endl;
+    }
+
+    // Visualize test points, their values, gradients and errors in VTK. 
+    // TODO: Extract the legacy VTK output into function.
+    const Eigen::Vector3d p0 (0,0,0);
+    const double L = 1.0;
+    std::ofstream vtks(testName + "_" + rbfKernelType::name() + ".vtk"); 
+    vtks << "# vtk DataFile Version 3.0\nvtk output\nASCII\nDATASET RECTILINEAR_GRID\n"; 
+    vtks << "DIMENSIONS " << nTestPoints << " " << nTestPoints << " " << nTestPoints << "\n";
+    vtks << "X_COORDINATES " << nTestPoints << " float\n";
+    const double xStart = p0[0] + (L / (2*nTestPoints));
+    for (int i = 0; i < nTestPoints; ++i)
+        vtks << xStart + i*(L / nTestPoints) << " ";
+    vtks << "\n";
+    vtks << "Y_COORDINATES " << nTestPoints << " float\n";
+    const double yStart = p0[1] + (L / (2*nTestPoints));
+    for (int i = 0; i < nTestPoints; ++i)
+        vtks << yStart + i*(L / nTestPoints) << " ";
+    vtks << "\n";
+    vtks << "Z_COORDINATES " << nTestPoints << " float\n";
+    const double zStart = p0[2] + (L / (2*nTestPoints));
+    for (int i = 0; i < nTestPoints; ++i)
+        vtks << zStart + i*(L / nTestPoints) << " ";
+    vtks << "\n";
+
+    vtks << "POINT_DATA " << nTestPoints * nTestPoints * nTestPoints << "\n";
+    std::stringstream valss, surfgradss, gradss, gradmagss, valinfss, gradlinfss; 
+    valss << "SCALARS rbfval float\nLOOKUP_TABLE DEFAULT\n";
+    gradss << "VECTORS rbfgrad float\n";
+    surfgradss << "VECTORS surfgrad float\n";
+    gradmagss << "SCALARS rbfgradmag float\nLOOKUP_TABLE DEFAULT\n";
+    valinfss << "SCALARS rbfvallinf float\nLOOKUP_TABLE DEFAULT\n";
+    gradlinfss << "SCALARS rbfgradlinf float\nLOOKUP_TABLE DEFAULT\n";
+    for (int k = 0; k < nTestPoints; ++k)
+    {
+        for (int j = 0; j < nTestPoints; ++j)
+        {
+            for (int i = 0; i < nTestPoints; ++i)
+            {
+                Eigen::Vector3d testPoint(
+                    xStart + i * (L / nTestPoints),
+                    yStart + j * (L / nTestPoints),
+                    zStart + k * (L / nTestPoints) 
+                );
+                const auto rbfTestValue = rbf.value(testPoint, nodalPoints);
+                const auto surfValue = surf.value(testPoint);
+                const auto valueError = std::abs(rbfTestValue - surfValue); 
+
+                Eigen::Vector3d rbfTestGrad = rbf.grad(testPoint, nodalPoints); 
+                Eigen::Vector3d surfGrad = surf.grad(testPoint); 
+
+                Eigen::Vector3d gradDiff = rbfTestGrad - surfGrad;
+                double gradError = std::sqrt(gradDiff.dot(gradDiff));
+
+                valss      << rbfTestValue << " ";
+                gradss     << rbfTestGrad[0] << " " << rbfTestGrad[1] << " " << rbfTestGrad[2] << " "; 
+                surfgradss << surfGrad[0] << " " << surfGrad[1] << " " << surfGrad[2] << " "; 
+                gradmagss  << std::sqrt(rbfTestGrad.dot(rbfTestGrad)) << " ";
+                valinfss   << valueError << " ";
+                gradlinfss << gradError << " ";
+            }
+                valss      << "\n";
+                gradss     << "\n";
+                surfgradss << "\n";
+                gradmagss  << "\n";
+                valinfss   << "\n";
+                gradlinfss << "\n";
+        }
+    }
+    vtks << valss.str() << gradss.str() << surfgradss.str() 
+        << gradmagss.str() << valinfss.str() 
+        << gradlinfss.str() << "\n"; 
+    
+    // Generate test points
+
+    // Evaluate the RBF and RBF_GRAD at test points. 
+    //for (decltype(testPoints.size()) pointI = 0; pointI < testPoints.size(); ++pointI)
+    //{
+        //const auto rbfTestValue = rbf.value(testPoints[pointI], nodalPoints);
+        //const auto surfValue = surf.value(testPoints[pointI]);
+        //const auto testError = std::abs(rbfTestValue - surfValue); 
+
+        //ASSERT_LE(testError, 8 * EPS)
+            //<< rbfKernelType::name() << std::endl
+            //<< "Surface = " << surf << std::endl
+            //<< "Point = " << testPoints[pointI] << std::endl;
+
+            //Eigen::Vector3d rbfTestGrad = rbf.grad(testPoints[pointI], nodalPoints); 
+            //Eigen::Vector3d surfGrad = 
+                //surf.template grad<Eigen::Vector3d>(testPoints[pointI]); 
+            //Eigen::Vector3d rbfTestErr = rbfTestGrad - surfGrad;
+            //const auto rbfTestGradErrMag = std::sqrt(rbfTestErr.dot(rbfTestErr));
+
+            //ASSERT_LE(rbfTestGradErrMag, 64 * EPS) 
+                //<< "Surface = " << surf << std::endl
+                //<< "Rbf grad = " << rbfTestGrad << std::endl
+                //<< "Surf grad = " << surfGrad << std::endl
+                //<< "Error = " << rbfTestGradErrMag << std::endl
+                //<< "Point = " << testPoints[pointI] << std::endl;
+        
+    //}
+    
+    
+    // Write the values and gradients at points as point data.
+
+    // Loop over RBF kernels.
+    if constexpr (N + 1 < std::tuple_size_v<RbfTuple>) 
+        test_rbf_surface<RbfTuple, Points, RealVector, Surface, N + 1>(
+                nodalPoints, 
+                nodalValues,
+                surf,
+                testName,
+                nTestPoints
+            );
+}
+
 TEST(RBF_EIGEN, SPHERE_STENCILS)
 {
-    // Random evaluation points.
-    static pointVector testPoints(1000); 
-    seedPoints(testPoints, dis, gen); 
-
-    eigenSphere testSphere(Eigen::Vector3d(0,0,0), 0.50173); 
+    eigenSphere testSphere(Eigen::Vector3d(0,0,0), 0.750173); 
 
     // BCC Sphere test
     realVector bccSphereValues(bccPoints.size()); 
     set_surface_values(bccSphereValues, bccPoints, testSphere);
 
-    test_rbf_values_and_grads<rbfTuple>(
+    const int nTestPoints = 50;
+
+    test_rbf_surface<rbfTuple>(
         bccPoints, 
         bccSphereValues, 
-        testPoints, 
-        testSphere 
+        testSphere, 
+        "RBF_EIGEN_SPHERE_STENCILS_BCC", 
+        nTestPoints 
     ); 
 
     // BCC_FVM Sphere test
     realVector bccFvmSphereValues(bccFvmPoints.size()); 
     set_surface_values(bccFvmSphereValues, bccFvmPoints, testSphere);
 
-    test_rbf_values_and_grads<rbfTuple>(
+    test_rbf_surface<rbfTuple>(
         bccFvmPoints, 
         bccFvmSphereValues, 
-        testPoints, 
-        testSphere 
+        testSphere,
+        "RBF_EIGEN_SPHERE_STENCILS_BCC_FVM", 
+        nTestPoints 
     ); 
 }
+
 int mainArgc;
 char** mainArgv;
 

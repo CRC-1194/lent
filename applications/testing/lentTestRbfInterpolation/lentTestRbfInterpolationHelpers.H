@@ -75,6 +75,8 @@ class eigenPlane
                 normal_()
         {}
 
+        const string name() const { return "plane"; }
+
         template<typename DIS, typename DISSIGN, typename GEN, typename SIGNS>
         void randomize(DIS& dis, DISSIGN& dissign, GEN& gen, SIGNS const& signs)
         {
@@ -127,6 +129,8 @@ class eigenSphere
                 center_(), 
                 radius_()
         {}
+
+        const string name() const { return "sphere"; }
 
         eigenSphere(Eigen::Vector3d center, double radius)
             :
