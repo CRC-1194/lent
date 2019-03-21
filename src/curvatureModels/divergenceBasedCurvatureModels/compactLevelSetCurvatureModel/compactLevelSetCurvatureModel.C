@@ -123,8 +123,9 @@ void compactLevelSetCurvatureModel::applySphereCorrection(
     for (const auto& p : interfaceCells)
     {
         const auto& temp = curvature[p.first];
-        curvature[p.first] = sign(temp) * 2.0 /
-                               (2.0/mag(temp) - signedDistance[p.first]);
+        // TODO: What happens here if the curvature is approximately zero?
+        // According to IEEE 754 this should yield a curvature of zero as result (TT)
+        curvature[p.first] = 2.0/(2.0/temp + signedDistance[p.first]);
     }
 }
 
