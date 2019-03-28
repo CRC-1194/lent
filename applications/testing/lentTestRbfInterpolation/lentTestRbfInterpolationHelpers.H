@@ -180,6 +180,57 @@ std::ostream& operator<<(std::ostream& os, const eigenSphere& sphere)
     return os; 
 }
 
+class eigenEllipsoid 
+{
+    std::array<double, 3> axes_; 
+    std::array<double, 3> axesSqr_; 
+
+    public: 
+
+        const string name() const { return "ellipsoid"; }
+
+        eigenEllipsoid(double a0, double a1, double a2) 
+            : 
+                axes_{a0, a1, a2},
+                axesSqr_{a0*a0, a1*a1, a2*a2}
+        {}
+
+        template<typename Vector>
+        decltype(auto) value(Vector const& evalPoint) const
+        {
+            return evalPoint[0]*evalPoint[0] / axesSqr_[0] + 
+                   evalPoint[1]*evalPoint[1] / axesSqr_[1] + 
+                   evalPoint[2]*evalPoint[2] / axesSqr_[2] - 1.; 
+        }
+
+        template<typename Vector>
+        decltype(auto) grad(Vector const& evalPoint) const
+        {
+            Vector result = {}; 
+            result[0] = 2*evalPoint[0] / axesSqr_[0]; 
+            result[1] = 2*evalPoint[1] / axesSqr_[1]; 
+            result[2] = 2*evalPoint[2] / axesSqr_[2]; 
+            return result; 
+        }
+
+        const std::array<double,3>&  axes() const
+        {
+            return axes_; 
+        }
+
+        const std::array<double,3>& axesSqr() const
+        {
+            return axesSqr_;
+        }
+};
+
+std::ostream& operator<<(std::ostream& os, const eigenEllipsoid& ellipsoid)
+{
+    const auto& axes = ellipsoid.axes(); 
+    os << "ELLIPSOID: axis0 " << axes[0] << ", axis1 " << axes[1] << ", axis2 " << axes[2];  
+    return os; 
+}
+
 template<typename Values, typename Points, typename Surface> 
 void set_surface_values(
     Values& vals, 

@@ -76,8 +76,8 @@ static const pointVector bccPoints = {
         point{0.5,0.5,0.5} // Cube centroid.
     };
 
-// Points of the BCC_FVM RBF cubic stencil
-static const pointVector bccFvmPoints = {
+// Points of the BCCC RBF cubic stencil
+static const pointVector bcccPoints = {
         point{0,0,0}, // Cube corner points.
         point{1,0,0},
         point{1,1,0},
@@ -315,13 +315,13 @@ TEST(RBF_EIGEN, PLANE_STENCILS)
             testPlane
         ); 
         
-        // BCC_FVM plane test
-        realVector bccFvmPlaneValues (bccFvmPoints.size()); 
-        set_surface_values(bccFvmPlaneValues, bccFvmPoints, testPlane);
+        // BCCC plane test
+        realVector bcccPlaneValues (bcccPoints.size()); 
+        set_surface_values(bcccPlaneValues, bcccPoints, testPlane);
 
         test_rbf_plane<rbfTuple>(
-            bccFvmPoints, 
-            bccFvmPlaneValues, 
+            bcccPoints, 
+            bcccPlaneValues, 
             testPoints, 
             testPlane
         ); 
@@ -367,7 +367,7 @@ void test_rbf_surface(
         const auto surfValue = surf.value(nodalPoints[pointI]);
         const auto nodalValError = std::abs(rbfNodalValue - surfValue); 
                 
-        ASSERT_LE(nodalValError, 32 * EPS)
+        EXPECT_LE(nodalValError, 128 * EPS)
             << rbfKernelType::name() << std::endl
             << "Surface = " << surf << std::endl;
     }
@@ -376,7 +376,7 @@ void test_rbf_surface(
     // TODO: Extract the legacy VTK output into function.
     const Eigen::Vector3d p0 (0,0,0);
     const double L = 1.0;
-    std::ofstream vtks(testName + "_" + rbfKernelType::name() + ".vtk"); 
+    std::ofstream vtks(rbfKernelType::name() + "_" + testName + ".vtk"); 
     vtks << "# vtk DataFile Version 3.0\nvtk output\nASCII\nDATASET RECTILINEAR_GRID\n"; 
     vtks << "DIMENSIONS " << nTestPoints << " " << nTestPoints << " " << nTestPoints << "\n";
     vtks << "X_COORDINATES " << nTestPoints << " float\n";
@@ -395,9 +395,12 @@ void test_rbf_surface(
         vtks << zStart + i*(L / nTestPoints) << " ";
     vtks << "\n";
 
+    // TODO: LINF value and gradient for every Kernel into CSV, and plot diagrams. 
+
     vtks << "POINT_DATA " << nTestPoints * nTestPoints * nTestPoints << "\n";
-    std::stringstream valss, surfgradss, gradss, gradmagss, valinfss, gradlinfss; 
+    std::stringstream valss, surfvalss, surfgradss, gradss, gradmagss, valinfss, gradlinfss; 
     valss << "SCALARS rbfval float\nLOOKUP_TABLE DEFAULT\n";
+    surfvalss << "SCALARS surfval float\nLOOKUP_TABLE DEFAULT\n";
     gradss << "VECTORS rbfgrad float\n";
     surfgradss << "VECTORS surfgrad float\n";
     gradmagss << "SCALARS rbfgradmag float\nLOOKUP_TABLE DEFAULT\n";
@@ -425,6 +428,7 @@ void test_rbf_surface(
                 double gradError = std::sqrt(gradDiff.dot(gradDiff));
 
                 valss      << rbfTestValue << " ";
+                surfvalss  << surfValue << " ";
                 gradss     << rbfTestGrad[0] << " " << rbfTestGrad[1] << " " << rbfTestGrad[2] << " "; 
                 surfgradss << surfGrad[0] << " " << surfGrad[1] << " " << surfGrad[2] << " "; 
                 gradmagss  << std::sqrt(rbfTestGrad.dot(rbfTestGrad)) << " ";
@@ -432,6 +436,7 @@ void test_rbf_surface(
                 gradlinfss << gradError << " ";
             }
                 valss      << "\n";
+                surfvalss  << "\n";
                 gradss     << "\n";
                 surfgradss << "\n";
                 gradmagss  << "\n";
@@ -439,41 +444,9 @@ void test_rbf_surface(
                 gradlinfss << "\n";
         }
     }
-    vtks << valss.str() << gradss.str() << surfgradss.str() 
-        << gradmagss.str() << valinfss.str() 
-        << gradlinfss.str() << "\n"; 
-    
-    // Generate test points
-
-    // Evaluate the RBF and RBF_GRAD at test points. 
-    //for (decltype(testPoints.size()) pointI = 0; pointI < testPoints.size(); ++pointI)
-    //{
-        //const auto rbfTestValue = rbf.value(testPoints[pointI], nodalPoints);
-        //const auto surfValue = surf.value(testPoints[pointI]);
-        //const auto testError = std::abs(rbfTestValue - surfValue); 
-
-        //ASSERT_LE(testError, 8 * EPS)
-            //<< rbfKernelType::name() << std::endl
-            //<< "Surface = " << surf << std::endl
-            //<< "Point = " << testPoints[pointI] << std::endl;
-
-            //Eigen::Vector3d rbfTestGrad = rbf.grad(testPoints[pointI], nodalPoints); 
-            //Eigen::Vector3d surfGrad = 
-                //surf.template grad<Eigen::Vector3d>(testPoints[pointI]); 
-            //Eigen::Vector3d rbfTestErr = rbfTestGrad - surfGrad;
-            //const auto rbfTestGradErrMag = std::sqrt(rbfTestErr.dot(rbfTestErr));
-
-            //ASSERT_LE(rbfTestGradErrMag, 64 * EPS) 
-                //<< "Surface = " << surf << std::endl
-                //<< "Rbf grad = " << rbfTestGrad << std::endl
-                //<< "Surf grad = " << surfGrad << std::endl
-                //<< "Error = " << rbfTestGradErrMag << std::endl
-                //<< "Point = " << testPoints[pointI] << std::endl;
-        
-    //}
-    
-    
-    // Write the values and gradients at points as point data.
+    vtks << valss.str() << surfvalss.str() << valinfss.str() 
+        << gradss.str() << gradmagss.str() << gradlinfss.str() 
+        << surfgradss.str() << "\n"; 
 
     // Loop over RBF kernels.
     if constexpr (N + 1 < std::tuple_size_v<RbfTuple>) 
@@ -500,19 +473,50 @@ TEST(RBF_EIGEN, SPHERE_STENCILS)
         bccPoints, 
         bccSphereValues, 
         testSphere, 
-        "RBF_EIGEN_SPHERE_STENCILS_BCC", 
+        "RBF_EIGEN_SPHERE_BCC", 
         nTestPoints 
     ); 
 
-    // BCC_FVM Sphere test
-    realVector bccFvmSphereValues(bccFvmPoints.size()); 
-    set_surface_values(bccFvmSphereValues, bccFvmPoints, testSphere);
+    // BCCC Sphere test
+    realVector bcccSphereValues(bcccPoints.size()); 
+    set_surface_values(bcccSphereValues, bcccPoints, testSphere);
 
     test_rbf_surface<rbfTuple>(
-        bccFvmPoints, 
-        bccFvmSphereValues, 
+        bcccPoints, 
+        bcccSphereValues, 
         testSphere,
-        "RBF_EIGEN_SPHERE_STENCILS_BCC_FVM", 
+        "RBF_EIGEN_SPHERE_BCCC", 
+        nTestPoints 
+    ); 
+}
+
+TEST(RBF_EIGEN, ELLIPSOID_STENCILS)
+{
+    eigenEllipsoid testEllipsoid(1.0 / 3., 0.5, 2./3.); 
+
+    // BCC Ellipsoid test
+    realVector bccSphereValues(bccPoints.size()); 
+    set_surface_values(bccSphereValues, bccPoints, testEllipsoid);
+
+    const int nTestPoints = 50;
+
+    test_rbf_surface<rbfTuple>(
+        bccPoints, 
+        bccSphereValues, 
+        testEllipsoid, 
+        "RBF_EIGEN_ELLIPSOID_BCC", 
+        nTestPoints 
+    ); 
+
+    // BCCC Ellipsoid test
+    realVector bcccSphereValues(bcccPoints.size()); 
+    set_surface_values(bcccSphereValues, bcccPoints, testEllipsoid);
+
+    test_rbf_surface<rbfTuple>(
+        bcccPoints, 
+        bcccSphereValues, 
+        testEllipsoid,
+        "RBF_EIGEN_ELLIPSOID_BCCC", 
         nTestPoints 
     ); 
 }
