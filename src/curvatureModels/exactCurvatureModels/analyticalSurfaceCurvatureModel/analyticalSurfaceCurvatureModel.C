@@ -91,6 +91,11 @@ scalar analyticalSurfaceCurvatureModel::curvatureAtPoint(const point& P) const
     return surfaceTmp_->curvatureAt(P);
 }
 
+vector analyticalSurfaceCurvatureModel::normalAtPoint(const point& P) const
+{
+    return surfaceTmp_->normalToPoint(P);
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking
