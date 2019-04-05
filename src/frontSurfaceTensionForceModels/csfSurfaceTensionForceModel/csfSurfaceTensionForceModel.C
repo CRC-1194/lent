@@ -141,6 +141,11 @@ tmp<fvMatrix<vector>> csfSurfaceTensionForceModel::surfaceTensionImplicitPart(
     auto interfaceNormalPtr = curvatureModelRef().cellInterfaceNormals(velocity.mesh(), front);
     const auto& curvature = *curvaturePtr;
     const auto& normals = *interfaceNormalPtr;
+    
+    // Below: normal calculation consistent with explicit surface tension part (TT)
+    //dimensionedScalar dSmall{"SMALL", pow(dimLength, -1), SMALL};
+    //auto normalsTmp = fvc::grad(markerField)/(mag(fvc::grad(markerField)) + dSmall);
+    //const auto& normals = normalsTmp.ref();
 
     // Define Laplace-Beltrami of velocity as the full Laplace-operator
     // (implicit) and subtract the normal part (explicit)
