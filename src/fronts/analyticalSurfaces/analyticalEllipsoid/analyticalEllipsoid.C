@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Version:  2.2.x                               
-    \\  /    A nd           | Copyright held by original author
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright (C) 2018 Tobias Tolle, TU Darmstadt 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
 
-    OpenFOAM is free software; you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by the
-    Free Software Foundation; either version 2 of the License, or (at your
-    option) any later version.
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -19,8 +19,7 @@ License
     for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM; if not, write to the Free Software Foundation,
-    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
     Foam::analyticalEllipsoid
@@ -37,26 +36,6 @@ Description
     See https://www.geometrictools.com/Documentation/DistancePointEllipseEllipsoid.pdf
     for information on how to find the minimal distance between a point
     and the ellipsoid.
-
-    You may refer to this software as :
-    //- full bibliographic data to be provided
-
-    This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
-    under the project supervision of :
-        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
-    
-    Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de
-    	Holger Marschall <marschall@csi.tu-darmstadt.de>
-    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
-
-        Mathematical Modeling and Analysis
-        Center of Smart Interfaces
-        Technische Universitaet Darmstadt
-       
-    If you use this software for your scientific work or your publications,
-    please don't forget to acknowledge explicitly the use of it.
 
 \*---------------------------------------------------------------------------*/
 
@@ -215,6 +194,7 @@ scalar analyticalEllipsoid::signedDistanceRefSytem(const point P) const
 point analyticalEllipsoid::normalProjectionToSurfaceRefSystem(point P) const
 {
     point pointOnSurface{0,0,0};
+    const double epsilon = std::numeric_limits<double>::epsilon();
 
     // Move point to first quadrant of reference frame
     auto p = P;
@@ -224,11 +204,12 @@ point analyticalEllipsoid::normalProjectionToSurfaceRefSystem(point P) const
     }
 
     vector q{oneBySemiAxisSqr_};
-    auto minDistanceParameter = [&q,&p](scalar t)
+
+    auto minDistanceParameter = [&q,&p,&epsilon](scalar t)
             {
-                auto term1 = p.x()/(1.0 + q.x()*t);
-                auto term2 = p.y()/(1.0 + q.y()*t);
-                auto term3 = p.z()/(1.0 + q.z()*t);
+                auto term1 = p.x()/(1.0 + q.x()*t + epsilon);
+                auto term2 = p.y()/(1.0 + q.y()*t + epsilon);
+                auto term3 = p.z()/(1.0 + q.z()*t + epsilon);
 
                 return q.x()*term1*term1 + q.y()*term2*term2
                         + q.z()*term3*term3 - 1.0;
@@ -245,9 +226,9 @@ point analyticalEllipsoid::normalProjectionToSurfaceRefSystem(point P) const
 
     auto lambdaMin = bisection(minDistanceParameter, interval);
     
-    pointOnSurface.x() = p.x() / (1.0 + q.x()*lambdaMin);
-    pointOnSurface.y() = p.y() / (1.0 + q.y()*lambdaMin);
-    pointOnSurface.z() = p.z() / (1.0 + q.z()*lambdaMin);
+    pointOnSurface.x() = p.x() / (1.0 + q.x()*lambdaMin + epsilon);
+    pointOnSurface.y() = p.y() / (1.0 + q.y()*lambdaMin + epsilon);
+    pointOnSurface.z() = p.z() / (1.0 + q.z()*lambdaMin + epsilon);
 
     // Move point on surface to correct quadrant
     forAll(pointOnSurface, I)

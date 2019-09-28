@@ -1,4 +1,5 @@
 EXE_INC = \
+    $(LENT_GCC_OPTIONS) \
     -std=c++14 \
     -isystem$(EIGEN_HEADERS) \
     -I$(LENT_PROJECT)/src/lnInclude \

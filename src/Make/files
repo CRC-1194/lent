@@ -28,6 +28,7 @@ frontReconstructors/frontReconstructor/frontReconstructor.C
 frontReconstructors/foamIsoSurfaceReconstructor/foamIsoSurfaceFrontReconstructor.C
 frontReconstructors/analyticalSurfaceReconstructor/analyticalSurfaceReconstructor.C
 
+frontReconstructors/rbfFrontReconstructors/isoPointCalculator/isoPointCalculator.C
 frontReconstructors/normalConsistencyAlgorithms/normalConsistency/normalConsistency.C
 frontReconstructors/normalConsistencyAlgorithms/centerNormalConsistency/centerNormalConsistency.C
 frontReconstructors/normalConsistencyAlgorithms/distanceNormalConsistency/distanceNormalConsistency.C
@@ -110,5 +111,8 @@ fronts/analyticalSurfaces/surfaceSet/surfaceSet.C
 fronts/frontConstructor/frontConstructor/frontConstructor.C
 fronts/faceTriangulators/simpleTriangulator/simpleTriangulator.C
 fronts/frontMeshIntersection/cutCellVolumeCalculator/cutCellVolumeCalculator.C
+
+rbfInterpolation/hypersurface/sphereHypersurface/sphereHypersurface.C
+rbfInterpolation/hypersurface/ellipsoidHypersurface/ellipsoidHypersurface.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblent

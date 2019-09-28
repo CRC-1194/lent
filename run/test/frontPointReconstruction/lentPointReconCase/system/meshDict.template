@@ -1,0 +1,40 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+|    _ _ _ _    |                                                             |
+| //         \\ | Creative Fields Mesher                                      |
+| |  cfMesh  | |                                                              |
+| \\ _ _ _ _ // | Version: 1.1.1                                              |
+|               | Web: www.cfmesh.com e-mail: support@c-fields.com          |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version	2;
+    format	ascii;
+    class	dictionary;
+    location	"system";
+    object	meshDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// geometry (mandatory)
+// fms is a native format
+// other formats are also possible (stl, ftr, obj)
+surfaceFile	"constant/unit-box-domain.stl";
+
+// global cell size (mandatory)
+// it is the maximum cell size in the mesh
+maxCellSize	#calc "1.0 / @!N!@";
+
+renameBoundary
+{
+    newPatchNames
+    {
+        "ascii.*"
+        {
+            newName walls; 
+            type patch;
+        }
+    }
+};
+
+// ************************************************************************* //
