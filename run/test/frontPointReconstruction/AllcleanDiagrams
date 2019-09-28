@@ -1,0 +1,7 @@
+#! /usr/bin/bash
+rm -rf *.csv
+rm -rf *.tex
+rm -rf *.dat 
+rm -rf *.pdf
+rm -rf *.png
+rm -rf *.database
