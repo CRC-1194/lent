@@ -49,7 +49,7 @@ using namespace Foam;
 using namespace RBF;
 using namespace FrontTracking;
 
-#include "lentTestrbfCellsInterpolationEigenTemplates.H"
+#include "lentTestRbfMeshInterpolationTemplates.H"
 
 int main(int argc, char **argv)
 {
