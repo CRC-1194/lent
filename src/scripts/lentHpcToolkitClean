@@ -2,5 +2,5 @@
 
 rm -rf *hpc* 
 rm -rf *database*
-rm -rf *measurement* 
+rm -rf *measurements* 
 rm -rf *.hpcstruct
