@@ -148,12 +148,12 @@ public:
     virtual ~lentCommunication() = default;
 
     // Member Functions
-    const auto& triangleToCell() const 
+    const DynamicList<label>& triangleToCell() const 
     {
         return triangleToCell_; 
     }
 
-    auto& triangleToCell() // TODO: Remove after removing mesh search from the velocity interpolator. Follow through in lentMethod class. TM. 
+    DynamicList<label>& triangleToCell() // TODO: Remove after removing mesh search from the velocity interpolator. Follow through in lentMethod class. TM. 
     {
         return triangleToCell_; 
     }
