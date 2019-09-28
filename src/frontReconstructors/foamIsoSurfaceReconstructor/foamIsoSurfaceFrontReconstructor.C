@@ -131,6 +131,8 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
         signedDistance, 
         pointSignedDistance
     );
+
+    communication.update();
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

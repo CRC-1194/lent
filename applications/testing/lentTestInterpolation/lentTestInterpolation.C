@@ -26,27 +26,7 @@ Author
     Tomislav Maric maric@csi.tu-darmstadt.de
 
 Description
-    Test application for the interface reconstruction algorithm of the LENT method.
-
-    You may refer to this software as :
-    //- full bibliographic data to be provided
-
-    This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
-    under the project supervision of :
-        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
-    
-    Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de
-    	Holger Marschall <marschall@csi.tu-darmstadt.de>
-    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
-
-        Mathematical Modeling and Analysis
-        Center of Smart Interfaces
-        Technische Universitaet Darmstadt
-       
-    If you use this software for your scientific work or your publications,
-    please don't forget to acknowledge explicitly the use of it.
+    Test application for the interpolation methods used by the LENT method.
 
 \*---------------------------------------------------------------------------*/
 
@@ -61,9 +41,9 @@ Description
 #include "lentGtest.H"
 
 
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+using namespace Foam;
 using namespace FrontTracking;
 using namespace Test;
 

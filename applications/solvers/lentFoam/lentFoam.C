@@ -56,10 +56,11 @@ Description
 #include "EulerDdtScheme.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulentTransportModel.H"
-#include "pimpleControl.H"
 #include "fvOptions.H"
 #include "CorrectPhi.H"
 #include "lentMethod.H"
+#include "lentSolutionControl.H"
+#include "analyticalSurface.H"
 
 #include "alphaFace.H"
 
@@ -67,19 +68,32 @@ Description
 
 using namespace FrontTracking;
 
+void correctFrontIfRequested(triSurfaceFront& front, const dictionary& configDict)
+{
+    if (configDict.found("frontSurface"))
+    {
+        auto surfaceTmp = analyticalSurface::New(configDict.subDict("frontSurface"));
+        const auto& frontSurface = surfaceTmp.ref();
+        frontSurface.moveFrontToSurface(front);
+        frontSurface.makeNormalOrientationConsistent(front);
+        Info << "Front has been corrected" << endl;
+    }
+}
+
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
 
-    pimpleControl pimple(mesh);
-
     #include "createTimeControls.H"
     #include "initContinuityErrs.H"
     #include "createFields.H"
     #include "createMRF.H"
     #include "createFvOptions.H"
+
+    lentSolutionControl lentSC(mesh, phi, "PIMPLE");
+
     #include "correctPhi.H"
 
     turbulence->validate();
@@ -87,8 +101,6 @@ int main(int argc, char *argv[])
     #include "readTimeControls.H"
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
-
-    #include "createAuxFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -126,7 +138,13 @@ int main(int argc, char *argv[])
 
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
+    // Lets make a fair comparison: recover exact surface!
+    correctFrontIfRequested(front, lent.dict());
+
     front.write();
+
+    // TODO: move this into a preprocessing application
+    Info << "Minimal characteristic length of triangle: " << Foam::sqrt(min(front.magSf())) << endl;
 
     // TODO: Examine the internal p-U coupling loop. Update on markerField? TM.  
     while (runTime.run())
@@ -149,6 +167,27 @@ int main(int argc, char *argv[])
             front
         );
 
+        lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
+        if (runTime.timeIndex() <= 1)
+        {
+            correctFrontIfRequested(front, lent.dict());
+        }
+        
+        // TODO: if front has been reconstructed, the signed distances (at least)
+        // for the cell centres have to be recomputed to ensure the front-mesh
+        // communication is up-to-date (TT)
+        if (lent.isFrontReconstructed())
+        {
+            lent.calcSignedDistances(
+                signedDistance,
+                pointSignedDistance,
+                searchDistanceSqr,
+                pointSearchDistanceSqr,
+                front
+            );
+        }
+
         lent.calcMarkerField(markerField);
 
         // Update the viscosity. 
@@ -157,49 +196,61 @@ int main(int argc, char *argv[])
         // Update density field.
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
-        // The momentum flux is computed from MULES as  
-        // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
-        // However, LENT has no ability to compute the volumetric phase flux. 
-        // TODO: examine the impact of the momentum flux computation and devise
-        // more accurate approach if required (TT)
-        //
-        // old approach
-        rhoPhi == fvc::interpolate(rho) * phi;
-        // new approach: vol fraction based calculation of rho at the face
-        //#include "computeRhoPhi.H"
-        
-
-        lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
         Info << "p-U algorithm ... " << endl;
-        // --- Pressure-velocity PIMPLE corrector loop
-        while (pimple.loop())
+
+        // --- Pressure-velocity lentSolutionControl corrector loop
+        while (lentSC.loop())
         {
+            // The momentum flux is computed from MULES as  
+            // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
+            // However, LENT has no ability to compute the volumetric phase flux. 
+            // TODO: examine the impact of the momentum flux computation and devise
+            // more accurate approach if required (TT)
+            if (lentSC.updateMomentumFlux())
+            {
+                if (lent.dict().subDict("markerFieldModel").get<label>("nSmoothingSteps") > 0)
+                {
+                    // old approach, only works for diffuse markerfield
+                    rhoPhi == fvc::interpolate(rho) * phi;
+                }
+                else
+                {
+                    // new approach: vol fraction based calculation of rho at the face
+                    // only works for a sharp, vol-fraction like markerfield
+                    #include "computeRhoPhi.H"
+                }
+            }
+
             #include "UEqn.H"
 
             //--- Pressure corrector loop
-            while (pimple.correct())
+            while (lentSC.adaptiveCorrect())
             {
                 #include "pEqn.H"
             }
 
-            if (pimple.turbCorr())
+            if (lentSC.turbCorr())
             {
                 turbulence->correct();
             }
 
-            if (pimple.finalIter())
+            if (lentSC.finalIter())
             {
                 #include "U_solveMomentumEq.H"
             }
         }
         Info << "Done." << endl;
 
-        Info << "Evolving the front..." << endl;
         lent.evolveFront(front, U.oldTime());
         Info << "Done." << endl;
 
         runTime.write();
+        
+        // This is a workaround to ensure the actual front mesh is written (TT)
+        if (runTime.writeTime())
+        {
+            front.write();
+        }
 
         Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"

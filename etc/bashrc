@@ -2,12 +2,16 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-export CXXFLAGS=$WM_CXXFLAGS
+export LENT_GCC_OPTIONS="-std=c++2a -Wno-deprecated-copy"
 
 export LENT_PROJECT=${DIR%%/etc*}
 
 export PATH=$LENT_PROJECT/src/scripts:$LENT_PROJECT/src/scripts/verification:$PATH
-export LD_LIBRARY_PATH=$LENT_PROJECT/third-party/googletest/googletest/build:$LD_LIBRARY_PATH
 
-export PYTHONPATH=$LENT_PROJECT/src/scripts:$PYTHONPATH
+export LENT_GTEST_LIB="$LENT_PROJECT/third-party/googletest/googletest/build/lib"
+export LENT_GTEST_INC="$LENT_PROJECT/third-party/googletest/googletest/include/gtest"
 
+export LD_LIBRARY_PATH=$LENT_GTEST_LIB:$LD_LIBRARY_PATH
+export PYTHONPATH="$LENT_PROJECT/src/scripts":$PYTHONPATH
+
+export EIGEN_HEADERS=/usr/include/eigen3

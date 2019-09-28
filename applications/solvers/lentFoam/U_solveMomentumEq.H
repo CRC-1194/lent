@@ -1,21 +1,4 @@
 {
-    rhoPhi == fvc::interpolate(rho) * phi;
-    //#include "computeRhoPhi.H"
-
-    UEqn =
-    (
-        fvm::ddt(rho, U)
-      + fvm::div(rhoPhi, U)
-      + MRF.DDt(rho, U)
-      + turbulence->divDevRhoReff(rho, U)
-     ==
-        fvOptions(rho, U)
-    );
-
-    UEqn.relax();
-
-    fvOptions.constrain(UEqn);
-
     // Solve the momentum equation for the cell centered velocity. 
     solve
     (

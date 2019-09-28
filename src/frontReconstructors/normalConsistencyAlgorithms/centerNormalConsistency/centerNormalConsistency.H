@@ -79,6 +79,15 @@ class centerNormalConsistency
         public normalConsistency
 {
 
+private:
+
+    // Private Member Functions
+    virtual void runNormalConsistencyAlgorithm(
+        triSurfaceFront& front,
+        const volScalarField& signedDistance,
+        const pointScalarField& pointSignedDistance // Not used by this alg.
+    ) const;
+
 public:
 
     TypeName ("centerNormal");
@@ -93,13 +102,6 @@ public:
     // Destructor
         virtual ~centerNormalConsistency() {};
 
-    // Member Functions
-
-        virtual void makeFrontNormalsConsistent(
-            triSurfaceFront& front,
-            const volScalarField& signedDistance,
-            const pointScalarField& pointSignedDistance // Not used by this alg.
-        ) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

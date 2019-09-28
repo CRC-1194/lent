@@ -14,7 +14,7 @@
 
     fvOptions.constrain(UEqn);
 
-    if (pimple.momentumPredictor())
+    if (lentSC.momentumPredictor())
     {
         solve
         (
@@ -23,8 +23,8 @@
 
             lent.cellSurfaceTensionForce(mesh, front)
 
-            + 
-            
+            +
+
             fvc::reconstruct
             (
                 (

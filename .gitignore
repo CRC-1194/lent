@@ -32,10 +32,10 @@ linux*/
 *.png
 doc
 third-party
+*pycache*
 *.pyc
 *cache*
 *History*
-
 *.stl 
 *.vtk 
 *VTK*
@@ -46,6 +46,5 @@ Ply*
 *.tex
 *.pdf
 *.csv
-*\.ipynb
 *.database
 *00* 

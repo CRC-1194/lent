@@ -61,6 +61,8 @@ Description
 #define errorMetrics_H
 
 #include <cmath>
+#include <map>
+#include <vector>
 
 #include "fvCFD.H"
 
@@ -77,7 +79,7 @@ namespace FrontTracking {
 class errorMetrics
 {
     // Private data
-    const List<scalar>& errorSet_;
+    std::vector<scalar> errorSet_;
 
     // Private Member Functions
     scalar powerMeanError(scalar x) const;
@@ -87,12 +89,17 @@ public:
 
     // Constructors
     errorMetrics(const List<scalar>& errorSet);
+    errorMetrics(const std::vector<scalar>& errorSet);
 
 
     // Member Functions
     scalar arithmeticMeanError() const;
     scalar quadraticMeanError() const;
     scalar maximumError() const;
+    scalar medianError() const;
+    scalar standardDeviation() const;
+    std::map<scalar, label> errorDistribution(const label& resolution) const;
+    std::map<scalar, scalar> errorDistributionNormalized(const label& resolution) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
