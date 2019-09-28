@@ -20,6 +20,7 @@ EXE_INC = \
     -I$(LIB_SRC)/fileFormats/lnInclude 
 
 EXE_LIBS = \
+    -L$(LENT_GTEST_LIB) \
     -L$(FOAM_USER_LIBBIN) \
     -L$(LENT_PROJECT)/third-party/googletest/googletest/build \
     -ltwoPhaseMixture \
