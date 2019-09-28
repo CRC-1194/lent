@@ -55,14 +55,7 @@ namespace Foam { namespace RBF {
             );
 
             const double r = Geometry::distance(point, pointi);
-
-            if (r < std::numeric_limits<double>::epsilon())
-                result *= static_cast<Derived const*>(this)->ddr(r,rs) / 
-                    (r + std::numeric_limits<double>::epsilon());
-            else
-            {
-                result *= static_cast<Derived const*>(this)->ddr(r,rs) / r; 
-            }
+            result *= static_cast<Derived const*>(this)->ddr_r(r,rs); 
 
             return result; 
         }
@@ -83,9 +76,9 @@ namespace Foam { namespace RBF {
             return x * x; 
         }
 
-        inline double ddr(const double r, const double rs = 1.0) const
+        inline double ddr_r(const double r, const double rs = 1.0) const
         {
-            return - 1.0 / rs; 
+            return - 1.0 / (r * rs); 
         }
 
     };
@@ -104,12 +97,12 @@ namespace Foam { namespace RBF {
             return std::pow(1. - eta, 4) * (4.*eta + 1.); 
         }
 
-        inline double ddr(const double r, const double rs = 1.0) const
+        inline double ddr_r(const double r, const double rs = 1.0) const
         {
             double rrs = r - rs;
             double rrs3 = rrs*rrs*rrs;
 
-            return  (20. * r * rrs3) / (rs*rs*rs*rs*rs);
+            return  (20. * rrs3) / (rs*rs*rs*rs*rs);
         }
     };
 
@@ -129,11 +122,11 @@ namespace Foam { namespace RBF {
                 (35.*std::pow(eta, 2) + 18.*eta + 3.);
         }
 
-        inline double ddr(const double r, const double rs=1.0) const  
+        inline double ddr_r(const double r, const double rs=1.0) const  
         {
             double rrs5 = pow(r-rs,5);
             double rs7 = rs*rs*rs*rs*rs*rs*rs;
-            return 280.*r*r*rrs5/(rs7 * rs) + 56.*r*rrs5/rs7;
+            return 280.*r*rrs5/(rs7 * rs) + 56.*rrs5/rs7;
         }
     };
 
@@ -153,13 +146,13 @@ namespace Foam { namespace RBF {
                     25.*std::pow(eta, 2) + 8.*(eta) +  1.);
         }
 
-        inline double ddr(const double r, const double rs=1.0) const 
+        inline double ddr_r(const double r, const double rs=1.0) const 
         {
             double rrs7 = pow(r - rs,7);
             double rs9 = rs*rs*rs*rs*rs*rs*rs*rs*rs;
-            return 352.0*r*r*r*rrs7/(rs9 * rs * rs) + 
-                154.0*r*r*rrs7/(rs9 * rs) + 
-                22.0*r*rrs7/rs9;
+            return 352.0*r*r*rrs7/(rs9 * rs * rs) + 
+                154.0*r*rrs7/(rs9 * rs) + 
+                22.0*rrs7/rs9;
         }
     };
 
@@ -177,9 +170,9 @@ namespace Foam { namespace RBF {
             return r / rs;
         }
 
-        inline double ddr(const double r, const double rs=1.0) const 
+        inline double ddr_r(const double r, const double rs=1.0) const 
         {
-            return 1.0 / rs;
+            return 1.0 / (r*rs);
         }
     };
     const std::string LINEAR::name_ = "LINEAR";
@@ -196,9 +189,9 @@ namespace Foam { namespace RBF {
             return std::pow(r / rs, 3.0);
         }
 
-        inline double ddr(const double r, const double rs=1.0) const
+        inline double ddr_r(const double r, const double rs=1.0) const
         {
-            return 3.0 * (r*r) / (rs*rs);
+            return 3.0 * r / (rs*rs);
         }
     };
     const std::string CUBIC_SPLINE::name_ = "CUBIC_SPLINE";
@@ -216,10 +209,10 @@ namespace Foam { namespace RBF {
             return eta - std::pow(eta, 3);
         }
 
-        inline double ddr(const double r, const double rs=1.0) const
+        inline double ddr_r(const double r, const double rs=1.0) const
         {
             double rssqr = rs*rs; 
-            return (-3*r*r + rssqr)/(rssqr * rs);
+            return (-3*r + rssqr)/(rssqr * rs);
         }
     };
     const std::string LINEAR_CUBIC_SPLINE::name_ = "LINEAR_CUBIC_SPLINE";
@@ -253,10 +246,10 @@ namespace Foam { namespace RBF {
             return std::sqrt(1. + std::pow(r / rs, 2));
         }
 
-        inline double ddr(const double r, const double rs=1.0) const
+        inline double ddr_r(const double r, const double rs=1.0) const
         {
             double rssqr = rs*rs;
-            return r / (rssqr*sqrt(r*r/rssqr + 1.0));
+            return 1. / (rssqr*sqrt(r*r/rssqr + 1.0));
         }
     };
     const std::string MULTIQUADRIC::name_ = "MULTIQUADRIC";
@@ -273,10 +266,10 @@ namespace Foam { namespace RBF {
             return 1.0 / (1 + (r / rs));
         }
 
-        inline double ddr(const double r, const double rs=1.0) const 
+        inline double ddr_r(const double r, const double rs=1.0) const 
         {
             double s = r+rs;
-            return  -rs / (s*s);
+            return  -rs / (r*s*s);
         }
     };
     const std::string INVERSE_MULTIQUADRIC::name_ = "INVERSE_MULTIQUADRIC";
@@ -294,10 +287,10 @@ namespace Foam { namespace RBF {
             return 1.0  / (1.0 + eta*eta);
         }
 
-        inline double ddr(const double r, const double rs=1.0) const
+        inline double ddr_r(const double r, const double rs=1.0) const
         {
             double rssqr = rs*rs;
-            return -2*r*rssqr/((r*r + rssqr)*(r*r + rssqr));
+            return -2*rssqr/((r*r + rssqr)*(r*r + rssqr));
         }
     }; 
     const std::string INVERSE_QUADRATIC::name_ = "INVERSE_QUADRATIC"; 
@@ -316,10 +309,10 @@ namespace Foam { namespace RBF {
                 std::log(eta + std::numeric_limits<double>::epsilon());
         }
 
-        inline double ddr(const double r, const double rs=1.0) const 
+        inline double ddr_r(const double r, const double rs=1.0) const 
         {
             const double eps = std::numeric_limits<double>::epsilon();
-            return r*(r + 2*(eps*rs + r)*log((eps*rs + r)/rs))/(rs*rs*(eps*rs + r));
+            return (r + 2*(eps*rs + r)*log((eps*rs + r)/rs))/(rs*rs*(eps*rs + r));
         }
     };
     const std::string THIN_PLATE_SPLINE::name_ = "THIN_PLATE_SPLINE"; 
@@ -337,10 +330,10 @@ namespace Foam { namespace RBF {
             return std::exp(-eta * eta);
         }
 
-        inline double ddr(const double r, const double rs=1.0) const 
+        inline double ddr_r(const double r, const double rs=1.0) const 
         {
             double rssqr = rs*rs;  
-            return -2.*r*exp(-(r*r)/rssqr)/rssqr;
+            return -2.*exp(-(r*r)/rssqr)/rssqr;
         }
     };
     const std::string GAUSSIAN::name_ = "GAUSSIAN"; 
@@ -373,7 +366,7 @@ namespace Foam { namespace RBF {
     <
         WENDLAND_C2,
         WENDLAND_C4,
-        LINEAR,
+        WENDLAND_C6,
         CUBIC_SPLINE,
         LINEAR_CUBIC_SPLINE,
         MULTIQUADRIC,

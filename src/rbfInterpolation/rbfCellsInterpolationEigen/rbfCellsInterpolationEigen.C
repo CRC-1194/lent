@@ -23,30 +23,44 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "rbfCellsInterpolationEigen.H"
 #include "volFields.H"
 #include "pointFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
+namespace Foam { namespace RBF {
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+template<typename Kernel>
+rbfCellsInterpolationEigen<Kernel>::rbfCellsInterpolationEigen
+(
+    const fvMesh& mesh, 
+    const stencilType stencil,
+    const supportType support
+)
+    :
+        cellRbfStencils_(mesh.nCells()),
+        cellRbfPoints_(mesh.nCells()),
+        cellRbfValues_(mesh.nCells()),
+        cellRbfs_(mesh.nCells()) 
 {
-namespace RBF
-{
+    calcStencils(mesh, stencil); 
+    factorize(); 
+}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void rbfCellsInterpolationEigen::calcStencils
+template<typename Kernel>
+void rbfCellsInterpolationEigen<Kernel>::calcStencils
 (
     const fvMesh& mesh, 
     const stencilType stencil 
 )
 {
-    // FIXME: emplace_back will not work with re-calculation, fix this. 
-    // Resizing to zero, while maintaining same capacity as before when 
-    // re-executing. TM
+    // FIXME: emplace_back will not work with re-calculation! TM. 
     
-    // Append cell-centered data for both BCC and BCC-FVM stencil. 
+    // Append cell-centered data for both BCC and BCCC stencil. 
     const auto& cellCenters = mesh.C(); 
     forAll (cellCenters, cellI)
     {
@@ -54,7 +68,7 @@ void rbfCellsInterpolationEigen::calcStencils
         cellRbfPoints_[cellI].emplace_back(cellCenters[cellI]);
     }
 
-    // Add point-data to for both the BCC and BCC-FVM stencil.
+    // Add point-data to for both the BCC and BCCC stencil.
     const auto& pointCells = mesh.pointCells(); 
     const auto& meshPoints = mesh.points(); 
     forAll (pointCells, pointI)
@@ -69,9 +83,9 @@ void rbfCellsInterpolationEigen::calcStencils
     }
     // TODO: Parallel implementation for point data. TM.
 
-    if (stencil == stencilType::BCC_FVM)
+    if (stencil == stencilType::BCCC)
     {
-        // Add face-neighbor data to the BCC-FVM cell stencil.
+        // Add face-neighbor data to the BCCC cell stencil.
         const auto& own = mesh.owner(); 
         const auto& nei = mesh.neighbour();
         forAll(own, faceI)
@@ -88,13 +102,8 @@ void rbfCellsInterpolationEigen::calcStencils
     }
 }
 
-void rbfCellsInterpolationEigen::factorize()
-{
-    for (decltype(cellRbfPoints_.size()) cellI = 0; cellI < cellRbfPoints_.size(); ++cellI)
-        cellRbfs_[cellI].factorize(cellRbfPoints_[cellI]);
-}
-
-void rbfCellsInterpolationEigen::setCellRbfValues
+template<typename Kernel>
+void rbfCellsInterpolationEigen<Kernel>::setCellRbfValues
 (
     const volScalarField& vf, 
     const pointScalarField& pf, 
@@ -122,28 +131,75 @@ void rbfCellsInterpolationEigen::setCellRbfValues
         rbfValues_[pI + shift] = pf[rbfPointLabels[pI]]; 
 }
 
-void rbfCellsInterpolationEigen::interpolate
+template<typename Kernel>
+void rbfCellsInterpolationEigen<Kernel>::factorize()
+{
+    using sizeType = decltype(cellRbfPoints_.size());
+    for (sizeType cellI = 0; cellI < cellRbfPoints_.size(); ++cellI)
+        cellRbfs_[cellI].factorize(cellRbfPoints_[cellI]);
+}
+
+template<typename Kernel>
+template<typename Point> 
+double rbfCellsInterpolationEigen<Kernel>::value
+(   
+    Point const& evalPoint, 
+    const label cellI
+) const
+{
+    return cellRbfs_[cellI].value(evalPoint, cellRbfPoints_[cellI]); 
+}
+
+template<typename Kernel>
+template<typename Point> 
+double rbfCellsInterpolationEigen<Kernel>::value
+(   
+    const label cellI,
+    Point const& evalPoint 
+) const
+{
+    return this->value(evalPoint, cellI);
+}
+
+template<typename Kernel>
+template<typename Vector, typename Point> 
+Vector rbfCellsInterpolationEigen<Kernel>::grad
+(   
+    const label cellI,
+    Point const& evalPoint
+) const
+{
+    return cellRbfs_[cellI].template grad<Vector>(
+        evalPoint, 
+        cellRbfPoints_[cellI]
+    ); 
+}
+
+template<typename Kernel>
+template<typename Vector, typename Point> 
+Vector rbfCellsInterpolationEigen<Kernel>::grad
+(   
+    Point const& evalPoint,
+    const label cellI
+) const
+{
+    return this->template grad<Vector>(cellI, evalPoint);
+}
+
+template<typename Kernel>
+void rbfCellsInterpolationEigen<Kernel>::solve
 (
     const volScalarField& vField,
     const pointScalarField& pField
 )
 {
-    
-    // For each cell 
     forAll(vField, cellI)
     {
         setCellRbfValues(vField, pField, cellI);
-        cellRbfs_[cellI].interpolate(cellRbfPoints_[cellI], cellRbfValues_[cellI]); 
+        cellRbfs_[cellI].solve(cellRbfPoints_[cellI], cellRbfValues_[cellI]); 
     }
 }
 
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace RBF 
-} // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+}} // End namespace Foam::RBF
 
 // ************************************************************************* //

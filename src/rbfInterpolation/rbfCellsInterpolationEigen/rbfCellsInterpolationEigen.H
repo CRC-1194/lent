@@ -38,122 +38,135 @@ SourceFiles
 #include "rbfConfig.H"
 #include "rbfInterpolationEigen.H"
 #include "fvMesh.H"
+#include <string>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
+namespace Foam { namespace RBF {
+
+/*---------------------------------------------------------------------------*\
+                         Class cellRbfStencil Definition 
+\*---------------------------------------------------------------------------*/
+
+class cellRbfStencil
 {
-namespace RBF
-{
+    public: 
 
-// FIXME: Move to a separate file. TM.
-// FIXME: Optimize for construct/copy/move/resize operations.
-struct cellRbfStencil
-{
-    cellRbfStencil()
-        : 
-            cellLabel_(-1), 
-            pointLabels_(), 
-            cellNeiLabels_(),
-            size_(0)
-    {}
+        cellRbfStencil()
+            : 
+                cellLabel_(-1), 
+                pointLabels_(), 
+                cellNeiLabels_(),
+                size_(0)
+        {}
 
-    void setCellLabel(const label cellI)
-    {
-        cellLabel_ = cellI; 
-        ++size_;
-    }
+        void setCellLabel(const label cellI)
+        {
+            cellLabel_ = cellI; 
+            ++size_;
+        }
 
-    void addPointLabel(const label pointI) 
-    {
-        pointLabels_.push_back(pointI); 
-        ++size_; 
-    }
+        void addPointLabel(const label pointI) 
+        {
+            pointLabels_.push_back(pointI); 
+            ++size_; 
+        }
 
-    void addNeiLabel(const label cellI) 
-    {
-        cellNeiLabels_.push_back(cellI); 
-        ++size_; 
-    }
+        void addNeiLabel(const label cellI) 
+        {
+            cellNeiLabels_.push_back(cellI); 
+            ++size_; 
+        }
 
-    int size() const
-    {
-        return size_;  
-    }
+        int size() const
+        {
+            return size_;  
+        }
 
-    label cellLabel() const
-    {
-        return cellLabel_; 
-    }
+        label cellLabel() const
+        {
+            return cellLabel_; 
+        }
 
-    const std::vector<label>& pointLabels() const
-    {
-        return pointLabels_; 
-    }
+        const std::vector<label>& pointLabels() const
+        {
+            return pointLabels_; 
+        }
 
-    const std::vector<label>& cellNeiLabels() const
-    {
-        return cellNeiLabels_;
-    }
+        const std::vector<label>& cellNeiLabels() const
+        {
+            return cellNeiLabels_;
+        }
 
-    label cellLabel_;
-    std::vector<label>  pointLabels_; 
-    std::vector<label>  cellNeiLabels_;
-    int size_; 
+    private:
+
+        label cellLabel_;
+        std::vector<label>  pointLabels_; 
+        std::vector<label>  cellNeiLabels_;
+        int size_; 
 };
 
 /*---------------------------------------------------------------------------*\
                          Class rbfCellsInterpolationEigen Declaration
 \*---------------------------------------------------------------------------*/
 
-// FIXME: 
-// - Check if the mesh is equidistant and in this case, provide only a single 
-//   factorized matrix. 
-// - Read the stencilType from a config dictionary.  
+template<typename Kernel>
 class rbfCellsInterpolationEigen final
 {
 
-    constexpr static int defaultStencilSize_ = 15; // BCC_FVM stencil size for a hex cell. 
+private:
+
+    // Cell RBF stencils.
+    std::vector<cellRbfStencil> cellRbfStencils_; 
+    
+    // Cell-centered RBF points.
+    std::vector<std::vector<Foam::point>> cellRbfPoints_; 
+
+    // Cell-centered RBF values. 
+    std::vector<Eigen::VectorXd> cellRbfValues_; 
+    
+    // Cell-centered RBF interpolants.
+    std::vector<rbfInterpolationEigen<Kernel>> cellRbfs_; 
+
 public:
 
     // Constructors
     rbfCellsInterpolationEigen() = default;
 
-    // FIXME: Dict constructor that reads stencilType and support type.
-    template<typename Kernel>
     rbfCellsInterpolationEigen
     (
         const fvMesh& mesh, 
-        const Kernel& kernel, 
-        const stencilType stencil = stencilType::BCC,  
+        const stencilType stencil = stencilType::BCCC,  
         const supportType support = supportType::GLOBAL_SUPPORT
     ); 
 
     // Member Functions
     void calcStencils 
     (
-        const fvMesh& mesh,
-        const stencilType stencil = stencilType::BCC
+        const fvMesh& mesh, 
+        const stencilType stencil 
     );
     
-    void factorize();
+    void factorize(); 
 
-    void interpolate
+    void solve 
     (
         const volScalarField& vf, 
         const pointScalarField& pf
     );
     
-
-    // TODO: Inline and measure effect.
     template<typename Point>
-    double evaluate
-    (
-        Point const& evalPoint, 
-        const label cellI
-    );
+    double value (Point const& evalPoint, const label cellI) const;
 
-    // TODO: Inline and measure effect.
+    template<typename Point>
+    double value (const label cellI, Point const& evalPoint) const;
+
+    template<typename Vector, typename Point> 
+    Vector grad(const label cellI, Point const& point) const; 
+
+    template<typename Vector, typename Point> 
+    Vector grad(Point const& point, const label cellI) const; 
+
     void setCellRbfValues
     (
         const volScalarField& vf, 
@@ -161,32 +174,33 @@ public:
         const label cellI 
     );
 
-    
-private:
+    const rbfInterpolationEigen<Kernel>& rbf(std::size_t cellI) const
+    {
+        return cellRbfs_[cellI]; 
+    }
 
-    // Cell RBF stencils.
-    std::vector<cellRbfStencil> cellRbfStencils_; 
-    
-    // Cell-centered RBF point lists.
-    std::vector<std::vector<Foam::point>> cellRbfPoints_; 
+    const std::vector<Foam::point>& rbfPoints(std::size_t cellI) const
+    {
+        return cellRbfPoints_[cellI]; 
+    }
 
-    // Cell-centered RBF value lists.
-    std::vector<Eigen::VectorXd> cellRbfValues_; 
-    
-    // RBF interpolants.
-    std::vector<rbfInterpolationEigen> cellRbfs_; 
+    std::string rbfName() const
+    {
+        return cellRbfs_.front().name(); 
+    }
 
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace RBF 
-} // End namespace Foam
+}} // End namespace Foam::RBF
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "rbfCellsInterpolationEigenTemplates.H"
+#ifdef NoRepository
+    #include "rbfCellsInterpolationEigen.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -34,10 +34,7 @@ Description
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
-namespace RBF
-{
+namespace Foam { namespace RBF {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -53,16 +50,26 @@ rbfCellsInterpolationEigen::rbfCellsInterpolationEigen
         cellRbfStencils_(mesh.nCells()),
         cellRbfPoints_(mesh.nCells()),
         cellRbfValues_(mesh.nCells()),
-        cellRbfs_(
-            mesh.nCells(), 
-            rbfInterpolationEigen(kernel, support)
-        )
+        cellRbfs_(mesh.nCells(), 
+                  rbfInterpolation<Kernel>())
+
 {
     calcStencils(mesh, stencil); 
-    factorize(); 
+    factorize(kernel, support); 
 }
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+template<typename Kernel>
+void rbfCellsInterpolationEigen::factorize
+(
+    Kernel const& kernel, 
+    const supportType support
+)
+{
+    for (decltype(cellRbfPoints_.size()) cellI = 0; cellI < cellRbfPoints_.size(); ++cellI)
+        cellRbfs_[cellI].factorize(cellRbfPoints_[cellI], kernel, support);
+}
 
 template<typename Point> 
 double rbfCellsInterpolationEigen::evaluate
@@ -79,10 +86,7 @@ double rbfCellsInterpolationEigen::evaluate
     ); 
 }
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace RBF 
-} // End namespace Foam
+}} // End namespace Foam::RBF 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -45,8 +45,8 @@ namespace RBF
         RMS_RADIUS
     }; 
 
-    // Types of support radii for the RBF. 
-    enum class stencilType {BCC, BCC_FVM}; 
+    // Types of support stencils for the piecewise-continuous RBF.
+    enum class stencilType {BCC, BCCC}; 
 
 } // End namespace RBF
 } // End namespace Foam 
