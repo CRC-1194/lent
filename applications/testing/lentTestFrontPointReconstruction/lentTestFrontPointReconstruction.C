@@ -228,7 +228,7 @@ void intersectedCells
 )
 {
     // Reset the intersected cells marker.
-    iCells = 0; 
+    iCells = 0.; 
     // Clear everythng when new intersected cells are computed.
     iData.clear();
 
