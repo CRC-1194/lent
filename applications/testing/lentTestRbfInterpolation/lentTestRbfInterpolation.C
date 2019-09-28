@@ -395,15 +395,12 @@ void test_rbf_surface(
         vtks << zStart + i*(L / nTestPoints) << " ";
     vtks << "\n";
 
-    // TODO: LINF value and gradient for every Kernel into CSV, and plot diagrams. 
-
     vtks << "POINT_DATA " << nTestPoints * nTestPoints * nTestPoints << "\n";
-    std::stringstream valss, surfvalss, surfgradss, gradss, gradmagss, valinfss, gradlinfss; 
+    std::stringstream valss, surfvalss, surfgradss, gradss, valinfss, gradlinfss; 
     valss << "SCALARS rbfval float\nLOOKUP_TABLE DEFAULT\n";
     surfvalss << "SCALARS surfval float\nLOOKUP_TABLE DEFAULT\n";
     gradss << "VECTORS rbfgrad float\n";
     surfgradss << "VECTORS surfgrad float\n";
-    gradmagss << "SCALARS rbfgradmag float\nLOOKUP_TABLE DEFAULT\n";
     valinfss << "SCALARS rbfvallinf float\nLOOKUP_TABLE DEFAULT\n";
     gradlinfss << "SCALARS rbfgradlinf float\nLOOKUP_TABLE DEFAULT\n";
     for (int k = 0; k < nTestPoints; ++k)
@@ -431,7 +428,6 @@ void test_rbf_surface(
                 surfvalss  << surfValue << " ";
                 gradss     << rbfTestGrad[0] << " " << rbfTestGrad[1] << " " << rbfTestGrad[2] << " "; 
                 surfgradss << surfGrad[0] << " " << surfGrad[1] << " " << surfGrad[2] << " "; 
-                gradmagss  << std::sqrt(rbfTestGrad.dot(rbfTestGrad)) << " ";
                 valinfss   << valueError << " ";
                 gradlinfss << gradError << " ";
             }
@@ -439,14 +435,19 @@ void test_rbf_surface(
                 surfvalss  << "\n";
                 gradss     << "\n";
                 surfgradss << "\n";
-                gradmagss  << "\n";
                 valinfss   << "\n";
                 gradlinfss << "\n";
         }
     }
-    vtks << valss.str() << surfvalss.str() << valinfss.str() 
-        << gradss.str() << gradmagss.str() << gradlinfss.str() 
-        << surfgradss.str() << "\n"; 
+
+    vtks << valss.str() 
+        << surfvalss.str() 
+        << gradss.str() 
+        << surfgradss.str() 
+        << valinfss.str() 
+        << gradlinfss.str() << "\n"; 
+
+    // Project the cell center onto the surface. 
 
     // Loop over RBF kernels.
     if constexpr (N + 1 < std::tuple_size_v<RbfTuple>) 
@@ -459,7 +460,7 @@ void test_rbf_surface(
             );
 }
 
-TEST(RBF_EIGEN, SPHERE_STENCILS)
+TEST(RBF_EIGEN, SPHERE)
 {
     eigenSphere testSphere(Eigen::Vector3d(0,0,0), 0.750173); 
 
@@ -490,7 +491,7 @@ TEST(RBF_EIGEN, SPHERE_STENCILS)
     ); 
 }
 
-TEST(RBF_EIGEN, ELLIPSOID_STENCILS)
+TEST(RBF_EIGEN, ELLIPSOID)
 {
     eigenEllipsoid testEllipsoid(1.0 / 3., 0.5, 2./3.); 
 
