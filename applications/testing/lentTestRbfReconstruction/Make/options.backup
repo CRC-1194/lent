@@ -1,16 +1,16 @@
 EXE_INC = \
-    $(LENT_GCC_OPTIONS) \
+    -std=c++14 \
     -isystem$(EIGEN_HEADERS) \
+    -I$(LENT_PROJECT)/applications/solvers \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
     -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LIB_SRC)/sampling/lnInclude \
     -I$(LENT_PROJECT)/src/lnInclude \
-    -I$(LENT_PROJECT)/src/rbfInterpolation/lnInclude \
     -I$(LENT_PROJECT)/third-party/googletest/googletest/include \
     -I$(LENT_PROJECT)/third-party/googletest/googletest/include/gtest
 
 EXE_LIBS = \
-    -L/usr/lib \
     -L$(FOAM_USER_LIBBIN) \
     -L$(LENT_PROJECT)/third-party/googletest/googletest/build \
     -lfiniteVolume \
@@ -18,4 +18,4 @@ EXE_LIBS = \
     -lsurfMesh \
     -lsampling \
     -llent \
-    -lrbfInterpolation
+    -lgtest
