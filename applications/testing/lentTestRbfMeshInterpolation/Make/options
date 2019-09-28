@@ -17,5 +17,4 @@ EXE_LIBS = \
     -lmeshTools \
     -lsurfMesh \
     -lsampling \
-    -llent \
-    -lrbfInterpolation
+    -llent
