@@ -77,14 +77,14 @@ public:
             return edgeLabels_; 
         }
 
-        const Points& cellPoints() const
+        const Points& contourPoints() const
         {
-            return cellPoints_; 
+            return contourPoints_; 
         }
 
-        const Labels& cellLabels() const
+        const Labels& pointCellLabels() const
         {
-            return cellLabels_; 
+            return pointCellLabels_; 
         }
 
         scalar linearRoot(scalar fiso, scalar f0, scalar f1) const
@@ -111,7 +111,7 @@ public:
             const scalar isoValue = 0.
         );
 
-        void calcCellPoints 
+        void calcContourPoints 
         (
             const volScalarField& cellPhi, 
             const pointScalarField& pointPhi, 
@@ -123,8 +123,9 @@ protected:
     Points edgePoints_; 
     Labels edgeLabels_; 
 
-    Points cellPoints_; 
-    Labels cellLabels_; 
+    Points contourPoints_; 
+    Labels pointCellLabels_;
+    //Labels cellLabels_; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

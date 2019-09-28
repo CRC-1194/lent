@@ -108,7 +108,7 @@ void isoPointCalculator::calcEdgePoints
     }
 }
 
-void isoPointCalculator::calcCellPoints
+void isoPointCalculator::calcContourPoints
 (
     const volScalarField& cellPhi, 
     const pointScalarField& pointPhi, 
@@ -120,30 +120,31 @@ void isoPointCalculator::calcCellPoints
     const auto& mesh = cellPhi.mesh();
     const auto& meshCellEdgesLists = mesh.cellEdges(); 
 
-    // FIXME: Use reserve in the constructor. TM.
-    cellPoints_.resize(0);
-    cellLabels_.resize(mesh.nCells());
-    // FIXME: Can also be a list of booleans. TM.
-    std::fill(cellLabels_.begin(), cellLabels_.end(), -1);
+    contourPoints_.resize(0);
+    pointCellLabels_.resize(0);
+
+    //cellLabels_.resize(mesh.nCells());
+    //std::fill(cellLabels_.begin(), cellLabels_.end(), -1);
 
     forAll(meshCellEdgesLists, cellI)
     {
         const auto& cellEdgeLabels = meshCellEdgesLists[cellI]; 
         label nEdgePoints = 0;
-        auto cellPoint = vector(0,0,0);
+        auto contourPoint = vector(0,0,0);
         forAll(cellEdgeLabels, edgeI)  
         {
             const label edgeGl = cellEdgeLabels[edgeI]; 
             if (edgeLabels_[edgeGl] > 0)
             {
-                cellPoint += edgePoints_[edgeLabels_[edgeGl]];  
+                contourPoint += edgePoints_[edgeLabels_[edgeGl]];  
                 ++nEdgePoints; 
             }
         }
         if (nEdgePoints > 0)
         {
-            cellPoints_.push_back(cellPoint / nEdgePoints); 
-            cellLabels_[cellI] = cellI;  
+            contourPoints_.push_back(contourPoint / nEdgePoints); 
+            pointCellLabels_.push_back(cellI);
+            //cellLabels_[cellI] = cellI;  
         }
     }
 }
