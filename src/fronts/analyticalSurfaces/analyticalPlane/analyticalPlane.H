@@ -79,9 +79,13 @@ class analyticalPlane
     vector unitNormal_;
     scalar distanceOrigin_;
 
+protected:
+    vector normalize(const vector& normalVector) const;
+    void updateDistanceToOrigin();
+
 public:
 
-    TypeName ("Plane");
+    TypeName ("plane");
 
     // Constructors
     analyticalPlane() = default;
@@ -98,6 +102,10 @@ public:
     virtual point normalProjectionToSurface(point& trialPoint) const;
     virtual vector normalToPoint(const point& trialPoint) const;
     virtual point intersection(const point& pointA, const point& pointB) const;
+    virtual scalar curvatureAt(const point& p) const
+    {
+        return 0.0;
+    }
 
     virtual vector normal() const
     {
@@ -108,6 +116,11 @@ public:
     {
         return refPoint_;
     }
+
+    virtual void normal(const vector& newNormal);
+    virtual void referencePoint(const point& newRefPoint);
+
+    virtual void writeParameters(const word fileName) const; 
 
     // Member operators
     virtual analyticalPlane& operator=(const analyticalPlane& rhs);

@@ -82,7 +82,7 @@ class analyticalSphere
 
 public:
 
-    TypeName ("Sphere");
+    TypeName ("sphere");
 
     // Constructors
     analyticalSphere() = default;
@@ -99,6 +99,10 @@ public:
     virtual point normalProjectionToSurface(point& trialPoint) const;
     virtual vector normalToPoint(const point& trialPoint) const;
     virtual point intersection(const point& pointA, const point& pointB) const;
+    virtual scalar curvatureAt(const point& p) const
+    {
+        return -2.0/radius();
+    }
 
     virtual point centre() const
     {
@@ -109,6 +113,11 @@ public:
     {
         return radius_;
     }
+
+    virtual void centre(const point& newCentre);
+    virtual void radius(const scalar newRadius);
+
+    virtual void writeParameters(const word fileName) const;
 
     // Member operators
     virtual analyticalSphere& operator=(const analyticalSphere& rhs);

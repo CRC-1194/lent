@@ -5,7 +5,7 @@ CorrectPhi
     p_rgh,
     dimensionedScalar("rAUf", dimTime/rho.dimensions(), 1),
     geometricZeroField(),
-    pimple
+    lentSC
 );
 
 #include "continuityErrs.H"

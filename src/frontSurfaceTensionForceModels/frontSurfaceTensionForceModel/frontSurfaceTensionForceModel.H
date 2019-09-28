@@ -67,7 +67,7 @@ Description
 #include "volFieldsFwd.H"
 #include "surfaceFieldsFwd.H"
 #include "triSurfaceFront.H"
-#include "frontCurvatureModel.H"
+//#include "frontCurvatureModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -120,6 +120,12 @@ public:
         const fvMesh&, 
         const triSurfaceFront&
     ) const = 0;  
+
+    virtual tmp<fvMatrix<vector>> surfaceTensionImplicitPart(
+        const volVectorField&,
+        const volScalarField&,
+        const triSurfaceFront&
+    ) const = 0;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

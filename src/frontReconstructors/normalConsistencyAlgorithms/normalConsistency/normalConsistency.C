@@ -73,36 +73,11 @@ namespace FrontTracking {
     defineRunTimeSelectionTable(normalConsistency, Dictionary);
     addToRunTimeSelectionTable(normalConsistency, normalConsistency, Dictionary);
 
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-
-tmp<normalConsistency>
-normalConsistency::New(const dictionary& configDict)
-{
-    const word name = configDict.lookup("type");
-
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
-
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
-    {
-        FatalErrorIn (
-            "normalConsistency::New(const word& name)"
-        )   << "Unknown normalConsistency type "
-            << name << nl << nl
-            << "Valid normalConsistencys are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
-    }
-
-    return tmp<normalConsistency> (cstrIter()(configDict));
-}
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-void normalConsistency::makeFrontNormalsConsistent(
+// * * * * * * * * * * * * * Private  member functions * * * * * * * * * * * //
+void normalConsistency::runNormalConsistencyAlgorithm(
     triSurfaceFront& front,
     const volScalarField& signedDistance,
-    const pointScalarField& pointSignedDistance // Not used by this algorithm. TM. 
+    const pointScalarField& pointSignedDistance // Not used.
 ) const
 {
     // Gradient based normal consistency algorithm.
@@ -141,6 +116,44 @@ void normalConsistency::makeFrontNormalsConsistent(
             }
         }
     }
+}
+
+// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
+
+tmp<normalConsistency>
+normalConsistency::New(const dictionary& configDict)
+{
+    const word name = configDict.lookup("type");
+
+    DictionaryConstructorTable::iterator cstrIter =
+        DictionaryConstructorTablePtr_->find(name);
+
+    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    {
+        FatalErrorIn (
+            "normalConsistency::New(const word& name)"
+        )   << "Unknown normalConsistency type "
+            << name << nl << nl
+            << "Valid normalConsistencys are : " << endl
+            << DictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalError);
+    }
+
+    return tmp<normalConsistency> (cstrIter()(configDict));
+}
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void normalConsistency::makeFrontNormalsConsistent(
+    triSurfaceFront& front,
+    const volScalarField& signedDistance,
+    const pointScalarField& pointSignedDistance // Not used by this algorithm. TM. 
+) const
+{
+    runNormalConsistencyAlgorithm(front, signedDistance, pointSignedDistance);
+
+    // Ensure update of demand driven data by completely clearing it
+    front.clearOut();
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

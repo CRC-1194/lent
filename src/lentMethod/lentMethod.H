@@ -76,6 +76,8 @@ Description
 #include "frontSurfaceTensionForceModel.H"
 #include "lentInterpolation.H"
 #include "triSurfaceFrontFields.H"
+// TODO: move this to a place more suitable, e.g. frontReconstructionModel
+#include "reconstructionHistory.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -99,6 +101,9 @@ class lentMethod
     // Front reconstruction flag.
     mutable bool frontIsReconstructed_;
 
+    // Front smoothing flag
+    mutable bool frontPreviouslySmoothed_;
+
     // Field calculator
     tmp<distanceFieldCalculator> distanceFieldCalculatorTmp_;
 
@@ -116,6 +121,12 @@ class lentMethod
 
     // Surface tension force model.
     tmp<frontSurfaceTensionForceModel> surfaceTensionForceModelTmp_;
+    
+    // Algorithm collection for front smoothing
+    frontSmoother frontSmoother_;
+
+    // Recorder for front reconstructions and smoothing
+    reconstructionHistory reconstructionHistory_;
 
     // Member Operators
         void operator=(const lentMethod&); // FIXME: Private in lentCommunication. TM.
@@ -192,6 +203,15 @@ public:
             return surfaceTensionForceModelTmp_->cellSurfaceTensionForce(mesh, frontMesh); 
         }
 
+        tmp<fvMatrix<vector>> surfaceTensionImplicitPart(
+            const volVectorField& velocity,
+            const volScalarField& markerField,
+            const triSurfaceFront& front
+        ) const
+        {
+            return surfaceTensionForceModelTmp_->surfaceTensionImplicitPart(velocity, markerField, front);
+        }
+
         const dictionary& dict() const
         {
             return lentControlDict_;
@@ -201,8 +221,6 @@ public:
         {
             return surfaceTensionForceModelTmp_();  
         }
-
-        void calcFrontNormals(triSurfaceFront& front) const; 
 
         // Empty writer: regIOobject is used only for registry queries.
         bool writeData(Ostream& os) const;

@@ -59,6 +59,8 @@ Description
 #include "analyticalSphere.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include <iomanip>
+
 namespace Foam {
 namespace FrontTracking {
 
@@ -70,15 +72,15 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 analyticalSphere::analyticalSphere(const dictionary& configDict)
 :
-    analyticalSurface(configDict)
+    analyticalSurface{configDict}
 {
-    centre_ = configDict.lookupOrDefault<vector>("centre", centre_);
-    radius_ = configDict.lookupOrDefault<scalar>("radius", radius_);
+    centre_ = configDict.lookup("centre");
+    radius_ = readScalar(configDict.lookup("radius"));
 }
 
 analyticalSphere::analyticalSphere(const point& centre, const scalar radius)
 :
-   analyticalSurface()
+   analyticalSurface{}
 {
     centre_ = centre;
     radius_ = radius;
@@ -178,6 +180,28 @@ point analyticalSphere::intersection(const point& pointA,
     }
 
     return intersect;
+}
+
+void analyticalSphere::centre(const point& newCentre)
+{
+    centre_ = newCentre;
+}
+
+void analyticalSphere::radius(const scalar newRadius)
+{
+    radius_ = newRadius;
+}
+
+void analyticalSphere::writeParameters(const word fileName) const
+{
+    auto outputFile = outputStream(fileName);
+
+    outputFile.stdStream() << std::setprecision(15);
+
+    outputFile << "-------------------------------\n"
+               << "type " << this->type() << '\n'
+               << "centre " << centre_ << '\n'
+               << "radius " << radius_ << '\n';
 }
 
 

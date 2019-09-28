@@ -38,6 +38,7 @@ SourceFiles
 #include "DimensionedField.H"
 #include "triSurfaceFrontGeoMesh.H"
 #include "triSurfaceFrontPointGeoMesh.H"
+#include "triSurfaceFrontEdgeGeoMesh.H"
 #include "triSurfaceFrontFieldsFwd.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

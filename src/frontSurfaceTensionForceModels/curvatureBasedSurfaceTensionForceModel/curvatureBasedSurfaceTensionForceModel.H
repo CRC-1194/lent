@@ -60,7 +60,10 @@ Description
 #ifndef curvatureBasedSurfaceTensionForceModel_H
 #define curvatureBasedSurfaceTensionForceModel_H
 
+#include "curvatureModel.H"
 #include "frontSurfaceTensionForceModel.H"
+
+#include <memory>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -76,7 +79,7 @@ class curvatureBasedSurfaceTensionForceModel
         public frontSurfaceTensionForceModel
 {
 
-    tmp<frontCurvatureModel> curvatureModelTmp_; 
+    tmp<curvatureModel> curvatureModelTmp_; 
 
 public:
 
@@ -90,7 +93,7 @@ public:
     virtual ~curvatureBasedSurfaceTensionForceModel() = default;
 
     // Member Functions
-    tmp<volScalarField> cellCurvature(
+    std::shared_ptr<volScalarField> cellCurvature(
         const fvMesh& mesh, 
         const triSurfaceFront& frontMesh
     ) const
@@ -98,7 +101,7 @@ public:
         return curvatureModelTmp_->cellCurvature(mesh, frontMesh);  
     }
 
-    tmp<surfaceScalarField> faceCurvature(
+    std::shared_ptr<surfaceScalarField> faceCurvature(
         const fvMesh& mesh, 
         const triSurfaceFront& frontMesh
     ) const
@@ -106,7 +109,7 @@ public:
         return curvatureModelTmp_->faceCurvature(mesh, frontMesh); 
     }
 
-    const frontCurvatureModel& curvatureModel() const 
+    const curvatureModel& curvatureModelRef() const 
     {
         return curvatureModelTmp_();  
     }
