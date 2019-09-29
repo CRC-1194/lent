@@ -100,7 +100,8 @@ public:
 
 
     // Member Functions
-    scalar curvatureAtPoint(const point& P) const;
+    virtual scalar curvatureAtPoint(const point& P) const override;
+    virtual vector normalAtPoint(const point& P) const override;
 };
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

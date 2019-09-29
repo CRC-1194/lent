@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
     surface.moveFrontToSurface(front);
+    surface.makeNormalOrientationConsistent(front);
 
     front.triSurface::write("constant/front.stl");
 

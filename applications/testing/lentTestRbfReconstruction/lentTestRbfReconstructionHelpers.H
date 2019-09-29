@@ -78,6 +78,7 @@ vtk_stream(
     std::stringstream fileNameStream; 
     fileNameStream << fileName << "-" 
         << std::setw(3) << std::setfill('0') <<  fileIndex;  
+
     std::ofstream vtks (fileNameStream.str() + ".vtk"); 
     write_vtk_points(vtks, points, fileName, fileIndex);
     return vtks;
@@ -269,9 +270,7 @@ struct errorNorms
     :
         errors_(),
         absErrors_()
-    {
-        errors_.reserve(points.size());
-    }
+    {}
 
     void append(double error)
     {
@@ -281,10 +280,10 @@ struct errorNorms
 
     double Linf()
     {
-        double Linf = std::numeric_limits<double>::max(); 
+        double Linf = std::numeric_limits<double>::lowest(); 
 
         for (const auto& absErr : absErrors_)
-            if (absErr < Linf) Linf = absErr;
+            if (absErr > Linf) Linf = absErr;
 
         return Linf;
     }
@@ -315,7 +314,7 @@ struct errorNorms
 
     const errorList& absErrors() const
     {
-        return errors_; 
+        return absErrors_; 
     }
 };
 
@@ -339,37 +338,38 @@ template
     typename SurfaceFields, 
     typename Outstream
 > 
-void testLinearIsoPoints(
+void testIsoPoints( // Can be used to test centroid points and polynomial MLS TM.
     Surface const& surface, 
     SurfaceFields const& surfFields,
-    Outstream& os
+    Outstream& os,
+    std::string casePath 
 )
 {
     using clock = std::chrono::high_resolution_clock;
     using sec = std::chrono::duration<double>;
     Info << "Linear iso-surface reconstruction for a " << surface.name() << endl; 
-    isoPointCalculator linearCalc; 
+    isoPointCalculator centroidCalc; 
     auto t0 = clock::now();
-    linearCalc.calcContourPoints(surfFields.volValues_, surfFields.pointValues_); 
+    centroidCalc.calcContourPoints(surfFields.volValues_, surfFields.pointValues_); 
     auto t1 = clock::now();
     sec seconds = t1 - t0;
     std::cout << "done in " << seconds.count() << " seconds." << std::endl;
 
-    auto linEdgeErrors = calcPointErrors(linearCalc.edgePoints(), surface);
+    auto linEdgeErrors = calcPointErrors(centroidCalc.edgePoints(), surface);
     auto edgeVtkStream = vtk_stream<std::ofstream>(
-        "linear-edgePoints-" + surface.name(), 
-        linearCalc.edgePoints()
+        casePath + "/linear-edgePoints-" + surface.name(), 
+        centroidCalc.edgePoints()
     );
     write_to_vtk_stream(edgeVtkStream, linEdgeErrors.absErrors(), "edgeLinf");
     
-    auto linCellErrors = calcPointErrors(linearCalc.contourPoints(), surface);
+    auto linCellErrors = calcPointErrors(centroidCalc.contourPoints(), surface);
 
     auto cellVtkStream = vtk_stream<std::ofstream>(
-        "linear-cellPoints-" + surface.name(), 
-        linearCalc.contourPoints()
+        casePath + "/centroid-cellPoints-" + surface.name(), 
+        centroidCalc.contourPoints()
     );
 
-    write_to_vtk_stream(cellVtkStream, linCellErrors.errors(), "cellLinf");
+    write_to_vtk_stream(cellVtkStream, linCellErrors.absErrors(), "cellLinf");
 
     os << surface.name() << "," 
         << linEdgeErrors.Linf() << "," << linEdgeErrors.L1() << "," << linEdgeErrors.L2() 
@@ -391,7 +391,8 @@ void testRbfIsoPoints(
     SurfaceFields const& surfFields,
     MeshRbfs const& rbfs, 
     Outstream& os,
-    std::string stencilName
+    std::string stencilName,
+    std::string casePath
 )
 {
     using clock = std::chrono::high_resolution_clock;
@@ -408,13 +409,15 @@ void testRbfIsoPoints(
     std::cout << "done in " << seconds.count() << " seconds." << std::endl;
     auto rbfCellErrors = calcPointErrors(rbfCalc.contourPoints(), surface);
 
-    std::string baseFileName = "rbf-" + rbfs.rbfName() + "-cellPoints-" + 
+    std::string baseFileName = casePath + "/rbf-" + rbfs.rbfName() + "-cellPoints-" + 
         surface.name() + "-" + stencilName;
 
     auto vtkFile  = vtk_stream<std::ofstream>(baseFileName, rbfCalc.contourPoints()); 
-    write_to_vtk_stream(vtkFile, rbfCellErrors.errors(), "L_INF"); 
+    write_to_vtk_stream(vtkFile, rbfCellErrors.absErrors(), "L_INF"); 
 
-    for (int iter = 1; iter < 20; ++iter)
+    // TODO: Move this to RBF calcContourPoints and give the control over iterations 
+    // to the rbfIsoPointCalculator. TM. 
+    for (int iter = 1; iter < 10; ++iter)
     {
         rbfCalc.rbfCorrectContourPoints(rbfs);
         rbfCellErrors = calcPointErrors(rbfCalc.contourPoints(), surface);
@@ -424,35 +427,41 @@ void testRbfIsoPoints(
             rbfCalc.contourPoints(), 
             iter
         ); 
-        write_to_vtk_stream(vtkFileI, rbfCellErrors.errors(), "L_INF"); 
+
+        write_to_vtk_stream(vtkFileI, rbfCellErrors.absErrors(), "L_INF"); 
     }
     
     os << rbfs.rbfName() << "," << stencilName << "," 
-        << surface.name() << "," << rbfCellErrors.Linf() 
-        << "," << seconds.count() << ",";  
+        << surface.name() << "," << rbfCellErrors.Linf() << ","
+        << rbfCellErrors.L1() << "," 
+        << rbfCellErrors.L2() << ","
+        << seconds.count() << ",";  
 }
 
-template <typename RBFtuple, int N = 0, typename Surface, typename Outstream> 
+template 
+<
+    typename RbfKernel, 
+    typename Surface, 
+    typename Outstream
+> 
 void testRbfReconstruction
 (
     Surface const& surface,  
     surfaceTestFields& surfaceFields,
-    Outstream& os 
+    Outstream& os,
+    std::string casePath
 )
 {
-    using rbfKernelType = std::tuple_element_t<N, RBFtuple>;
-    constexpr auto rbfTupleSize = std::tuple_size_v<RBFtuple>;
-
     using clock = std::chrono::high_resolution_clock;
     using sec = std::chrono::duration<double>;
 
-    Info << "RBF Kernel = " << rbfKernelType::name() << endl;
+    Info << "RBF Kernel = " << RbfKernel::name() << endl;
 
     // BCC
     Info << "Factorizing BCC RBF systems... \n"; 
     const auto& mesh = surfaceFields.mesh();
     auto t0 = clock::now();
-    rbfCellsInterpolationEigen<rbfKernelType> cellRbfsBcc(mesh, stencilType::BCC); 
+    rbfCellsInterpolationEigen<RbfKernel> cellRbfsBcc(mesh, stencilType::BCC); 
     auto t1 = clock::now();
     sec factorSeconds = t1 - t0; 
     std::cout << "BCC factorization CPU time in seconds = " 
@@ -465,14 +474,14 @@ void testRbfReconstruction
     std::cout << "BCC solution CPU time in seconds = " 
         << solveSeconds.count() << " seconds." << std::endl;
 
-    testRbfIsoPoints(surface, surfaceFields, cellRbfsBcc, os, "BCC");
+    testRbfIsoPoints(surface, surfaceFields, cellRbfsBcc, os, "BCC", casePath);
     os << factorSeconds.count() << "," << solveSeconds.count() << "\n";
     // BCC
     
     // BCCC
     Info << "Factorizing BCCC RBF systems... \n"; 
     t0 = clock::now();
-    rbfCellsInterpolationEigen<rbfKernelType> cellRbfsBccc(mesh, stencilType::BCCC); 
+    rbfCellsInterpolationEigen<RbfKernel> cellRbfsBccc(mesh, stencilType::BCCC); 
     t1 = clock::now();
     factorSeconds = t1 - t0;
     std::cout << "BCCC stencil factorization CPU time in seconds = " 
@@ -484,15 +493,36 @@ void testRbfReconstruction
     solveSeconds = t3 - t2;
     std::cout << "BCCC solution CPU time in seconds = " 
         << solveSeconds.count() << " seconds." << std::endl;
-    testRbfIsoPoints(surface, surfaceFields, cellRbfsBccc, os, "BCCC");
+    testRbfIsoPoints(surface, surfaceFields, cellRbfsBccc, os, "BCCC", casePath);
     os << factorSeconds.count() << "," << solveSeconds.count() << "\n";
     // BCCC
 
-    // Repeat the test for other RBFs.
-    if constexpr ((N >= 0) && (N < rbfTupleSize - 1))
-        testRbfReconstruction<RBFtuple, N+1>(surface, surfaceFields, os);
-
     return; 
+}
+
+template 
+<
+    typename RbfTuple, 
+    int N = 0,
+    typename Surface, 
+    typename Outstream
+> 
+void rbfReconstructLoop(
+    Surface const& surface,  
+    surfaceTestFields& surfaceFields,
+    Outstream& os,
+    std::string casePath
+)
+{
+    testRbfReconstruction<std::tuple_element_t<N, RbfTuple>>(
+        surface,
+        surfaceFields,
+        os, 
+        casePath
+    );
+
+    if constexpr (N + 1 <  std::tuple_size_v<RbfTuple>)
+        rbfReconstructLoop<RbfTuple, N + 1>(surface,surfaceFields,os,casePath);
 }
 
 #endif

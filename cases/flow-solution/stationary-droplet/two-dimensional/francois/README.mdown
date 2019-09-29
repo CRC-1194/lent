@@ -1,0 +1,33 @@
+## Test case basic information 
+
+Francois, Marianne M., et al. 
+"A balanced-force algorithm for continuous and sharp interfacial surface tension models within a volume tracking framework." 
+Journal of Computational Physics 
+213.1 (2006): 141-173.
+
+**Please list modifications that were done to each test case here using sub-sections. For example: differences in boundary conditions, full simulation vs axis-symmetric, etc.**
+
+## Test case notes 
+
+### Publication data
+
+The folder `publication-data` contains data from the publication from the article, is necessary for visualization and comparison.
+
+### Running
+
+Some parameters are fixed by the publication. In the case of curvature error analysis, the radius of the circle is prescribed, as are mesh densities. All other parametric tests that involve different interpolation schemes and other test case options should be based on existing prescribed test cases. Their results are to be placed in sub-directories with descriptive names:
+
+    francois-....0020/
+    francois-....0040/
+    ...
+    README.mdown
+    ...
+    additional-study-descriptively-named/
+    ...
+
+Use and modify the `Allrun` and `Allclean` scripts run the tests and generate results. 
+
+
+### Curvature accuracy and convergence tests
+
+### Stationary droplet tests 

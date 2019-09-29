@@ -73,17 +73,22 @@ int main(int argc, char **argv)
     sphereHypersurface sphere(point(0., 0., 0.), 0.5);
     surfaceTestFields sphereFields(mesh, sphere, "Sphere");
 
-    // Test linear point reconstruction 
-    OFstream linErrorFile("linearPositioningErrors.csv"); 
-    linErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
-    testLinearIsoPoints(sphere, sphereFields, linErrorFile); 
-    testLinearIsoPoints(ellipsoid, ellipsoidFields, linErrorFile); 
+    std::string casePath = args.rootPath() + "/" + args.globalCaseName();
 
-    // Test RBF reconstruction 
-    OFstream rbfErrorFile("rbfPositioningErrors.csv"); 
-    rbfErrorFile << "RBF,STENCIL,SURFACE,LINF_CELL,POINT_CORR_CPU_TIME_SEC,FACTOR_CPU_TIME_SEC,SOL_CPU_TIME_SEC" << endl; 
-    testRbfReconstruction<rbfTuple>(sphere, sphereFields, rbfErrorFile);
-    testRbfReconstruction<rbfTuple>(ellipsoid, ellipsoidFields, rbfErrorFile);
+    // TODO: Rename the isoPointCalculator to centroidIsoPointCalculator. TM.
+    // Test linear point reconstruction: 
+    OFstream centroidErrorFile(casePath + "/centroidPositioningErrors.csv"); 
+    centroidErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
+    testIsoPoints(sphere, sphereFields, centroidErrorFile, casePath); 
+    testIsoPoints(ellipsoid, ellipsoidFields, centroidErrorFile, casePath); 
+
+    
+    OFstream rbfErrorFile(casePath + "/rbfPositioningErrors.csv"); 
+    rbfErrorFile << "RBF,STENCIL,SURFACE,LINF_CELL,L1_CELL,L2_CELL,POINT_CORR_CPU_TIME_SEC,FACTOR_CPU_TIME_SEC,SOL_CPU_TIME_SEC" << endl; 
+
+    // Test RBF reconstruction: loop over all RBF kernels at compile time.
+    rbfReconstructLoop<rbfTuple>(sphere, sphereFields, rbfErrorFile, casePath); 
+    rbfReconstructLoop<rbfTuple>(ellipsoid, ellipsoidFields, rbfErrorFile, casePath); 
 
     ellipsoidFields.writeValueFields();
     sphereFields.writeValueFields();

@@ -68,6 +68,7 @@ Description
 #include "fvcDiv.H"
 #include "fvcSnGrad.H"
 #include "fvcAverage.H"
+#include "fvmLaplacian.H"
 
 namespace Foam {
 namespace FrontTracking {
@@ -119,6 +120,44 @@ tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
     return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
 }
 
+tmp<fvMatrix<vector>> csfSurfaceTensionForceModel::surfaceTensionImplicitPart(
+    const volVectorField& velocity,
+    const volScalarField& markerField,
+    const triSurfaceFront& front
+) const
+{
+    // Lookup material properties
+    const auto& runTime = velocity.mesh().time();
+
+    const dictionary& transportProperties = 
+        runTime.lookupObject<dictionary>("transportProperties");
+
+    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+
+    auto sigmaDeltaT = sigma*runTime.deltaT();
+
+    // Lookup interface properties
+    auto curvaturePtr = cellCurvature(velocity.mesh(), front);
+    auto interfaceNormalPtr = curvatureModelRef().cellInterfaceNormals(velocity.mesh(), front);
+    const auto& curvature = *curvaturePtr;
+    const auto& normals = *interfaceNormalPtr;
+    
+    // Below: normal calculation consistent with explicit surface tension part (TT)
+    //dimensionedScalar dSmall{"SMALL", pow(dimLength, -1), SMALL};
+    //auto normalsTmp = fvc::grad(markerField)/(mag(fvc::grad(markerField)) + dSmall);
+    //const auto& normals = normalsTmp.ref();
+
+    // Define Laplace-Beltrami of velocity as the full Laplace-operator
+    // (implicit) and subtract the normal part (explicit)
+    auto gradUTmp = fvc::grad(velocity);
+    const auto& gradU = gradUTmp.ref();
+
+    auto normalLaplacian = fvc::div((normals&gradU)*normals)
+            - curvature*((gradU - ((normals&gradU)*normals))&normals);
+
+    return (fvm::laplacian(sigmaDeltaT*mag(fvc::grad(markerField)), velocity)
+                - sigmaDeltaT*mag(fvc::grad(markerField))*normalLaplacian);
+}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 

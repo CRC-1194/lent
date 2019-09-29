@@ -87,35 +87,13 @@ void nearestTriangleVicinityTransferModel::computeTrianglesInCellNeighbourhoodMa
 {
     trianglesInCellNeighbourhood_.clear();
 
-    //const auto& markerField = mesh.lookupObject<volScalarField>(markerFieldName_);
     const auto& triasInCell = communication.interfaceCellToTriangles();
-
-    // Add all cells considered an interface cell to the map. A cell is considered
-    // an interface cell if either
-    //      a) its markerfield value is 0 < alpha < 1
-    //      or
-    //      b) it contains triangles according to lent communication
-    /*
-    forAll(markerField, I)
-    {
-        if (isInterfaceCell(markerField[I]))
-        {
-            trianglesInCellNeighbourhood_[I] = std::vector<label>{};
-        }
-    }
-    */
 
     // FIXME: under which conditions can a cell contain a triangle and have
     // a markerfield value of 0 or 1 assuming all information is up-to-date? (TT)
     for (const auto& cellTriaMap : triasInCell)
     {
         trianglesInCellNeighbourhood_[cellTriaMap.first] = std::vector<label>{};
-        /*
-        if (trianglesInCellNeighbourhood_.find(cellTriaMap.first) == trianglesInCellNeighbourhood_.end())
-        {
-            trianglesInCellNeighbourhood_[cellTriaMap.first] = std::vector<label>{};
-        }
-        */
     }
 
     for (auto& cellTriaMap: trianglesInCellNeighbourhood_)
@@ -254,10 +232,13 @@ scalar nearestTriangleVicinityTransferModel::weight(const scalar& distance) cons
 
 void nearestTriangleVicinityTransferModel::setSearchRadiusSquared(const fvMesh& mesh) const
 {
+    // Assumption: the finest resolution is found in the narrow band around the
+    // interface and the resolution in the narrow band is uniform.
+    // Thus, take minimum delta as basis for the search radius computation
     if (searchRadiusSquared_ <= 0.0)
     {
         auto faceDeltasTmp = mesh.delta();
-        auto maxDelta = max(mag(faceDeltasTmp)).value();
+        auto minDelta = min(mag(faceDeltasTmp)).value();
 
         // TODO: the optimal choice of the search radius is an open question for
         // now. There are essentially two requirements:
@@ -265,7 +246,7 @@ void nearestTriangleVicinityTransferModel::setSearchRadiusSquared(const fvMesh& 
         //  2) at least a single triangle must be located in the search ball
         //      to ensure that a curvature can be transfered
         //  (TT)
-        searchRadiusSquared_ = pow(maxDelta*searchRadiusCoefficient_, 2.0); 
+        searchRadiusSquared_ = pow(minDelta*searchRadiusCoefficient_, 2.0); 
     }
 }
 
@@ -442,56 +423,6 @@ void nearestTriangleVicinityTransferModel::transferCurvature(
             }
         }
     }
-
-    /*
-    for (const auto& cellTrianglesMap : trianglesInCellNeighbourhood_)
-    {
-        const auto& cellID = cellTrianglesMap.first;
-
-        const auto& facesOfCell = cells[cellID];
-
-        for (const auto& faceID : facesOfCell)
-        {
-            auto patchIDElementID = patchIDAndLocalIndex(faceID, mesh);
-
-            // The following distiction is a consquence of how OpenFOAM
-            // stores and provides access to boundary fields
-            //
-            // Inner faces
-            if (patchIDElementID.first < 0)
-            {
-                // Avoid duplicate curvature transfer for faces belonging to
-                // two interface cells
-                if (faceCurvature[faceID] != 0.0)
-                {
-                    continue;
-                }
-
-                auto closestElementInfo = closestFrontElement(faceCentres[faceID], cellTrianglesMap.second, front);
-                auto containingCellID = cellContainingClosestElement(closestElementInfo.first, communication);
-                auto trianglesInVicinity = computeTrianglesInVicinity(closestElementInfo.second, trianglesInCellNeighbourhood_.at(containingCellID), front);
-                faceCurvature[faceID] = weightedCurvatureAverage(closestElementInfo.second, trianglesInVicinity, curvatureNormals, front);
-            }
-            else
-            // Boundary faces
-            {
-                // Avoid duplicate curvature transfer for faces belonging to
-                // two interface cells
-                if (faceCurvature.boundaryField()[patchIDElementID.first][patchIDElementID.second] != 0.0)
-                {
-                    continue;
-                }
-
-                const auto& faceCentre = faceCurvature.boundaryField()[patchIDElementID.first].patch().Cf()[patchIDElementID.second];
-
-                auto closestElementInfo = closestFrontElement(faceCentre, cellTrianglesMap.second, front);
-                auto containingCellID = cellContainingClosestElement(closestElementInfo.first, communication);
-                auto trianglesInVicinity = computeTrianglesInVicinity(closestElementInfo.second, trianglesInCellNeighbourhood_.at(containingCellID), front);
-                faceCurvature.boundaryFieldRef()[patchIDElementID.first][patchIDElementID.second] = weightedCurvatureAverage(closestElementInfo.second, trianglesInVicinity, curvatureNormals, front);
-            }
-        }
-    }
-    */
 }
 
 std::shared_ptr<volScalarField> nearestTriangleVicinityTransferModel::cellCurvature(const fvMesh& mesh) const

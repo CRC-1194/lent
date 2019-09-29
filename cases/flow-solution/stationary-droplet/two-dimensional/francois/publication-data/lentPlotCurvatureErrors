@@ -1,0 +1,50 @@
+#!/usr/bin/python2
+
+import numpy as np
+import sys 
+
+from matplotlib import pyplot as plt
+from matplotlib import rc
+from matplotlib.font_manager import FontProperties
+
+
+rc('text', usetex=True)
+
+def plot_curvature_errors(articleFile): 
+
+    print ("Plotting %s ..." % articleFile)
+
+    LinfError = np.loadtxt(articleFile)
+    LinfErrorLent = np.loadtxt("francois-circle-curvature.dat")
+
+    fig = plt.figure(figsize=(8, 8))
+
+    plt.loglog()
+    plt.xlabel(r"$h$")
+    plt.ylabel(r"$L_{\kappa_f, \infty}$")
+
+    if (len(LinfError[0:4,0]) > 0):
+        plt.plot(LinfError[0:4,0], LinfError[0:4,1], marker='o', label=r"Height function")
+    if (len(LinfError[4:8,0]) > 0):
+        plt.plot(LinfError[4:8,0], LinfError[4:8,1], marker='s', label=r"Convolution $d=1.9h^{0.5}$") 
+    if (len(LinfError[8:12,0]) > 0):
+        plt.plot(LinfError[8:12,0], LinfError[8:12,1], marker='*', label=r"Convolution $d=0.4$") 
+    if (len(LinfError[12:16,0]) > 0):
+        plt.plot(LinfError[12:16,0], LinfError[12:16,1], marker='^', label=r"Convoluttion $d=3h$")
+
+    plt.plot(LinfErrorLent[:,0], LinfErrorLent[:,1], marker='>', label=r"LENT M-N02")
+    plt.plot(LinfErrorLent[:,0], LinfErrorLent[:,2], marker='<', label=r"OpenFOAM M-N02")
+
+    lgd = plt.legend(loc='center right', bbox_to_anchor=(1.5, 0.5), fancybox=True, shadow=True)
+
+    plt.savefig(articleFile.split('.')[0] + ".pdf", bbox_extra_artists=(lgd,), bbox_inches='tight')
+
+    print ("Done.")
+
+
+def main():
+    plot_curvature_errors('francois-curvature-fig7a.csv');
+    plot_curvature_errors('francois-curvature-fig7b.csv');
+
+if  __name__ =='__main__': main()
+

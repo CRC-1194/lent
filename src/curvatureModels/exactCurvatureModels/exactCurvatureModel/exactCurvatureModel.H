@@ -92,7 +92,13 @@ public:
         const triSurfaceFront&
     ) const; 
 
+    virtual std::shared_ptr<volVectorField> cellInterfaceNormals(
+        const fvMesh&,
+        const triSurfaceFront&
+    ) const;
+
     virtual scalar curvatureAtPoint(const point& P) const = 0;
+    virtual vector normalAtPoint(const point& P) const;
 };
 
 

@@ -1,0 +1,70 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      lentSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+distanceCalculator
+{
+    type            triSurfaceMeshCalculator;
+    narrowBandWidth 1;
+    narrowBandPropagation
+    {
+        type            naiveNarrowBand;
+    }
+}
+
+frontReconstructionModel
+{
+    type            timeStepReconstruction;
+    reconstructionInterval 0;
+}
+
+frontReconstructor
+{
+    type            foamIsoSurface;
+    mergeTolerance  1e-06;
+    regularization  off;
+    normalConsistency
+    {
+        type            centerNormal;
+    }
+}
+
+markerFieldModel
+{
+    type            sharp;
+}
+
+frontVelocityCalculator
+{
+    type            barycentric;
+    searchAlgorithm
+    {
+        type            frontMeshSearch;
+    }
+}
+
+searchAlgorithm
+{
+    type            frontMeshSearch;
+}
+
+frontMotionSolver
+{
+    type            Euler;
+}
+
+
+// ************************************************************************* //

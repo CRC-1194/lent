@@ -147,6 +147,48 @@ std::shared_ptr<surfaceScalarField> exactCurvatureModel::faceCurvature(
 
     return curvatureBuffer(mesh);
 }
+
+std::shared_ptr<volVectorField> exactCurvatureModel::cellInterfaceNormals(
+    const fvMesh& mesh,
+    const triSurfaceFront& front
+) const
+{
+    std::shared_ptr<volVectorField> cellNormalPtr
+    {
+        new volVectorField
+        {
+            IOobject(
+                "cell_normals", 
+                mesh.time().timeName(), 
+                mesh,
+                IOobject::NO_READ, 
+                IOobject::AUTO_WRITE
+            ), 
+            mesh, 
+            dimensionedVector(
+                "zero", 
+                dimless, 
+                vector(0.0, 0.0, 0.0)
+            )
+        }
+    };
+
+    auto& cellNormals = *cellNormalPtr;
+
+    const auto& C = mesh.C();
+
+    forAll(C, I)
+    {
+        cellNormals[I] = normalAtPoint(C[I]);
+    }
+
+    return cellNormalPtr;
+}
+
+vector exactCurvatureModel::normalAtPoint(const point& P) const
+{
+    notImplemented("normalAtPoint");
+}
     
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

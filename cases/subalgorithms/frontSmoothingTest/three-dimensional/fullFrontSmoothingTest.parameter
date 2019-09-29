@@ -1,0 +1,70 @@
+values
+{
+    solver (lentTestFrontSmoothing);
+    
+
+    // Parameters from system/blockMeshDict
+    domain_length
+    (
+        4.0
+    );
+
+    resolution 
+    (
+        8 16 32 64 128
+    ); 
+
+
+    // Parameters from system/controlDict
+    write_interval 
+    (
+        1
+    );
+
+
+    // Parameters from lentSolution
+    n_random_runs
+    (
+        10
+    );
+
+    n_perturbed_runs
+    (
+        1
+    );
+
+    write_fields
+    (
+        on
+    );
+
+    correct_front
+    (
+        on
+    );
+
+    front_surface
+    (
+        randomSphere randomEllipsoid
+    );
+
+    mag_front_noise
+    (
+        1e-4
+    );
+
+    relax_factor
+    (
+        0.1 0.2 0.4 0.8 1.0
+    );
+
+    n_sweeps
+    (
+        1 2 4 8
+    );
+
+    smoothing_type
+    (
+        points edges pointsAndEdges;
+    );
+}

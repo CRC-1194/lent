@@ -1,0 +1,14 @@
+write_interval
+(
+    0.05
+);
+
+cell_to_vertex
+(
+    cellPoint
+);
+
+smoothing_interval
+(
+    0
+);

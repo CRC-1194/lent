@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "frontBasedCurvatureModel.H"
+#include "lentCommunication.H"
 #include "triSurfaceFrontFields.H"
 
 #include "addToRunTimeSelectionTable.H"
@@ -87,6 +88,74 @@ std::shared_ptr<triSurfaceFrontVectorField> frontBasedCurvatureModel::frontCurva
     return curvatureBuffer(front);
 }
 
+std::shared_ptr<volVectorField> frontBasedCurvatureModel::cellInterfaceNormals(
+    const fvMesh& mesh,
+    const triSurfaceFront& front
+) const
+{
+    // TODO: this is just a preliminary approach to cell interface normal
+    // computation (TT)
+    std::shared_ptr<volVectorField> cellNormalPtr{
+        new volVectorField{
+            IOobject
+            (
+                "cell_interface_normals",
+                mesh.time().timeName(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            mesh,
+            dimensionedVector{
+                "zero",
+                dimless,
+                vector{0, 0, 0}
+            }
+        }
+    };
+
+    auto& cellNormals = *cellNormalPtr;
+
+    // TODO: tranfer logic is taken from "triangleInCellTranferModel" and
+    // duplicated here. Remove duplication when refactoring (TT)
+    const lentCommunication& communication = 
+        mesh.lookupObject<lentCommunication>(
+            lentCommunication::registeredName(front,mesh)
+    ); 
+
+    const auto& trianglesInCell = communication.interfaceCellToTriangles();
+    const auto& faceNormal = front.Sf();
+
+    // Area weighted averaging of triangle normals
+    for (const auto& cellTrianglesMap : trianglesInCell)
+    {
+        const auto& cellLabel = cellTrianglesMap.first;
+        const auto& triangleLabels = cellTrianglesMap.second;
+
+        for (const auto& tl : triangleLabels)
+        {
+            cellNormals[cellLabel] += faceNormal[tl];
+        }
+
+        cellNormals[cellLabel] /= mag(cellNormals[cellLabel]) + SMALL;
+    }
+
+    // Narrow band propagation
+    const auto& cellToTriangle = communication.cellsTriangleNearest();
+    const auto& triangleToCell = communication.triangleToCell();
+
+    forAll(cellToTriangle, I)
+    {
+        const auto& hitObject = cellToTriangle[I];
+        
+        if (hitObject.hit())
+        {
+            cellNormals[I] = cellNormals[triangleToCell[hitObject.index()]];
+        }
+    }
+
+    return cellNormalPtr;
+}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace FrontTracking

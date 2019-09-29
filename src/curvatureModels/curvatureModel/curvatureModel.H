@@ -118,6 +118,11 @@ public:
         const fvMesh&, 
         const triSurfaceFront&
     ) const = 0; 
+
+    virtual std::shared_ptr<volVectorField> cellInterfaceNormals(
+        const fvMesh&,
+        const triSurfaceFront&
+    ) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

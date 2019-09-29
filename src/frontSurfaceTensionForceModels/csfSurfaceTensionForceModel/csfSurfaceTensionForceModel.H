@@ -94,13 +94,18 @@ public:
     virtual tmp<surfaceScalarField> faceSurfaceTensionForce(
         const fvMesh& mesh, 
         const triSurfaceFront& frontMesh 
-    ) const; 
+    ) const override; 
 
     virtual tmp<volVectorField> cellSurfaceTensionForce(
         const fvMesh& mesh,  
         const triSurfaceFront& frontMesh 
-    ) const;  
+    ) const override;  
 
+    virtual tmp<fvMatrix<vector>> surfaceTensionImplicitPart(
+        const volVectorField&,
+        const volScalarField&,
+        const triSurfaceFront&
+    ) const override;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -65,6 +65,10 @@ void lentCurvatureTest::randomSetup()
         {
             faceFilterField[I] = 1.0;
         }
+        else
+        {
+            faceFilterField[I] = 0.0;
+        }
     }
 
     // Boundary
