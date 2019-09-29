@@ -1,0 +1,87 @@
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    // Properties of air at 20 degree Celcius
+    rho_droplet
+    (
+        1.284
+    );
+
+    nu_droplet
+    (
+        1.343e-5
+    );
+
+    // Properties of water at 20 degree Celcius
+    rho_ambient
+    (
+        998
+    );
+
+    nu_ambient
+    (
+        1.004e-6
+    );
+
+    surface_tension_coefficient
+    (
+        72.86e-3
+    );
+
+    
+    // Gravity constant
+    gravity
+    (
+        -9.81
+    );
+
+
+    // Parameters from system/blockMeshDict
+    resolution
+    (
+        160
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        3.5
+    );
+
+    //delta_t
+    //(
+    //    1.0e-5
+    //);
+
+
+    // Domain and interface geometry
+    x_centre
+    (
+        3.12500034e-3
+    );
+
+    y_centre
+    (
+        3.12499987e-3
+    );
+
+    z_centre
+    (
+        3.00018e-3
+    );
+
+    radius
+    (
+        1.25e-3 
+    );
+
+    // Only required for poly mesh setup
+    surface_file
+    (
+        "polyMeshFiles/boundary_R5e-3_H20e-3.stl"
+    );
+}

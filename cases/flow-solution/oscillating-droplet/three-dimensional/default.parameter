@@ -1,0 +1,33 @@
+// This file sets the default parameters for the stationary droplet 3D
+// using the best-in-class algorithms / parameters
+
+// Parameters from controlDict
+write_interval 0.05;
+
+
+// Parameters from lentSolution
+smoothing_interval 0;
+
+temporal_integration Taylor;
+
+cell_to_vertex Kriging;
+
+curvature_model frontTriangleSinus;
+
+front_to_mesh_transfer triangleInCell;
+
+n_alpha_smoothing 0; 
+
+
+// Parameters from fvSolution
+phi_change_tolerance 1.0e-5;
+
+abs_phi_change_tolerance 1.0e-16;
+
+// Parameter for hex refined mesh
+n_base 16;
+
+
+// Scale factor for the time step size computed by the explicit surface
+// tension criterion
+scale_delta_t 0.5;

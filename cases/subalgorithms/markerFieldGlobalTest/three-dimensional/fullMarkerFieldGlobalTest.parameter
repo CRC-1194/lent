@@ -1,0 +1,60 @@
+values
+{
+    solver (lentTestMarkerFieldGlobal);
+    
+
+    // Parameters from system/blockMeshDict
+    domain_length
+    (
+        4.0
+    );
+
+    resolution 
+    (
+        8 16 32 64 128
+    ); 
+
+
+    // Parameters from system/controlDict
+    write_interval 
+    (
+        1
+    );
+
+
+    // Parameters from lentSolution
+    n_random_runs
+    (
+        10
+    );
+
+    n_perturbed_runs
+    (
+        1
+    );
+
+    write_fields
+    (
+        on
+    );
+
+    correct_front
+    (
+        on
+    );
+
+    front_noise
+    (
+        0.0
+    );
+
+    front_surface
+    (
+        randomSphere randomEllipsoid
+    );
+
+    marker_field_model
+    (
+        tetFillingLevelAlternative tetFillingLevelAlternativeSmoothing1 tetFillingLevelAlternativeSmoothing2 tetFillingLevel singleCellHarmonic sharp 
+    );
+}

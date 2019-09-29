@@ -1,0 +1,10 @@
+values
+{
+    solver (lentTestRbfReconstruction);
+    
+    N 
+    ( 
+        8 16 32 64 
+    );
+
+}

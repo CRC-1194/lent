@@ -1,0 +1,90 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      lentSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+distanceCalculator
+{
+    type            optimizedOctree;
+    narrowBandWidth 3;
+    narrowBandPropagation
+    {
+        type            naiveNarrowBand;
+    }
+}
+
+frontReconstructionModel
+{
+    type            timeStepReconstruction;
+    reconstructionInterval 1;
+}
+
+frontReconstructor
+{
+    type            foamIsoSurface;
+    mergeTolerance  1e-06;
+    regularization  off;
+    normalConsistency
+    {
+        type            centerNormal;
+    }
+}
+
+markerFieldModel
+{
+    type            singleCellHarmonic;
+    cellDistance    signedDistance;
+    pointDistance   pointSignedDistance;
+}
+
+frontVelocityCalculator
+{
+    type            barycentric;
+    searchAlgorithm
+    {
+        type            frontMeshSearch;
+    }
+}
+
+searchAlgorithm
+{
+    type            frontMeshSearch;
+}
+
+frontMotionSolver
+{
+    type            Euler;
+}
+
+exactCurvatureModel
+{
+    type            sphereCurvature;
+    write           on;
+    center          ( 0.5 0.5 0.5 );
+}
+
+surfaceTensionForceModel
+{
+    type            CSF;
+    filterField     alpha.water;
+    curvatureModel
+    {
+        type            divGrad;
+        curvatureField  signedDistance;
+    }
+}
+
+
+// ************************************************************************* //
