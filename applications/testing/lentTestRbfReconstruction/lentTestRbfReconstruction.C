@@ -79,11 +79,13 @@ int main(int argc, char **argv)
     testLinearIsoPoints(sphere, sphereFields, linErrorFile); 
     testLinearIsoPoints(ellipsoid, ellipsoidFields, linErrorFile); 
 
-    // Test RBF reconstruction 
+    
     OFstream rbfErrorFile("rbfPositioningErrors.csv"); 
     rbfErrorFile << "RBF,STENCIL,SURFACE,LINF_CELL,POINT_CORR_CPU_TIME_SEC,FACTOR_CPU_TIME_SEC,SOL_CPU_TIME_SEC" << endl; 
-    testRbfReconstruction<rbfTuple>(sphere, sphereFields, rbfErrorFile);
-    testRbfReconstruction<rbfTuple>(ellipsoid, ellipsoidFields, rbfErrorFile);
+
+    // Test RBF reconstruction: loop over all RBF kernels at compile time.
+    rbfReconstructLoop<rbfTuple>(sphere, sphereFields, rbfErrorFile); 
+    rbfReconstructLoop<rbfTuple>(ellipsoid, ellipsoidFields, rbfErrorFile); 
 
     ellipsoidFields.writeValueFields();
     sphereFields.writeValueFields();

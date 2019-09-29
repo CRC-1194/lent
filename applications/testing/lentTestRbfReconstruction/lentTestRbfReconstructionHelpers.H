@@ -432,7 +432,12 @@ void testRbfIsoPoints(
         << "," << seconds.count() << ",";  
 }
 
-template <typename RBFtuple, int N = 0, typename Surface, typename Outstream> 
+template 
+<
+    typename RbfKernel, 
+    typename Surface, 
+    typename Outstream
+> 
 void testRbfReconstruction
 (
     Surface const& surface,  
@@ -440,19 +445,16 @@ void testRbfReconstruction
     Outstream& os 
 )
 {
-    using rbfKernelType = std::tuple_element_t<N, RBFtuple>;
-    constexpr auto rbfTupleSize = std::tuple_size_v<RBFtuple>;
-
     using clock = std::chrono::high_resolution_clock;
     using sec = std::chrono::duration<double>;
 
-    Info << "RBF Kernel = " << rbfKernelType::name() << endl;
+    Info << "RBF Kernel = " << RbfKernel::name() << endl;
 
     // BCC
     Info << "Factorizing BCC RBF systems... \n"; 
     const auto& mesh = surfaceFields.mesh();
     auto t0 = clock::now();
-    rbfCellsInterpolationEigen<rbfKernelType> cellRbfsBcc(mesh, stencilType::BCC); 
+    rbfCellsInterpolationEigen<RbfKernel> cellRbfsBcc(mesh, stencilType::BCC); 
     auto t1 = clock::now();
     sec factorSeconds = t1 - t0; 
     std::cout << "BCC factorization CPU time in seconds = " 
@@ -472,7 +474,7 @@ void testRbfReconstruction
     // BCCC
     Info << "Factorizing BCCC RBF systems... \n"; 
     t0 = clock::now();
-    rbfCellsInterpolationEigen<rbfKernelType> cellRbfsBccc(mesh, stencilType::BCCC); 
+    rbfCellsInterpolationEigen<RbfKernel> cellRbfsBccc(mesh, stencilType::BCCC); 
     t1 = clock::now();
     factorSeconds = t1 - t0;
     std::cout << "BCCC stencil factorization CPU time in seconds = " 
@@ -488,11 +490,26 @@ void testRbfReconstruction
     os << factorSeconds.count() << "," << solveSeconds.count() << "\n";
     // BCCC
 
-    // Repeat the test for other RBFs.
-    if constexpr ((N >= 0) && (N < rbfTupleSize - 1))
-        testRbfReconstruction<RBFtuple, N+1>(surface, surfaceFields, os);
-
     return; 
+}
+
+template 
+<
+    typename RbfTuple, 
+    int N = 0,
+    typename Surface, 
+    typename Outstream
+> 
+void rbfReconstructLoop(
+    Surface const& surface,  
+    surfaceTestFields& surfaceFields,
+    Outstream& os 
+)
+{
+    testRbfReconstruction<std::tuple_element_t<N, RbfTuple>>(surface,surfaceFields,os);
+
+    if constexpr (N + 1 <  std::tuple_size_v<RbfTuple>)
+        rbfReconstructLoop<RbfTuple, N + 1>(surface,surfaceFields,os);
 }
 
 #endif
