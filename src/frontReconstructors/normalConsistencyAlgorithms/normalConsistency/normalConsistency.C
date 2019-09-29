@@ -81,7 +81,7 @@ void normalConsistency::runNormalConsistencyAlgorithm(
 ) const
 {
     // Gradient based normal consistency algorithm.
-    volVectorField distGrad = fvc::grad(signedDistance);
+    volVectorField distGrad{fvc::grad(signedDistance)};
 
     List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);
     const vectorField& triangleNormals = front.faceNormals();
