@@ -1,0 +1,10 @@
+    // Parameters from lentSolution
+    n_alpha_smoothing
+    (
+        1 2
+    );
+
+    front_to_mesh_transfer
+    (
+        explicitDiffusionN5  explicitDiffusionN10
+    );

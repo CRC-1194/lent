@@ -1,0 +1,85 @@
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        0.01
+    );
+
+    nu_droplet
+    (
+        0.01
+    );
+
+    rho_ambient
+    (
+        1.0
+    );
+
+    nu_ambient
+    (
+        0.01
+    );
+
+    surface_tension_coefficient
+    (
+        0.05
+    );
+
+    
+    // Gravity constant
+    gravity
+    (
+        -0.981
+    );
+
+
+    // Parameters from system/blockMeshDict
+    resolution
+    (
+        100 50
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        5
+    );
+
+    delta_t
+    (
+        0.001
+    );
+
+
+    // Domain and interface geometry
+    x_centre
+    (
+        0.0086874993 
+    );
+
+    y_centre
+    (
+        0.0086875003 
+    );
+
+    z_centre
+    (
+        6.94975e-3
+    );
+
+    radius
+    (
+        0.0034749
+    );
+
+    // Only required for poly mesh setup
+    surface_file
+    (
+        "polyMeshFiles/boundaryLentOld.stl"
+    );
+}

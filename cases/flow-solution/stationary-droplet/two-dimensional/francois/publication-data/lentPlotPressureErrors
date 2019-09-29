@@ -1,0 +1,53 @@
+#!/usr/bin/python2
+
+import numpy as np
+import sys
+
+from matplotlib import pyplot as plt
+from matplotlib import rc
+from matplotlib.font_manager import FontProperties
+
+rc('text', usetex=True)
+
+def plot_pressure_errors(francois_file, error_type):
+
+    # Read errors
+    errorsFrancois = np.loadtxt(francois_file)
+    errorsLent = np.loadtxt("francois-pressure-errors.dat")
+
+    fig = plt.figure(figsize=(8,8))
+
+    plt.loglog()
+    plt.xlabel(r"$h$")
+    if error_type == "total":
+        plt.ylabel(r"$E(\Delta P_{total})$")
+        column = 2
+    elif error_type == "partial":
+        plt.ylabel(r"$E(\Delta P_{partial})$")
+        column = 3
+
+    # Plot values from Francois Paper
+    if (len(errorsFrancois[0:4,0]) > 0):
+        plt.plot(errorsFrancois[0:4,0], errorsFrancois[0:4,1], marker='s', label=r"CSF with convolution $d=1.9h^{0.5}$")
+    if (len(errorsFrancois[4:8,0]) > 0):
+        plt.plot(errorsFrancois[4:8,0], errorsFrancois[4:8,1], marker='o', label=r"CSF with height function")
+    if (len(errorsFrancois[8:12,0]) > 0):
+        plt.plot(errorsFrancois[8:12,0], errorsFrancois[8:12,1], marker='*', label=r"SSF with convolution $d=1.9h^{0.5}$")
+    if (len(errorsFrancois[12:16,0]) > 0):
+        plt.plot(errorsFrancois[12:16,0], errorsFrancois[12:16,1], marker='^', label=r"SSF with height function")
+
+    # Plot lent errors
+    plt.plot(errorsLent[:,0], errorsLent[:,column], marker='>', label=r"LENT M-N02")
+    
+    lgd = plt.legend(loc='center right', bbox_to_anchor=(1.5, 0.5), fancybox=True, shadow=True)
+
+    plt.savefig("francois-pressure-fig15_" + error_type + ".pdf", bbox_extra_artitsts=(lgd,), bbox_inches='tight')
+
+#------------------------------------------------------------------------------
+def main():
+    print ("Plotting pressure error diagrams...")
+    plot_pressure_errors("francois-pressure-fig15a.csv", "total")
+    plot_pressure_errors("francois-pressure-fig15b.csv", "partial")
+    print ("Done")
+
+if __name__ == '__main__': main()

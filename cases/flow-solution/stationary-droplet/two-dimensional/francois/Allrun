@@ -1,0 +1,33 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # run from this directory
+
+Run tests 
+
+# TODO: Convert to a Python script that runs the parameterized block mesh generation
+# based on the R / h parameter from the Francois paper. TM.
+
+for CASE in $(find . -type d -name "francois*");
+do
+    cd $CASE;
+    blockMesh
+    lentSetFields
+    lentCalcExactCurvature -shape circle -center '(4 4 0.1)'
+    lentTestCurvatureModels -errorFile '../publication-data/francois-circle-curvature.dat';
+    lentFoam
+    calcVelocityError -errorFile '../publication-data/francois-velocity-errors';
+    calcPressureError -errorFile '../publication-data/francois-pressure-errors.dat' -radius 2 -center "(4 4 0.1)" -shape "circle"
+    cd ..
+    echo $CASE
+done
+
+cd publication-data 
+sort francois-circle-curvature.dat > tmp
+mv tmp francois-circle-curvature.dat
+sort francois-velocity-errors_fc.dat > francois-velocity-errors.dat
+sort francois-pressure-errors.dat > tmp
+mv tmp francois-pressure-errors.dat
+./lentPlotCurvatureErrors
+./lentPlotVelocityErrors
+./lentPlotPressureErrors
+
+# ----------------------------------------------------------------- end-of-file

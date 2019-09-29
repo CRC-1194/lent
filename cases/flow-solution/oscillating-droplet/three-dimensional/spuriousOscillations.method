@@ -1,0 +1,38 @@
+    write_interval
+    (
+        0.1
+    );
+
+
+    // Parameters from lentSolution
+    smoothing_interval
+    (
+        3 11
+    );
+
+    cell_to_vertex
+    (
+        cellPoint Kriging
+    );
+
+    curvature_model
+    (
+        frontTriangleSinus compactDivGrad
+    );
+
+    front_to_mesh_transfer
+    (
+        explicitDiffusionN5 
+    );
+
+    n_alpha_smoothing
+    (
+        1
+    );
+
+
+    // Parameters from fvSolution
+    solution_algorithm
+    (
+        lentSolutionControl piso
+    );

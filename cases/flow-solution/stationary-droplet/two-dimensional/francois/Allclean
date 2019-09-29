@@ -1,0 +1,17 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # run from this directory
+
+# Clean tests 
+
+lentClearCasesRecursive
+for CASE in $(find . -type d -name "francois*"); 
+do
+   foamClearPolyMesh -case $CASE
+done
+rm -rf publication-data/francois-circle-curvature.dat
+rm -rf publication-data/francois-velocity-errors.dat
+rm -rf publication-data/francois-velocity-errors_fc.dat
+rm -rf publication-data/francois-velocity-errors_cc.dat
+rm -rf publication-data/francois-pressure-errors.dat
+
+# ----------------------------------------------------------------- end-of-file
