@@ -42,7 +42,8 @@ Description
 #include "sphereHypersurface.H"
 #include "ellipsoidHypersurface.H"
 #include "rbfIsoPointCalculator.H"
-#include "isoPointCalculator.H"
+#include "centroidIsoPointCalculator.H"
+#include "linearLeastSquaresIsoPointCalculator.H"
 
 // Time measurement.
 #include <chrono>
@@ -76,12 +77,17 @@ int main(int argc, char **argv)
     std::string casePath = args.rootPath() + "/" + args.globalCaseName();
 
     // TODO: Rename the isoPointCalculator to centroidIsoPointCalculator. TM.
-    // Test linear point reconstruction: 
+    // Test centroid point reconstruction: 
     OFstream centroidErrorFile(casePath + "/centroidPositioningErrors.csv"); 
     centroidErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
-    testIsoPoints(sphere, sphereFields, centroidErrorFile, casePath); 
-    testIsoPoints(ellipsoid, ellipsoidFields, centroidErrorFile, casePath); 
+    testIsoPoints<centroidIsoPointCalculator>(sphere, sphereFields, centroidErrorFile, casePath); 
+    testIsoPoints<centroidIsoPointCalculator>(ellipsoid, ellipsoidFields, centroidErrorFile, casePath); 
 
+    // Test linear least squares point reconstruction 
+    OFstream leastSquaresErrorFile(casePath + "/leastSquaresPositioningErrors.csv"); 
+    leastSquaresErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sphere, sphereFields, leastSquaresErrorFile, casePath); 
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(ellipsoid, ellipsoidFields, leastSquaresErrorFile, casePath); 
     
     OFstream rbfErrorFile(casePath + "/rbfPositioningErrors.csv"); 
     rbfErrorFile << "RBF,STENCIL,SURFACE,LINF_CELL,L1_CELL,L2_CELL,POINT_CORR_CPU_TIME_SEC,FACTOR_CPU_TIME_SEC,SOL_CPU_TIME_SEC" << endl; 

@@ -334,6 +334,7 @@ errorNorms calcPointErrors(
 
 template
 <
+    typename IsoPointCalculator,
     typename Surface, 
     typename SurfaceFields, 
     typename Outstream
@@ -347,8 +348,8 @@ void testIsoPoints( // Can be used to test centroid points and polynomial MLS TM
 {
     using clock = std::chrono::high_resolution_clock;
     using sec = std::chrono::duration<double>;
-    Info << "Linear iso-surface reconstruction for a " << surface.name() << endl; 
-    isoPointCalculator centroidCalc; 
+    IsoPointCalculator centroidCalc; 
+    Info << centroidCalc.calculationType() << " iso-surface reconstruction for a " << surface.name() << endl; 
     auto t0 = clock::now();
     centroidCalc.calcContourPoints(surfFields.volValues_, surfFields.pointValues_); 
     auto t1 = clock::now();
@@ -357,7 +358,7 @@ void testIsoPoints( // Can be used to test centroid points and polynomial MLS TM
 
     auto linEdgeErrors = calcPointErrors(centroidCalc.edgePoints(), surface);
     auto edgeVtkStream = vtk_stream<std::ofstream>(
-        casePath + "/linear-edgePoints-" + surface.name(), 
+        casePath + "/" + centroidCalc.calculationType() + "-edgePoints-" + surface.name(), 
         centroidCalc.edgePoints()
     );
     write_to_vtk_stream(edgeVtkStream, linEdgeErrors.absErrors(), "edgeLinf");
@@ -365,7 +366,7 @@ void testIsoPoints( // Can be used to test centroid points and polynomial MLS TM
     auto linCellErrors = calcPointErrors(centroidCalc.contourPoints(), surface);
 
     auto cellVtkStream = vtk_stream<std::ofstream>(
-        casePath + "/centroid-cellPoints-" + surface.name(), 
+        casePath + "/" + centroidCalc.calculationType() + "-cellPoints-" + surface.name(), 
         centroidCalc.contourPoints()
     );
 
@@ -375,7 +376,7 @@ void testIsoPoints( // Can be used to test centroid points and polynomial MLS TM
         << linEdgeErrors.Linf() << "," << linEdgeErrors.L1() << "," << linEdgeErrors.L2() 
         << "," 
         << linCellErrors.Linf() << "," << linCellErrors.Linf() << "," << linCellErrors.Linf() 
-        << seconds.count() << "\n";
+        << "," << seconds.count() << "\n";
     surfFields.writeValueFields();
 }
 

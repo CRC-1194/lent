@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::isoPointCalculator
+    Foam::centroidIsoPointCalculator
 
 Description
     Calculates points on an iso-surface \Gamma := {x, f(x) = s}, where 
@@ -33,13 +33,13 @@ Authors
     Mathematical Modeling and Analysis Group, TU Darmstadt
 
 SourceFiles
-    isoPointCalculatorI.H
-    isoPointCalculator.C
+    centroidIsoPointCalculatorI.H
+    centroidIsoPointCalculator.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef isoPointCalculator_H
-#define isoPointCalculator_H
+#ifndef centroidIsoPointCalculator_H
+#define centroidIsoPointCalculator_H
 
 #include <memory>
 #include "pointFields.H"
@@ -51,10 +51,10 @@ SourceFiles
 namespace Foam { namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class isoPointCalculator Declaration
+                         Class centroidIsoPointCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class isoPointCalculator 
+class centroidIsoPointCalculator 
 {
 
 public:
@@ -90,6 +90,11 @@ public:
         scalar linearRoot(scalar fiso, scalar f0, scalar f1) const
         {
             return (fiso - f0) / (f1 - f0); 
+        }
+
+        word calculationType() const
+        {
+            return "linear";
         }
 
         inline bool isoValueInInterval
