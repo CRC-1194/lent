@@ -53,8 +53,8 @@ bool isoPointCalculator::isoValueInInterval
     const scalar phi1
 ) const 
 {
-    if (((phi0 <= isoValue) && (isoValue <= phi1)) ||
-        ((phi1 <= isoValue) && (isoValue <= phi0)))
+    if (((phi0 < isoValue) && (isoValue < phi1)) ||
+        ((phi1 < isoValue) && (isoValue < phi0)))
         return true; 
 
     return false; 
