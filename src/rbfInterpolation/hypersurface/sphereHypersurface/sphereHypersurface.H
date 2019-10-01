@@ -78,7 +78,7 @@ public:
 
     // Member Functions
 
-        word name() const
+        inline word name() const
         {
             return name_;
         }

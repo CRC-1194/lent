@@ -142,14 +142,10 @@ struct surfaceTestFields
 {
     const fvMesh& mesh_;
     const word name_; 
-    dimensionedScalar initLinf_; 
     pointMesh pMesh_;  
 
     pointScalarField pointValues_;
     volScalarField volValues_;  
-
-    volScalarField volLinfBcc_; 
-    volScalarField volLinfBccc_; 
 
     public: 
 
@@ -157,13 +153,12 @@ struct surfaceTestFields
             :
                 mesh_(mesh),
                 name_(name), 
-                initLinf_(dimensionedScalar("Linf", dimLength, -VGREAT)),
                 pMesh_(mesh), 
                 pointValues_ 
                 (
                     IOobject
                     (
-                        "pointValues" + name_, 
+                        name_, 
                         mesh.time().timeName(), 
                         mesh, 
                         IOobject::NO_READ, 
@@ -176,7 +171,7 @@ struct surfaceTestFields
                 (
                     IOobject
                     (
-                        "volValues" + name_,  
+                        name_,  
                         mesh.time().timeName(), 
                         mesh, 
                         IOobject::NO_READ, 
@@ -184,32 +179,6 @@ struct surfaceTestFields
                     ),
                     mesh, 
                     dimensionedScalar(name_, dimless, 0)
-                ), 
-                volLinfBcc_ 
-                (
-                    IOobject
-                    (
-                        "volLinfBcc" + name_,  
-                        mesh.time().timeName(), 
-                        mesh, 
-                        IOobject::NO_READ, 
-                        IOobject::AUTO_WRITE
-                    ),
-                    mesh, 
-                    initLinf_
-                ),
-                volLinfBccc_
-                (
-                    IOobject
-                    (
-                        "volLinfBccc" + name_,  
-                        mesh.time().timeName(), 
-                        mesh, 
-                        IOobject::NO_READ, 
-                        IOobject::AUTO_WRITE
-                    ),
-                    mesh, 
-                    initLinf_
                 )
         {}
 
@@ -221,21 +190,17 @@ struct surfaceTestFields
             setValues(surface);  
         }
 
-        void resetErrors()
-        {
-            volLinfBcc_ == initLinf_; 
-            volLinfBccc_ == initLinf_; 
-        }
-
         template<typename Surface>
         void setVolValues(Surface const& surface)
         {
+            volValues_.rename(surface.name());
             surfaceSetField(volValues_, mesh_.C(), surface);  
         }
 
         template<typename Surface> 
         void setPointValues(Surface const& surface)
         {
+            pointValues_.rename(surface.name());
             surfaceSetField(pointValues_, mesh_.points(), surface);
         }
 
@@ -251,7 +216,7 @@ struct surfaceTestFields
             return mesh_;
         }
 
-        void writeValueFields() const
+        void writeFields() const
         {
             pointValues_.write(); 
             volValues_.write();

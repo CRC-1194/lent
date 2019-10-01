@@ -76,47 +76,67 @@ int main(int argc, char **argv)
 
     std::string casePath = args.rootPath() + "/" + args.globalCaseName();
 
-    // TODO: Rename the isoPointCalculator to centroidIsoPointCalculator. TM.
-    // Test linear point reconstruction: 
     OFstream centroidErrorFile(casePath + "/centroidPositioningErrors.csv"); 
     centroidErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
 
-    // Signed distance sphere test: bulk and boundary  
-    testIsoPoints(sigDistSphere, sigDistSphereFields, centroidErrorFile, casePath); 
-    testIsoPoints(bSigDistSphere, bSigDistSphereFields, centroidErrorFile, casePath); 
-
-    // Signed distance ellipsoid test: bulk and boundary 
-    testIsoPoints(sigDistEllipsoid, sigDistEllipsoidFields, centroidErrorFile, casePath); 
-    testIsoPoints(bSigDistEllipsoid, bSigDistEllipsoidFields, centroidErrorFile, casePath); 
-
-    // Implicit sphere test: bulk and boundary 
-    testIsoPoints(implicitSphere, implicitSphereFields, centroidErrorFile, casePath); 
-    testIsoPoints(bImplicitSphere, bImplicitSphereFields, centroidErrorFile, casePath); 
-
-    // Implicit ellipsoid test: bulk and boundary 
-    testIsoPoints(implicitEllipsoid, implicitEllipsoidFields, centroidErrorFile, casePath); 
-    testIsoPoints(bImplicitEllipsoid, bImplicitEllipsoidFields, centroidErrorFile, casePath); 
-    
     OFstream rbfErrorFile(casePath + "/rbfPositioningErrors.csv"); 
     rbfErrorFile << "RBF,STENCIL,SURFACE,LINF_CELL,L1_CELL,L2_CELL,POINT_CORR_CPU_TIME_SEC,FACTOR_CPU_TIME_SEC,SOL_CPU_TIME_SEC" << endl; 
 
-    // Test RBF reconstruction: loop over all RBF kernels at compile time.
-    
-    // Signed distance sphere test: bulk and boundary  
-    rbfReconstructLoop<rbfTuple>(sigDistSphere, sigDistSphereFields, rbfErrorFile, casePath); 
-    rbfReconstructLoop<rbfTuple>(bSigDistSphere, bSigDistSphereFields, rbfErrorFile, casePath); 
+    // Sphere, Signed Distance, Bulk 
+    surfaceTestFields fields(mesh, sigDistSphere);
+    // Linear + Centroid reconstruction
+    testIsoPoints(sigDistSphere, fields, centroidErrorFile, casePath); 
+    // RBF + Dual Contouring reconstruction
+    rbfReconstructLoop<rbfTuple>(sigDistSphere, fields, rbfErrorFile, casePath); 
 
-    // Signed distance ellipsoid test: bulk and boundary 
-    rbfReconstructLoop<rbfTuple>(sigDistEllipsoid, sigDistEllipsoidFields, rbfErrorFile, casePath); 
-    rbfReconstructLoop<rbfTuple>(bSigDistEllipsoid, bSigDistEllipsoidFields, rbfErrorFile, casePath); 
+    // Sphere, Signed Distance, Boundary 
+    fields.setValues(bSigDistSphere);
+    // Linear + Centroid reconstruction
+    testIsoPoints(bSigDistSphere, fields, centroidErrorFile, casePath); 
+    // RBF + Dual Contouring reconstruction
+    rbfReconstructLoop<rbfTuple>(bSigDistSphere, fields, rbfErrorFile, casePath); 
 
-    // Implicit sphere test: bulk and boundary 
-    rbfReconstructLoop<rbfTuple>(implicitSphere, implicitSphereFields, rbfErrorFile, casePath); 
-    rbfReconstructLoop<rbfTuple>(bImplicitSphere, bImplicitSphereFields, rbfErrorFile, casePath); 
+    // Ellipsoid, Signed Distance, Bulk 
+    fields.setValues(sigDistEllipsoid);
+    // Linear + Centroid 
+    testIsoPoints(sigDistEllipsoid, fields, centroidErrorFile, casePath); 
+    // RBF 
+    rbfReconstructLoop<rbfTuple>(sigDistEllipsoid, fields, rbfErrorFile, casePath); 
 
-    // Implicit ellipsoid test: bulk and boundary 
-    rbfReconstructLoop<rbfTuple>(implicitEllipsoid, implicitEllipsoidFields, rbfErrorFile, casePath); 
-    rbfReconstructLoop<rbfTuple>(bImplicitEllipsoid, bImplicitEllipsoidFields, rbfErrorFile, casePath); 
+    // Ellipsoid, Signed Distance, Boundary 
+    fields.setValues(bSigDistEllipsoid);
+    // Linear + Centroid 
+    testIsoPoints(bSigDistEllipsoid, fields, centroidErrorFile, casePath); 
+    // RBF 
+    rbfReconstructLoop<rbfTuple>(bSigDistEllipsoid, fields, rbfErrorFile, casePath); 
+
+    // Sphere, Implicit, Bulk
+    fields.setValues(implicitSphere);
+    // Linear + Centroid
+    testIsoPoints(implicitSphere, fields, centroidErrorFile, casePath); 
+    // RBF
+    rbfReconstructLoop<rbfTuple>(implicitSphere, fields, rbfErrorFile, casePath); 
+
+    // Sphere, Implicit, Boundary 
+    fields.setValues(bImplicitSphere);
+    // Linear + Centroid
+    testIsoPoints(bImplicitSphere, fields, centroidErrorFile, casePath); 
+    // RBF
+    rbfReconstructLoop<rbfTuple>(bImplicitSphere, fields, rbfErrorFile, casePath); 
+
+    // Ellipsoid, Implicit, Bulk 
+    fields.setValues(implicitEllipsoid);
+    // Linear + Centroid
+    testIsoPoints(implicitEllipsoid, fields, centroidErrorFile, casePath); 
+    // RBF
+    rbfReconstructLoop<rbfTuple>(implicitEllipsoid, fields, rbfErrorFile, casePath); 
+
+    // Ellipsoid, Implicit, Boundary 
+    fields.setValues(bImplicitEllipsoid);
+    // Linear + Centroid
+    testIsoPoints(bImplicitEllipsoid, fields, centroidErrorFile, casePath); 
+    // RBF
+    rbfReconstructLoop<rbfTuple>(bImplicitEllipsoid, fields, rbfErrorFile, casePath); 
 
     Info<< nl;
     Info<< "End\n" << endl;

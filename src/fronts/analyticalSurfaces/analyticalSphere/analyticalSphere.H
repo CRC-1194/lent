@@ -114,7 +114,7 @@ public:
 
     word name() const
     {
-        return type();
+        return name_; 
     }
 
     virtual point normalProjectionToSurface(point& trialPoint) const;

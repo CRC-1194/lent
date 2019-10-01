@@ -42,14 +42,12 @@ Description
         0.25, 
         "SignedDistanceSphere"
     );
-    surfaceTestFields sigDistSphereFields(mesh, sigDistSphere);
 
     //- Boundary signed dist sphere
     analyticalSphere bSigDistSphere(
         point(0.,0.,0.), 0.25, 
         "BoundarySignedDistanceSphere"
     );
-    surfaceTestFields bSigDistSphereFields(mesh, bSigDistSphere);
 
     //- Signed distance ellipsoid 
     analyticalEllipsoid sigDistEllipsoid(
@@ -57,7 +55,6 @@ Description
         vector(0.4,0.3,0.25), 
         "SigDistEllipsoid"
     );
-    surfaceTestFields sigDistEllipsoidFields(mesh, sigDistEllipsoid);
 
     //- Boundary signed distance ellipsoid 
     analyticalEllipsoid bSigDistEllipsoid(
@@ -65,8 +62,6 @@ Description
         vector(3/4.,1/2.,1/3.), 
         "BoundarySigDistEllipsoid"
     );
-    surfaceTestFields bSigDistEllipsoidFields(mesh, bSigDistEllipsoid);
-
 
     //- Implicit sphere
     sphereHypersurface implicitSphere(
@@ -74,7 +69,6 @@ Description
         0.25, 
         "ImplicitSphere"
     );
-    surfaceTestFields implicitSphereFields(mesh, implicitSphere);
     
     //- Implicit ellipsoid 
     ellipsoidHypersurface implicitEllipsoid(
@@ -82,7 +76,6 @@ Description
         vector(0.4, 0.3, 0.25), 
         "ImplicitEllipsoid"
     );
-    surfaceTestFields implicitEllipsoidFields(mesh, implicitEllipsoid);
 
     //- Boundary implicit sphere
     sphereHypersurface bImplicitSphere(
@@ -90,7 +83,6 @@ Description
         0.5, 
         "BoundaryImplicitSphere"
     );
-    surfaceTestFields bImplicitSphereFields(mesh, bImplicitSphere);
 
     //- Boundary implicit ellipsoid
     ellipsoidHypersurface bImplicitEllipsoid(
@@ -98,10 +90,7 @@ Description
         vector(3/4., 1/2., 1/3.), 
         "BoundaryImplicitEllipsoid"
     );
-    surfaceTestFields bImplicitEllipsoidFields(mesh, bImplicitEllipsoid);
 
-    // TODO: Remove, debugging.
-    bImplicitEllipsoidFields.writeValueFields();
 
 #endif
 
