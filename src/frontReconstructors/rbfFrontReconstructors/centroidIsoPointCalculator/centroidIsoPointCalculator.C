@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::isoPointCalculator
+    Foam::centroidIsoPointCalculator
 
 Description
     Calculates points on an iso-surface \Gamma := {x, f(x) = s}, where 
@@ -33,12 +33,12 @@ Authors
     Mathematical Modeling and Analysis Group, TU Darmstadt
 
 SourceFiles
-    isoPointCalculatorI.H
-    isoPointCalculator.C
+    centroidIsoPointCalculatorI.H
+    centroidIsoPointCalculator.C
 
 \*--------------------------------------------------------------------------*/
 
-#include "isoPointCalculator.H"
+#include "centroidIsoPointCalculator.H"
 #include "volMesh.H"
 #include <cassert> 
 
@@ -46,7 +46,7 @@ namespace Foam { namespace FrontTracking {
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-bool isoPointCalculator::isoValueInInterval
+bool centroidIsoPointCalculator::isoValueInInterval
 (
     const scalar isoValue, 
     const scalar phi0, 
@@ -60,7 +60,7 @@ bool isoPointCalculator::isoValueInInterval
     return false; 
 }
 
-bool isoPointCalculator::equalUnderTolerance(
+bool centroidIsoPointCalculator::equalUnderTolerance(
     const scalar s1, 
     const scalar s2, 
     const scalar tol
@@ -69,7 +69,7 @@ bool isoPointCalculator::equalUnderTolerance(
     return (mag(s1 - s2) < tol * max(max(mag(s1), mag(s2)), 1.0));
 }
 
-void isoPointCalculator::calcEdgePoints
+void centroidIsoPointCalculator::calcEdgePoints
 (
     const pointScalarField& pointPhi, 
     const scalar isoValue 
@@ -108,7 +108,7 @@ void isoPointCalculator::calcEdgePoints
     }
 }
 
-void isoPointCalculator::calcContourPoints
+void centroidIsoPointCalculator::calcContourPoints
 (
     const volScalarField& cellPhi, 
     const pointScalarField& pointPhi, 
