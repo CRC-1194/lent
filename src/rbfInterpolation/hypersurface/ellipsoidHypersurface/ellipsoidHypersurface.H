@@ -56,19 +56,24 @@ class ellipsoidHypersurface
 {
     vector center_; 
     vector halfAxes_;
+    word name_;
 
 public:
 
     // Constructors
 
         //- Construct from components
-        ellipsoidHypersurface(const vector& center, const vector& halfAxes);
+        ellipsoidHypersurface(
+            const vector& center, 
+            const vector& halfAxes, 
+            const word name = "ellipsoid"
+        );
 
     // Member Functions
     
         word name() const
         {
-            return "ellipsoid";
+            return name_; 
         }
         
         inline scalar value(point p) const;

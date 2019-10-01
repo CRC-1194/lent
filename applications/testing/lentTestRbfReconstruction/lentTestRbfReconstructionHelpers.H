@@ -214,9 +214,9 @@ struct surfaceTestFields
         {}
 
         template<typename Surface>
-        surfaceTestFields(const fvMesh& mesh, Surface const& surface, const word& name)
+        surfaceTestFields(const fvMesh& mesh, Surface const& surface)
         :
-            surfaceTestFields(mesh, name)
+            surfaceTestFields(mesh, surface.name())
         {
             setValues(surface);  
         }
@@ -376,7 +376,6 @@ void testIsoPoints( // Can be used to test centroid points and polynomial MLS TM
         << "," 
         << linCellErrors.Linf() << "," << linCellErrors.Linf() << "," << linCellErrors.Linf() 
         << seconds.count() << "\n";
-    surfFields.writeValueFields();
 }
 
 template

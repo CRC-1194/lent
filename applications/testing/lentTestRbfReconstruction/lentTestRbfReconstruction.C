@@ -38,11 +38,16 @@ Description
 
 #include "rbFunctions.H"
 #include "rbfCellsInterpolationEigen.H"
-#include "analyticalEllipsoid.H"
-#include "sphereHypersurface.H"
-#include "ellipsoidHypersurface.H"
 #include "rbfIsoPointCalculator.H"
 #include "isoPointCalculator.H"
+
+// Test functions
+// - Implicit representation
+#include "sphereHypersurface.H"
+#include "ellipsoidHypersurface.H"
+// - Signed distance functions
+#include "analyticalEllipsoid.H"
+#include "analyticalSphere.H"
 
 // Time measurement.
 #include <chrono>
@@ -67,11 +72,7 @@ int main(int argc, char **argv)
             << "Memory usage of the RBF factorization is NxN x nCells x 64 bits, " << endl
             << "where N is the number of points in the RBF stencil (hex cells: 9 for BCC, 15 for BCC_FVM).\n";
 
-    // Initialize the surface test fields.
-    ellipsoidHypersurface ellipsoid (1/3., 1/2., 2/3.);
-    surfaceTestFields ellipsoidFields(mesh, ellipsoid, "Ellipsoid");
-    sphereHypersurface sphere(point(0., 0., 0.), 0.5);
-    surfaceTestFields sphereFields(mesh, sphere, "Sphere");
+    #include "testSurfaces.H"
 
     std::string casePath = args.rootPath() + "/" + args.globalCaseName();
 
@@ -79,19 +80,43 @@ int main(int argc, char **argv)
     // Test linear point reconstruction: 
     OFstream centroidErrorFile(casePath + "/centroidPositioningErrors.csv"); 
     centroidErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
-    testIsoPoints(sphere, sphereFields, centroidErrorFile, casePath); 
-    testIsoPoints(ellipsoid, ellipsoidFields, centroidErrorFile, casePath); 
 
+    // Signed distance sphere test: bulk and boundary  
+    testIsoPoints(sigDistSphere, sigDistSphereFields, centroidErrorFile, casePath); 
+    testIsoPoints(bSigDistSphere, bSigDistSphereFields, centroidErrorFile, casePath); 
+
+    // Signed distance ellipsoid test: bulk and boundary 
+    testIsoPoints(sigDistEllipsoid, sigDistEllipsoidFields, centroidErrorFile, casePath); 
+    testIsoPoints(bSigDistEllipsoid, bSigDistEllipsoidFields, centroidErrorFile, casePath); 
+
+    // Implicit sphere test: bulk and boundary 
+    testIsoPoints(implicitSphere, implicitSphereFields, centroidErrorFile, casePath); 
+    testIsoPoints(bImplicitSphere, bImplicitSphereFields, centroidErrorFile, casePath); 
+
+    // Implicit ellipsoid test: bulk and boundary 
+    testIsoPoints(implicitEllipsoid, implicitEllipsoidFields, centroidErrorFile, casePath); 
+    testIsoPoints(bImplicitEllipsoid, bImplicitEllipsoidFields, centroidErrorFile, casePath); 
     
     OFstream rbfErrorFile(casePath + "/rbfPositioningErrors.csv"); 
     rbfErrorFile << "RBF,STENCIL,SURFACE,LINF_CELL,L1_CELL,L2_CELL,POINT_CORR_CPU_TIME_SEC,FACTOR_CPU_TIME_SEC,SOL_CPU_TIME_SEC" << endl; 
 
     // Test RBF reconstruction: loop over all RBF kernels at compile time.
-    rbfReconstructLoop<rbfTuple>(sphere, sphereFields, rbfErrorFile, casePath); 
-    rbfReconstructLoop<rbfTuple>(ellipsoid, ellipsoidFields, rbfErrorFile, casePath); 
+    
+    // Signed distance sphere test: bulk and boundary  
+    rbfReconstructLoop<rbfTuple>(sigDistSphere, sigDistSphereFields, rbfErrorFile, casePath); 
+    rbfReconstructLoop<rbfTuple>(bSigDistSphere, bSigDistSphereFields, rbfErrorFile, casePath); 
 
-    ellipsoidFields.writeValueFields();
-    sphereFields.writeValueFields();
+    // Signed distance ellipsoid test: bulk and boundary 
+    rbfReconstructLoop<rbfTuple>(sigDistEllipsoid, sigDistEllipsoidFields, rbfErrorFile, casePath); 
+    rbfReconstructLoop<rbfTuple>(bSigDistEllipsoid, bSigDistEllipsoidFields, rbfErrorFile, casePath); 
+
+    // Implicit sphere test: bulk and boundary 
+    rbfReconstructLoop<rbfTuple>(implicitSphere, implicitSphereFields, rbfErrorFile, casePath); 
+    rbfReconstructLoop<rbfTuple>(bImplicitSphere, bImplicitSphereFields, rbfErrorFile, casePath); 
+
+    // Implicit ellipsoid test: bulk and boundary 
+    rbfReconstructLoop<rbfTuple>(implicitEllipsoid, implicitEllipsoidFields, rbfErrorFile, casePath); 
+    rbfReconstructLoop<rbfTuple>(bImplicitEllipsoid, bImplicitEllipsoidFields, rbfErrorFile, casePath); 
 
     Info<< nl;
     Info<< "End\n" << endl;

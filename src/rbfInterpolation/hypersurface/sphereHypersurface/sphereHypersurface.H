@@ -57,21 +57,30 @@ class sphereHypersurface
 
     vector center_; 
     scalar radius_; 
+    word name_;
 
 public:
 
     // Constructors
 
         //- Construct from components
-        sphereHypersurface(const vector& center, const scalar& radius);
+        sphereHypersurface(
+            const vector& center, 
+            const scalar& radius, 
+            const word& name = "sphere"
+        );
 
-        sphereHypersurface(const scalar& radius, const vector& center);
+        sphereHypersurface(
+            const scalar& radius, 
+            const vector& center=vector(0.,0.,0.),
+            const word& name = "sphere"
+        );
 
     // Member Functions
 
         word name() const
         {
-            return "sphere";
+            return name_;
         }
 
         // Access

@@ -46,11 +46,13 @@ namespace Foam { namespace FrontTracking {
 
 ellipsoidHypersurface::ellipsoidHypersurface(
     const point& center, 
-    const point& halfAxes
+    const point& halfAxes,
+    const word name
 )
 :
     center_(center),
-    halfAxes_(halfAxes)
+    halfAxes_(halfAxes),
+    name_(name)
 {}
 
 }} // End namespace Foam::FrontTracking 

@@ -311,6 +311,7 @@ scalar analyticalEllipsoid::curvatureAtRefSystem(const point P) const
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
 analyticalEllipsoid::analyticalEllipsoid(const dictionary& configDict)
 :
     analyticalSurface{configDict},
@@ -323,13 +324,20 @@ analyticalEllipsoid::analyticalEllipsoid(const dictionary& configDict)
     {
         oneBySemiAxisSqr_[I] = 1.0/(semiAxes[I]*semiAxes[I]);
     }
+
+    name_ = configDict.lookupOrDefault<word>("name", analyticalEllipsoid::typeName);
 }
 
-analyticalEllipsoid::analyticalEllipsoid(const point& centre, const vector& semiAxes)
+analyticalEllipsoid::analyticalEllipsoid(
+    const point& centre, 
+    const vector& semiAxes, 
+    const word name
+)
 :
    analyticalSurface{},
    centre_{centre},
-   oneBySemiAxisSqr_{}
+   oneBySemiAxisSqr_{},
+   name_(name)
 {
     forAll(semiAxes, I)
     {
