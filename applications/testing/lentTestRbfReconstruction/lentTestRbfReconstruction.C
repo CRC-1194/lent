@@ -76,19 +76,25 @@ int main(int argc, char **argv)
 
     std::string casePath = args.rootPath() + "/" + args.globalCaseName();
 
-    // TODO: Rename the isoPointCalculator to centroidIsoPointCalculator. TM.
     // Test centroid point reconstruction: 
     OFstream centroidErrorFile(casePath + "/centroidPositioningErrors.csv"); 
     centroidErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
-    testIsoPoints<centroidIsoPointCalculator>(sphere, sphereFields, centroidErrorFile, casePath); 
-    testIsoPoints<centroidIsoPointCalculator>(ellipsoid, ellipsoidFields, centroidErrorFile, casePath); 
+    testIsoPoints<centroidIsoPointCalculator>(sphere, sphereFields, centroidErrorFile, casePath, false); 
+    testIsoPoints<centroidIsoPointCalculator>(ellipsoid, ellipsoidFields, centroidErrorFile, casePath, false); 
 
-    // Test linear least squares point reconstruction 
-    OFstream leastSquaresErrorFile(casePath + "/leastSquaresPositioningErrors.csv"); 
+    // Test linear least squares point reconstruction without weighting
+    OFstream leastSquaresErrorFile(casePath + "/leastSquaresNoWeightingPositioningErrors.csv"); 
     leastSquaresErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
-    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sphere, sphereFields, leastSquaresErrorFile, casePath); 
-    testIsoPoints<linearLeastSquaresIsoPointCalculator>(ellipsoid, ellipsoidFields, leastSquaresErrorFile, casePath); 
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sphere, sphereFields, leastSquaresErrorFile, casePath, false); 
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(ellipsoid, ellipsoidFields, leastSquaresErrorFile, casePath, false); 
     
+    // Test linear least squares point reconstruction 
+    OFstream leastSquaresWeightedErrorFile(casePath + "/leastSquaresWeightedPositioningErrors.csv"); 
+    leastSquaresWeightedErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sphere, sphereFields, leastSquaresWeightedErrorFile, casePath, true); 
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(ellipsoid, ellipsoidFields, leastSquaresWeightedErrorFile, casePath, true); 
+
+
     OFstream rbfErrorFile(casePath + "/rbfPositioningErrors.csv"); 
     rbfErrorFile << "RBF,STENCIL,SURFACE,LINF_CELL,L1_CELL,L2_CELL,POINT_CORR_CPU_TIME_SEC,FACTOR_CPU_TIME_SEC,SOL_CPU_TIME_SEC" << endl; 
 
