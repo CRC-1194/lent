@@ -126,9 +126,9 @@ set(CMAKE_EXE_LINKER_FLAGS "-Xlinker --add-needed -Xlinker --no-as-needed")
 if(MSVC)
     add_compile_options(/W4 /WX)
 else(MSVC)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb3 -O0 -Wall -Wextra -DDEBUG -pedantic -D_USE_MATH_DEFINES -DBOOST_MATH_INSTRUMENT")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Wextra -pedantic -Wno-deprecated -D_USE_MATH_DEFINES")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -ggdb3 -O3 -Wall -Wextra -pedantic -DDEBUG -D_USE_MATH_DEFINES")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb3 -O0 -Wall -Wextra -Wconversion -DDEBUG -pedantic -D_USE_MATH_DEFINES -DBOOST_MATH_INSTRUMENT")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Wextra -Wconversion -pedantic -Wno-deprecated -D_USE_MATH_DEFINES")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -ggdb3 -O3 -Wall -Wextra -Wconversion -pedantic -DDEBUG -D_USE_MATH_DEFINES")
 endif(MSVC)
 
 
@@ -161,7 +161,8 @@ add_library("lent${PROJECT_BUILD_TYPE}" SHARED
     src/frontReconstructors/frontReconstructor/frontReconstructor.C
     src/frontReconstructors/foamIsoSurfaceReconstructor/foamIsoSurfaceFrontReconstructor.C
     src/frontReconstructors/analyticalSurfaceReconstructor/analyticalSurfaceReconstructor.C
-    src/frontReconstructors/rbfFrontReconstructors/isoPointCalculator/isoPointCalculator.C
+    src/frontReconstructors/rbfFrontReconstructors/centroidIsoPointCalculator/centroidIsoPointCalculator.C
+    src/frontReconstructors/rbfFrontReconstructors/linearLeastSquaresIsoPointCalculator/linearLeastSquaresIsoPointCalculator.C
     src/frontReconstructors/normalConsistencyAlgorithms/normalConsistency/normalConsistency.C
     src/frontReconstructors/normalConsistencyAlgorithms/centerNormalConsistency/centerNormalConsistency.C
     src/frontReconstructors/normalConsistencyAlgorithms/distanceNormalConsistency/distanceNormalConsistency.C
@@ -289,7 +290,8 @@ target_include_directories("lent${PROJECT_BUILD_TYPE}" PUBLIC
     src/frontReconstructors/normalConsistencyAlgorithms/convexFrontNormalConsistency
     src/frontReconstructors/normalConsistencyAlgorithms/distanceNormalConsistency
     src/frontReconstructors/normalConsistencyAlgorithms/normalConsistency
-    src/frontReconstructors/rbfFrontReconstructors/isoPointCalculator
+    src/frontReconstructors/rbfFrontReconstructors/centroidIsoPointCalculator
+    src/frontReconstructors/rbfFrontReconstructors/linearLeastSquaresIsoPointCalculator/
     src/frontReconstructors/rbfFrontReconstructors/rbfIsoPointCalculator
 
     src/fronts/analyticalSurfaces/analyticalCircle
@@ -490,6 +492,17 @@ target_link_libraries("lentCreateFront${PROJECT_BUILD_TYPE}"
 
 # Tests
 # TODO: list of test applications is still incomplete
+add_executable("lentTestRbfReconstruction${PROJECT_BUILD_TYPE}"
+    applications/testing/lentTestRbfReconstruction/lentTestRbfReconstruction.C
+)
+target_include_directories("lentTestRbfReconstruction${PROJECT_BUILD_TYPE}" SYSTEM PRIVATE
+    applications/testing/lentTestRbfReconstruction
+    ${of_src_path}/fileFormats/lnInclude
+)
+target_link_libraries("lentTestRbfReconstruction${PROJECT_BUILD_TYPE}"
+    "lent${PROJECT_BUILD_TYPE}"
+    ${OF_LENTDEPS}
+)
 
 # Install executables
 install(TARGETS
@@ -505,5 +518,7 @@ install(TARGETS
     "lentCreateFront${PROJECT_BUILD_TYPE}"
 
     # Tests
+    "lentTestRbfReconstruction${PROJECT_BUILD_TYPE}"
 
-    RUNTIME)
+    RUNTIME
+)
