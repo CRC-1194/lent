@@ -44,14 +44,13 @@ namespace Foam { namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-ellipsoidHypersurface::ellipsoidHypersurface(scalar a, scalar b, scalar c)
+ellipsoidHypersurface::ellipsoidHypersurface(
+    const point& center, 
+    const point& halfAxes
+)
 :
-    a_(a), 
-    b_(b), 
-    c_(c), 
-    aSqr_(a * a), 
-    bSqr_(b * b), 
-    cSqr_(c * c)
+    center_(center),
+    halfAxes_(halfAxes)
 {}
 
 }} // End namespace Foam::FrontTracking 
