@@ -308,12 +308,13 @@ void testIsoPoints( // Can be used to test centroid points and polynomial MLS TM
     Surface const& surface, 
     SurfaceFields const& surfFields,
     Outstream& os,
-    std::string casePath 
+    std::string casePath,
+    bool useWeighting=false
 )
 {
     using clock = std::chrono::high_resolution_clock;
     using sec = std::chrono::duration<double>;
-    IsoPointCalculator centroidCalc; 
+    IsoPointCalculator centroidCalc{useWeighting}; 
     Info << centroidCalc.calculationType() << " iso-surface reconstruction for a " << surface.name() << endl; 
     auto t0 = clock::now();
     centroidCalc.calcContourPoints(surfFields.volValues_, surfFields.pointValues_); 

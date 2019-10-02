@@ -36,6 +36,13 @@ Description
 
     // Test surfaces 
     
+    //- Signed distance plane
+    analyticalPlane sigDistPlane(
+        point(0.5, 0.5, 0.5),
+        vector(1, 1, 1),
+        "SignedDistancePlane"
+    );
+    
     //- Signed distance sphere
     analyticalSphere sigDistSphere(
         point(0.5,0.5,0.5), 

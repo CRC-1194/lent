@@ -48,6 +48,7 @@ Description
 #include "ellipsoidHypersurface.H"
 // - Signed distance functions
 #include "analyticalEllipsoid.H"
+#include "analyticalPlane.H"
 #include "analyticalSphere.H"
 
 // Time measurement.
@@ -77,22 +78,37 @@ int main(int argc, char **argv)
 
     std::string casePath = args.rootPath() + "/" + args.globalCaseName();
 
-    // Test linear least squares point reconstruction 
-    OFstream leastSquaresErrorFile(casePath + "/leastSquaresPositioningErrors.csv"); 
-    leastSquaresErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
-    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sphere, sphereFields, leastSquaresErrorFile, casePath); 
-    testIsoPoints<linearLeastSquaresIsoPointCalculator>(ellipsoid, ellipsoidFields, leastSquaresErrorFile, casePath); 
-    
     OFstream centroidErrorFile(casePath + "/centroidPositioningErrors.csv"); 
     centroidErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
+
+    OFstream leastSquaresNoWeightingErrorFile(casePath + "/leastSquaresNoWeightingPositioningErrors.csv"); 
+    leastSquaresNoWeightingErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
+
+    OFstream leastSquaresWeightedErrorFile(casePath + "/leastSquaresWeightedPositioningErrors.csv"); 
+    leastSquaresWeightedErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
 
     OFstream rbfErrorFile(casePath + "/rbfPositioningErrors.csv"); 
     rbfErrorFile << "RBF,STENCIL,SURFACE,LINF_CELL,L1_CELL,L2_CELL,POINT_CORR_CPU_TIME_SEC,FACTOR_CPU_TIME_SEC,SOL_CPU_TIME_SEC" << endl; 
 
+    // Plane, Signed Distance
+    surfaceTestFields fields(mesh, sigDistPlane);
+    // Linear + Centroid reconstruction
+    testIsoPoints<centroidIsoPointCalculator>(sigDistPlane, fields, centroidErrorFile, casePath); 
+    // Linear + Linear Least Squares without weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sigDistPlane, fields, leastSquaresNoWeightingErrorFile, casePath, false);
+    // Linear + Linear Least Squares with weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sigDistPlane, fields, leastSquaresWeightedErrorFile, casePath, true);
+    // RBF + Dual Contouring reconstruction
+    rbfReconstructLoop<rbfTuple>(sigDistPlane, fields, rbfErrorFile, casePath); 
+
     // Sphere, Signed Distance, Bulk 
-    surfaceTestFields fields(mesh, sigDistSphere);
+    fields.setValues(sigDistSphere);
     // Linear + Centroid reconstruction
     testIsoPoints<centroidIsoPointCalculator>(sigDistSphere, fields, centroidErrorFile, casePath); 
+    // Linear + Linear Least Squares without weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sigDistSphere, fields, leastSquaresNoWeightingErrorFile, casePath, false);
+    // Linear + Linear Least Squares with weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sigDistSphere, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF + Dual Contouring reconstruction
     rbfReconstructLoop<rbfTuple>(sigDistSphere, fields, rbfErrorFile, casePath); 
 
@@ -100,6 +116,10 @@ int main(int argc, char **argv)
     fields.setValues(bSigDistSphere);
     // Linear + Centroid reconstruction
     testIsoPoints<centroidIsoPointCalculator>(bSigDistSphere, fields, centroidErrorFile, casePath); 
+    // Linear + Linear Least Squares without weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(bSigDistSphere, fields, leastSquaresNoWeightingErrorFile, casePath, false);
+    // Linear + Linear Least Squares with weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(bSigDistSphere, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF + Dual Contouring reconstruction
     rbfReconstructLoop<rbfTuple>(bSigDistSphere, fields, rbfErrorFile, casePath); 
 
@@ -107,6 +127,10 @@ int main(int argc, char **argv)
     fields.setValues(sigDistEllipsoid);
     // Linear + Centroid 
     testIsoPoints<centroidIsoPointCalculator>(sigDistEllipsoid, fields, centroidErrorFile, casePath); 
+    // Linear + Linear Least Squares without weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sigDistEllipsoid, fields, leastSquaresNoWeightingErrorFile, casePath, false);
+    // Linear + Linear Least Squares with weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sigDistEllipsoid, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF 
     rbfReconstructLoop<rbfTuple>(sigDistEllipsoid, fields, rbfErrorFile, casePath); 
 
@@ -114,6 +138,10 @@ int main(int argc, char **argv)
     fields.setValues(bSigDistEllipsoid);
     // Linear + Centroid 
     testIsoPoints<centroidIsoPointCalculator>(bSigDistEllipsoid, fields, centroidErrorFile, casePath); 
+    // Linear + Linear Least Squares without weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(bSigDistEllipsoid, fields, leastSquaresNoWeightingErrorFile, casePath, false);
+    // Linear + Linear Least Squares with weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(bSigDistEllipsoid, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF 
     rbfReconstructLoop<rbfTuple>(bSigDistEllipsoid, fields, rbfErrorFile, casePath); 
 
@@ -121,6 +149,10 @@ int main(int argc, char **argv)
     fields.setValues(implicitSphere);
     // Linear + Centroid
     testIsoPoints<centroidIsoPointCalculator>(implicitSphere, fields, centroidErrorFile, casePath); 
+    // Linear + Linear Least Squares without weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(implicitSphere, fields, leastSquaresNoWeightingErrorFile, casePath, false);
+    // Linear + Linear Least Squares with weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(implicitSphere, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF
     rbfReconstructLoop<rbfTuple>(implicitSphere, fields, rbfErrorFile, casePath); 
 
@@ -128,6 +160,10 @@ int main(int argc, char **argv)
     fields.setValues(bImplicitSphere);
     // Linear + Centroid
     testIsoPoints<centroidIsoPointCalculator>(bImplicitSphere, fields, centroidErrorFile, casePath); 
+    // Linear + Linear Least Squares without weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(bImplicitSphere, fields, leastSquaresNoWeightingErrorFile, casePath, false);
+    // Linear + Linear Least Squares with weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(bImplicitSphere, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF
     rbfReconstructLoop<rbfTuple>(bImplicitSphere, fields, rbfErrorFile, casePath); 
 
@@ -135,6 +171,10 @@ int main(int argc, char **argv)
     fields.setValues(implicitEllipsoid);
     // Linear + Centroid
     testIsoPoints<centroidIsoPointCalculator>(implicitEllipsoid, fields, centroidErrorFile, casePath); 
+    // Linear + Linear Least Squares without weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(implicitEllipsoid, fields, leastSquaresNoWeightingErrorFile, casePath, false);
+    // Linear + Linear Least Squares with weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(implicitEllipsoid, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF
     rbfReconstructLoop<rbfTuple>(implicitEllipsoid, fields, rbfErrorFile, casePath); 
 
@@ -142,6 +182,10 @@ int main(int argc, char **argv)
     fields.setValues(bImplicitEllipsoid);
     // Linear + Centroid
     testIsoPoints<centroidIsoPointCalculator>(bImplicitEllipsoid, fields, centroidErrorFile, casePath); 
+    // Linear + Linear Least Squares without weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(bImplicitEllipsoid, fields, leastSquaresNoWeightingErrorFile, casePath, false);
+    // Linear + Linear Least Squares with weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(bImplicitEllipsoid, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF
     rbfReconstructLoop<rbfTuple>(bImplicitEllipsoid, fields, rbfErrorFile, casePath); 
 

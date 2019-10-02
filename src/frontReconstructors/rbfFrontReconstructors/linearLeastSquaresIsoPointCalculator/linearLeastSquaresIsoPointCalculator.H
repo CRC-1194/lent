@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::centroidIsoPointCalculator
+    Foam::linearLeastSquaresIsoPointCalculator
 
 Description
     Calculates points on an iso-surface \Gamma := {x, f(x) = s}, where 
@@ -33,41 +33,44 @@ Authors
     Mathematical Modeling and Analysis Group, TU Darmstadt
 
 SourceFiles
-    centroidIsoPointCalculatorI.H
-    centroidIsoPointCalculator.C
+    linearLeastSquaresIsoPointCalculatorI.H
+    linearLeastSquaresIsoPointCalculator.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef centroidIsoPointCalculator_H
-#define centroidIsoPointCalculator_H
+#ifndef linearLeastSquaresIsoPointCalculator_H
+#define linearLeastSquaresIsoPointCalculator_H
 
 #include <memory>
 #include "pointFields.H"
 #include "volFields.H"
 #include <vector>
+#include <Eigen/Dense>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam { namespace FrontTracking {
 
 /*---------------------------------------------------------------------------*\
-                         Class centroidIsoPointCalculator Declaration
+                         Class linearLeastSquaresIsoPointCalculator Declaration
 \*---------------------------------------------------------------------------*/
 
-class centroidIsoPointCalculator 
+class linearLeastSquaresIsoPointCalculator 
 {
 
 public:
 
     // Sticking with OpenFOAM datastructures for now. TM. 
     using Points = std::vector<point>;  
-    using Labels = std::vector<label>; 
+    using Labels = std::vector<label>;
+    using MatrixX4d = Eigen::Matrix<double, Eigen::Dynamic, 4>;
+    using VectorXd = Eigen::VectorXd;
+    using DiagonalMatrixXd = Eigen::DiagonalMatrix<double, Eigen::Dynamic>;
 
     static constexpr double MAX = std::numeric_limits<double>::max(); 
 
     // Constructor
-    centroidIsoPointCalculator(const bool weighted);
-    centroidIsoPointCalculator();
+        linearLeastSquaresIsoPointCalculator(const bool weighted);
 
     // Member Functions
 
@@ -98,7 +101,14 @@ public:
 
         word calculationType() const
         {
-            return "linear";
+            if (weighted_)
+            {
+                return "leastSquaresWeighted";
+            }
+            else
+            {
+                return "leastSquaresNoWeighting";
+            }
         }
 
         inline bool isoValueInInterval
@@ -136,6 +146,31 @@ protected:
     Labels pointCellLabels_;
 
     const bool weighted_;
+
+private:
+    point projectToLeastSquaresPlane
+    (
+        point aPoint,
+        label cellI,
+        const volScalarField& cellPhi,
+        const pointScalarField& pointPhi
+    ) const;
+
+    DiagonalMatrixXd computeWeights
+    (
+        const point aPoint,
+        const label cellI,
+        const volScalarField& cellPhi,
+        const pointScalarField& pointPhi
+    ) const;
+
+    inline scalar weight(const scalar d, const scalar support) const;
+    inline scalar weightInput
+    (
+        const point p,
+        const point& centre,
+        const scalar R
+    ) const; 
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
