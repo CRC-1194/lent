@@ -44,6 +44,25 @@ SourceFiles
 
 namespace Foam { namespace FrontTracking {
 
+// Constructor
+centroidIsoPointCalculator::centroidIsoPointCalculator(const bool weighted)
+:
+    edgePoints_{},
+    edgeLabels_{},
+    contourPoints_{},
+    pointCellLabels_{},
+    weighted_{weighted}
+{}
+
+centroidIsoPointCalculator::centroidIsoPointCalculator()
+:
+    edgePoints_{},
+    edgeLabels_{},
+    contourPoints_{},
+    pointCellLabels_{},
+    weighted_{false}
+{}
+
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 bool centroidIsoPointCalculator::isoValueInInterval

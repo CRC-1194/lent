@@ -65,6 +65,10 @@ public:
 
     static constexpr double MAX = std::numeric_limits<double>::max(); 
 
+    // Constructor
+    centroidIsoPointCalculator(const bool weighted);
+    centroidIsoPointCalculator();
+
     // Member Functions
 
         const Points& edgePoints() const
@@ -130,7 +134,8 @@ protected:
 
     Points contourPoints_; 
     Labels pointCellLabels_;
-    //Labels cellLabels_; 
+
+    const bool weighted_;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
