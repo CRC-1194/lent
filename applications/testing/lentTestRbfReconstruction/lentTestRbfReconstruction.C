@@ -48,6 +48,7 @@ Description
 #include "ellipsoidHypersurface.H"
 // - Signed distance functions
 #include "analyticalEllipsoid.H"
+#include "analyticalPlane.H"
 #include "analyticalSphere.H"
 
 // Time measurement.
@@ -89,8 +90,19 @@ int main(int argc, char **argv)
     OFstream rbfErrorFile(casePath + "/rbfPositioningErrors.csv"); 
     rbfErrorFile << "RBF,STENCIL,SURFACE,LINF_CELL,L1_CELL,L2_CELL,POINT_CORR_CPU_TIME_SEC,FACTOR_CPU_TIME_SEC,SOL_CPU_TIME_SEC" << endl; 
 
+    // Plane, Signed Distance
+    surfaceTestFields fields(mesh, sigDistPlane);
+    // Linear + Centroid reconstruction
+    testIsoPoints<centroidIsoPointCalculator>(sigDistPlane, fields, centroidErrorFile, casePath); 
+    // Linear + Linear Least Squares without weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sigDistPlane, fields, leastSquaresNoWeightingErrorFile, casePath, false);
+    // Linear + Linear Least Squares with weighting
+    testIsoPoints<linearLeastSquaresIsoPointCalculator>(sigDistPlane, fields, leastSquaresWeightedErrorFile, casePath, true);
+    // RBF + Dual Contouring reconstruction
+    rbfReconstructLoop<rbfTuple>(sigDistPlane, fields, rbfErrorFile, casePath); 
+
     // Sphere, Signed Distance, Bulk 
-    surfaceTestFields fields(mesh, sigDistSphere);
+    fields.setValues(sigDistSphere);
     // Linear + Centroid reconstruction
     testIsoPoints<centroidIsoPointCalculator>(sigDistSphere, fields, centroidErrorFile, casePath); 
     // Linear + Linear Least Squares without weighting
