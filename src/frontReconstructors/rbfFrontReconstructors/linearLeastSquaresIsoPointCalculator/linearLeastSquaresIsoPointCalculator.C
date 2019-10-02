@@ -42,6 +42,7 @@ SourceFiles
 #include "volMesh.H"
 #include <cassert> 
 #include <iostream>
+#include <limits>
 
 namespace Foam { namespace FrontTracking {
     
@@ -201,8 +202,9 @@ point linearLeastSquaresIsoPointCalculator::projectToLeastSquaresPlane
     VectorXd plane = (weights*A).fullPivHouseholderQr().solve(weights*phiPrescribed);
     vector n{plane(1), plane(2), plane(3)};
     scalar d = plane(0);
-    n /= mag(n);
-    d /= mag(n);
+    auto nMag = mag(n) + EPSILON; 
+    n /= nMag;
+    d /= nMag;
     auto lambda = -(d + (aPoint&n));
 
     return aPoint + lambda*n;
@@ -249,7 +251,7 @@ linearLeastSquaresIsoPointCalculator::DiagonalMatrixXd linearLeastSquaresIsoPoin
 
 scalar linearLeastSquaresIsoPointCalculator::weight(const scalar d, const scalar support) const
 {
-    return 1.0/(d*d + 1.0e-12);
+    return 1.0/(d*d + EPSILON);
 }
 
 scalar linearLeastSquaresIsoPointCalculator::weightInput
@@ -259,7 +261,7 @@ scalar linearLeastSquaresIsoPointCalculator::weightInput
     const scalar R
 ) const
 {
-    point projected = centre + R*(p - centre)/(p & centre);
+    point projected = centre + R*(p - centre) / ((p & centre) + EPSILON);
     return mag(p - projected);
 }
 
