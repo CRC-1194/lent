@@ -99,7 +99,9 @@ int main(int argc, char **argv)
     // Linear + Linear Least Squares with weighting
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(sigDistPlane, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF + Dual Contouring reconstruction
-    //rbfReconstructLoop<rbfTuple>(sigDistPlane, fields, rbfErrorFile, casePath); 
+    {
+        rbfReconstructLoop<rbfTuple>(sigDistPlane, fields, rbfErrorFile, casePath);
+    }
 
     // Sphere, Signed Distance, Bulk 
     fields.setValues(sigDistSphere);
@@ -110,7 +112,9 @@ int main(int argc, char **argv)
     // Linear + Linear Least Squares with weighting
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(sigDistSphere, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF + Dual Contouring reconstruction
-    //rbfReconstructLoop<rbfTuple>(sigDistSphere, fields, rbfErrorFile, casePath); 
+    {
+        rbfReconstructLoop<rbfTuple>(sigDistSphere, fields, rbfErrorFile, casePath);
+    }
 
     // Sphere, Signed Distance, Boundary 
     fields.setValues(bSigDistSphere);
@@ -121,9 +125,10 @@ int main(int argc, char **argv)
     // Linear + Linear Least Squares with weighting
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(bSigDistSphere, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF + Dual Contouring reconstruction
-    //rbfReconstructLoop<rbfTuple>(bSigDistSphere, fields, rbfErrorFile, casePath); 
+    {
+        rbfReconstructLoop<rbfTuple>(bSigDistSphere, fields, rbfErrorFile, casePath); 
+    }
 
-    /*
     // Ellipsoid, Signed Distance, Bulk 
     fields.setValues(sigDistEllipsoid);
     // Linear + Centroid 
@@ -132,8 +137,10 @@ int main(int argc, char **argv)
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(sigDistEllipsoid, fields, leastSquaresNoWeightingErrorFile, casePath, false);
     // Linear + Linear Least Squares with weighting
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(sigDistEllipsoid, fields, leastSquaresWeightedErrorFile, casePath, true);
-    // RBF 
-    rbfReconstructLoop<rbfTuple>(sigDistEllipsoid, fields, rbfErrorFile, casePath); 
+    // RBF
+    {
+        rbfReconstructLoop<rbfTuple>(sigDistEllipsoid, fields, rbfErrorFile, casePath);
+    }
 
     // Ellipsoid, Signed Distance, Boundary 
     fields.setValues(bSigDistEllipsoid);
@@ -143,8 +150,10 @@ int main(int argc, char **argv)
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(bSigDistEllipsoid, fields, leastSquaresNoWeightingErrorFile, casePath, false);
     // Linear + Linear Least Squares with weighting
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(bSigDistEllipsoid, fields, leastSquaresWeightedErrorFile, casePath, true);
-    // RBF 
-    rbfReconstructLoop<rbfTuple>(bSigDistEllipsoid, fields, rbfErrorFile, casePath); 
+    // RBF
+    {
+        rbfReconstructLoop<rbfTuple>(bSigDistEllipsoid, fields, rbfErrorFile, casePath); 
+    }
 
     // Sphere, Implicit, Bulk
     fields.setValues(implicitSphere);
@@ -155,7 +164,9 @@ int main(int argc, char **argv)
     // Linear + Linear Least Squares with weighting
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(implicitSphere, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF
-    rbfReconstructLoop<rbfTuple>(implicitSphere, fields, rbfErrorFile, casePath); 
+    {
+        rbfReconstructLoop<rbfTuple>(implicitSphere, fields, rbfErrorFile, casePath); 
+    }
 
     // Sphere, Implicit, Boundary 
     fields.setValues(bImplicitSphere);
@@ -166,7 +177,9 @@ int main(int argc, char **argv)
     // Linear + Linear Least Squares with weighting
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(bImplicitSphere, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF
-    rbfReconstructLoop<rbfTuple>(bImplicitSphere, fields, rbfErrorFile, casePath); 
+    {
+        rbfReconstructLoop<rbfTuple>(bImplicitSphere, fields, rbfErrorFile, casePath); 
+    }
 
     // Ellipsoid, Implicit, Bulk 
     fields.setValues(implicitEllipsoid);
@@ -177,7 +190,9 @@ int main(int argc, char **argv)
     // Linear + Linear Least Squares with weighting
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(implicitEllipsoid, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF
-    rbfReconstructLoop<rbfTuple>(implicitEllipsoid, fields, rbfErrorFile, casePath); 
+    {
+        rbfReconstructLoop<rbfTuple>(implicitEllipsoid, fields, rbfErrorFile, casePath); 
+    }
 
     // Ellipsoid, Implicit, Boundary 
     fields.setValues(bImplicitEllipsoid);
@@ -188,8 +203,9 @@ int main(int argc, char **argv)
     // Linear + Linear Least Squares with weighting
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(bImplicitEllipsoid, fields, leastSquaresWeightedErrorFile, casePath, true);
     // RBF
-    rbfReconstructLoop<rbfTuple>(bImplicitEllipsoid, fields, rbfErrorFile, casePath); 
-    */
+    {
+        rbfReconstructLoop<rbfTuple>(bImplicitEllipsoid, fields, rbfErrorFile, casePath); 
+    }
 
     Info<< nl;
     Info<< "End\n" << endl;
