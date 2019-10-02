@@ -38,12 +38,17 @@ Description
 
 #include "rbFunctions.H"
 #include "rbfCellsInterpolationEigen.H"
-#include "analyticalEllipsoid.H"
-#include "sphereHypersurface.H"
-#include "ellipsoidHypersurface.H"
 #include "rbfIsoPointCalculator.H"
 #include "centroidIsoPointCalculator.H"
 #include "linearLeastSquaresIsoPointCalculator.H"
+
+// Test functions
+// - Implicit representation
+#include "sphereHypersurface.H"
+#include "ellipsoidHypersurface.H"
+// - Signed distance functions
+#include "analyticalEllipsoid.H"
+#include "analyticalSphere.H"
 
 // Time measurement.
 #include <chrono>
@@ -68,20 +73,9 @@ int main(int argc, char **argv)
             << "Memory usage of the RBF factorization is NxN x nCells x 64 bits, " << endl
             << "where N is the number of points in the RBF stencil (hex cells: 9 for BCC, 15 for BCC_FVM).\n";
 
-    // Initialize the surface test fields.
-    ellipsoidHypersurface ellipsoid (1/3., 1/2., 2/3.);
-    surfaceTestFields ellipsoidFields(mesh, ellipsoid, "Ellipsoid");
-    sphereHypersurface sphere(point(0., 0., 0.), 0.5);
-    surfaceTestFields sphereFields(mesh, sphere, "Sphere");
+    #include "testSurfaces.H"
 
     std::string casePath = args.rootPath() + "/" + args.globalCaseName();
-
-    // TODO: Rename the isoPointCalculator to centroidIsoPointCalculator. TM.
-    // Test centroid point reconstruction: 
-    OFstream centroidErrorFile(casePath + "/centroidPositioningErrors.csv"); 
-    centroidErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
-    testIsoPoints<centroidIsoPointCalculator>(sphere, sphereFields, centroidErrorFile, casePath); 
-    testIsoPoints<centroidIsoPointCalculator>(ellipsoid, ellipsoidFields, centroidErrorFile, casePath); 
 
     // Test linear least squares point reconstruction 
     OFstream leastSquaresErrorFile(casePath + "/leastSquaresPositioningErrors.csv"); 
@@ -89,15 +83,67 @@ int main(int argc, char **argv)
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(sphere, sphereFields, leastSquaresErrorFile, casePath); 
     testIsoPoints<linearLeastSquaresIsoPointCalculator>(ellipsoid, ellipsoidFields, leastSquaresErrorFile, casePath); 
     
+    OFstream centroidErrorFile(casePath + "/centroidPositioningErrors.csv"); 
+    centroidErrorFile << "SURFACE,LINF_EDGE,L1_EDGE,L2_EDGE, LINF_CELL, L1_CELL, L2_CELL, CPU_TIME_SECONDS" << endl; 
+
     OFstream rbfErrorFile(casePath + "/rbfPositioningErrors.csv"); 
     rbfErrorFile << "RBF,STENCIL,SURFACE,LINF_CELL,L1_CELL,L2_CELL,POINT_CORR_CPU_TIME_SEC,FACTOR_CPU_TIME_SEC,SOL_CPU_TIME_SEC" << endl; 
 
-    // Test RBF reconstruction: loop over all RBF kernels at compile time.
-    rbfReconstructLoop<rbfTuple>(sphere, sphereFields, rbfErrorFile, casePath); 
-    rbfReconstructLoop<rbfTuple>(ellipsoid, ellipsoidFields, rbfErrorFile, casePath); 
+    // Sphere, Signed Distance, Bulk 
+    surfaceTestFields fields(mesh, sigDistSphere);
+    // Linear + Centroid reconstruction
+    testIsoPoints<centroidIsoPointCalculator>(sigDistSphere, fields, centroidErrorFile, casePath); 
+    // RBF + Dual Contouring reconstruction
+    rbfReconstructLoop<rbfTuple>(sigDistSphere, fields, rbfErrorFile, casePath); 
 
-    ellipsoidFields.writeValueFields();
-    sphereFields.writeValueFields();
+    // Sphere, Signed Distance, Boundary 
+    fields.setValues(bSigDistSphere);
+    // Linear + Centroid reconstruction
+    testIsoPoints<centroidIsoPointCalculator>(bSigDistSphere, fields, centroidErrorFile, casePath); 
+    // RBF + Dual Contouring reconstruction
+    rbfReconstructLoop<rbfTuple>(bSigDistSphere, fields, rbfErrorFile, casePath); 
+
+    // Ellipsoid, Signed Distance, Bulk 
+    fields.setValues(sigDistEllipsoid);
+    // Linear + Centroid 
+    testIsoPoints<centroidIsoPointCalculator>(sigDistEllipsoid, fields, centroidErrorFile, casePath); 
+    // RBF 
+    rbfReconstructLoop<rbfTuple>(sigDistEllipsoid, fields, rbfErrorFile, casePath); 
+
+    // Ellipsoid, Signed Distance, Boundary 
+    fields.setValues(bSigDistEllipsoid);
+    // Linear + Centroid 
+    testIsoPoints<centroidIsoPointCalculator>(bSigDistEllipsoid, fields, centroidErrorFile, casePath); 
+    // RBF 
+    rbfReconstructLoop<rbfTuple>(bSigDistEllipsoid, fields, rbfErrorFile, casePath); 
+
+    // Sphere, Implicit, Bulk
+    fields.setValues(implicitSphere);
+    // Linear + Centroid
+    testIsoPoints<centroidIsoPointCalculator>(implicitSphere, fields, centroidErrorFile, casePath); 
+    // RBF
+    rbfReconstructLoop<rbfTuple>(implicitSphere, fields, rbfErrorFile, casePath); 
+
+    // Sphere, Implicit, Boundary 
+    fields.setValues(bImplicitSphere);
+    // Linear + Centroid
+    testIsoPoints<centroidIsoPointCalculator>(bImplicitSphere, fields, centroidErrorFile, casePath); 
+    // RBF
+    rbfReconstructLoop<rbfTuple>(bImplicitSphere, fields, rbfErrorFile, casePath); 
+
+    // Ellipsoid, Implicit, Bulk 
+    fields.setValues(implicitEllipsoid);
+    // Linear + Centroid
+    testIsoPoints<centroidIsoPointCalculator>(implicitEllipsoid, fields, centroidErrorFile, casePath); 
+    // RBF
+    rbfReconstructLoop<rbfTuple>(implicitEllipsoid, fields, rbfErrorFile, casePath); 
+
+    // Ellipsoid, Implicit, Boundary 
+    fields.setValues(bImplicitEllipsoid);
+    // Linear + Centroid
+    testIsoPoints<centroidIsoPointCalculator>(bImplicitEllipsoid, fields, centroidErrorFile, casePath); 
+    // RBF
+    rbfReconstructLoop<rbfTuple>(bImplicitEllipsoid, fields, rbfErrorFile, casePath); 
 
     Info<< nl;
     Info<< "End\n" << endl;

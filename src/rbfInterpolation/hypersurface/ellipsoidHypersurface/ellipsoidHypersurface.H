@@ -54,31 +54,41 @@ namespace Foam { namespace FrontTracking {
 
 class ellipsoidHypersurface
 {
-    const scalar a_; 
-    const scalar b_; 
-    const scalar c_; 
-
-    const scalar aSqr_; 
-    const scalar bSqr_; 
-    const scalar cSqr_;
+    vector center_; 
+    vector halfAxes_;
+    word name_;
 
 public:
 
     // Constructors
 
         //- Construct from components
-        ellipsoidHypersurface(scalar a, scalar b, scalar c);
+        ellipsoidHypersurface(
+            const vector& center, 
+            const vector& halfAxes, 
+            const word name = "ellipsoid"
+        );
 
     // Member Functions
     
         word name() const
         {
-            return "ellipsoid";
+            return name_; 
         }
         
-        inline scalar value(vector x) const;
+        inline scalar value(point p) const;
 
-        inline vector gradient(vector x) const;
+        inline vector gradient(point p) const;
+
+        inline vector center() const
+        {
+            return center_; 
+        }
+        
+        inline vector halfAxes() const
+        {
+            return halfAxes_;
+        }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

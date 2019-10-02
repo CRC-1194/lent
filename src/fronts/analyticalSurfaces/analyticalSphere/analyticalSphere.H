@@ -79,6 +79,7 @@ class analyticalSphere
     // Private data
     point centre_;
     scalar radius_;
+    word name_; 
 
 public:
 
@@ -87,7 +88,11 @@ public:
     // Constructors
     analyticalSphere() = default;
     analyticalSphere(const dictionary& configDict);
-    analyticalSphere(const point& centre, const scalar radius);
+    analyticalSphere(
+        const point& centre, 
+        const scalar radius, 
+        const word name = analyticalSurface::typeName
+    );
 
     //- Destructor
     virtual ~analyticalSphere() {};
@@ -96,6 +101,22 @@ public:
     // Member Functions
     virtual scalar distance(const point& trialpoint) const;
     virtual scalar signedDistance(const point& trialPoint) const;
+
+    inline scalar value(const point& trialPoint) const
+    {
+        return signedDistance(trialPoint); 
+    }
+
+    inline vector gradient(const point& trialPoint) const
+    {
+        return normalToPoint(trialPoint); 
+    }
+
+    word name() const
+    {
+        return name_; 
+    }
+
     virtual point normalProjectionToSurface(point& trialPoint) const;
     virtual vector normalToPoint(const point& trialPoint) const;
     virtual point intersection(const point& pointA, const point& pointB) const;
