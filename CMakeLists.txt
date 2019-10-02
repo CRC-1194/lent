@@ -1,9 +1,8 @@
-#include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 include(FetchContent)
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.14)
 
-project(geom-vof-init VERSION 1.0
+project(lent VERSION 1.0
     DESCRIPTION "Simulation of two-phase flows on unstructured meshes using a hybrid level set / front tracking method"
         LANGUAGES CXX)
 enable_testing()
@@ -35,26 +34,18 @@ endif()
 find_package(OpenMP REQUIRED)
 find_package(Eigen3 REQUIRED)
 
-# TODO: add LENT dependecies here, e.g. two-phase validation
-# Build dependencies
-#FetchContent_Declare(geometricLibrary_source
-#    GIT_REPOSITORY          git@git.rwth-aachen.de:leia/geophase.git
-#    GIT_TAG                 v1.0 
-#    GIT_SHALLOW             YES
-#    GIT_PROGRESS            YES
-#    USES_TERMINAL_DOWNLOAD  YES
-#    USES_TERMINAL_UPDATE    YES
-#)
-#FetchContent_GetProperties(geometricLibrary_source)
-# This is required to specify the source directory of the geometric library,
-# e.g. for target_include_directories. 
-# See https://cmake.org/cmake/help/v3.15/module/FetchContent.html#id4 for
-# Details (TT)
-#string(TOLOWER "geometricLibrary_source" geolib)
-#if(NOT geometricLibrary_source_POPULATED)
-#    FetchContent_Populate(geometricLibrary_source)
-#    #add_subdirectory(${geometriclibrary_source_SOURCE_DIR}) # Do we want to build geophase tests?
-#endif()
+
+# Two-Phase Validation
+FetchContent_Declare(two-phase-validation
+    GIT_REPOSITORY          git@bitbucket.org:big_t/two-phase-validation.git
+    GIT_TAG                 feature/cmake-build                 
+    GIT_SHALLOW             YES
+    GIT_PROGRESS            YES
+    USES_TERMINAL_DOWNLOAD  YES
+    USES_TERMINAL_UPDATE    YES
+)
+FetchContent_MakeAvailable(two-phase-validation)
+
 
 # OpenFOAM
 # Read build relevant OpenFOAM environment variables and cache them
