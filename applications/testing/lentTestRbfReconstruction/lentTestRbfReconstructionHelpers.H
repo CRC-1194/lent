@@ -267,7 +267,7 @@ struct errorNorms
     {
         double sqrSum = 0; 
         for (const auto& absErr : absErrors_)
-            sqrSum += absErr; 
+            sqrSum += absErr*absErr; 
 
         return std::sqrt(sqrSum / absErrors_.size()); 
     }
@@ -341,7 +341,7 @@ void testIsoPoints( // Can be used to test centroid points and polynomial MLS TM
     os << surface.name() << "," 
         << linEdgeErrors.Linf() << "," << linEdgeErrors.L1() << "," << linEdgeErrors.L2() 
         << "," 
-        << linCellErrors.Linf() << "," << linCellErrors.Linf() << "," << linCellErrors.Linf() 
+        << linCellErrors.Linf() << "," << linCellErrors.L1() << "," << linCellErrors.L2() 
         << "," << seconds.count() << "\n";
 }
 
