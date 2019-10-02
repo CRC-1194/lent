@@ -57,6 +57,7 @@ namespace Foam { namespace FrontTracking {
 
 class linearLeastSquaresIsoPointCalculator 
 {
+    static constexpr double EPSILON = std::numeric_limits<double>::epsilon();
 
 public:
 
