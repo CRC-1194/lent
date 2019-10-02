@@ -76,15 +76,20 @@ analyticalSphere::analyticalSphere(const dictionary& configDict)
 {
     centre_ = configDict.lookup("centre");
     radius_ = readScalar(configDict.lookup("radius"));
+    name_ = configDict.lookupOrDefault<word>("name", analyticalSphere::typeName);
 }
 
-analyticalSphere::analyticalSphere(const point& centre, const scalar radius)
+analyticalSphere::analyticalSphere(
+    const point& centre, 
+    const scalar radius,
+    const word name 
+)
 :
-   analyticalSurface{}
-{
-    centre_ = centre;
-    radius_ = radius;
-} 
+   analyticalSurface{},
+   centre_(centre), 
+   radius_(radius), 
+   name_(name)
+{} 
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //

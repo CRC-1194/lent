@@ -366,7 +366,10 @@ void testRbfEllipsoidSphere
         ellFields.resetErrors();
 
         // - Compute signed distance fields.
-        ellipsoidHypersurface ellipsoid (aAxes[testI], bAxes[testI], cAxes[testI]); 
+        ellipsoidHypersurface ellipsoid (
+            vector(0.,0.,0.),
+            vector(aAxes[testI], bAxes[testI], cAxes[testI])
+        ); 
         surfaceSetField(ellFields.volValues_, cellCenters, ellipsoid);
         surfaceSetField(ellFields.pointValues_, meshPoints, ellipsoid);
         
