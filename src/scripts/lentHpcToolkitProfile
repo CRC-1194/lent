@@ -14,14 +14,10 @@
 # in generating the profile. 
 
 APPLICATION=$1
-EVENTS=$2
+DATABASE=$2
 MEASUREMENTS=$3
 
-
 # Creating structures for the profiled application and liblent.so
-
-echo "/usr/bin/time hpcrun -o $MEASUREMENTS $EVENTS $APPLICATION"
-hpcrun -o $MEASUREMENTS $EVENTS $APPLICATION 
 
 echo "/usr/bin/time hpcstruct -I $LENT_PROJECT/+ $(which  "$APPLICATION")"
 hpcstruct -I $LENT_PROJECT/+ $(which  "$APPLICATION") 
@@ -33,8 +29,8 @@ STRUCTS=${STRUCTS//\/home/-S \/home}
 echo "/usr/bin/time hpcstruct -I $LENT_PROJECT/+ $FOAM_USER_LIBBIN/liblent.so"
 hpcstruct -I $LENT_PROJECT/+ $FOAM_USER_LIBBIN/liblent.so 
 
-echo "/usr/bin/time hpcprof -o database-$MEASUREMENTS -S $APPLICATION.hpcstruct -S liblent.so.hpcstruct
+echo "/usr/bin/time hpcprof -o $DATABASE -S $APPLICATION.hpcstruct -S liblent.so.hpcstruct
 $STRUCTS -I $LENT_PROJECT/+ $MEASUREMENTS"
 
-hpcprof -o database-$MEASUREMENTS -S $APPLICATION.hpcstruct -S liblent.so.hpcstruct \
+hpcprof -o $DATABASE -S $APPLICATION.hpcstruct -S liblent.so.hpcstruct \
     $STRUCTS -I $LENT_PROJECT/+ $MEASUREMENTS
