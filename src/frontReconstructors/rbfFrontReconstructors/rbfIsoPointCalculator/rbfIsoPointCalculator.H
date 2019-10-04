@@ -87,6 +87,9 @@ public:
         template<typename MeshRbfs> 
         void rbfCorrectContourPoints(MeshRbfs const& rbf);
 
+        template<typename MeshRbfs>
+        std::vector<double> contourPointValues(MeshRbfs const& meshRbfs) const;
+
         //Scalars const& contourPointRbfValues() const
         //{
             //return contourPointRbfVals_; 
