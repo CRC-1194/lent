@@ -128,7 +128,7 @@ void rbfCellsInterpolationEigen<Kernel>::setCellRbfValues
     using clSizeType = decltype(rbfCellNeiLabels.size()); 
     const auto shift = 1 + rbfPointLabels.size(); 
     for (clSizeType pI = 0; pI < rbfCellNeiLabels.size(); ++pI)
-        rbfValues_[pI + shift] = pf[rbfPointLabels[pI]]; 
+        rbfValues_[pI + shift] = vf[rbfCellNeiLabels[pI]]; 
 }
 
 template<typename Kernel>
