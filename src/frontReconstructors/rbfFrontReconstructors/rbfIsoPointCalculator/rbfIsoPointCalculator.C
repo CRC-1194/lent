@@ -140,6 +140,17 @@ void rbfIsoPointCalculator::calcContourPoints
     }
 }
 
+
+template<typename MeshRbfs>
+std::vector<double> rbfIsoPointCalculator::contourPointValues(MeshRbfs const& meshRbfs) const
+{
+    std::vector<double> values(contourPoints_.size());
+    for(decltype(contourPoints_.size()) pointI = 0; pointI < contourPoints_.size(); ++pointI)
+        values[pointI] = meshRbfs.value(pointCellLabels_[pointI], contourPoints_[pointI]);
+
+    return values;
+}
+
 }} // End namespace Foam::FrontTracking 
 
 // ************************************************************************* //

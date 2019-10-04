@@ -378,6 +378,7 @@ void testRbfIsoPoints(
         surface.name() + "-" + stencilName;
 
     auto vtkFile  = vtk_stream<std::ofstream>(baseFileName, rbfCalc.contourPoints()); 
+    write_to_vtk_stream(vtkFile, rbfCalc.contourPointValues(rbfs), "PHI_RBF");
     write_to_vtk_stream(vtkFile, rbfCellErrors.absErrors(), "L_INF"); 
 
     // TODO: Move this to RBF calcContourPoints and give the control over iterations 
@@ -393,6 +394,7 @@ void testRbfIsoPoints(
             iter
         ); 
 
+        write_to_vtk_stream(vtkFileI, rbfCalc.contourPointValues(rbfs), "PHI_RBF");
         write_to_vtk_stream(vtkFileI, rbfCellErrors.absErrors(), "L_INF"); 
     }
     
