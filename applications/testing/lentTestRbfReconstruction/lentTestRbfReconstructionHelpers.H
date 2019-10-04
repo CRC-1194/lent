@@ -230,8 +230,7 @@ struct errorNorms
     errorList errors_; 
     errorList absErrors_;
 
-    template<typename Points> 
-    errorNorms(Points const& points)
+    errorNorms()
     :
         errors_(),
         absErrors_()
@@ -289,7 +288,7 @@ errorNorms calcPointErrors(
     Surface const& surface
 )
 {
-    errorNorms pointErrors(points); 
+    errorNorms pointErrors; 
 
     for (const auto& point: points)
         pointErrors.append(surface.value(point)); 
