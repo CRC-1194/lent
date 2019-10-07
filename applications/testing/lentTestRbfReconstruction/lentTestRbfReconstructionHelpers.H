@@ -142,14 +142,10 @@ struct surfaceTestFields
 {
     const fvMesh& mesh_;
     const word name_; 
-    dimensionedScalar initLinf_; 
     pointMesh pMesh_;  
 
     pointScalarField pointValues_;
     volScalarField volValues_;  
-
-    volScalarField volLinfBcc_; 
-    volScalarField volLinfBccc_; 
 
     public: 
 
@@ -157,13 +153,12 @@ struct surfaceTestFields
             :
                 mesh_(mesh),
                 name_(name), 
-                initLinf_(dimensionedScalar("Linf", dimLength, -VGREAT)),
                 pMesh_(mesh), 
                 pointValues_ 
                 (
                     IOobject
                     (
-                        "pointValues" + name_, 
+                        name_, 
                         mesh.time().timeName(), 
                         mesh, 
                         IOobject::NO_READ, 
@@ -176,7 +171,7 @@ struct surfaceTestFields
                 (
                     IOobject
                     (
-                        "volValues" + name_,  
+                        name_,  
                         mesh.time().timeName(), 
                         mesh, 
                         IOobject::NO_READ, 
@@ -184,58 +179,28 @@ struct surfaceTestFields
                     ),
                     mesh, 
                     dimensionedScalar(name_, dimless, 0)
-                ), 
-                volLinfBcc_ 
-                (
-                    IOobject
-                    (
-                        "volLinfBcc" + name_,  
-                        mesh.time().timeName(), 
-                        mesh, 
-                        IOobject::NO_READ, 
-                        IOobject::AUTO_WRITE
-                    ),
-                    mesh, 
-                    initLinf_
-                ),
-                volLinfBccc_
-                (
-                    IOobject
-                    (
-                        "volLinfBccc" + name_,  
-                        mesh.time().timeName(), 
-                        mesh, 
-                        IOobject::NO_READ, 
-                        IOobject::AUTO_WRITE
-                    ),
-                    mesh, 
-                    initLinf_
                 )
         {}
 
         template<typename Surface>
-        surfaceTestFields(const fvMesh& mesh, Surface const& surface, const word& name)
+        surfaceTestFields(const fvMesh& mesh, Surface const& surface)
         :
-            surfaceTestFields(mesh, name)
+            surfaceTestFields(mesh, surface.name())
         {
             setValues(surface);  
-        }
-
-        void resetErrors()
-        {
-            volLinfBcc_ == initLinf_; 
-            volLinfBccc_ == initLinf_; 
         }
 
         template<typename Surface>
         void setVolValues(Surface const& surface)
         {
+            volValues_.rename(surface.name());
             surfaceSetField(volValues_, mesh_.C(), surface);  
         }
 
         template<typename Surface> 
         void setPointValues(Surface const& surface)
         {
+            pointValues_.rename(surface.name());
             surfaceSetField(pointValues_, mesh_.points(), surface);
         }
 
@@ -251,7 +216,7 @@ struct surfaceTestFields
             return mesh_;
         }
 
-        void writeValueFields() const
+        void writeFields() const
         {
             pointValues_.write(); 
             volValues_.write();
@@ -302,7 +267,7 @@ struct errorNorms
     {
         double sqrSum = 0; 
         for (const auto& absErr : absErrors_)
-            sqrSum += absErr; 
+            sqrSum += absErr*absErr; 
 
         return std::sqrt(sqrSum / absErrors_.size()); 
     }
@@ -344,7 +309,7 @@ void testIsoPoints( // Can be used to test centroid points and polynomial MLS TM
     SurfaceFields const& surfFields,
     Outstream& os,
     std::string casePath,
-    bool useWeighting
+    bool useWeighting=false
 )
 {
     using clock = std::chrono::high_resolution_clock;
@@ -376,9 +341,8 @@ void testIsoPoints( // Can be used to test centroid points and polynomial MLS TM
     os << surface.name() << "," 
         << linEdgeErrors.Linf() << "," << linEdgeErrors.L1() << "," << linEdgeErrors.L2() 
         << "," 
-        << linCellErrors.Linf() << "," << linCellErrors.Linf() << "," << linCellErrors.Linf() 
+        << linCellErrors.Linf() << "," << linCellErrors.L1() << "," << linCellErrors.L2() 
         << "," << seconds.count() << "\n";
-    surfFields.writeValueFields();
 }
 
 template
@@ -415,6 +379,7 @@ void testRbfIsoPoints(
         surface.name() + "-" + stencilName;
 
     auto vtkFile  = vtk_stream<std::ofstream>(baseFileName, rbfCalc.contourPoints()); 
+    write_to_vtk_stream(vtkFile, rbfCalc.contourPointValues(rbfs), "PHI_RBF");
     write_to_vtk_stream(vtkFile, rbfCellErrors.absErrors(), "L_INF"); 
 
     // TODO: Move this to RBF calcContourPoints and give the control over iterations 
@@ -430,6 +395,7 @@ void testRbfIsoPoints(
             iter
         ); 
 
+        write_to_vtk_stream(vtkFileI, rbfCalc.contourPointValues(rbfs), "PHI_RBF");
         write_to_vtk_stream(vtkFileI, rbfCellErrors.absErrors(), "L_INF"); 
     }
     
