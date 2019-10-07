@@ -225,6 +225,7 @@ add_library("lent${PROJECT_BUILD_TYPE}" SHARED
     src/fronts/frontMeshIntersection/cutCellVolumeCalculator/cutCellVolumeCalculator.C
     src/rbfInterpolation/hypersurface/sphereHypersurface/sphereHypersurface.C
     src/rbfInterpolation/hypersurface/ellipsoidHypersurface/ellipsoidHypersurface.C
+    src/rbfInterpolation/rbfCellsInterpolationEigen/rbfCellsInterpolationEigen.C
 )
 target_include_directories("lent${PROJECT_BUILD_TYPE}" PUBLIC
     src/cellToVertexInterpolation/interpolationCellPointTaylor
