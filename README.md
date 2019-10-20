@@ -20,6 +20,19 @@ Mathematics Department, Mathematical Modeling and Analysis Institute, TU Darmsta
 * gmsh or paraview for surface mesh generation
 * admesh for normal consistency 
 
+On Ubuntu, you can install the newest gcc and g++ packages as alternative packages. Here is an example for gcc/g++-9:
+
+```
+    $ sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+    $ sudo apt-get update
+    $ sudo apt-get install g++-9
+    $ sudo apt-get install g++-9
+    $ sudo update-alternatives --remove-all gcc 
+    $ sudo update-alternatives --remove-all g++
+    $ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 1
+    $ sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 1
+```
+
 
 ### Compiling Google Test
 
