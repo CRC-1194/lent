@@ -1,0 +1,110 @@
+// Parameters in this study are adapted from the 2D setup given in
+//
+//      Shin, Seungwon, and Damir Juric.
+//      LFRM, 2011
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        10.0
+    );
+
+    nu_droplet
+    (
+        0.05 0.005 // The paper mentions the viscosity of the droplet to be 0.05, but
+                   // does not specify if this refers to kinematic or dynamic viscosity.
+                   // Thus, test both configurations. However, if the same setup of
+                   // the 2002-paper is used, this would suggest that this value refers
+                   // to the kinematic viscosity (from the amplitude deacy rate in
+                   // figure 11).
+    );
+
+    rho_ambient
+    (
+        0.1
+    );
+
+    nu_ambient
+    (
+        5.0e-4
+    );
+
+    surface_tension_coefficient
+    (
+        10.0
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    // Only 25 is taken from paper
+    resolution 
+    (
+        25 50 100
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        6.7 // Corresponds to approximately three oscillation periods
+    );
+
+    // delta_t
+    //      This parameter is not given by any of the publications mentioned above.
+    //      Thus, the time step size is computed as a dependent parameter by the
+    //      aliasing criterion of Denner & van Wachem 2015
+
+
+    // Domain and interface geometry
+    domain_length
+    (
+        4.0
+    );
+
+    x_centre
+    (
+        2.00001
+    );
+
+    y_centre
+    (
+        1.99999
+    );
+
+    z_centre
+    (
+        2.0000341
+    );
+
+    x_semi_axis
+    (
+        1.025
+    );
+
+    y_semi_axis
+    (
+        0.9875
+    );
+
+    z_semi_axis
+    (
+        0.9875
+    );
+
+    // Only required for poly mesh setup
+    surface_file
+    (
+        boundary_R2p2_C222.stl
+    );
+
+    // Hexrefined meshes
+    n_base
+    (
+        25
+    );
+}

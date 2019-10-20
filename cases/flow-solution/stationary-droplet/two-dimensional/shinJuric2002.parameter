@@ -1,0 +1,99 @@
+// Values in this parameter file are taken from
+//
+//        Shin, Seungwon, and Damir Juric. "Modeling three-dimensional
+//        multiphase flow using a level contour reconstruction method for
+//        front tracking without connectivity."
+//        Journal of Computational Physics 180.2 (2002): 427-470,
+//        section 4.2
+//
+//        Note: the set of parameters given in the publication is incomplete.
+//        Values set here are chosen such that they fulfil the Laplace number
+//        reported in the paper.
+//
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rhoDroplet
+    (
+        1.0
+    );
+
+    nuDroplet
+    (
+        0.2
+    );
+
+    rhoAmbient
+    (
+        1.0
+    );
+
+    nuAmbient
+    (
+        0.2
+    );
+
+    surfaceTensionCoeff
+    (
+        20
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    N
+    (
+        24 40 80 160
+    ); 
+
+
+    // Parameters from system/controlDict
+    endTime
+    (
+        1
+    );
+
+    deltaT
+    (
+        0.001 0.005 0.01
+    );
+
+    writeInterval
+    (
+        10
+    );
+
+
+    // Parameters from lentSolution
+    nSmoothing
+    (
+        0 1
+    );
+
+    cellToVertex
+    (
+        cellPoint
+    );
+
+
+    // Parameters from fvSolution
+    nPisoOuter
+    (
+        1
+    );
+
+    nPisoInner
+    (
+        3
+    );
+}
+
+// Geometry parameters
+//G radius 0.25
+//G L 1.0
+//G distortion 0.000000212378
+//G xCentre 0.5
+//G yCentre 0.5
+//G zCentre 0.01

@@ -1,0 +1,43 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      voFoamDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+tolerances
+{
+    reconstructTol  1e-09;
+    positioningTol  1e-11;
+    positioningMaxIter 20;
+    zeroFluxTol     1e-11;
+    wispTol         1e-09;
+    gradTol         0;
+    fluxCorrectTol  1e-15;
+    fluxCorrectMaxIter 20;
+}
+
+validation
+{
+    advectionMethod evaluatedVelocity;
+    validationType  deformation;
+    period          3;
+    amplitude       1;
+    R               0.5;
+    x0              0.5;
+    y0              0.5;
+    velocity        ( 1 1 1 );
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,103 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  plus                                  |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      lentSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+distanceCalculator
+{
+    type            optimizedOctree;
+    narrowBandWidth 3;
+    narrowBandPropagation
+    {
+        type            naiveNarrowBand;
+    }
+}
+
+frontReconstructionModel
+{
+    type            maxNormalAngle;
+    value           25;
+}
+
+frontReconstructor
+{
+    type            foamIsoSurface;
+    mergeTolerance  1e-06;
+    regularization  off;
+    normalConsistency
+    {
+        type            centerNormal;
+    }
+}
+
+frontSurface
+{
+    type    Circle;
+    radius  0.2;
+    centre  (0.4 0.4 0);
+    emptyDirection (0 0 1);
+}
+
+frontSmoother
+{
+    relaxFactor 0.33;
+    nSweeps     2;
+    smooth      pointsAndEdges;
+}
+
+markerFieldModel
+{
+    type            tetFillingLevelAlternative;
+    cellDistance    signedDistance;
+    pointDistance   pointSignedDistance;
+    nSmoothingSteps 0;
+}
+
+frontVelocityCalculator
+{
+    type            barycentric;
+    searchAlgorithm
+    {
+        type            frontMeshSearch;
+    }
+}
+
+searchAlgorithm
+{
+    type            frontMeshSearch;
+}
+
+frontMotionSolver
+{
+    type            Taylor;
+    cellToVertexInterpolation cellPoint;
+}
+
+surfaceTensionForceModel
+{
+    type            CSF;
+    filterField     alpha.water;
+    curvatureModel
+    {
+        type frontTriangle;
+        normalCalculator
+        {
+            type parabolaFitting2D;
+        }
+    }
+}
+
+
+// ************************************************************************* //
