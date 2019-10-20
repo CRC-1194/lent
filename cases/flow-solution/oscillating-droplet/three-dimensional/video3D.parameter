@@ -1,0 +1,118 @@
+// Setup for the generation of a video of the oscillating droplet on
+// a polyhedral mesh
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        1.0
+    );
+
+    nu_droplet
+    (
+        0.01
+    );
+
+    rho_ambient
+    (
+        0.01
+    );
+
+    nu_ambient
+    (
+        5.0e-5
+    );
+
+    surface_tension_coefficient
+    (
+        1.0
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    resolution 
+    (
+        // Only n=128 resolution used for video
+        128 64
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        30
+    );
+
+    delta_t
+    (
+        0.005
+    );
+
+    write_interval
+    (
+        0.01
+    );
+
+
+    // Parameters from lentSolution
+    cell_to_vertex
+    (
+        cellPoint
+    );
+
+    curvature_model
+    (
+        compactDivGrad
+    );
+
+    front_to_mesh_transfer
+    (
+        triangleInCell
+    );
+
+
+    // Domain and interface geometry
+    domain_length
+    (
+        20.0
+    );
+
+    x_centre
+    (
+        10.00001
+    );
+
+    y_centre
+    (
+        9.99999
+    );
+
+    z_centre
+    (
+        10.0000341
+    );
+
+    x_semi_axis
+    (
+        3
+    );
+
+    y_semi_axis
+    (
+        2
+    );
+
+    z_semi_axis
+    (
+        2
+    );
+
+    element_size
+    (
+        0.05
+    );
+}

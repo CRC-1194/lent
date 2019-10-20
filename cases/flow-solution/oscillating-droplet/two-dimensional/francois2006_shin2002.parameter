@@ -1,0 +1,128 @@
+// Values in this parameter file are taken from
+//
+//      " Francois et al. (2006): A balanced-force algorithm for
+//        continuous and sharp interfacial surface tension models
+//        within a volume tracking framework",
+//        section 4.2
+//
+// and are identical to 
+//      " Shin, Juric (2002): Modeling Three-Dimensional Multiphase
+//        Flow Using a Level Contour Reconstruction Method for Front
+//        Tracking without Connectivity",
+//        section 4.2
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        1.0
+    );
+
+    nu_droplet
+    (
+        0.01
+    );
+
+    rho_ambient
+    (
+        0.01
+    );
+
+    nu_ambient
+    (
+        5.0e-05
+    );
+
+    surface_tension_coefficient
+    (
+        1.0
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    // Only 64 is the resolution taken from the publications
+    resolution 
+    (
+        64 128 256
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        20
+    );
+
+    delta_t
+    (
+        0.0025
+    );
+
+    write_interval
+    (
+        0.05
+    );
+
+    // Parameters from system/lentSolution
+    cell_to_vertex
+    (
+        cellPoint cellPointTaylor
+    );
+
+    curvature_model
+    (
+        frontTriangleFitting compactDivGrad
+    );
+
+    front_to_mesh_transfer
+    (
+        triangleInCell nearestTriangleVicinity
+    );
+
+    
+    // Domain and interface geometry
+    domain_length
+    (
+        20.0
+    );
+
+    x_centre
+    (
+        10.00001
+    );
+
+    y_centre
+    (
+        9.99999
+    );
+
+    z_centre
+    (
+        -0.5
+    );
+
+    x_semi_axis
+    (
+        3
+    );
+
+    y_semi_axis
+    (
+        2
+    );
+
+    prism_height
+    (
+        1.0
+    );
+
+    element_size
+    (
+        0.025
+    );
+
+}

@@ -1,0 +1,20 @@
+    // Parameters from lentSolution
+    cell_to_vertex
+    (
+        Kriging cellPointTaylor
+    );
+
+    curvature_model
+    (
+        frontTriangle compactDivGrad frontTriangleSinus
+    );
+
+    front_to_mesh_transfer
+    (
+        triangleInCell nearestTriangleVicinity
+    );
+
+    n_alpha_smoothing
+    (
+        0 1
+    );

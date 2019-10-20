@@ -1,0 +1,93 @@
+// Parameters in this study are adapted from the 2D setup given in
+//
+//      Popinet, Stephane.
+//      "An accurate adaptive solver for surface-tension-driven interfacial flows."
+//      Journal of Computational Physics 228.16 (2009): 5838-5866.
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        1.0
+    );
+
+    nu_droplet
+    (
+        // Viscosities correspond to La={120, 1200, 12000, infinity}
+        0.08165 0.02582 0.008165 0.0
+    );
+
+    rho_ambient
+    (
+        $rho_droplet
+    );
+
+    nu_ambient
+    (
+        $nu_droplet
+    );
+
+    surface_tension_coefficient
+    (
+        1.0
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    resolution
+    (
+        // 64 is equivalent to the resolution in the paper
+        16 32 64 128
+    ); 
+
+
+    // Parameters from system/controlDict
+    // 
+    // endTime:
+    //      In this study, end time is a parameter dependent on the viscosity
+
+    // deltaT:
+    //      Time step size is a derived parameter computed by the capillary wave
+    //      stability criterion
+    //
+    //  Question: As far as I know, the paper only states that the time step
+    //            has to be smaller than the value given by the criterion.
+    //            So how to choose the safety factor?
+
+
+    // Domain and interface geometry
+    x_centre
+    (
+        0.800000012  
+    );
+
+    y_centre
+    (
+        0.799999932   
+    );
+
+    z_centre
+    (
+        0.800000054  
+    );
+
+    radius
+    (
+        0.4   
+    );
+
+    domain_length
+    (
+        1.6  
+    );
+
+    // Only required for poly mesh
+    surface_file
+    (
+        boundary_R09_C080808.stl
+    );
+}

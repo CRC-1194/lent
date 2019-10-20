@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+
+cd front
+gmsh -2 front.geo -o front.stl

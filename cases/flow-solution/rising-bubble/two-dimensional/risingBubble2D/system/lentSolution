@@ -1,0 +1,101 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  plus                                  |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      lentSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "./constant/caseSetup"
+
+distanceCalculator
+{
+    type            optimizedOctree;
+    narrowBandWidth 2;
+    narrowBandPropagation
+    {
+        type            naiveNarrowBand;
+    }
+}
+
+frontReconstructionModel
+{
+    type            timeStepInterval;
+    value           50;
+}
+
+frontReconstructor
+{
+    type            foamIsoSurface;
+    mergeTolerance  1e-06;
+    regularization  off;
+    normalConsistency
+    {
+        type            centerNormal;
+    }
+}
+
+frontSmoother
+{
+    relaxFactor 1.0;
+    nSweeps     2;
+    smooth      pointsAndEdges;
+}
+
+markerFieldModel
+{
+    type            tetFillingLevelAlternative;
+    cellDistance    signedDistance;
+    pointDistance   pointSignedDistance;
+    nSmoothingSteps 1;
+}
+
+frontVelocityCalculator
+{
+    type            barycentric;
+    searchAlgorithm
+    {
+        type            frontMeshSearch;
+    }
+}
+
+searchAlgorithm
+{
+    type            frontMeshSearch;
+}
+
+frontMotionSolver
+{
+    type            Taylor;
+    cellToVertexInterpolation cellPoint;
+}
+
+exactCurvatureModel
+{
+    type            sphereCurvature;
+    write           on;
+    center          ( 4 4 4 );
+}
+
+surfaceTensionForceModel
+{
+    type            CSF;
+    filterField     alpha.water;
+    curvatureModel
+    {
+        type            divGrad;
+        curvatureField  signedDistance;
+    }
+}
+
+
+// ************************************************************************* //

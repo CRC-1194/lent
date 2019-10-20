@@ -1,0 +1,109 @@
+// Parameters in this study are taken from the 3D setup given in
+//
+//      Torres, D. J., and J. U. Brackbill.
+//      "The point-set method: front-tracking without connectivity."
+//      Journal of Computational Physics 165.2 (2000): 620-644.
+//
+// NOTE: the paper mentions a viscosity, but does not specify if this
+// denotes the dynamic or kinematic viscosity.
+// Here I assume the given values to denote the dynamic viscosity.
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        1.0
+    );
+
+    nu_droplet
+    (
+        0.05
+    );
+
+    rho_ambient
+    (
+        0.01
+    );
+
+    nu_ambient
+    (
+        1.0e-6
+    );
+
+    surface_tension_coefficient
+    (
+        0.2
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    resolution 
+    (
+        // Only n=32 resolution is from the paper
+        32 64 128
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        100
+    );
+
+    // delta_t
+    //      This parameter is not given by any of the publications mentioned above.
+    //      Thus, the time step size is computed as a dependent parameter by the
+    //      aliasing criterion of Denner & van Wachem 2015
+
+    write_interval
+    (
+        0.1
+    );
+
+
+    // Domain and interface geometry
+    domain_length
+    (
+        20.0
+    );
+
+    x_centre
+    (
+        10.00001
+    );
+
+    y_centre
+    (
+        9.99999
+    );
+
+    z_centre
+    (
+        10.0000341
+    );
+
+    x_semi_axis
+    (
+        4
+    );
+
+    y_semi_axis
+    (
+        3.5
+    );
+
+    z_semi_axis
+    (
+        3.8
+    );
+
+    // Only required for poly mesh setup
+    surface_file
+    (
+        boundary_R10_C101010.stl
+    );
+}

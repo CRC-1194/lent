@@ -1,0 +1,97 @@
+// Values in this parameter file are taken from
+//
+//      " An accurate adaptive solver for surface-tension-driven
+//        interfacial flows "
+//      S. Popinet, JCP, 2009
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rhoDroplet
+    (
+        1.0
+    );
+
+    nuDroplet
+    (
+        // Laplace number = 120, 1200, 12000
+        // 0.08165 0.02582 0.008165
+        0.08165
+    );
+
+    rhoAmbient
+    (
+        1.0
+        //1.0 1.0e-3 1.0e-5
+    );
+
+    nuAmbient
+    (
+        0.08165
+    );
+
+    surfaceTensionCoeff
+    (
+        1.0
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    N
+    (
+        20 40 80 160
+    ); 
+
+
+    // Parameters from system/controlDict
+    endTime
+    (
+        7.85
+    );
+
+    deltaT
+    (
+        // Based on finest resolution to fulfill time step restriction
+        9.7e-5
+    );
+
+    writeInterval
+    (
+        1000
+    );
+
+
+    // Parameters from lentSolution
+    nSmoothing
+    (
+        0 1
+    );
+
+    cellToVertex
+    (
+        cellPoint
+    );
+
+
+    // Parameters from fvSolution
+    nPisoOuter
+    (
+        1
+    );
+
+    nPisoInner
+    (
+        3
+    );
+}
+
+// Geometry parameters
+//G radius 0.4
+//G L 1.6
+//G distortion 0.00012343
+//G xCentre 0.8
+//G yCentre 0.8
+//G zCentre 0.1
