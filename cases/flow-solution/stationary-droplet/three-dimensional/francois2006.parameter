@@ -1,0 +1,102 @@
+// Values in this parameter file are taken from
+//
+//      Francois, Marianne M., et al.
+//      "A balanced-force algorithm for continuous and sharp interfacial surface tension models within a volume tracking framework."
+//      Journal of Computational Physics 213.1 (2006): 141-173.
+//      Table 2
+//
+//      NOTE: it is not clear from the paper which resolution is used for the
+//            results given in table 2
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        1.0
+    );
+
+    nu_droplet
+    (
+        0.0
+    );
+
+    rho_ambient
+    (
+        0.1
+    );
+
+    nu_ambient
+    (
+        0.0
+    );
+
+    surface_tension_coefficient
+    (
+        73.0
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    resolution 
+    (
+        20 40 80 160
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        1.0e-3 5.0e-2
+    );
+
+    delta_t
+    (
+        1.0e-3
+    );
+
+
+    // Domain and interface geometry
+    // In the paper, the droplet is positioned in the centre of the domain,
+    // (4 4 4). However, this causes trouible with OpenFOAM's implementation
+    // of the isosurface reconstruction
+    x_centre
+    (
+        4.00001
+    );
+
+    y_centre
+    (
+        3.99999
+    );
+
+    z_centre
+    (
+        4.0000035     
+    );
+
+    radius
+    (
+        2.0  
+    );
+
+    domain_length
+    (
+        8.0 
+    );
+
+    // Only required for poly mesh
+    surface_file
+    (
+        boundary_R4_C444.stl 
+    );
+
+    // Hex refined meshing
+    n_base
+    (
+        10
+    );
+}

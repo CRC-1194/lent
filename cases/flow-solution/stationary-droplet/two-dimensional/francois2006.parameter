@@ -1,0 +1,94 @@
+// Values in this parameter file are taken from
+//
+//      " Francois et al. (2006): A balanced-force algorithm for
+//        continuous and sharp interfacial surface tension models
+//        within a volume tracking framework",
+//        section 4.1
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rhoDroplet
+    (
+        1.0
+    );
+
+    nuDroplet
+    (
+        0.0
+    );
+
+    rhoAmbient
+    (
+        1.0 1.0e-3 1.0e-5
+    );
+
+    nuAmbient
+    (
+        0.0
+    );
+
+    surfaceTensionCoeff
+    (
+        73.0
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    N
+    (
+        20 40 80 160
+    ); 
+
+
+    // Parameters from system/controlDict
+    endTime
+    (
+        1.0e-6
+    );
+
+    deltaT
+    (
+        1.0e-6
+    );
+
+    writeInterval
+    (
+        1
+    );
+
+
+    // Parameters from lentSolution
+    nSmoothing
+    (
+        0 1
+    );
+
+    cellToVertex
+    (
+        cellPoint cellPointTaylor
+    );
+
+
+    // Parameters from fvSolution
+    nPisoOuter
+    (
+        1 2
+    );
+
+    nPisoInner
+    (
+        3 5
+    );
+}
+
+// Geometry parameters
+//G radius 2.0
+//G L 8.0
+//G distortion 0.000003451
+//G xCentre 4.0
+//G yCentre 4.0
+//G zCentre 0.2

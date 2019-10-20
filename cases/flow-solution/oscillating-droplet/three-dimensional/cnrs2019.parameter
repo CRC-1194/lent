@@ -1,0 +1,121 @@
+// Setup as given by Damir at CNRS 2019
+//
+// Note: change boundary conditions to noslip for U
+// and to zeroGradient for p_rgh
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        100
+    );
+
+    nu_droplet
+    (
+        3.5e-3
+    );
+
+    rho_ambient
+    (
+        0.1
+    );
+
+    nu_ambient
+    (
+        1.0e-3
+    );
+
+    surface_tension_coefficient
+    (
+        10.0
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    // 64 is the value of the original setup
+    resolution 
+    (
+        32 64
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        32 // Corresponds to approximately four oscillation periods
+    );
+
+    // delta_t
+    //      The time step size is computed as a dependent parameter by the
+    //      aliasing criterion of Denner & van Wachem 2015
+
+
+    // Domain and interface geometry
+    domain_length
+    (
+        4.0
+    );
+
+    x_centre
+    (
+        2
+    );
+
+    y_centre
+    (
+        2.0
+    );
+
+    z_centre
+    (
+        2.0
+    );
+
+    x_semi_axis
+    (
+        0.98772
+    );
+
+    y_semi_axis
+    (
+        0.98772
+    );
+
+    z_semi_axis
+    (
+        1.025
+    );
+
+    // Only required for poly mesh setup
+    surface_file
+    (
+        boundary_R2p2_C222.stl
+    );
+
+    // Hexrefined meshes
+    n_base
+    (
+        4
+    );
+
+
+    // Method parameters
+    temporal_integration
+    (
+        Euler
+    );
+
+    cell_to_vertex
+    (
+        cellPoint
+    );
+
+    curvature_model
+    (
+        compactDivGrad
+    );
+}

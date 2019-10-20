@@ -1,0 +1,43 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM Extend Project: Open Source CFD        |
+|  \\    /   O peration     | Version:  1.6-ext                               |
+|   \\  /    A nd           | Web:      www.extend-project.de                 |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       uniformDimensionedVectorField;
+    location    "constant";
+    object      g;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// blockMeshDict parameters
+N @!N!@;
+
+// controlDict parameters
+end_time    @!endTime!@;
+delta_T     @!deltaT!@;
+
+// transportProperties parameters
+nu_droplet  @!nuDroplet!@;
+rho_droplet @!rhoDroplet!@;
+nu_ambient  @!nuAmbient!@;
+rho_ambient @!rhoAmbient!@;
+surface_tension_coeff @!surfaceTensionCoeff!@;
+
+// Gravity constant g
+gravity @!gravity!@;
+
+// fvSolution
+n_piso_outer @!nPisoOuter!@;
+n_piso_inner @!nPisoInner!@;
+
+// lentSolution
+n_smoothing @!nSmoothing!@;
+cell_to_vertex @!cellToVertex!@;
+
+// ************************************************************************* //

@@ -1,0 +1,146 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  plus                                  |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      lentSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+testConfiguration
+{
+    nRandomRuns             @!n_random_runs!@;
+    nPerturbedRuns          @!n_perturbed_runs!@;
+    writeFields             @!write_fields!@;
+    correctFront            @!correct_front!@;
+    useFrontSignedDistance  @!use_front_signed_distance!@;
+    frontNoise              (@!front_noise!@ @!front_noise!@ 0);
+    distanceNoise           @!distance_noise!@;
+}
+
+frontSurface
+{
+    front_surface = @!front_surface!@;
+
+    <!--(if front_surface=="randomCircle")-->
+        type                randomizedCircle;
+        centre              (2 2 0);
+        radius              1;
+        emptyDirection      (0 0 1);
+        centrePerturbation  (0.7 0.7 0.0);
+        radiusPerturbation  0;
+    <!--(elif front_surface=="randomEllipse_12to10")-->
+        type                    randomizedEllipse;
+        centre                  (2 2 0);
+        semiAxes                (1.2 1.0 1);
+        emptyDirection          (0 0 1);
+        centrePerturbation      (0.3 0.3 0);
+        semiAxesPerturbation    (0 0 0);
+    <!--(elif front_surface=="randomEllipse_3to2")-->
+        type                    randomizedEllipse;
+        centre                  (2 2 0);
+        semiAxes                (1.5 1.0 1);
+        emptyDirection          (0 0 1);
+        centrePerturbation      (0.2 0.3 0);
+        semiAxesPerturbation    (0 0 0);
+    <!--(elif front_surface=="randomEllipse_4to1")-->
+        type                    randomizedEllipse;
+        centre                  (2 2 0);
+        semiAxes                (1.5 0.375 1);
+        emptyDirection          (0 0 1);
+        centrePerturbation      (0.2 0.4 0);
+        semiAxesPerturbation    (0 0 0);
+    <!--(end)-->
+}
+
+exactCurvatureModel
+{
+    type            exactCurvature;
+    write           off;
+}
+
+numericalCurvatureModel
+{
+    numerical_curvature_model @!numerical_curvature_model!@;
+
+    <!--(if numerical_curvature_model=="frontTriangle")-->
+        type    frontTriangle;
+        normalCalculator
+        {
+            type    parabolaFitting2D;
+        }
+    <!--(elif numerical_curvature_model=="compactDivGradInterpolationCorr")-->
+        type                compactDivGrad;
+        curvatureField      signedDistance;
+        distanceCorrection  interpolation;
+    <!--(elif numerical_curvature_model=="compactDivGradSphereCorr")-->
+        type                compactDivGrad;
+        curvatureField      signedDistance;
+        distanceCorrection  sphere;
+    <!--(end)-->
+}
+
+distanceCalculator
+{
+    type            optimizedOctree;
+    narrowBandWidth 4;
+    narrowBandPropagation
+    {
+        type            naiveNarrowBand;
+    }
+}
+
+frontReconstructionModel
+{
+    type            timeStepInterval;
+    value           1;
+}
+
+frontReconstructor
+{
+    type            foamIsoSurface;
+    mergeTolerance  1e-06;
+    regularization  off;
+    normalConsistency
+    {
+        type            centerNormal;
+    }
+}
+
+frontMotionSolver
+{
+    type            Taylor;
+    cellToVertexInterpolation cellPoint;
+}
+
+markerFieldModel
+{
+    type            tetFillingLevelAlternative;
+    cellDistance    signedDistance;
+    pointDistance   pointSignedDistance;
+    nSmoothingSteps 0;
+}
+
+surfaceTensionForceModel
+{
+    type            Tryggvason;
+    filterField     alpha.water;
+}
+
+frontSmoother
+{
+    relaxFactor     0.33;
+    nSweeps         2;
+    smooth          pointsAndEdges;
+}
+
+
+// ************************************************************************* //

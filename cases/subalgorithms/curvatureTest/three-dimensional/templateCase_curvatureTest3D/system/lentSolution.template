@@ -1,0 +1,171 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  plus                                  |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      lentSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+testConfiguration
+{
+    nRandomRuns             @!n_random_runs!@;
+    nPerturbedRuns          @!n_perturbed_runs!@;
+    writeFields             @!write_fields!@;
+    correctFront            @!correct_front!@;
+    useFrontSignedDistance  @!use_front_signed_distance!@;
+    frontNoise              (@!front_noise!@ @!front_noise!@ @!front_noise!@);
+    distanceNoise           @!distance_noise!@;
+}
+
+frontSurface
+{
+    <!--(if front_surface=="randomSphere")-->
+        type                randomizedSphere;
+        centre              (2 2 2);
+        radius              1;
+        centrePerturbation  (0.15 0.15 0.15);
+        radiusPerturbation  0;
+    <!--(elif front_surface=="randomEllipsoidWeak")-->
+        type                    randomizedEllipsoid;
+        centre                  (2 2 2);
+        semiAxes                (1.2 1.1 1.0);
+        centrePerturbation      (0.2 0.2 0.2);
+        semiAxesPerturbation    (0.0 0.0 0.0);
+    <!--(elif front_surface=="randomEllipsoidStrong")-->
+        type                    randomizedEllipsoid;
+        centre                  (2 2 2);
+        semiAxes                (1.5 1.0 0.5);
+        centrePerturbation      (0.2 0.5 0.5);
+        semiAxesPerturbation    (0.0 0.0 0.0);
+    <!--(end)-->
+}
+
+exactCurvatureModel
+{
+    type            exactCurvature;
+    write           off;
+}
+
+numericalCurvatureModel
+{
+    <!--(if numerical_curvature_model=="frontTriangleParabolaFitting")-->
+        type    frontTriangle;
+        normalCalculator
+        {
+            type    parabolaFitting;
+        }
+    <!--(elif numerical_curvature_model=="frontTriangleWeightedAverage")-->
+        type    frontTriangle;
+        normalCalculator
+        {
+            type    sinusEdgeLength;
+        }
+    <!--(elif numerical_curvature_model=="compactDivGradNoCorrection")-->
+        type                compactDivGrad;
+        curvatureField      signedDistance;
+        distanceCorrection  off;
+    <!--(elif numerical_curvature_model=="compactDivGradInterpolation")-->
+        type                compactDivGrad;
+        curvatureField      signedDistance;
+        distanceCorrection  interpolation;
+    <!--(elif numerical_curvature_model=="compactDivGradSphere")-->
+        type                compactDivGrad;
+        curvatureField      signedDistance;
+        distanceCorrection  sphere;
+    <!--(elif numerical_curvature_model=="divGradSignedDistance")-->
+        type                divGrad;
+        curvatureField      signedDistance;
+    <!--(elif numerical_curvature_model=="divGradMarkerField")-->
+        type                divGrad;
+        curvatureField      alpha.water;
+    <!--(elif numerical_curvature_model=="Meyer")-->
+        type    Meyer;
+    <!--(end)-->
+        frontToMeshTransfer
+        {
+        <!--(if front_to_mesh_transfer=="triangleInCell")-->
+            type triangleInCell;
+        <!--(elif front_to_mesh_transfer=="nearestTriangleVicinity")-->
+            type    nearestTriangleVicinity;
+            markerFieldName alpha.water;
+            searchRadiusCoefficient 1.0;
+        <!--(end)-->
+        }
+}
+
+markerFieldModel
+{
+    // Need to set the correct marker field model if the configuration of the
+    // first LENT paper is to be used
+    <!--(if numerical_curvature_model=="divGradMarkerField")-->
+        type            harmonic;
+        cellDistance    signedDistance;
+    <!--(else)-->
+        type            tetFillingLevelAlternative;
+        cellDistance    signedDistance;
+        pointDistance   pointSignedDistance;
+        nSmoothingSteps @!n_alpha_smoothing!@;
+    <!--(end)-->
+}
+
+distanceCalculator
+{
+    type            optimizedOctree;
+    <!--(if numerical_curvature_model=="divGradMarkerField")-->
+        narrowBandWidth 2;
+    <!--(else)-->
+        narrowBandWidth 4;
+    <!--(end)-->
+    narrowBandPropagation
+    {
+        type            naiveNarrowBand;
+    }
+}
+
+frontReconstructionModel
+{
+    type            timeStepInterval;
+    value           1;
+}
+
+frontReconstructor
+{
+    type            foamIsoSurface;
+    mergeTolerance  1e-06;
+    regularization  off;
+    normalConsistency
+    {
+        type            centerNormal;
+    }
+}
+
+frontMotionSolver
+{
+    type            Taylor;
+    cellToVertexInterpolation cellPoint;
+}
+
+surfaceTensionForceModel
+{
+    type            Tryggvason;
+    filterField     alpha.water;
+}
+
+frontSmoother
+{
+    relaxFactor     0.33;
+    nSweeps         2;
+    smooth          pointsAndEdges;
+}
+
+
+// ************************************************************************* //
