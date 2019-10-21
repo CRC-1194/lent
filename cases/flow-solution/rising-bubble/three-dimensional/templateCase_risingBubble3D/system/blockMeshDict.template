@@ -17,27 +17,29 @@ radius  @!radius!@;
 N       @!resolution!@;
 x_centre @!x_centre!@; 
 y_centre @!y_centre!@;
+z_centre @!z_centre!@;
 
-halfwidth #calc "$radius * 5";
+halfwidth #calc "$radius * 4";
 C0 #calc "$x_centre - $halfwidth";
 C1 #calc "$y_centre - $halfwidth";
 C2 #calc "$x_centre + $halfwidth";
 C3 #calc "$y_centre + $halfwidth";
 
-h #calc "$radius * 10";
+hStart #calc "$z_centre - 2*$radius";
+hEnd #calc "$z_centre + 8*$radius";
 
 convertToMeters 1.00;
 
 vertices
 (
-    ($C0 $C1  0)
-    ($C2 $C1  0)
-    ($C2 $C3  0)
-    ($C0 $C3  0)
-    ($C0 $C1 $h)
-    ($C2 $C1 $h)
-    ($C2 $C3 $h)
-    ($C0 $C3 $h)
+    ($C0 $C1 $hStart)
+    ($C2 $C1 $hStart)
+    ($C2 $C3 $hStart)
+    ($C0 $C3 $hStart)
+    ($C0 $C1 $hEnd)
+    ($C2 $C1 $hEnd)
+    ($C2 $C3 $hEnd)
+    ($C0 $C3 $hEnd)
 );
 
 blocks
