@@ -34,7 +34,7 @@ distanceCalculator
 frontReconstructionModel
 {
     type    timeStepInterval;
-    value   @!smoothing_interval!@;
+    value   10;
 }
 
 frontSurface
@@ -67,7 +67,7 @@ markerFieldModel
     type            tetFillingLevelAlternative;
     cellDistance    signedDistance;
     pointDistance   pointSignedDistance;
-    nSmoothingSteps @!n_alpha_smoothing!@;
+    nSmoothingSteps 0; 
 }
 
 frontVelocityCalculator
@@ -87,7 +87,7 @@ searchAlgorithm
 frontMotionSolver
 {
     type            Taylor;
-    cellToVertexInterpolation @!cell_to_vertex!@;
+    cellToVertexInterpolation pointInCell;
 }
 
 surfaceTensionForceModel
