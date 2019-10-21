@@ -14,7 +14,9 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-centre  @!x_centre!@;
+#include "meshingDimensions";
+
+x_centre  @!x_centre!@;
 radius  @!radius!@;
 d       #calc "5.0 * $radius";
 n_fine  @!resolution!@;
@@ -24,8 +26,8 @@ n_fine  @!resolution!@;
 // is uniformly resolved
 delta   #calc "4.0*$d/float($n_fine)";
 
-bmin    #calc "$centre - $radius - $delta";
-bmax    #calc "$centre + $radius + $delta";
+bmin    #calc "$x_centre - $radius - $delta";
+bmax    #calc "$x_centre + $radius + $delta";
 
 actions
 (
@@ -36,7 +38,7 @@ actions
         source  boxToPoint;
         sourceInfo
         {
-            box ($bmin $bmin 0.0) ($bmax $bmax #calc "10.0 * $radius");
+            box ($bmin $bmin $hStart) ($bmax $bmax $hEnd);
         }
     }
 
