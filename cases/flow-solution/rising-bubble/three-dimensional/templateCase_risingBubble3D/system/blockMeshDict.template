@@ -15,22 +15,31 @@ FoamFile
 
 radius  @!radius!@;
 N       @!resolution!@;
+x_centre @!x_centre!@; 
+y_centre @!y_centre!@;
+z_centre @!z_centre!@;
 
-w #calc "$radius * 5";
-h #calc "$radius * 10";
+halfwidth #calc "$radius * 4";
+C0 #calc "$x_centre - $halfwidth";
+C1 #calc "$y_centre - $halfwidth";
+C2 #calc "$x_centre + $halfwidth";
+C3 #calc "$y_centre + $halfwidth";
+
+hStart #calc "$z_centre - 2*$radius";
+hEnd #calc "$z_centre + 8*$radius";
 
 convertToMeters 1.00;
 
 vertices
 (
-    (0    0    0)
-    ($w   0    0)
-    ($w   $w   0)
-    (0    $w   0)
-    (0    0    $h)
-    ($w   0    $h)
-    ($w   $w   $h)
-    (0    $w   $h)
+    ($C0 $C1 $hStart)
+    ($C2 $C1 $hStart)
+    ($C2 $C3 $hStart)
+    ($C0 $C3 $hStart)
+    ($C0 $C1 $hEnd)
+    ($C2 $C1 $hEnd)
+    ($C2 $C3 $hEnd)
+    ($C0 $C3 $hEnd)
 );
 
 blocks
