@@ -33,13 +33,11 @@ values
     (
         0.0724
     );
-
+	
+    n_base (32);
     
     // Parameters from system/blockMeshDict
-    resolution 
-    (
-        50 
-    ); 
+    resolution (64); 
 
     // Parameters from system/controlDict
     end_time
