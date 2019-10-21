@@ -15,12 +15,12 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 radius  @!radius!@;
-N       @!resolution!@;
+N       @!n_base!@;
 x_centre @!x_centre!@; 
 y_centre @!y_centre!@;
 z_centre @!z_centre!@;
 
-halfwidth #calc "$radius * 4";
+halfwidth #calc "$radius * 2";
 C0 #calc "$x_centre - $halfwidth";
 C1 #calc "$y_centre - $halfwidth";
 C2 #calc "$x_centre + $halfwidth";
