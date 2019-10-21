@@ -17,21 +17,6 @@ FoamFile
 
 solvers
 {
-    "alpha.water.*"
-    {
-        nAlphaCorr      2;
-        nAlphaSubCycles 1;
-        cAlpha          1;
-
-        MULESCorr       yes;
-        nLimiterIter    3;
-
-        solver          smoothSolver;
-        smoother        symGaussSeidel;
-        tolerance       1e-8;
-        relTol          0;
-    }
-
     pcorr
     {
         solver          PCG;
@@ -75,8 +60,8 @@ solvers
 lentSC
 {
     momentumPredictor   yes;
-    nOuterCorrectors    @!n_outer_correctors!@;
-    nCorrectors         @!n_correctors!@;
+    nOuterCorrectors    30;
+    nCorrectors         6; 
     nNonOrthogonalCorrectors 0;
 
     residualControl
@@ -89,8 +74,8 @@ lentSC
      }
 
      // lentSC specific parameters
-     phiChangeTolerance     @!phi_change_tolerance!@;
-     absPhiChangeTolerance  @!abs_phi_change_tolerance!@;
+     phiChangeTolerance     5.0e-04;
+     absPhiChangeTolerance  1.0e-15;
 }
 
 relaxationFactors

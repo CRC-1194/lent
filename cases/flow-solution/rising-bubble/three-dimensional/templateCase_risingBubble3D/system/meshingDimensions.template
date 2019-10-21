@@ -10,70 +10,23 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      blockMeshDict; 
+    object      meshing; 
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "meshingDimensions";
+radius  @!radius!@;
+N       @!n_base!@;
+x_centre @!x_centre!@; 
+y_centre @!y_centre!@;
+z_centre @!z_centre!@;
 
-convertToMeters 1.00;
+halfwidth #calc "$radius * 2";
+C0 #calc "$x_centre - $halfwidth";
+C1 #calc "$y_centre - $halfwidth";
+C2 #calc "$x_centre + $halfwidth";
+C3 #calc "$y_centre + $halfwidth";
 
-vertices
-(
-    ($C0 $C1 $hStart)
-    ($C2 $C1 $hStart)
-    ($C2 $C3 $hStart)
-    ($C0 $C3 $hStart)
-    ($C0 $C1 $hEnd)
-    ($C2 $C1 $hEnd)
-    ($C2 $C3 $hEnd)
-    ($C0 $C3 $hEnd)
-);
-
-blocks
-(
-    hex (0 1 2 3 4 5 6 7) ($N $N #calc "int(2*$N)") simpleGrading (1 1 1)
-);
-
-edges
-(
-);
-
-boundary
-(
-    bottom
-    {
-        type    patch;
-        faces
-        (
-            (3 2 1 0)
-        );
-    }
-
-    top
-    {
-        type    patch;
-        faces
-        (
-            (4 5 6 7)
-        );
-    }
-
-    mantle
-    {
-        type    patch;
-        faces
-        (
-            (0 4 7 3)
-            (2 6 5 1)
-            (0 1 5 4)
-            (7 6 2 3)
-        );
-    }
-);
-
-mergePatchPairs
-(
-);
+hStart #calc "$z_centre - 2*$radius";
+hEnd #calc "$z_centre + 8*$radius";
 
 // ************************************************************************* //
