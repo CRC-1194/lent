@@ -34,7 +34,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-09;
+        tolerance       @!p_tol!@;
         relTol          0;
     }
 
@@ -47,7 +47,7 @@ solvers
     {
         solver          PBiCG;
         preconditioner  DILU;
-        tolerance       1e-08;
+        tolerance       @!u_tol!@;
         relTol          0;
     }
 
@@ -68,7 +68,7 @@ lentSC
     {
         p_rgh
         {
-                tolerance  1e-9;
+                tolerance  @!p_tol!@;
                 relTol     0;
         }
      }

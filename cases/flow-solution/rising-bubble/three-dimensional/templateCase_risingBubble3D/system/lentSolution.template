@@ -34,7 +34,7 @@ distanceCalculator
 frontReconstructionModel
 {
     type    timeStepInterval;
-    value   10;
+    value   @!reconstruction_interval!@;
 }
 
 frontSurface
@@ -86,8 +86,8 @@ searchAlgorithm
 
 frontMotionSolver
 {
-    type            Taylor;
-    cellToVertexInterpolation cellPoint;
+    type                      @!temporal_integration!@;
+    cellToVertexInterpolation @!cell_to_vertex!@;
 }
 
 surfaceTensionForceModel
