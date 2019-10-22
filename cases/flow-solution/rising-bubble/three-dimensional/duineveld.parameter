@@ -45,10 +45,10 @@ values
         0.6  // Dimensionless time in [2] is \tilde{t} =\frac{t}{\sqrt{\frac{2*radius / g}}}
     );
 
-    delta_t
-    (
-        1e-04 
-    );
+    //delta_t
+    //(
+    //    1e-04 
+    //);
 
     write_interval
     (

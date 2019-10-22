@@ -87,7 +87,7 @@ searchAlgorithm
 frontMotionSolver
 {
     type            Taylor;
-    cellToVertexInterpolation pointInCell;
+    cellToVertexInterpolation cellPoint;
 }
 
 surfaceTensionForceModel
