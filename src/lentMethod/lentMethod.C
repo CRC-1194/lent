@@ -189,33 +189,26 @@ void lentMethod::reconstructFront(
 {
     if (frontReconstructionModelTmp_->reconstructionRequired(front, signedDistance))
     {
-        // TODO: think of more elegant solution.. (TT)
-        if (frontPreviouslySmoothed_ || signedDistance.time().timeIndex() <= 1)
+        Info << "Reconstructing front..." << endl;
+
+        frontReconstructorTmp_->reconstructFront(
+            front,
+            signedDistance,
+            pointSignedDistance
+        );
+
+        if (front.surfaceType() != triSurface::MANIFOLD)
         {
-            Info << "Reconstructing front..." << endl;
-
-            frontReconstructorTmp_->reconstructFront(
-                front,
-                signedDistance,
-                pointSignedDistance
-            );
-
-            frontIsReconstructed_ = true;
-
-            reconstructionHistory_.frontReconstructed();
-
-            Info << "Done." << endl;
+            Info << "Warning: front is not a Manifold anymore." << endl;
         }
+
+        reconstructionHistory_.frontReconstructed();
 
         frontSmoother_.smoothFront(front, signedDistance.mesh());
 
-        frontPreviouslySmoothed_ = true;
+        frontIsReconstructed_ = true;
 
-        reconstructionHistory_.frontSmoothed();
-    }
-    else
-    {
-        frontPreviouslySmoothed_ = false;
+        Info << "Done." << endl;
     }
 }
 
@@ -255,11 +248,6 @@ void lentMethod::evolveFront(
     Info << "Done." << endl;
 
     frontIsReconstructed_ = false;
-
-    // Clean up degenerate triangles.
-    //Info << "Cleaning up degeneracies..." << endl;  
-    //front.cleanup(false);
-    //Info << "Done." << endl;
 
     // Update front-mesh communication maps after front motion. 
     Info << "Updating communication maps..." << endl;  
