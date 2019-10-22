@@ -60,8 +60,8 @@ solvers
 lentSC
 {
     momentumPredictor   yes;
-    nOuterCorrectors    30;
-    nCorrectors         6; 
+    nOuterCorrectors    @!n_outer_correctors!@;
+    nCorrectors         @!n_correctors!@; 
     nNonOrthogonalCorrectors 0;
 
     residualControl
@@ -74,8 +74,8 @@ lentSC
      }
 
      // lentSC specific parameters
-     phiChangeTolerance     5.0e-04;
-     absPhiChangeTolerance  1.0e-15;
+     phiChangeTolerance     @!phi_change_tolerance!@;
+     absPhiChangeTolerance  @!abs_phi_change_tolerance!@;
 }
 
 relaxationFactors
