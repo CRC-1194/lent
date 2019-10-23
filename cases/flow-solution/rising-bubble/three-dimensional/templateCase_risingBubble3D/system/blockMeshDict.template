@@ -18,21 +18,23 @@ FoamFile
 
 convertToMeters 1.00;
 
+Nz #calc "int($N*($Z1 + $Z2)/(2*$HALF_WIDTH))";
+
 vertices
 (
-    ($C0 $C1 $hStart)
-    ($C2 $C1 $hStart)
-    ($C2 $C3 $hStart)
-    ($C0 $C3 $hStart)
-    ($C0 $C1 $hEnd)
-    ($C2 $C1 $hEnd)
-    ($C2 $C3 $hEnd)
-    ($C0 $C3 $hEnd)
+    ($C0 $C1 $H_START)
+    ($C2 $C1 $H_START)
+    ($C2 $C3 $H_START)
+    ($C0 $C3 $H_START)
+    ($C0 $C1 $H_END)
+    ($C2 $C1 $H_END)
+    ($C2 $C3 $H_END)
+    ($C0 $C3 $H_END)
 );
 
 blocks
 (
-    hex (0 1 2 3 4 5 6 7) ($N $N #calc "int(2*$N)") simpleGrading (1 1 1)
+    hex (0 1 2 3 4 5 6 7) ($N $N $Nz) simpleGrading (1 1 1)
 );
 
 edges
