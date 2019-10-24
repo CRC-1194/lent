@@ -23,31 +23,11 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Authors
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tomislav Maric maric@mma.tu-darmstadt.de
+    Tobias Tolle tolle@mma.tu-darmstadt.de
 
 Description
-    A DNS two-phase flow solver employing a hybrid level-set / front-tracking
-    method.
-
-    You may refer to this software as :
-    //- full bibliographic data to be provided
-
-    This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
-    under the project supervision of :
-        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
-    
-    Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de
-    	Holger Marschall <marschall@csi.tu-darmstadt.de>
-    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
-
-        Mathematical Modeling and Analysis
-        Center of Smart Interfaces
-        Technische Universitaet Darmstadt
-       
-    If you use this software for your scientific work or your publications,
-    please don't forget to acknowledge explicitly the use of it.
+    A two-phase Level Set / Front Tracking DNS solver.
 
 \*---------------------------------------------------------------------------*/
 
@@ -143,7 +123,18 @@ int main(int argc, char *argv[])
 
     front.write();
 
-    // TODO: Examine the internal p-U coupling loop. Update on markerField? TM.  
+    // Explicit extrapolation of fields for improved handling of non-linearity in the
+    // pressure - velocity coupling. Based on "Consistent second-order time-accurate
+    // non-iterative PISO-algorithm, Tukovic, Peric, Jasak. TODO: Proper reference.
+    // volScalarField pn ("pn", p);
+    surfaceScalarField phistar ("phistar", phi);
+    surfaceScalarField phin ("phin", phi);
+    volScalarField signedDistancen("signedDistancen", signedDistance);
+    pointScalarField pointSignedDistancen("pointSignedDistancen", pointSignedDistance);
+    volScalarField signedDistanceStar("signedDistanceStar", signedDistance);
+    pointScalarField pointSignedDistanceStar("pointSignedDistanceStar", pointSignedDistance);
+
+	
     while (runTime.run())
     {
         #include "readTimeControls.H"
@@ -155,6 +146,53 @@ int main(int argc, char *argv[])
 
         Info << "Time step = " << runTime.timeIndex() << endl;
         Info << "Time = " << runTime.timeName() << nl << endl;
+
+	//pn == p;
+	//phin == phi;
+	//signedDistancen = signedDistance;
+	//pointSignedDistancen = pointSignedDistance;
+
+        // --- Pressure-velocity lentSolutionControl corrector loop
+        while (lentSC.loop())
+        {
+            // The momentum flux is computed from MULES as  
+            // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
+            // However, LENT has no ability to compute the volumetric phase flux. 
+            // TODO: examine the impact of the momentum flux computation and devise
+            // more accurate approach if required (TT)
+            if (lentSC.updateMomentumFlux())
+            {
+                if (lent.dict().subDict("markerFieldModel").get<label>("nSmoothingSteps") > 0)
+                {
+                    // old approach, only works for diffuse markerfield
+                    rhoPhi == fvc::interpolate(rho) * phi;
+                }
+                else
+                {
+                    // new approach: vol fraction based calculation of rho at the face
+                    // only works for a sharp, vol-fraction like markerfield
+                    // FIXME: Face-fractions are recomputed in the external loop, and
+                    // they only change between time steps: extract the face fraction
+                    // calculation out of the outer loop. TM.
+                    #include "computeRhoPhi.H"
+                }
+            }
+
+            #include "UEqn.H"
+
+            //--- Pressure corrector loop
+            while (lentSC.correctPressure())
+            {
+                #include "pEqn.H"
+            }
+
+            if (lentSC.turbCorr())
+            {
+                turbulence->correct();
+            }
+        }
+
+        lent.evolveFront(front, U.oldTime());
 
         lent.calcSignedDistances(
             signedDistance,
@@ -185,6 +223,12 @@ int main(int argc, char *argv[])
             );
         }
 
+	// Second-order field extrapolation.
+	//p == 2*p - pn;
+	//phi == 2*phi - phin;
+	//signedDistance == 2*signedDistance - signedDistancen; 
+	//pointSignedDistance == 2*pointSignedDistance - pointSignedDistancen;
+
         lent.calcMarkerField(markerField);
 
         // Update the viscosity. 
@@ -192,49 +236,6 @@ int main(int argc, char *argv[])
 
         // Update density field.
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
-
-        Info << "p-U algorithm ... " << endl;
-
-        // --- Pressure-velocity lentSolutionControl corrector loop
-        while (lentSC.loop())
-        {
-            // The momentum flux is computed from MULES as  
-            // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
-            // However, LENT has no ability to compute the volumetric phase flux. 
-            // TODO: examine the impact of the momentum flux computation and devise
-            // more accurate approach if required (TT)
-            if (lentSC.updateMomentumFlux())
-            {
-                if (lent.dict().subDict("markerFieldModel").get<label>("nSmoothingSteps") > 0)
-                {
-                    // old approach, only works for diffuse markerfield
-                    rhoPhi == fvc::interpolate(rho) * phi;
-                }
-                else
-                {
-                    // new approach: vol fraction based calculation of rho at the face
-                    // only works for a sharp, vol-fraction like markerfield
-                    #include "computeRhoPhi.H"
-                }
-            }
-
-            #include "UEqn.H"
-
-            //--- Pressure corrector loop
-            while (lentSC.correctPressure())
-            {
-                #include "pEqn.H"
-            }
-
-            if (lentSC.turbCorr())
-            {
-                turbulence->correct();
-            }
-        }
-        Info << "Done." << endl;
-
-        lent.evolveFront(front, U.oldTime());
-        Info << "Done." << endl;
 
         runTime.write();
         
