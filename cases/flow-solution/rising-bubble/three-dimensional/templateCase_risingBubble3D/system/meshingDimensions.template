@@ -20,13 +20,16 @@ x_centre @!x_centre!@;
 y_centre @!y_centre!@;
 z_centre @!z_centre!@;
 
-halfwidth #calc "$radius * 2";
-C0 #calc "$x_centre - $halfwidth";
-C1 #calc "$y_centre - $halfwidth";
-C2 #calc "$x_centre + $halfwidth";
-C3 #calc "$y_centre + $halfwidth";
+HALF_WIDTH #calc "$radius * 3";
+C0 #calc "$x_centre - $HALF_WIDTH";
+C1 #calc "$y_centre - $HALF_WIDTH";
+C2 #calc "$x_centre + $HALF_WIDTH";
+C3 #calc "$y_centre + $HALF_WIDTH";
 
-hStart #calc "$z_centre - 2*$radius";
-hEnd #calc "$z_centre + 8*$radius";
+Z1 #calc "2*$radius";
+Z2 #calc "8*$radius";
+
+H_START #calc "$z_centre - $Z1";
+H_END #calc "$z_centre + $Z2";
 
 // ************************************************************************* //

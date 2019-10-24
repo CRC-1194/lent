@@ -38,7 +38,7 @@ actions
         source  boxToPoint;
         sourceInfo
         {
-            box ($bmin $bmin $hStart) ($bmax $bmax $hEnd);
+            box ($bmin $bmin $H_START) ($bmax $bmax $H_END);
         }
     }
 

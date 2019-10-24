@@ -24,7 +24,7 @@ z_centre @!z_centre!@;
 distanceCalculator
 {
     type            optimizedOctree;
-    narrowBandWidth 4;
+    narrowBandWidth 3;
     narrowBandPropagation
     {
         type            naiveNarrowBand;
@@ -34,7 +34,7 @@ distanceCalculator
 frontReconstructionModel
 {
     type    timeStepInterval;
-    value   10;
+    value   @!reconstruction_interval!@;
 }
 
 frontSurface
@@ -86,8 +86,8 @@ searchAlgorithm
 
 frontMotionSolver
 {
-    type            Taylor;
-    cellToVertexInterpolation pointInCell;
+    type                      @!temporal_integration!@;
+    cellToVertexInterpolation @!cell_to_vertex!@;
 }
 
 surfaceTensionForceModel

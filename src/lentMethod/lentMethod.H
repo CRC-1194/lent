@@ -101,9 +101,6 @@ class lentMethod
     // Front reconstruction flag.
     mutable bool frontIsReconstructed_;
 
-    // Front smoothing flag
-    mutable bool frontPreviouslySmoothed_;
-
     // Field calculator
     tmp<distanceFieldCalculator> distanceFieldCalculatorTmp_;
 

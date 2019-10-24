@@ -34,7 +34,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-09;
+        tolerance       @!p_tol!@;
         relTol          0;
     }
 
@@ -47,7 +47,7 @@ solvers
     {
         solver          PBiCG;
         preconditioner  DILU;
-        tolerance       1e-08;
+        tolerance       @!u_tol!@;
         relTol          0;
     }
 
@@ -60,22 +60,22 @@ solvers
 lentSC
 {
     momentumPredictor   yes;
-    nOuterCorrectors    30;
-    nCorrectors         6; 
+    nOuterCorrectors    @!n_outer_correctors!@;
+    nCorrectors         @!n_correctors!@; 
     nNonOrthogonalCorrectors 0;
 
     residualControl
     {
         p_rgh
         {
-                tolerance  1e-9;
+                tolerance  @!p_tol!@;
                 relTol     0;
         }
      }
 
      // lentSC specific parameters
-     phiChangeTolerance     5.0e-04;
-     absPhiChangeTolerance  1.0e-15;
+     phiChangeTolerance     @!phi_change_tolerance!@;
+     absPhiChangeTolerance  @!abs_phi_change_tolerance!@;
 }
 
 relaxationFactors
