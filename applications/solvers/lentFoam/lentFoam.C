@@ -112,6 +112,10 @@ int main(int argc, char *argv[])
         )
     );
 
+    //FIXME: Relative frame of reference. Move to createFields.H
+    surfaceScalarField rhof("rhof", fvc::interpolate(rho));
+    //FIXME
+
     lentMethod lent(front, mesh);
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
@@ -122,18 +126,6 @@ int main(int argc, char *argv[])
     correctFrontIfRequested(front, lent.dict());
 
     front.write();
-
-    // Explicit extrapolation of fields for improved handling of non-linearity in the
-    // pressure - velocity coupling. Based on "Consistent second-order time-accurate
-    // non-iterative PISO-algorithm, Tukovic, Peric, Jasak. TODO: Proper reference.
-    // volScalarField pn ("pn", p);
-    surfaceScalarField phistar ("phistar", phi);
-    surfaceScalarField phin ("phin", phi);
-    volScalarField signedDistancen("signedDistancen", signedDistance);
-    pointScalarField pointSignedDistancen("pointSignedDistancen", pointSignedDistance);
-    volScalarField signedDistanceStar("signedDistanceStar", signedDistance);
-    pointScalarField pointSignedDistanceStar("pointSignedDistanceStar", pointSignedDistance);
-
 	
     while (runTime.run())
     {
@@ -147,10 +139,13 @@ int main(int argc, char *argv[])
         Info << "Time step = " << runTime.timeIndex() << endl;
         Info << "Time = " << runTime.timeName() << nl << endl;
 
-	//pn == p;
-	//phin == phi;
-	//signedDistancen = signedDistance;
-	//pointSignedDistancen = pointSignedDistance;
+        // FIXME: Extract this into a library for the ALE bubble relative reference frame.
+        dimensionedVector Ububble = sum(markerField * mesh.V() * U) / sum(markerField * mesh.V());
+        Ububble = Ububble & vector(0,0,1) * vector(0,0,1);
+        Info << "BUBBLE VELOCITY = " << Ububble.value() << endl;
+        // FIXME
+        
+        #include "computeRhof.H"
 
         // --- Pressure-velocity lentSolutionControl corrector loop
         while (lentSC.loop())
@@ -174,7 +169,7 @@ int main(int argc, char *argv[])
                     // FIXME: Face-fractions are recomputed in the external loop, and
                     // they only change between time steps: extract the face fraction
                     // calculation out of the outer loop. TM.
-                    #include "computeRhoPhi.H"
+                    rhoPhi == rhof * phi;
                 }
             }
 
@@ -192,7 +187,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        lent.evolveFront(front, U.oldTime());
+        lent.evolveFront(front, U.oldTime() - Ububble);
 
         lent.calcSignedDistances(
             signedDistance,
@@ -201,6 +196,7 @@ int main(int argc, char *argv[])
             pointSearchDistanceSqr,
             front
         );
+
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
@@ -223,18 +219,8 @@ int main(int argc, char *argv[])
             );
         }
 
-	// Second-order field extrapolation.
-	//p == 2*p - pn;
-	//phi == 2*phi - phin;
-	//signedDistance == 2*signedDistance - signedDistancen; 
-	//pointSignedDistance == 2*pointSignedDistance - pointSignedDistancen;
-
         lent.calcMarkerField(markerField);
-
-        // Update the viscosity. 
         mixture.correct();
-
-        // Update density field.
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
 
         runTime.write();
