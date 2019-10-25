@@ -112,9 +112,6 @@ int main(int argc, char *argv[])
         )
     );
 
-    //FIXME: Relative frame of reference. Move to createFields.H
-    surfaceScalarField rhof("rhof", fvc::interpolate(rho));
-    //FIXME
 
     lentMethod lent(front, mesh);
 
@@ -126,9 +123,16 @@ int main(int argc, char *argv[])
     correctFrontIfRequested(front, lent.dict());
 
     front.write();
+
+    //FIXME: Relative frame of reference. Move to createFields.H
+    surfaceScalarField rhof("rhof", fvc::interpolate(rho));
+    dimensionedVector Ub ("Ub", dimVelocity, vector(0,0,0));
+    volScalarField alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
+    //FIXME
 	
     while (runTime.run())
     {
+        // FIXME
         #include "readTimeControls.H"
         #include "CourantNo.H"
         #include "markerFieldCourantNo.H"
@@ -138,12 +142,6 @@ int main(int argc, char *argv[])
 
         Info << "Time step = " << runTime.timeIndex() << endl;
         Info << "Time = " << runTime.timeName() << nl << endl;
-
-        // FIXME: Extract this into a library for the ALE bubble relative reference frame.
-        dimensionedVector Ububble = sum(markerField * mesh.V() * U) / sum(markerField * mesh.V());
-        Ububble = Ububble & vector(0,0,1) * vector(0,0,1);
-        Info << "BUBBLE VELOCITY = " << Ububble.value() << endl;
-        // FIXME
         
         #include "computeRhof.H"
 
@@ -187,7 +185,15 @@ int main(int argc, char *argv[])
             }
         }
 
-        lent.evolveFront(front, U.oldTime() - Ububble);
+        // FIXME: Extract this into a library for the ALE bubble relative reference frame.
+        alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
+        Ub = sum(alphaInv * mesh.V() * U) / sum(alphaInv * mesh.V());
+        Info << "BUBBLE VELOCITY = " << Ub.value() << endl;
+        Ub = (Ub & vector(0,0,1)) * vector(0,0,1);
+        Info << "BUBBLE VELOCITY PROJECTED TO Z AXIS = " << Ub.value() << endl;
+        // FIXME
+
+        lent.evolveFront(front, U - Ub);
 
         lent.calcSignedDistances(
             signedDistance,
