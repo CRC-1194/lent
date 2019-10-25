@@ -3,7 +3,10 @@
 
 // Parameters from controlDict
 write_interval 0.01;
-
+adjust_deltaT yes; 
+max_Co 0.1;
+max_alphaCo 0.1; 
+max_deltaT 1e-04;
 
 // Parameters from lentSolution
 reconstruction_interval 0;
@@ -33,3 +36,4 @@ scale_delta_t 0.5;
 
 // File name of the mesh representing the domain boundary used for cfMesh
 surface_file    add_a_surface_file;
+
