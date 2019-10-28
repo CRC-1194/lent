@@ -26,7 +26,7 @@ z_semi_axis @!z_semi_axis!@;
 distanceCalculator
 {
     type            optimizedOctree;
-    narrowBandWidth 4;
+    narrowBandWidth 3;
     narrowBandPropagation
     {
         type            naiveNarrowBand;
@@ -136,14 +136,6 @@ surfaceTensionForceModel
                 type                    nearestTriangleVicinity;
                 markerFieldName         alpha.water;
                 searchRadiusCoefficient 0.62;
-            <!--(elif front_to_mesh_transfer=="explicitDiffusionN5")-->
-                type                    explicitDiffusion;
-                signedDistanceField     signedDistance;
-                diffusionIterations     5;
-            <!--(elif front_to_mesh_transfer=="explicitDiffusionN10")-->
-                type                    explicitDiffusion;
-                signedDistanceField     signedDistance;
-                diffusionIterations     10;
             <!--(end)-->
             }
     }

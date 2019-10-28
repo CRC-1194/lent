@@ -29,11 +29,12 @@ values
 
 
     // Parameters from system/controlDict
-    end_time (1.4);
-
     // delta_t
     //      The time step size is computed as a dependent parameter by the
     //      aliasing criterion of Denner & van Wachem 2015
+    end_time (1.4);
+    writeInterval   (0.02);
+    scale_delta_t   (0.5);
 
 
     // Domain and interface geometry
@@ -47,18 +48,27 @@ values
     y_semi_axis (5.456e-3);
     z_semi_axis (5.456e-3);
 
-    // Only required for poly mesh setup
-    surface_file
-    (
-        boundary_R2p2_C222.stl
-    );
+    // Only required for polyhedral mesh setup
+    surface_file (boundary_R2p2_C222.stl);
 
     // Hexrefined meshes
     n_base (4);
 
 
-    // Method parameters
+    // system/lentSolution parameters
+    smoothing_interval      (0);
     temporal_integration    (Euler);
     cell_to_vertex          (cellPoint);
     curvature_model         (compactDivGrad);
+    front_to_mesh_transfer  (triangleInCell);
+    n_alpha_smoothing       (0);
+
+
+    // system/fvSolution parameters
+    p_rgh_tol                   (1.0e-7);
+    U_tol                       (1.0e-7);
+    n_outer_correctors          (30);
+    n_inner_correctors          (5);
+    phi_change_tolerance        (1.0e-3);
+    abs_phi_change_tolerance    (1.0e-16);
 }
