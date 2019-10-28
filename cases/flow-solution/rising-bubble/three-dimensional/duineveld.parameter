@@ -18,8 +18,8 @@ values
     surface_tension_coefficient (0.0727);
 
     gravity (-9.80665);
-	
-    n_base (48);
+
+    n_base (32);
     
     // Parameters from system/blockMeshDict
     resolution (64); 

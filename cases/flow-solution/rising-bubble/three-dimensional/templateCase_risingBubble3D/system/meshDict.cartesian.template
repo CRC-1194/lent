@@ -19,7 +19,7 @@ FoamFile
 surfaceFile	"box.stl";
 
 maxCellSize	#calc "0.5 * @!radius!@";
-refinementWidth #calc "0.3 * @!radius!@";
+refinementWidth #calc "0.2 * @!radius!@";
 
 // Rename the bounding box patches.
 renameBoundary
