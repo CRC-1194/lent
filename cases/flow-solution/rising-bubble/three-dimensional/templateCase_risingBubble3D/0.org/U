@@ -26,7 +26,10 @@ boundaryField
 {
     mantle
     {
+        // Eulerian (inertial) reference frame.
         type            slip;
+        
+        // Arbitrary Lagrangian / Eulerian -Relative Reference Frame (RRF
         //type            zeroGradient;
     }
     top
@@ -35,9 +38,12 @@ boundaryField
     }
     bottom
     {
-        //type            fixedValue;
-        //value           uniform (0 0 0);
-        type            zeroGradient;
+        // Eulerian (inertial) reference frame.
+        type            fixedValue;
+        value           uniform (0 0 0);
+        
+        // Arbitrary Lagrangian / Eulerian -Relative Reference Frame (RRF
+        //type            zeroGradient;
     }
 }
 

@@ -16,13 +16,40 @@ FoamFile
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-surfaceFile	"../template_copy_cartesian/polyMeshFiles/@!surface_file!@";
+surfaceFile	"box.stl";
 
-maxCellSize	#calc "@!radius!@*16/@!resolution!@";
+maxCellSize	#calc "0.5 * @!radius!@";
+refinementWidth #calc "0.3 * @!radius!@";
 
+// Rename the bounding box patches.
 renameBoundary
 {
+    newPatchNames
+    {
+        zMax
+        {
+            newName top;
+            type patch;
+        }
+        zMin 
+        {
+            newName bottom;
+            type patch;
+        }
+    }
+
     defaultType patch;
+    defaultName mantle;
+}
+
+surfaceMeshRefinement
+{
+    frontTracking
+    {
+        surfaceFile "constant/front.stl";
+        additionalRefinementLevels 3;
+        refinementThickness $refinementWidth;
+    }
 }
 
 // ************************************************************************* //
