@@ -132,7 +132,10 @@ lentMethod::lentMethod(
     reconstructionHistory_(
         mesh.time()
     )
-{}
+{
+    useReconstruction_ =
+        lentControlDict_.subDict("frontReconstructionModel").lookupOrDefault("useReconstruction", true);
+}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
@@ -191,11 +194,15 @@ void lentMethod::reconstructFront(
     {
         Info << "Reconstructing front..." << endl;
 
-        frontReconstructorTmp_->reconstructFront(
-            front,
-            signedDistance,
-            pointSignedDistance
-        );
+
+        if (useReconstruction_ || signedDistance.time().timeIndex() <= 1)
+        {
+            frontReconstructorTmp_->reconstructFront(
+                front,
+                signedDistance,
+                pointSignedDistance
+            );
+        }
 
         if (front.surfaceType() != triSurface::MANIFOLD)
         {

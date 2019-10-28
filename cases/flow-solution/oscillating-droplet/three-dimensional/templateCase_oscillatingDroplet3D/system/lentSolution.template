@@ -37,6 +37,7 @@ frontReconstructionModel
 {
     type    timeStepInterval;
     value   @!smoothing_interval!@;
+    useReconstruction off;
 }
 
 frontReconstructor
@@ -59,8 +60,8 @@ frontSurface
 
 frontSmoother
 {
-    relaxFactor 0.33;
-    nSweeps     3;
+    relaxFactor 0.2;
+    nSweeps     5;
     smooth      pointsAndEdges;
 }
 
