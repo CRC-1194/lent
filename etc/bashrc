@@ -14,4 +14,8 @@ export LENT_GTEST_INC="$LENT_PROJECT/third-party/googletest/googletest/include/g
 export LD_LIBRARY_PATH=$LENT_GTEST_LIB:$LD_LIBRARY_PATH
 export PYTHONPATH="$LENT_PROJECT/src/scripts":$PYTHONPATH
 
+# PC/laptop
 export EIGEN_HEADERS=/usr/include/eigen3
+
+# LICHTENBERG CLUSTER: module load eigen/3.3.7 
+#export EIGEN_HEADERS=/shared/apps/.gcc/9.2/eigen/3.3.7
