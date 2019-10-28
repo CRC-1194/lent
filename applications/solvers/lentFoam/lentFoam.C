@@ -62,6 +62,12 @@ void correctFrontIfRequested(triSurfaceFront& front, const dictionary& configDic
 
 int main(int argc, char *argv[])
 {
+    argList::addBoolOption
+    (
+        "relative-frame",
+        "Arbitrary Eulerian / Lagrangian (ALE) relative reference frame (RRF), using the vertical velocity of the dispersed phase (alpha.water=0)."
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -124,15 +130,17 @@ int main(int argc, char *argv[])
 
     front.write();
 
-    //FIXME: Relative frame of reference. Move to createFields.H
-    surfaceScalarField rhof("rhof", fvc::interpolate(rho));
+    //TODO: REFACTOR. ALE-RRF. 
+    // If the relative-frame option is not given to the solver, relative 
+    // velocity is 0 and the computation is done in the inertial frame of 
+    // reference. TM.
     dimensionedVector Ub ("Ub", dimVelocity, vector(0,0,0));
+    surfaceScalarField rhof("rhof", fvc::interpolate(rho));
     volScalarField alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
-    //FIXME
+    //TODO
 	
     while (runTime.run())
     {
-        // FIXME
         #include "readTimeControls.H"
         #include "CourantNo.H"
         #include "markerFieldCourantNo.H"
@@ -185,13 +193,14 @@ int main(int argc, char *argv[])
             }
         }
 
-        // FIXME: Extract this into a library for the ALE bubble relative reference frame.
-        alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
-        Ub = sum(alphaInv * mesh.V() * U) / sum(alphaInv * mesh.V());
-        Info << "BUBBLE VELOCITY = " << Ub.value() << endl;
-        Ub = (Ub & vector(0,0,1)) * vector(0,0,1);
-        Info << "BUBBLE VELOCITY PROJECTED TO Z AXIS = " << Ub.value() << endl;
-        // FIXME
+        // TODO: REFACTOR. ALE-RRF
+        if (args.optionFound("relative-frame"))
+        {
+            alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
+            Ub = sum(alphaInv * mesh.V() * U) / sum(alphaInv * mesh.V());
+            Ub = (Ub & vector(0,0,1)) * vector(0,0,1);
+        }
+        // TODO: REFACTOR. ALE-RRF
 
         lent.evolveFront(front, U - Ub);
 
@@ -202,7 +211,6 @@ int main(int argc, char *argv[])
             pointSearchDistanceSqr,
             front
         );
-
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
