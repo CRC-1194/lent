@@ -18,7 +18,7 @@ values
     surface_tension_coefficient (0.0727);
 
     gravity (-9.80665);
-	
+
     n_base (32);
     
     // Parameters from system/blockMeshDict
@@ -53,12 +53,12 @@ values
 
 
     // Parameters from system/fvSolution
-    p_tol                       (1.0e-9);
-    u_tol                       (1.0e-8);
-    n_outer_correctors          (30);
-    n_correctors                (6);
-    phi_change_tolerance        (5.0e-4);
-    abs_phi_change_tolerance    (1.0e-15);
+    p_tol                       (1.0e-7);
+    u_tol                       (1.0e-7);
+    n_outer_correctors          (4);
+    n_correctors                (4);
+    phi_change_tolerance        (1.0e-3);
+    abs_phi_change_tolerance    (1.0e-7);
 
 
     // Domain and interface geometry

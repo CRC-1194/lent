@@ -3,7 +3,8 @@
     fvVectorMatrix UEqn
     (
         fvm::ddt(rho, U)
-      + fvm::div(rhoPhi, U)
+      + fvm::div(rhoPhi, U) 
+      - fvm::div(rhof*mesh.Sf().component(2)*Ub[2], U)
       + MRF.DDt(rho, U)
       // see method divDevRhoReff(...) in "linearViscousStress.C"
       // for OpenFOAM's discretization of the diffusion term 

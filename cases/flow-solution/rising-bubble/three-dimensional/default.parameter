@@ -3,7 +3,10 @@
 
 // Parameters from controlDict
 write_interval 0.01;
-
+adjust_deltaT yes; 
+max_Co 0.1;
+max_alphaCo 0.1; 
+max_deltaT 1e-04;
 
 // Parameters from lentSolution
 reconstruction_interval 0;
@@ -23,8 +26,7 @@ abs_phi_change_tolerance    1.0e-15;
 
 
 // Parameter for hex refined mesh
-n_base 8;
-
+n_base 32;
 
 // Scale factor for the time step size computed by the explicit surface
 // tension criterion
@@ -33,3 +35,4 @@ scale_delta_t 0.5;
 
 // File name of the mesh representing the domain boundary used for cfMesh
 surface_file    add_a_surface_file;
+
