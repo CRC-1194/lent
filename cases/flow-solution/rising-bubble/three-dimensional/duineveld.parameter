@@ -19,15 +19,26 @@ values
 
     gravity (-9.80665);
 
-    n_base (32);
-    
-    // Parameters from system/blockMeshDict
-    resolution (64); 
+    // Parameters from system/meshingDimensions
+    // used by system/blockMeshDict
+    resolution (60); 
+    n_base (20);
+
+    // Parameter for cartesian ALE-RRF mesh
+    // Used only when mesh is manually generated in each case with cartesianMesh.sh
+    // as described in README.md
+    additionalRefinementLevels (4); // How many levels of refinement around the Front.
+    refinementRadiusFactor (0.2); // Width of the finest refinement layer. Relative to radius.
+
+    // Parameter for cartesian ALE-RRF mesh
+    // Used only when mesh is manually generated in each case with cartesianMesh.sh
+    // as described in README.md
+    additionalRefinementLevels (3);
 
     // Parameters from system/controlDict
     end_time
     (
-        0.6  // Dimensionless time in [2] is \tilde{t} =\frac{t}{\sqrt{\frac{2*radius / g}}}
+        0.35 // Dimensionless time in [2] is \tilde{t} =\frac{t}{\sqrt{\frac{2*radius / g}}}
     );
 
     //delta_t: set as dependent parameter according to the time step restriction
@@ -38,10 +49,7 @@ values
     scale_delta_t   (0.5);
 
     // Write interval in terms defined in seconds of simulated physical time
-    write_interval
-    (
-        0.0005
-    );
+    write_interval (0.0005);
 
 
     // Parameters from system/lentSolution
@@ -55,8 +63,9 @@ values
     // Parameters from system/fvSolution
     p_tol                       (1.0e-7);
     u_tol                       (1.0e-7);
-    n_outer_correctors          (4);
+    n_outer_correctors          (10);
     n_correctors                (4);
+    n_non_orth_correctors       (0);
     phi_change_tolerance        (1.0e-3);
     abs_phi_change_tolerance    (1.0e-7);
 

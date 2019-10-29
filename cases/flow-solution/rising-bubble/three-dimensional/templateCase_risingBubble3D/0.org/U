@@ -27,10 +27,14 @@ boundaryField
     mantle
     {
         // Eulerian (inertial) reference frame.
-        type            slip;
+        //type            slip;
         
         // Arbitrary Lagrangian / Eulerian -Relative Reference Frame (RRF
-        //type            zeroGradient;
+        // Not sure if Neumann is the right BCBiC 
+        type            zeroGradient;
+        // Bubble rising in quiescent fluid.
+        //type            fixedValue;
+        //value           uniform (0 0 0);
     }
     top
     {
@@ -39,11 +43,11 @@ boundaryField
     bottom
     {
         // Eulerian (inertial) reference frame.
-        type            fixedValue;
-        value           uniform (0 0 0);
+        // type            fixedValue;
+        // value           uniform (0 0 0);
         
         // Arbitrary Lagrangian / Eulerian -Relative Reference Frame (RRF
-        //type            zeroGradient;
+        type            zeroGradient;
     }
 }
 

@@ -24,7 +24,7 @@ n_fine  @!resolution!@;
 // This delta corresponds to a narrowband width of 4 cells
 // to ensure the part of the domain in which the interface acts
 // is uniformly resolved
-delta   #calc "4.0*$d/float($n_fine)";
+delta   #calc "5.0*$d/float($n_fine)";
 
 bmin    #calc "$x_centre - $radius - $delta";
 bmax    #calc "$x_centre + $radius + $delta";
@@ -38,7 +38,7 @@ actions
         source  boxToPoint;
         sourceInfo
         {
-            box ($bmin $bmin $H_START) ($bmax $bmax $H_END);
+            box ($bmin $bmin $bmin) ($bmax $bmax $bmax);
         }
     }
 

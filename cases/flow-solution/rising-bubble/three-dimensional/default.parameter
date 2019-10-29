@@ -21,12 +21,19 @@ p_tol                       1.0e-9;
 u_tol                       1.0e-8;
 n_outer_correctors          30;
 n_correctors                6;
+n_non_orth_correctors       0;
 phi_change_tolerance        5.0e-4;
 abs_phi_change_tolerance    1.0e-15;
 
 
 // Parameter for hex refined mesh
 n_base 32;
+
+// Parameter for cartesian ALE-RRF mesh
+// Used only when mesh is manually generated in each case with cartesianMesh.sh
+// as described in README.md
+additionalRefinementLevels 3;
+
 
 // Scale factor for the time step size computed by the explicit surface
 // tension criterion

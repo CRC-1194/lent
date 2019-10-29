@@ -19,7 +19,7 @@ FoamFile
 surfaceFile	"box.stl";
 
 maxCellSize	#calc "0.5 * @!radius!@";
-refinementWidth #calc "0.2 * @!radius!@";
+refinementWidth #calc "@!refinementRadiusFactor!@ * @!radius!@ / 100";
 
 // Rename the bounding box patches.
 renameBoundary
@@ -47,7 +47,7 @@ surfaceMeshRefinement
     frontTracking
     {
         surfaceFile "constant/front.stl";
-        additionalRefinementLevels 3;
+        additionalRefinementLevels @!additionalRefinementLevels!@;
         refinementThickness $refinementWidth;
     }
 }
