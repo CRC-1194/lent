@@ -198,7 +198,6 @@ int main(int argc, char *argv[])
         {
             alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
             Ub = sum(alphaInv * mesh.V() * U) / sum(alphaInv * mesh.V());
-            Ub = (Ub & vector(0,0,1)) * vector(0,0,1);
         }
         // TODO: REFACTOR. ALE-RRF
 

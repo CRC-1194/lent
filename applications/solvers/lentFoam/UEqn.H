@@ -4,7 +4,7 @@
     (
         fvm::ddt(rho, U)
       + fvm::div(rhoPhi, U) 
-      - fvm::div(rhof*mesh.Sf().component(2)*Ub[2], U)
+      - fvm::div(rhof*(Ub & mesh.Sf()), U)
       + MRF.DDt(rho, U)
       // see method divDevRhoReff(...) in "linearViscousStress.C"
       // for OpenFOAM's discretization of the diffusion term 
