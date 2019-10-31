@@ -145,7 +145,8 @@ int main(int argc, char *argv[])
     volScalarField alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
     //TODO
     //TODO: REFACTOR. Normal velocity projection.
-    volVectorField Ufront ("Ufront", U); 
+    volVectorField Ufront ("Ufront", U);   
+    volVectorField nFront ("nFront", fvc::grad(signedDistance));
 	
     while (runTime.run())
     {
@@ -201,26 +202,27 @@ int main(int argc, char *argv[])
             }
         }
 
+	Ufront == U; 
+
         // TODO: REFACTOR. ALE-RRF
         if (args.optionFound("relative-frame"))
         {
             alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
             Ub = sum(alphaInv * mesh.V() * U) / sum(alphaInv * mesh.V());
+	    Ufront == Ufront - Ub;
         }
         // TODO: REFACTOR. ALE-RRF
-
         // TODO: REFACTOR. NORMAL-VELOCITY.
-	Ufront == U; 
         if (args.optionFound("normal-velocity"))
         {
 	    // TODO Re-use the normal field from the curvature calculation. TM
-	    volVectorField nf = fvc::grad(signedDistance); 
-	    nf /= Foam::mag(nf) + dimensionedScalar("epsilon", dimless, 1e-15);
-	    Ufront == (U & nf) * nf;
+	    nFront = fvc::grad(signedDistance); 
+	    nFront /= Foam::mag(nFront) + dimensionedScalar("epsilon", dimless, 1e-15);
+	    Ufront == (Ufront & nFront) * nFront;
 	}
         // TODO: REFACTOR. NORMAL-VELOCITY.
 
-        lent.evolveFront(front, Ufront - Ub);
+        lent.evolveFront(front, Ufront);
 
         lent.calcSignedDistances(
             signedDistance,
