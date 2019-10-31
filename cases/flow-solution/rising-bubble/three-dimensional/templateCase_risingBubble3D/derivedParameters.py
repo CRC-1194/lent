@@ -32,16 +32,16 @@ def computeDeltaT(values):
 
     return sf*math.sqrt((rho_droplet + rho_ambient)*math.pow(ltria,3.0)/(2.0*math.pi*sigma))
 
-def domainDimensionALE(values):
+def computeBoxLength(values):
     """Computes the dimension of the cubic bounding box for the Duineveld
     rising buble simulation in an ALE Relative Reference Frame (RRF) from the
     bubble radius.""" 
 
     radius = values["radius"]
 
-    return 3*radius;
+    return 4*radius;
 
 
 delta_t = computeDeltaT(locals())
-box_length = domainDimensionALE(locals())
+box_length = computeBoxLength(locals())
 
