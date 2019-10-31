@@ -68,6 +68,12 @@ int main(int argc, char *argv[])
         "Arbitrary Eulerian / Lagrangian (ALE) relative reference frame (RRF), using the vertical velocity of the dispersed phase (alpha.water=0)."
     );
 
+    argList::addBoolOption
+    (
+        "normal-velocity",
+        "Evolve the Front using the velocity projected onto the interface normal."
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -138,6 +144,8 @@ int main(int argc, char *argv[])
     surfaceScalarField rhof("rhof", fvc::interpolate(rho));
     volScalarField alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
     //TODO
+    //TODO: REFACTOR. Normal velocity projection.
+    volVectorField Ufront ("Ufront", U); 
 	
     while (runTime.run())
     {
@@ -201,7 +209,18 @@ int main(int argc, char *argv[])
         }
         // TODO: REFACTOR. ALE-RRF
 
-        lent.evolveFront(front, U - Ub);
+        // TODO: REFACTOR. NORMAL-VELOCITY.
+	Ufront == U; 
+        if (args.optionFound("normal-velocity"))
+        {
+	    // TODO Re-use the normal field from the curvature calculation. TM
+	    volVectorField nf = fvc::grad(signedDistance); 
+	    nf /= Foam::mag(nf) + dimensionedScalar("epsilon", dimless, 1e-15);
+	    Ufront == (U & nf) * nf;
+	}
+        // TODO: REFACTOR. NORMAL-VELOCITY.
+
+        lent.evolveFront(front, Ufront - Ub);
 
         lent.calcSignedDistances(
             signedDistance,
