@@ -22,18 +22,13 @@ values
     // Parameters from system/meshingDimensions
     // used by system/blockMeshDict
     resolution (60); 
-    n_base (20);
+    n_base (64);
 
     // Parameter for cartesian ALE-RRF mesh
     // Used only when mesh is manually generated in each case with cartesianMesh.sh
     // as described in README.md
-    additionalRefinementLevels (4); // How many levels of refinement around the Front.
-    refinementRadiusFactor (0.2); // Width of the finest refinement layer. Relative to radius.
-
-    // Parameter for cartesian ALE-RRF mesh
-    // Used only when mesh is manually generated in each case with cartesianMesh.sh
-    // as described in README.md
-    additionalRefinementLevels (3);
+    additionalRefinementLevels (3); // How many levels of refinement around the Front.
+    refinementRadiusFactor (1); // Width of the finest refinement layer. Relative to radius.
 
     // Parameters from system/controlDict
     end_time
@@ -49,11 +44,10 @@ values
     scale_delta_t   (0.5);
 
     // Write interval in terms defined in seconds of simulated physical time
-    write_interval (0.0005);
-
+    write_interval (0.005);
 
     // Parameters from system/lentSolution
-    reconstruction_interval (100);
+    reconstruction_interval (200);
     temporal_integration    (Euler);
     cell_to_vertex          (cellPoint);
     curvature_model         (compactDivGrad);
@@ -63,10 +57,10 @@ values
     // Parameters from system/fvSolution
     p_tol                       (1.0e-7);
     u_tol                       (1.0e-7);
-    n_outer_correctors          (10);
+    n_outer_correctors          (15);
     n_correctors                (4);
     n_non_orth_correctors       (0);
-    phi_change_tolerance        (1.0e-3);
+    phi_change_tolerance        (1.0e-4);
     abs_phi_change_tolerance    (1.0e-7);
 
 
