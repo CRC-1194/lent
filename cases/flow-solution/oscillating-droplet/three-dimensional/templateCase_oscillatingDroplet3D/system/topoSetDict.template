@@ -22,7 +22,7 @@ n_fine          @!resolution!@;
 // This delta corresponds to a narrowband width of 4 cells
 // to ensure the part of the domain in which the interface acts
 // is uniformly resolved
-delta   #calc "4.0*$d/float($n_fine)";
+delta   #calc "8.0*$d/float($n_fine)";
 
 bmin    #calc "$centre - $big_semi_axis - $delta";
 bmax    #calc "$centre + $big_semi_axis + $delta";
