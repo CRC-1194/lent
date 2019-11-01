@@ -50,10 +50,10 @@ boundaryField
     mantle
     {
         // Eulerian (inertial) reference frame.
-        //type            slip;
+        type            slip;
         
         // Arbitrary Lagrangian / Eulerian -Relative Reference Frame (RRF
-        type            zeroGradient;
+        //type            zeroGradient;
     }
 }
 
