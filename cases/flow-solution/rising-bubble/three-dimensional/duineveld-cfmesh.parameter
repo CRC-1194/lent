@@ -28,7 +28,7 @@ values
     // Used only when mesh is manually generated in each case with cartesianMesh.sh
     // as described in README.md
     additionalRefinementLevels (5); // How many levels of refinement around the Front.
-    refinementRadiusFactor (0.25); // Width of the finest refinement layer. Relative to radius.
+    refinementRadiusFactor (0.4); // Width of the finest refinement layer. Relative to radius.
 
     // Parameters from system/controlDict
     end_time
