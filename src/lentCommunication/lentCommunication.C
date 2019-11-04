@@ -194,12 +194,12 @@ void lentCommunication::update()
             }
 
             // DEBUGGING
-            if (foundCell == -1)
-                WarningInFunction 
-                    << "Front vertex not found for cell " 
-                    << triangleToCell_[triangleI] 
-                    << " and front vertex " 
-                    << triangle[vertexI] << endl; 
+            //if (foundCell == -1)
+                //WarningInFunction 
+                    //<< "Front vertex not found for cell " 
+                    //<< triangleToCell_[triangleI] 
+                    //<< " and front vertex " 
+                    //<< triangle[vertexI] << endl; 
         }
     }
 
