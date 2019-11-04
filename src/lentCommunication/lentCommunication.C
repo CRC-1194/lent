@@ -155,6 +155,16 @@ void lentCommunication::update()
             // If the vertex is within a the triangleToCell cell. 
             if (searchAlg_.pointIsInCell(vertex, triangleToCell_[triangleI], mesh_)) 
             {
+                // Existing cell found.
+                foundCell = triangleToCell_[triangleI];
+
+                // DEBUGGING
+                //WarningInFunction 
+                    //<< "Existing cell " 
+                    //<< triangleToCell_[triangleI] 
+                    //<< " and front vertex " 
+                    //<< triangle[vertexI] << endl; 
+                    
                 // Set the vertex cell to the same cell.
                 vertexToCell_[triangle[vertexI]] = triangleToCell_[triangleI];
             } else
@@ -167,14 +177,29 @@ void lentCommunication::update()
                 );
 
                 // If the cell is found. 
-                if (foundCell > 0)
+                if (foundCell != -1)
                 {
                     // Set the triangle cell to the found cell.
                     triangleToCell_[triangleI] = foundCell;
                     // Set the vertex cell to the found cell.
                     vertexToCell_[triangle[vertexI]] = foundCell;
+
+                    // DEBUGGING
+                    //WarningInFunction 
+                        //<< "KVS found cell " 
+                        //<< foundCell  
+                        //<< " and front vertex " 
+                        //<< triangle[vertexI] << endl; 
                 }
             }
+
+            // DEBUGGING
+            if (foundCell == -1)
+                WarningInFunction 
+                    << "Front vertex not found for cell " 
+                    << triangleToCell_[triangleI] 
+                    << " and front vertex " 
+                    << triangle[vertexI] << endl; 
         }
     }
 
