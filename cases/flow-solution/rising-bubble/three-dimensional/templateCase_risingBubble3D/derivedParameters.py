@@ -39,7 +39,7 @@ def computeBoxLength(values):
 
     radius = values["radius"]
 
-    return 4*radius;
+    return 20*radius;
 
 
 delta_t = computeDeltaT(locals())
