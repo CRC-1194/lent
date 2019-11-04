@@ -118,13 +118,14 @@ public:
             const point p,
             const label cellLabel,
             const fvMesh& mesh,
-            scalar tolerance=0
+            const scalar tolerance=1e-14
         ) const;
 
         virtual label cellContainingPoint(
             const point& p,
             const fvMesh& mesh,
-            const label seedCell = -1
+            const label seedCell = -1,
+            const scalar tolerance=1e-14
         ) const;
 
         labelList pointCellStencil(
