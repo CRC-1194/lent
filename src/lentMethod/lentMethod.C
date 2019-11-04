@@ -225,8 +225,6 @@ void lentMethod::calcFrontVelocity(
     // More rigorous: in case the search fails, the point stops. TM.
     frontVelocity = dimensionedVector("zero", dimVelocity, vector(0,0,0)); 
 
-    auto oldVelocity(frontVelocity); 
-
     // FIXME: Make this an attribute of method and re-use. Enable selection of 
     // cell->point interpolation. TM.
     lentInterpolation interpolation; 
