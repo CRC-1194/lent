@@ -44,10 +44,10 @@ values
     scale_delta_t   (0.5);
 
     // Write interval in terms defined in seconds of simulated physical time
-    write_interval (0.005);
+    write_interval (0.001);
 
     // Parameters from system/lentSolution
-    reconstruction_interval (0);
+    reconstruction_interval (50);
     temporal_integration    (Euler);
     cell_to_vertex          (cellPoint);
     curvature_model         (compactDivGrad);
