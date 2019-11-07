@@ -24,7 +24,7 @@ values
     // Parameters from system/blockMeshDict
     resolution 
     (
-        64 128 256 512
+        64 128 256 384
     ); 
 
 
@@ -52,6 +52,7 @@ values
     surface_file (boundary_R2p2_C222.stl);
 
     // Hexrefined meshes
+    // Use 6 as base mesh resolution when setting up the resolution n=384
     n_base (4);
 
 
