@@ -147,43 +147,22 @@ tmp<fvMatrix<vector>> csfSurfaceTensionForceModel::surfaceTensionImplicitPart(
 
     surfaceScalarField gammaSf{sigmaDeltaT*(grad_phi_f & Sf)*(grad_phi_f & nf) / 
             (magSqr(grad_phi_f) + SMALL)};
-
-    //fv::gaussLaplacianScheme<vector,scalar> gaussLaplace{mesh, mesh.laplacianScheme("UseDefault")};
-    fv::gaussLaplacianScheme<vector,scalar> gaussLaplace{mesh};
+    surfaceScalarField gammaFullSf{sigmaDeltaT*mesh.magSf()};
 
     // Filter flux field gammaSf here
-    surfaceScalarField filter{mag(fvc::snGrad(markerField))};
+    surfaceScalarField filter{fvc::interpolate(mag(fvc::grad(markerField)))};
 
-    filter.dimensions() *= Foam::dimless;
-
-    const auto& owners = mesh.faceOwner();
-    const auto& neighbours = mesh.faceNeighbour();
-
-    forAll(neighbours, I)
-    {
-        if ((markerField[neighbours[I]] > 0.0 && markerField[neighbours[I]] < 1.0)
-            ||
-            (markerField[owners[I]] > 0.0 && markerField[owners[I]] < 1.0))
-        {
-            filter[I] = 1.0;
-        }
-        else
-        {
-            filter[I] = 0.0;
-        }
-    }
-
-    surfaceScalarField gammaFullSf{sigmaDeltaT*mesh.magSf()};
-    gammaFullSf.dimensions() /= dimLength;
-    gammaSf.dimensions() /= dimLength;
+    gammaFullSf.dimensions() *= pow(dimLength, -1);
+    gammaSf.dimensions() *= pow(dimLength, -1);
 
     forAll(filter, I)
     {
         gammaSf[I] *= filter[I];
         gammaFullSf[I] *= filter[I];
     }
-
     
+    fv::gaussLaplacianScheme<vector,scalar> gaussLaplace{mesh};
+
     return gaussLaplace.fvmLaplacianUncorrected(gammaFullSf, delta, velocity) - gaussLaplace.fvmLaplacianUncorrected(gammaSf, delta, velocity);
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
