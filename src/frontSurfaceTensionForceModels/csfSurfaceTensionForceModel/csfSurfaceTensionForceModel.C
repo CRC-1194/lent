@@ -69,6 +69,7 @@ Description
 #include "fvcSnGrad.H"
 #include "fvcAverage.H"
 #include "fvmLaplacian.H"
+#include "gaussLaplacianScheme.H"
 
 namespace Foam {
 namespace FrontTracking {
@@ -128,6 +129,7 @@ tmp<fvMatrix<vector>> csfSurfaceTensionForceModel::surfaceTensionImplicitPart(
 {
     // Lookup material properties
     const auto& runTime = velocity.mesh().time();
+    const auto& mesh = velocity.mesh();
 
     const dictionary& transportProperties = 
         runTime.lookupObject<dictionary>("transportProperties");
@@ -136,27 +138,53 @@ tmp<fvMatrix<vector>> csfSurfaceTensionForceModel::surfaceTensionImplicitPart(
 
     auto sigmaDeltaT = sigma*runTime.deltaT();
 
-    // Lookup interface properties
-    auto curvaturePtr = cellCurvature(velocity.mesh(), front);
-    auto interfaceNormalPtr = curvatureModelRef().cellInterfaceNormals(velocity.mesh(), front);
-    const auto& curvature = *curvaturePtr;
-    const auto& normals = *interfaceNormalPtr;
+    const auto& phi = mesh.lookupObject<volScalarField>("signedDistance");
+    const auto& Sf = mesh.Sf();
+    const auto& nf = mesh.Sf()/mesh.magSf();
+    const auto& delta = mesh.deltaCoeffs();
+
+    surfaceVectorField grad_phi_f{fvc::interpolate(fvc::grad(phi))};
+
+    surfaceScalarField gammaSf{sigmaDeltaT*(grad_phi_f & Sf)*(grad_phi_f & nf) / 
+            (magSqr(grad_phi_f) + SMALL)};
+
+    //fv::gaussLaplacianScheme<vector,scalar> gaussLaplace{mesh, mesh.laplacianScheme("UseDefault")};
+    fv::gaussLaplacianScheme<vector,scalar> gaussLaplace{mesh};
+
+    // Filter flux field gammaSf here
+    surfaceScalarField filter{mag(fvc::snGrad(markerField))};
+
+    filter.dimensions() *= Foam::dimless;
+
+    const auto& owners = mesh.faceOwner();
+    const auto& neighbours = mesh.faceNeighbour();
+
+    forAll(neighbours, I)
+    {
+        if ((markerField[neighbours[I]] > 0.0 && markerField[neighbours[I]] < 1.0)
+            ||
+            (markerField[owners[I]] > 0.0 && markerField[owners[I]] < 1.0))
+        {
+            filter[I] = 1.0;
+        }
+        else
+        {
+            filter[I] = 0.0;
+        }
+    }
+
+    surfaceScalarField gammaFullSf{sigmaDeltaT*mesh.magSf()};
+    gammaFullSf.dimensions() /= dimLength;
+    gammaSf.dimensions() /= dimLength;
+
+    forAll(filter, I)
+    {
+        gammaSf[I] *= filter[I];
+        gammaFullSf[I] *= filter[I];
+    }
+
     
-    // Below: normal calculation consistent with explicit surface tension part (TT)
-    //dimensionedScalar dSmall{"SMALL", pow(dimLength, -1), SMALL};
-    //auto normalsTmp = fvc::grad(markerField)/(mag(fvc::grad(markerField)) + dSmall);
-    //const auto& normals = normalsTmp.ref();
-
-    // Define Laplace-Beltrami of velocity as the full Laplace-operator
-    // (implicit) and subtract the normal part (explicit)
-    auto gradUTmp = fvc::grad(velocity);
-    const auto& gradU = gradUTmp.ref();
-
-    auto normalLaplacian = fvc::div((normals&gradU)*normals)
-            - curvature*((gradU - ((normals&gradU)*normals))&normals);
-
-    return (fvm::laplacian(sigmaDeltaT*mag(fvc::grad(markerField)), velocity)
-                - sigmaDeltaT*mag(fvc::grad(markerField))*normalLaplacian);
+    return gaussLaplace.fvmLaplacianUncorrected(gammaFullSf, delta, velocity) - gaussLaplace.fvmLaplacianUncorrected(gammaSf, delta, velocity);
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
