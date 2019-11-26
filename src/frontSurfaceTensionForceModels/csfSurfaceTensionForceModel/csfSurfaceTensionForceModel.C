@@ -138,6 +138,9 @@ tmp<fvMatrix<vector>> csfSurfaceTensionForceModel::surfaceTensionImplicitPart(
 
     auto sigmaDeltaT = sigma*runTime.deltaT();
 
+    // Below is a first implementation of a fully implicit discretization
+    // approach for the Laplace-Beltrami operator in the level set context (TT).
+    /*
     const auto& phi = mesh.lookupObject<volScalarField>("signedDistance");
     const auto& Sf = mesh.Sf();
     const auto& nf = mesh.Sf()/mesh.magSf();
@@ -164,6 +167,29 @@ tmp<fvMatrix<vector>> csfSurfaceTensionForceModel::surfaceTensionImplicitPart(
     fv::gaussLaplacianScheme<vector,scalar> gaussLaplace{mesh};
 
     return gaussLaplace.fvmLaplacianUncorrected(gammaFullSf, delta, velocity) - gaussLaplace.fvmLaplacianUncorrected(gammaSf, delta, velocity);
+    */
+
+    // Lookup interface properties
+    auto curvaturePtr = cellCurvature(velocity.mesh(), front);
+    auto interfaceNormalPtr = curvatureModelRef().cellInterfaceNormals(velocity.mesh(), front);
+    const auto& curvature = *curvaturePtr;
+    const auto& normals = *interfaceNormalPtr;
+    
+    // Below: normal calculation consistent with explicit surface tension part (TT)
+    //dimensionedScalar dSmall{"SMALL", pow(dimLength, -1), SMALL};
+    //auto normalsTmp = fvc::grad(markerField)/(mag(fvc::grad(markerField)) + dSmall);
+    //const auto& normals = normalsTmp.ref();
+
+    // Define Laplace-Beltrami of velocity as the full Laplace-operator
+    // (implicit) and subtract the normal part (explicit)
+    auto gradUTmp = fvc::grad(velocity);
+    const auto& gradU = gradUTmp.ref();
+
+    auto normalLaplacian = fvc::div((normals&gradU)*normals)
+            - curvature*((gradU - ((normals&gradU)*normals))&normals);
+
+    return (fvm::laplacian(sigmaDeltaT*mag(fvc::grad(markerField)), velocity)
+                - sigmaDeltaT*mag(fvc::grad(markerField))*normalLaplacian);
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
