@@ -10,6 +10,7 @@
 
 // Compute rhoPhi using the old approach since it is valid for all bulk cells
 rhoPhi = fvc::interpolate(rho) * phi;
+rhof == fvc::interpolate(rho);
 
 // Correct faces which are part of an interface cell (0 < alpha < 1)
 const auto& faceOwner = mesh.owner();
@@ -38,6 +39,8 @@ forAll(rhoPhi, faceI)
         alphaFace = computeAlphaFace(meshFaces[faceI],
                                      pointSignedDistance, meshVertices);
         rhoFace = alphaFace*rho1.value() + (1 - alphaFace)*rho2.value();
+
+        rhof[faceI] = alphaFace*rho1.value() + (1 - alphaFace)*rho2.value();
 
         rhoPhi[faceI] = rhoFace * phi[faceI];
     }
