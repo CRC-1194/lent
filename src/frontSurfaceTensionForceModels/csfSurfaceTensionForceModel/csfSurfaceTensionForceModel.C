@@ -69,6 +69,7 @@ Description
 #include "fvcSnGrad.H"
 #include "fvcAverage.H"
 #include "fvmLaplacian.H"
+#include "gaussLaplacianScheme.H"
 
 namespace Foam {
 namespace FrontTracking {
@@ -128,6 +129,7 @@ tmp<fvMatrix<vector>> csfSurfaceTensionForceModel::surfaceTensionImplicitPart(
 {
     // Lookup material properties
     const auto& runTime = velocity.mesh().time();
+    const auto& mesh = velocity.mesh();
 
     const dictionary& transportProperties = 
         runTime.lookupObject<dictionary>("transportProperties");
@@ -135,6 +137,37 @@ tmp<fvMatrix<vector>> csfSurfaceTensionForceModel::surfaceTensionImplicitPart(
     const dimensionedScalar sigma = transportProperties.lookup("sigma");  
 
     auto sigmaDeltaT = sigma*runTime.deltaT();
+
+    // Below is a first implementation of a fully implicit discretization
+    // approach for the Laplace-Beltrami operator in the level set context (TT).
+    /*
+    const auto& phi = mesh.lookupObject<volScalarField>("signedDistance");
+    const auto& Sf = mesh.Sf();
+    const auto& nf = mesh.Sf()/mesh.magSf();
+    const auto& delta = mesh.deltaCoeffs();
+
+    surfaceVectorField grad_phi_f{fvc::interpolate(fvc::grad(phi))};
+
+    surfaceScalarField gammaSf{sigmaDeltaT*(grad_phi_f & Sf)*(grad_phi_f & nf) / 
+            (magSqr(grad_phi_f) + SMALL)};
+    surfaceScalarField gammaFullSf{sigmaDeltaT*mesh.magSf()};
+
+    // Filter flux field gammaSf here
+    surfaceScalarField filter{fvc::interpolate(mag(fvc::grad(markerField)))};
+
+    gammaFullSf.dimensions() *= pow(dimLength, -1);
+    gammaSf.dimensions() *= pow(dimLength, -1);
+
+    forAll(filter, I)
+    {
+        gammaSf[I] *= filter[I];
+        gammaFullSf[I] *= filter[I];
+    }
+    
+    fv::gaussLaplacianScheme<vector,scalar> gaussLaplace{mesh};
+
+    return gaussLaplace.fvmLaplacianUncorrected(gammaFullSf, delta, velocity) - gaussLaplace.fvmLaplacianUncorrected(gammaSf, delta, velocity);
+    */
 
     // Lookup interface properties
     auto curvaturePtr = cellCurvature(velocity.mesh(), front);

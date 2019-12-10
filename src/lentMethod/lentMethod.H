@@ -125,6 +125,9 @@ class lentMethod
     // Recorder for front reconstructions and smoothing
     reconstructionHistory reconstructionHistory_;
 
+    // Hack to enable smoothing without reconstruction
+    Switch useReconstruction_;
+
     // Member Operators
         void operator=(const lentMethod&); // FIXME: Private in lentCommunication. TM.
 
