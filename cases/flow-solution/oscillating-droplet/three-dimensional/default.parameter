@@ -20,9 +20,12 @@ n_alpha_smoothing 0;
 
 
 // Parameters from fvSolution
-phi_change_tolerance 1.0e-5;
-
-abs_phi_change_tolerance 1.0e-16;
+p_rgh_tol                   1.0e-9;
+U_tol                       1.0e-8;
+n_outer_correctors          30;
+n_inner_correctors          5;
+phi_change_tolerance        1.0e-5;
+abs_phi_change_tolerance    1.0e-16;
 
 // Parameter for hex refined mesh
 n_base 16;
