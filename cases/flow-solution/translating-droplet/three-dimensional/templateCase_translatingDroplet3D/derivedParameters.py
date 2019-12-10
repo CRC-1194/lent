@@ -32,5 +32,8 @@ def computeDeltaT(values):
 
     return sf*math.sqrt((rho_droplet + rho_ambient)*math.pow(ltria,3.0)/(2.0*math.pi*sigma))
 
-
 delta_t = computeDeltaT(locals())
+
+# This dummy is required to avoid a PyFoam error if delta_t is given explicitly in the
+# parameter file
+dummy = 0

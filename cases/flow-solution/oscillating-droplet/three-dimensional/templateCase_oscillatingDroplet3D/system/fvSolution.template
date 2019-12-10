@@ -49,7 +49,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-9;
+        tolerance       @!p_rgh_tol!@;
         relTol          0;
     }
 
@@ -62,7 +62,7 @@ solvers
     {
         solver          PBiCG;
         preconditioner  DILU;
-        tolerance       1e-8;
+        tolerance       @!U_tol!@;
         relTol          0;
     }
 
@@ -75,15 +75,15 @@ solvers
 lentSC
 {
     momentumPredictor   yes;
-    nOuterCorrectors    30;
-    nCorrectors         5;
+    nOuterCorrectors    @!n_outer_correctors!@;
+    nCorrectors         @!n_inner_correctors!@;
     nNonOrthogonalCorrectors 0;
 
     residualControl
     {
         p_rgh
         {
-                tolerance  1e-9;
+                tolerance  @!p_rgh_tol!@;
                 relTol     0;
         }
      }
