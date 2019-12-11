@@ -159,48 +159,6 @@ int main(int argc, char *argv[])
 
         Info << "Time step = " << runTime.timeIndex() << endl;
         Info << "Time = " << runTime.timeName() << nl << endl;
-        
-        #include "computeRhof.H"
-
-        // --- Pressure-velocity lentSolutionControl corrector loop
-        while (lentSC.loop())
-        {
-            // The momentum flux is computed from MULES as  
-            // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
-            // However, LENT has no ability to compute the volumetric phase flux. 
-            // TODO: examine the impact of the momentum flux computation and devise
-            // more accurate approach if required (TT)
-            if (lentSC.updateMomentumFlux())
-            {
-                if (lent.dict().subDict("markerFieldModel").get<label>("nSmoothingSteps") > 0)
-                {
-                    // old approach, only works for diffuse markerfield
-                    rhoPhi == fvc::interpolate(rho) * phi;
-                }
-                else
-                {
-                    // new approach: vol fraction based calculation of rho at the face
-                    // only works for a sharp, vol-fraction like markerfield
-                    // FIXME: Face-fractions are recomputed in the external loop, and
-                    // they only change between time steps: extract the face fraction
-                    // calculation out of the outer loop. TM.
-                    rhoPhi == rhof * phi;
-                }
-            }
-
-            #include "UEqn.H"
-
-            //--- Pressure corrector loop
-            while (lentSC.correctPressure())
-            {
-                #include "pEqn.H"
-            }
-
-            if (lentSC.turbCorr())
-            {
-                turbulence->correct();
-            }
-        }
 
 	Ufront == U; 
 
@@ -256,6 +214,49 @@ int main(int argc, char *argv[])
         lent.calcMarkerField(markerField);
         mixture.correct();
         rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
+        
+        #include "computeRhof.H"
+
+        // --- Pressure-velocity lentSolutionControl corrector loop
+        while (lentSC.loop())
+        {
+            // The momentum flux is computed from MULES as  
+            // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
+            // However, LENT has no ability to compute the volumetric phase flux. 
+            // TODO: examine the impact of the momentum flux computation and devise
+            // more accurate approach if required (TT)
+            if (lentSC.updateMomentumFlux())
+            {
+                if (lent.dict().subDict("markerFieldModel").get<label>("nSmoothingSteps") > 0)
+                {
+                    // old approach, only works for diffuse markerfield
+                    rhoPhi == fvc::interpolate(rho) * phi;
+                }
+                else
+                {
+                    // new approach: vol fraction based calculation of rho at the face
+                    // only works for a sharp, vol-fraction like markerfield
+                    // FIXME: Face-fractions are recomputed in the external loop, and
+                    // they only change between time steps: extract the face fraction
+                    // calculation out of the outer loop. TM.
+                    rhoPhi == rhof * phi;
+                }
+            }
+
+            #include "UEqn.H"
+
+            //--- Pressure corrector loop
+            while (lentSC.correctPressure())
+            {
+                #include "pEqn.H"
+            }
+
+            if (lentSC.turbCorr())
+            {
+                turbulence->correct();
+            }
+        }
+
 
         runTime.write();
         
