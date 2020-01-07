@@ -1,6 +1,7 @@
 // FIXME: This shouldn't be boilerplate, refactor. TM. 
 
 // Compute rhoPhi using the old approach since it is valid for all bulk cells
+rhof.oldTime() == rhof;
 rhof == fvc::interpolate(rho);
 
 // Correct faces which are part of an interface cell (0 < alpha < 1)
