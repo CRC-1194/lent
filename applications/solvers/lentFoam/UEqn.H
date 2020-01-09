@@ -1,11 +1,3 @@
-    // The momentum flux is computed from MULES as  
-    // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
-    // However, LENT has no ability to compute the volumetric phase flux. 
-    // TODO: examine the impact of the momentum flux computation and devise
-    // more accurate approach if required (TT)
-    rhoPhi.oldTime() == rhoPhi;
-    rhoPhi == rhof * phi;
-
     MRF.correctBoundaryVelocity(U);
 
     fvVectorMatrix UEqn

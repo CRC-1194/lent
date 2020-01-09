@@ -215,19 +215,19 @@ int main(int argc, char *argv[])
         mixture.correct();
         
         #include "computeRhof.H"
-
         rhoPhi.oldTime() == rhoPhi;
-        rhoPhi == rhof * phi;
-
-        fvScalarMatrix rhoEqn
-        (
-            fvm::ddt(rho) + fvc::div(rhoPhi)
-        );
-        rhoEqn.solve();
 
         // --- Pressure-velocity lentSolutionControl corrector loop
         while (lentSC.loop())
         {
+            rhoPhi == rhof * phi;
+
+            fvScalarMatrix rhoEqn
+            (
+                fvm::ddt(rho) + fvc::div(rhoPhi)
+            );
+            rhoEqn.solve();
+
             #include "UEqn.H"
 
             //--- Pressure corrector loop
