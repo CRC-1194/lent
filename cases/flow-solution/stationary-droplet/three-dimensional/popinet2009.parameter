@@ -41,7 +41,7 @@ values
     resolution
     (
         // 64 is equivalent to the resolution in the paper
-        16 32 64 128
+        16 32 64 
     ); 
 
 
