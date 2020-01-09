@@ -215,7 +215,6 @@ int main(int argc, char *argv[])
         mixture.correct();
         
         #include "computeRhof.H"
-        rhoPhi.oldTime() == rhoPhi;
 
         // --- Pressure-velocity lentSolutionControl corrector loop
         while (lentSC.loop())
