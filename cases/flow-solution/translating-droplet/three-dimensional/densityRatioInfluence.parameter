@@ -78,7 +78,7 @@ values{
 
     n_alpha_smoothing
     (
-        0 2
+        0 
     );
 
     temporal_integration
