@@ -12,7 +12,7 @@ values
     // Parameters from constant/transportProperties
     rho_droplet
     (
-        1.0
+        1.0 10 100 1000 
     );
 
     nu_droplet
@@ -23,7 +23,7 @@ values
 
     rho_ambient
     (
-        $rho_droplet
+        1 
     );
 
     nu_ambient
