@@ -5,11 +5,11 @@ write_interval 0.01;
 // Parameters from lentSolution
 smoothing_interval  0;
 
-temporal_integration Taylor;
+temporal_integration Euler;
 
-cell_to_vertex  Kriging;
+cell_to_vertex  cellPoint;
 
-curvature_model frontTriangleSinus;
+curvature_model compactDivGrad;
 
 front_to_mesh_transfer  triangleInCell;
 
