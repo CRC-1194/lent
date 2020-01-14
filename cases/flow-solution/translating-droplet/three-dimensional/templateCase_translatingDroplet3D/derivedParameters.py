@@ -25,12 +25,18 @@ def computeDeltaT(values):
     # maximum time step.
     # The computation follows eq. (18) in Popinet 2009 and
     # eq. in (43) Denner & van Wachem 2015, respectively.
-    ltria = domainLength/(resolution)
+    h = domainLength/(resolution)
 
     # Safety coefficient to stay below critical delta_t threshold
     sf = values["scale_delta_t"]
+    capillary_delta_t = sf*math.sqrt((rho_droplet + rho_ambient)*math.pow(h,3.0)/(2.0*math.pi*sigma))
 
-    return sf*math.sqrt((rho_droplet + rho_ambient)*math.pow(ltria,3.0)/(2.0*math.pi*sigma))
+    # Check for the CFL number
+    cfl_factor = values["cfl_factor"]
+    u_characteristic = values["z_velocity"]
+    cfl_delta_t = cfl_factor*h/u_characteristic
+
+    return min(capillary_delta_t, cfl_delta_t)
 
 delta_t = computeDeltaT(locals())
 
