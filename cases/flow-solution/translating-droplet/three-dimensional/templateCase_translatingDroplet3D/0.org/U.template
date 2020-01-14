@@ -14,7 +14,7 @@ FoamFile
     object      U;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-zVelocity 1.0;
+zVelocity @!z_velocity!@;
 
 dimensions      [0 1 -1 0 0 0 0];
 

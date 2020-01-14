@@ -33,6 +33,8 @@ values{
 
     surface_tension_coefficient ( 0.0 );
 
+    z_velocity ( 1.0 );
+
     
     // Parameters from system/blockMeshDict
     resolution 

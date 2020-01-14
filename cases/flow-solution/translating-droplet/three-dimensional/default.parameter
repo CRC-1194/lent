@@ -31,3 +31,4 @@ n_base  8;
 // Set deltaT to the specified fraction of the maximum allows time step size
 // according to the capillary wave stability criterion
 scale_delta_t   0.5;
+cfl_factor 0.2;

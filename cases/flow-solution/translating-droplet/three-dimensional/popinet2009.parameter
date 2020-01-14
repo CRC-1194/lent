@@ -45,6 +45,11 @@ values
         1.0
     );
 
+    z_velocity
+    (
+        1
+    );
+
     
     // Parameters from system/blockMeshDict
     resolution 
