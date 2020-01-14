@@ -3,7 +3,7 @@
     fvVectorMatrix UEqn
     (
         fvm::ddt(rho, U)
-      + fvc::div(rhoPhi, U) 
+      + fvm::div(rhoPhi, U) 
       - fvm::div(rhof*(Ub & mesh.Sf()), U)
       + MRF.DDt(rho, U)
       // see method divDevRhoReff(...) in "linearViscousStress.C"
