@@ -21,7 +21,7 @@ values
     // Parameters from constant/transportProperties
     rho_droplet
     (
-        1.0
+        1 10 100 1000 
     );
 
     nu_droplet
@@ -32,7 +32,7 @@ values
 
     rho_ambient
     (
-        $rho_droplet
+        1 
     );
 
     nu_ambient
@@ -54,7 +54,7 @@ values
     // Parameters from system/blockMeshDict
     resolution 
     (   
-        16 32 64 128
+        16 32 64 
     ); 
 
 
@@ -74,22 +74,22 @@ values
     // Domain and interface geometry
     x_centre
     (
-        0.5
+        0.5001
     );
 
     y_centre
     (
-        0.5
+        0.5003
     );
 
     z_centre
     (
-        0.4
+        0.40007
     );
 
     radius
     (
-        0.2  
+        0.200001 
     );
 
     // Only required for cfMesh setup
