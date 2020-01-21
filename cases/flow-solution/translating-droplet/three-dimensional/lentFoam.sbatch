@@ -3,7 +3,7 @@
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-user=maric@mma.tu-darmstadt.de
 #SBATCH -n 1 
-#SBATCH --mem-per-cpu=1000 
+#SBATCH --mem-per-cpu=2000 
 #SBATCH -t 23:00:00     
 
 # -------------------------------
