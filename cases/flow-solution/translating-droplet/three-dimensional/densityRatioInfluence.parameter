@@ -22,7 +22,7 @@ values{
     // Parameters from constant/transportProperties
     rho_droplet
     (
-        1 10 100 1000 10000
+        1 1e02 1e03 1e04 
     );
 
     nu_droplet ( 0.0 );
