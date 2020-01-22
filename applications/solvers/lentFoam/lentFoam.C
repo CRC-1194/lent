@@ -167,6 +167,8 @@ int main(int argc, char *argv[])
 	    Ufront == (Ufront & nFront) * nFront;
 	}
 
+        lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
         lent.evolveFront(front, Ufront);
 
         lent.calcSignedDistances(
@@ -176,23 +178,7 @@ int main(int argc, char *argv[])
             pointSearchDistanceSqr,
             front
         );
-
-        lent.reconstructFront(front, signedDistance, pointSignedDistance);
         
-        // If front has been reconstructed, the signed distances (at least)
-        // for the cell centres have to be recomputed to ensure the front-mesh
-        // communication is up-to-date (TT)
-        if (lent.isFrontReconstructed())
-        {
-            lent.calcSignedDistances(
-                signedDistance,
-                pointSignedDistance,
-                searchDistanceSqr,
-                pointSearchDistanceSqr,
-                front
-            );
-        }
-
         lent.calcMarkerField(markerField);
         mixture.correct();
         
