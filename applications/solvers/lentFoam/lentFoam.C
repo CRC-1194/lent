@@ -41,7 +41,6 @@ Description
 #include "lentMethod.H"
 #include "lentSolutionControl.H"
 #include "analyticalSurface.H"
-
 #include "alphaFace.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -59,6 +58,8 @@ void correctFrontIfRequested(triSurfaceFront& front, const dictionary& configDic
         Info << "Front has been corrected" << endl;
     }
 }
+
+const auto EPSILON = std::numeric_limits<double>::epsilon();
 
 int main(int argc, char *argv[])
 {
@@ -124,27 +125,18 @@ int main(int argc, char *argv[])
         )
     );
 
-
     lentMethod lent(front, mesh);
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
-
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-    // Lets make a fair comparison: recover exact surface!
+    // Project points onto the input surface after initial reconstruction.
     correctFrontIfRequested(front, lent.dict());
-
     front.write();
 
-    //TODO: REFACTOR. ALE-RRF. 
-    // If the relative-frame option is not given to the solver, relative 
-    // velocity is 0 and the computation is done in the inertial frame of 
-    // reference. TM.
+    // ALE Relative reference frame data for simulating rising bubbles. 
     dimensionedVector Ub ("Ub", dimVelocity, vector(0,0,0));
     surfaceScalarField rhof("rhof", fvc::interpolate(rho));
     volScalarField alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
-    //TODO
-    //TODO: REFACTOR. Normal velocity projection.
     volVectorField Ufront ("Ufront", U);   
     volVectorField nFront ("nFront", fvc::grad(signedDistance));
 	
@@ -162,23 +154,18 @@ int main(int argc, char *argv[])
 
 	Ufront == U; 
 
-        // TODO: REFACTOR. ALE-RRF
         if (args.optionFound("relative-frame"))
         {
             alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
             Ub = sum(alphaInv * mesh.V() * U) / sum(alphaInv * mesh.V());
 	    Ufront == Ufront - Ub;
         }
-        // TODO: REFACTOR. ALE-RRF
-        // TODO: REFACTOR. NORMAL-VELOCITY.
         if (args.optionFound("normal-velocity"))
         {
-	    // TODO Re-use the normal field from the curvature calculation. TM
 	    nFront = fvc::grad(signedDistance); 
-	    nFront /= Foam::mag(nFront) + dimensionedScalar("epsilon", dimless, 1e-15);
+	    nFront /= Foam::mag(nFront) + dimensionedScalar("EPSILON", dimless, EPSILON);
 	    Ufront == (Ufront & nFront) * nFront;
 	}
-        // TODO: REFACTOR. NORMAL-VELOCITY.
 
         lent.evolveFront(front, Ufront);
 
@@ -191,13 +178,8 @@ int main(int argc, char *argv[])
         );
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-        if (runTime.timeIndex() <= 1)
-        {
-            correctFrontIfRequested(front, lent.dict());
-        }
         
-        // TODO: if front has been reconstructed, the signed distances (at least)
+        // If front has been reconstructed, the signed distances (at least)
         // for the cell centres have to be recomputed to ensure the front-mesh
         // communication is up-to-date (TT)
         if (lent.isFrontReconstructed())
@@ -214,9 +196,11 @@ int main(int argc, char *argv[])
         lent.calcMarkerField(markerField);
         mixture.correct();
         
+        // Face densities computed from face indicator function 
+        // based on signed-distances. 
         #include "computeRhof.H"
 
-        // --- Pressure-velocity lentSolutionControl corrector loop
+        // --- SAAMPLE loop
         while (lentSC.loop())
         {
             rhoPhi == rhof * phi;
@@ -248,7 +232,7 @@ int main(int argc, char *argv[])
         // This is a workaround to ensure the actual front mesh is written (TT)
         if (runTime.writeTime())
         {
-            front.write();
+            front.write(); 
         }
 
         Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;
