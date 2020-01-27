@@ -355,6 +355,11 @@ class data_agglomerator:
         # Get agglomerated data
         study_data = self.data_collector.agglomerated_study_data()
         existing_variations = self.data_collector.existing_variations()
+
+        # Return an empty DataFrame for an empty parameter study. 
+        if (len(existing_variations) == 0):
+            raise ValueError("The number of existing variations equals 0, is the parameter study empty?")
+
         datapoints_per_variant = self.data_collector.datapoints_per_variant()
 
         # Create a mutliindex for the collected data

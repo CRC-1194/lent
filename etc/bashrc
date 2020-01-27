@@ -19,3 +19,5 @@ export EIGEN_HEADERS=/usr/include/eigen3
 
 # LICHTENBERG CLUSTER: module load eigen/3.3.7 
 #export EIGEN_HEADERS="/shared/apps/.gcc/9.2/eigen/3.3.7/include/eigen3"
+
+source $LENT_PROJECT/cases/scripts/bashrc
