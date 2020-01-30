@@ -10,10 +10,9 @@ import glob
 
 import dataAgglomeration as datglom
 
-def plot_study(xy_filter=lambda y : True, paramFile="", dirExample="", dataFile="", colDict = {}):
-    """Agglomerate all dataFile files in each directory whose name contains parameterFile, 
-    and plot xColName column and yColName column, label the graph with the index of the 
-    variation and the parameters of the variation in the plot legend."""
+def plot_dframe(dFrame, dFrameAgglomerator, title="", colDict = {}):
+    """Plot the agglomerated multidimensional DataFrame using mathematical symbols mapped
+    to column names with colDict."""
 
     # Set plotting style parameters
     lStyles = list(lines.lineStyles.keys())
@@ -25,19 +24,16 @@ def plot_study(xy_filter=lambda y : True, paramFile="", dirExample="", dataFile=
     yColName = colDict["y"]
     yColSymb = colDict["ysymb"]
     
-    agglomerator = datglom.data_agglomerator(paramFile, dirExample, dataFile)
-    studyDframe = agglomerator.study_dataframe()
-    indexLevels = [i for i,name in enumerate(studyDframe.index.names) if 'step' not in name]
-    collector = agglomerator.data_collector
+    indexLevels = [i for i,name in enumerate(dFrame.index.names) if 'step' not in name]
+    collector = dFrameAgglomerator.data_collector
     variations = collector.valid_variations
     fig, ax = plt.subplots()
     ax.set_xlabel(xColSymb)
     ax.set_ylabel(yColSymb)
     
-    ax.set_title("%s" % dirExample.split('.')[0] + "-" + dirExample.split('_')[-1]) 
-    # FIXME: Directory name contains an prefix - fetch the template copy?
+    ax.set_title(title)
     variationI = 0 
-    for paramLine, subDframe in studyDframe.groupby(level=indexLevels):
+    for paramLine, subDframe in dFrame.groupby(level=indexLevels):
         xCol = subDframe[xColName] 
         yCol = subDframe[yColName]
         
@@ -45,17 +41,17 @@ def plot_study(xy_filter=lambda y : True, paramFile="", dirExample="", dataFile=
         paramString = ""
         if (len(indexLevels) > 1):
             for levelI,paramName in enumerate(paramLine):
-                indexName = studyDframe.index.names[levelI]
+                indexName = dFrame.index.names[levelI]
                 paramString = paramString + indexName \
                               + "=%d " % paramName 
         else:
-            indexName = studyDframe.index.names[0]
+            indexName = dFrame.index.names[0]
             paramString = indexName + "=%d " % paramLine 
             
-        if (xy_filter(xCol, yCol)):
-            ax.plot(xCol, yCol, label="variation=%04d " % variationI + paramString, 
-                    marker=mStyles[variationI % len(mStyles)], 
-                    linestyle=lStyles[variationI % len(lStyles)])
+        ax.plot(xCol, yCol, label="variation=%04d " % variationI + paramString, 
+                marker=mStyles[variationI % len(mStyles)], 
+                linestyle=lStyles[variationI % len(lStyles)])
+
         variationI = variationI + 1
 
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),fancybox=True, shadow=True, ncol=1) 
