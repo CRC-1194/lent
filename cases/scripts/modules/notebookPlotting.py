@@ -16,7 +16,13 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", colDict = {}):
 
     # Set plotting style parameters
     lStyles = list(lines.lineStyles.keys())
+    lStyles = set(lStyles)
+    lStyles.discard('None')
+    lStyles = list(lStyles)
     mStyles = list(Line2D.markers.keys())
+    mStyles = set(mStyles)
+    mStyles.discard('None')
+    mStyles = list(mStyles)
     
     # X and Y-axis column names and diagram symbols.
     xColName = colDict["x"]
@@ -43,7 +49,7 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", colDict = {}):
             for levelI,paramName in enumerate(paramLine):
                 indexName = dFrame.index.names[levelI]
                 paramString = paramString + indexName \
-                              + "=%d " % paramName 
+                              + "=%.1e " % paramName 
         else:
             indexName = dFrame.index.names[0]
             paramString = indexName + "=%d " % paramLine 
