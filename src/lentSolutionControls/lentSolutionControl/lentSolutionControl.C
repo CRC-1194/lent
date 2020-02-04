@@ -28,6 +28,8 @@ License
 #include "surfaceMesh.H"
 #include "fvsPatchField.H"
 
+#include <limits>
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam {
@@ -49,6 +51,13 @@ void lentSolutionControl::checkFluxConvergence()
     // Stop flux convergence checks once convergence has been reached
     if (fluxesHaveConverged_)
     {
+        return;
+    }
+
+    if (corr_ >= maxFluxUpdateIterations_ + 1)
+    {
+        // Set this flag so convergence of the p-U coupling can be achieved
+        fluxesHaveConverged_ = true;
         return;
     }
 
@@ -80,40 +89,7 @@ void lentSolutionControl::checkFluxConvergence()
 
 bool lentSolutionControl::pressureIsConverged() const
 {
-    // Expect no convergence in first inner iteration of first outer iteration
-    if (firstIter() && corrPISO_ == 1)
-    {
-        return false;
-    }
-
-    // This is adapted from pimpleControl::criteriaSatisfied()
-    const dictionary& solverDict = mesh_.solverPerformanceDict();
-    label pressureFieldIndex = -2;
-    Pair<scalar> residuals{GREAT, GREAT};
-
-    forAllConstIters(solverDict, iter)
-    {
-        const entry& solverPerfDictEntry = *iter;
-
-        const word& fieldName = solverPerfDictEntry.keyword();
-
-        // TODO: hard code name of pressure field? (TT)
-        if (fieldName == "p_rgh")
-        {
-            pressureFieldIndex = applyToField(fieldName);
-            residuals = maxResidual(solverPerfDictEntry);
-            break;
-        }
-    }
-
-    if (residuals.last() < residualControl_[pressureFieldIndex].absTol)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return initialPressureResidualBelowThreshold_;
 }
 
 void lentSolutionControl::resetControlFlags()
@@ -121,6 +97,7 @@ void lentSolutionControl::resetControlFlags()
     fluxesHaveConverged_ = false;
     updateMomentumFlux_ = true;
     pressureHasConverged_ = false;
+    initialPressureResidualBelowThreshold_ = false;
 }
 
 void lentSolutionControl::displayConfiguration() const
@@ -138,6 +115,120 @@ void lentSolutionControl::displayConfiguration() const
          << "\n\t\tAbsolute change: " << absTolVolFlux_;
 
     Info << nl << nl;
+}
+
+bool lentSolutionControl::evaluatePressureResidual
+     (
+        const tmp<scalarField> residual,
+        const scalarField& rhs
+     ) const
+{
+    scalar minimum = std::numeric_limits<double>::min();
+    word resType = dict().subDict("residualControl").subDict("p_rgh").get<word>("resType");
+    word norm = dict().subDict("residualControl").subDict("p_rgh").get<word>("norm");
+    scalar tolerance = dict().subDict("residualControl").subDict("p_rgh").get<scalar>("tolerance");
+    scalarField res{mag(residual.ref())};
+
+    if (resType == "relative")
+    {
+        res = res/(mag(rhs) + minimum); 
+    }
+
+    scalar resNorm = 1.0;
+
+    if (norm == "Linf")
+    {
+        resNorm = linf(res);
+    }
+    else if (norm == "L2")
+    {
+        resNorm = l2(res);
+    }
+    else if (norm == "L1")
+    {
+        resNorm = l1(res);
+    }
+    else
+    {
+        FatalErrorInFunction
+            << "Unknown norm '" << norm << "'.\n"
+            << "Use either Linf, L2 or L1."
+            << abort(FatalError);
+    }
+
+    Info << norm << "(pressure) = " << resNorm << " ("
+         << resType << ")" << endl; 
+
+    return resNorm <= tolerance;
+}
+
+bool lentSolutionControl::evaluateVelocityResidual
+     (
+        const tmp<vectorField> residual,
+        const vectorField& rhs
+     ) const
+{
+    scalar minimum = std::numeric_limits<double>::min();
+    word resType = dict().subDict("residualControl").subDict("U").get<word>("resType");
+    word norm = dict().subDict("residualControl").subDict("U").get<word>("norm");
+    scalar tolerance = dict().subDict("residualControl").subDict("U").get<scalar>("tolerance");
+
+    vector componentWiseNorm{1,1,1};
+    scalar componentMax = 0.0;
+
+    for (direction cmpt=0; cmpt<vector::nComponents; cmpt++)
+    {
+        scalarField resCmpt{mag(residual.ref().component(cmpt))}; 
+        scalarField rhsCmpt{rhs.component(cmpt)};
+
+        if (resType == "relative")
+        {
+            resCmpt = resCmpt/(mag(rhs) + minimum); 
+        }
+
+        if (norm == "Linf")
+        {
+            componentWiseNorm[cmpt] = linf(resCmpt);
+        }
+        else if (norm == "L2")
+        {
+            componentWiseNorm[cmpt] = l2(resCmpt);
+        }
+        else if (norm == "L1")
+        {
+            componentWiseNorm[cmpt] = l1(resCmpt);
+        }
+        else
+        {
+            FatalErrorInFunction
+                << "Unknown norm '" << norm << "'.\n"
+                << "Use either Linf, L2 or L1."
+                << abort(FatalError);
+        }
+
+        componentMax = componentWiseNorm[cmpt] > componentMax ?
+                         componentWiseNorm[cmpt] : componentMax;
+        Info << norm << "(velocity-" << cmpt
+             << ") = " << componentWiseNorm[cmpt] << " ("
+             << resType << ")" << endl; 
+    }
+
+    return componentMax <= tolerance;
+}
+
+scalar lentSolutionControl::linf(const scalarField& residual) const
+{
+    return max(residual);
+}
+
+scalar lentSolutionControl::l2(const scalarField& residual) const
+{
+    return Foam::sqrt(sum(magSqr(residual)/residual.size()));
+}
+
+scalar lentSolutionControl::l1(const scalarField& residual) const
+{
+    return sum(residual)/residual.size();
 }
 
 
@@ -167,13 +258,15 @@ void lentSolutionControl::read()
 lentSolutionControl::lentSolutionControl(fvMesh& mesh, const surfaceScalarField& phi, const word& dictName)
 :
     pimpleControl{mesh, dictName},
+    runTime_{mesh.time()},
     volumetricFluxes_{phi},
     relTolVolFlux_{1.0e-8},
     absTolVolFlux_{1.0e-18},
     maxFluxUpdateIterations_{nCorrPIMPLE_},
     fluxesHaveConverged_{false},
     updateMomentumFlux_{true},
-    pressureHasConverged_{false}
+    pressureHasConverged_{false},
+    initialPressureResidualBelowThreshold_{false}
 {
     read();
 
@@ -203,6 +296,13 @@ bool lentSolutionControl::loop()
 
     ++corr_;
 
+    label maxOuterIterations = nCorrPIMPLE_;
+
+    // Increase maximum outer iterations in the first time step
+    // so the solution algorithm has the chance to correctly initialize the
+    // pressure field.
+    maxOuterIterations *= runTime_.timeIndex() == 1 ? 10 : 1;
+
     setFirstIterFlag();
 
     // Reset control flags in the first iteration of a new time step
@@ -218,7 +318,7 @@ bool lentSolutionControl::loop()
         corr_ = 0;
         return false;
     }
-    else if (corr_ == nCorrPIMPLE_ + 1)
+    else if (corr_ == maxOuterIterations + 1)
     {
         Info << "LentSC: not converged in " << nCorrPIMPLE_ << " iterations" << endl;
         corr_ = 0;
@@ -239,6 +339,8 @@ bool lentSolutionControl::correctPressure()
     bool performInnerIteration = true;
 
     ++corrPISO_;
+
+    Info << "Pressure correction iteration " << corrPISO_ << endl;
 
     // Iteration number check
     if (corrPISO_ > nCorrPISO_)
@@ -287,6 +389,59 @@ bool lentSolutionControl::updateMomentumFlux()
                 && (firstIter() || updateMomentumFlux_);
 }
 
+void lentSolutionControl::solveForVelocity
+(
+    fvMatrix<vector>& Avelocity
+)
+{
+    bool converged = evaluateVelocityResidual
+                     (
+                        Avelocity.residual(),
+                        Avelocity.source()
+                     );
+
+    label solverCalls = 0;
+    while (!converged && solverCalls != maxVelocitySolverCalls_)
+    {
+        Avelocity.solve();
+
+        converged = evaluateVelocityResidual
+                    (
+                        Avelocity.residual(),
+                        Avelocity.source()
+                    );
+        ++solverCalls;
+    }
+}
+
+void lentSolutionControl::solveForPressure
+(
+    fvScalarMatrix& pressureSystem,
+    const dictionary& solverDict
+)
+{
+    // Check initial residual
+    bool converged = evaluatePressureResidual
+                     (
+                        pressureSystem.residual(),
+                        pressureSystem.source()
+                     );
+
+    initialPressureResidualBelowThreshold_ = converged;
+
+    label solverCalls = 0;
+    while (!converged && solverCalls != maxPressureSolverCalls_)
+    {
+        pressureSystem.solve(solverDict);
+        
+        converged = evaluatePressureResidual
+                     (
+                        pressureSystem.residual(),
+                        pressureSystem.source()
+                     );
+        ++solverCalls;
+    }
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

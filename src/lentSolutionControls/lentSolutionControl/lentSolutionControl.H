@@ -57,6 +57,7 @@ SourceFiles
 #ifndef lentSolutionControl_H
 #define lentSolutionControl_H
 
+#include "fvScalarMatrix.H"
 #include "pimpleControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -77,17 +78,21 @@ class lentSolutionControl
     // Private data
     
     // Field references
+    const Time& runTime_;
     const surfaceScalarField& volumetricFluxes_;
 
     // User defined flags for solution control
     scalar relTolVolFlux_;
     scalar absTolVolFlux_;
     label maxFluxUpdateIterations_;
+    label maxVelocitySolverCalls_ = 10;
+    label maxPressureSolverCalls_ = 10;
 
     // Logical flags which indicate different convergence states
     bool fluxesHaveConverged_;
     bool updateMomentumFlux_;
     bool pressureHasConverged_;
+    bool initialPressureResidualBelowThreshold_;
 
     // Private Member Functions
     void checkFluxConvergence();
@@ -95,6 +100,21 @@ class lentSolutionControl
 
     void resetControlFlags();
     void displayConfiguration() const;
+
+    // Residual evaluation for convergence check
+    bool evaluatePressureResidual
+         (
+            const tmp<scalarField> residual,
+            const scalarField& rhs
+         ) const;
+    bool evaluateVelocityResidual
+         (
+            const tmp<vectorField> residual,
+            const vectorField& rhs
+         ) const;
+    scalar linf(const scalarField& residual) const;
+    scalar l2(const scalarField& residual) const;
+    scalar l1(const scalarField& residual) const;
 
     
 protected:
@@ -133,6 +153,18 @@ public:
         bool correctPressure();
         bool explicitVelocityUpdate();
         bool updateMomentumFlux();
+
+        // Linear solver workaround to allow more control over
+        // when the linear systems are considered converged (TT)
+        void solveForVelocity
+        (
+            fvMatrix<vector>& Avelocity
+        );
+        void solveForPressure
+        (
+            fvScalarMatrix& pressureSystem,
+            const dictionary& solverDict
+        );
 };
 
 

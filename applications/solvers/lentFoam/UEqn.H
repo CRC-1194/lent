@@ -24,8 +24,7 @@
 
     if (lentSC.momentumPredictor())
     {
-        solve
-        (
+        fvVectorMatrix UEqnWithRhs{
             UEqn
          ==
 
@@ -40,7 +39,8 @@
                   - fvc::snGrad(p_rgh)
                 ) * mesh.magSf()
             )
-        );
+        };
+        lentSC.solveForVelocity(UEqnWithRhs);
 
         fvOptions.correct(U);
     }

@@ -43,6 +43,8 @@ Description
 #include "analyticalSurface.H"
 #include "alphaFace.H"
 
+#include <limits>
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using namespace FrontTracking;
@@ -152,20 +154,20 @@ int main(int argc, char *argv[])
         Info << "Time step = " << runTime.timeIndex() << endl;
         Info << "Time = " << runTime.timeName() << nl << endl;
 
-	Ufront == U; 
+	    Ufront == U; 
 
         if (args.optionFound("relative-frame"))
         {
             alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
             Ub = sum(alphaInv * mesh.V() * U) / sum(alphaInv * mesh.V());
-	    Ufront == Ufront - Ub;
+	        Ufront == Ufront - Ub;
         }
         if (args.optionFound("normal-velocity"))
         {
-	    nFront = fvc::grad(signedDistance); 
-	    nFront /= Foam::mag(nFront) + dimensionedScalar("EPSILON", dimless, EPSILON);
-	    Ufront == (Ufront & nFront) * nFront;
-	}
+            nFront = fvc::grad(signedDistance); 
+            nFront /= Foam::mag(nFront) + dimensionedScalar("EPSILON", dimless, EPSILON);
+            Ufront == (Ufront & nFront) * nFront;
+	    }
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 
@@ -189,13 +191,16 @@ int main(int argc, char *argv[])
         // --- SAAMPLE loop
         while (lentSC.loop())
         {
-            rhoPhi == rhof * phi;
+            if (lentSC.updateMomentumFlux())
+            {
+                rhoPhi == rhof * phi;
 
-            fvScalarMatrix rhoEqn
-            (
-                fvm::ddt(rho) + fvc::div(rhoPhi)
-            );
-            rhoEqn.solve();
+                fvScalarMatrix rhoEqn
+                (
+                    fvm::ddt(rho) + fvc::div(rhoPhi)
+                );
+                rhoEqn.solve();
+            }
 
             #include "UEqn.H"
 
