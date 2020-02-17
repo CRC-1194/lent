@@ -72,7 +72,7 @@ namespace FrontTracking {
 singleCellHarmonicMarkerFieldModel::singleCellHarmonicMarkerFieldModel(const dictionary& configDict)
     :
         sharpMarkerFieldModel(configDict), 
-        pointDistFieldName_(configDict.lookup("pointDistance"))
+        pointDistFieldName_(configDict.get<word>("pointDistance"))
 {}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //

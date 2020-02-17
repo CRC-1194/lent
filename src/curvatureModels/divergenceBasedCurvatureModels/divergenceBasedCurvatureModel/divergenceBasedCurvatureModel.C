@@ -81,7 +81,7 @@ divergenceBasedCurvatureModel::divergenceBasedCurvatureModel(const dictionary& c
 :
     curvatureModel{configDict},
     CurvatureBufferLogic<volScalarField, fvMesh, scalar>{"cell_curvature"},
-    inputFieldName_{configDict.lookup("curvatureField")}
+    inputFieldName_{configDict.get<word>("curvatureField")}
 {
 }
 

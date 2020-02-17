@@ -122,7 +122,7 @@ protected:
     // Protected Member Functions
 
         //- Read controls from fvSolution dictionary
-        virtual void read() override;
+        virtual bool read() override;
 
 
 public:

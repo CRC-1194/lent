@@ -318,8 +318,8 @@ nearestTriangleVicinityTransferModel::labelPair nearestTriangleVicinityTransferM
 nearestTriangleVicinityTransferModel::nearestTriangleVicinityTransferModel(const dictionary& configDict)
 :
     frontToMeshTransferModel{configDict},
-    markerFieldName_{configDict.lookup("markerFieldName")},
-    searchRadiusCoefficient_{readScalar(configDict.lookup("searchRadiusCoefficient"))},
+    markerFieldName_{configDict.get<word>("markerFieldName")},
+    searchRadiusCoefficient_{configDict.get<scalar>("searchRadiusCoefficient")},
     searchRadiusSquared_{-1.0}
 {}
 

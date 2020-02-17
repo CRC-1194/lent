@@ -71,7 +71,7 @@ namespace FrontTracking {
 //
 frontSurfaceTensionForceModel::frontSurfaceTensionForceModel(const dictionary& configDict)
     :
-        filterFieldName_(configDict.lookup("filterField"))
+        filterFieldName_(configDict.get<word>("filterField"))
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -79,7 +79,7 @@ frontSurfaceTensionForceModel::frontSurfaceTensionForceModel(const dictionary& c
 tmp<frontSurfaceTensionForceModel>
 frontSurfaceTensionForceModel::New(const dictionary& configDict)
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     DictionaryConstructorTable::iterator cstrIter =
         DictionaryConstructorTablePtr_->find(name);

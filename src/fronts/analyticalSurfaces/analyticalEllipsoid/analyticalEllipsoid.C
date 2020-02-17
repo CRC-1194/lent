@@ -315,12 +315,12 @@ scalar analyticalEllipsoid::curvatureAtRefSystem(const point P) const
 analyticalEllipsoid::analyticalEllipsoid(const dictionary& configDict)
 :
     analyticalSurface{configDict},
-    centre_{configDict.lookup("centre")},
+    centre_{configDict.get<point>("centre")},
     oneBySemiAxisSqr_{}
 {
-    vector semiAxes{configDict.lookup("semiAxes")};
+    vector semiAxes{configDict.get<vector>("semiAxes")};
 
-    forAll(semiAxes, I)
+    for(direction I = 0; I != 3; ++I)
     {
         oneBySemiAxisSqr_[I] = 1.0/(semiAxes[I]*semiAxes[I]);
     }

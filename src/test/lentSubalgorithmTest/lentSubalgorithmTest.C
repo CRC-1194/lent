@@ -214,9 +214,9 @@ lentSubalgorithmTest::lentSubalgorithmTest(const fvMesh& mesh, triSurfaceFront& 
                      analyticalSurface::New(lentDict().subDict("frontSurface"))
                   };
 
-    nRandomRuns_ = readLabel(testDict().lookup("nRandomRuns"));
-    nPerturbedRuns_ = readLabel(testDict().lookup("nPerturbedRuns"));
-    writeFields_ = Switch{testDict().lookup("writeFields")};
+    nRandomRuns_ = testDict().get<label>("nRandomRuns");
+    nPerturbedRuns_ = testDict().get<label>("nPerturbedRuns");
+    writeFields_ = testDict().get<Switch>("writeFields");
 
     // Values below 1 for the number of random runs and for the number
     // of perturbed runs make no sense.

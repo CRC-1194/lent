@@ -96,7 +96,7 @@ tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
     const dictionary& transportProperties = 
         runTime.lookupObject<dictionary>("transportProperties");
 
-    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+    const dimensionedScalar sigma = transportProperties.get<dimensionedScalar>("sigma");  
     
     const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName());     
 
@@ -129,12 +129,11 @@ tmp<fvMatrix<vector>> csfSurfaceTensionForceModel::surfaceTensionImplicitPart(
 {
     // Lookup material properties
     const auto& runTime = velocity.mesh().time();
-    const auto& mesh = velocity.mesh();
 
     const dictionary& transportProperties = 
         runTime.lookupObject<dictionary>("transportProperties");
 
-    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+    const dimensionedScalar sigma = transportProperties.get<dimensionedScalar>("sigma");  
 
     auto sigmaDeltaT = sigma*runTime.deltaT();
 

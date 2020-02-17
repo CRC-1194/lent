@@ -178,7 +178,7 @@ tmp<volVectorField> tryggvasonSurfaceTensionForceModel::cellSurfaceTensionForce(
         fSigmaFront[l2] += 0.5 * v01 ^ normal;
     }
 
-    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+    const dimensionedScalar sigma = transportProperties.get<dimensionedScalar>("sigma");  
     fSigmaFront *= sigma; 
 
     lentInterpolation interpolation; // FIXME: Data member, RTS alternatives. TM.

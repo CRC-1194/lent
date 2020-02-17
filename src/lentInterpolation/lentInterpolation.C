@@ -78,7 +78,7 @@ lentInterpolation::lentInterpolation()
 
 lentInterpolation::lentInterpolation(const dictionary& dict)
     :
-        cellToVertexInterpType_(dict.lookup("cellToVertexInterpolation"))
+        cellToVertexInterpType_(dict.get<word>("cellToVertexInterpolation"))
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -88,7 +88,7 @@ lentInterpolation::New(
         const dictionary& configDict
 )
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     EmptyConstructorTable::iterator cstrIter =
         EmptyConstructorTablePtr_->find(name);

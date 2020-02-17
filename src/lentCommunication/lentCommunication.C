@@ -114,7 +114,7 @@ lentCommunication::New(
         const fvMesh& mesh
 )
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     FrontMeshConstructorTable::iterator cstrIter =
         FrontMeshConstructorTablePtr_->find(name);

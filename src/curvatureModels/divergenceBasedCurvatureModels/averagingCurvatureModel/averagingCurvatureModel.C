@@ -58,7 +58,7 @@ void averagingCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurf
 averagingCurvatureModel::averagingCurvatureModel(const dictionary& configDict)
 :
     divergenceBasedCurvatureModel{configDict},
-    averagingIterations_{readLabel(configDict.lookup("averagingIterations"))}
+    averagingIterations_{configDict.get<label>("averagingIterations")}
 {}
 
 

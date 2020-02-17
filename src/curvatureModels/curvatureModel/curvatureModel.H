@@ -97,10 +97,10 @@ public:
             const dictionary& configDict
         ),
         (configDict)
-    );
+    )
 
     // Constructors
-    curvatureModel(const dictionary& configDict) {};  
+    curvatureModel(const dictionary&) {};  
 
     // Destructor
     virtual ~curvatureModel() = default;

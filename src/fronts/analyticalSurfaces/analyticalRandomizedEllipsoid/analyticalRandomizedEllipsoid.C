@@ -70,8 +70,8 @@ namespace FrontTracking {
 analyticalRandomizedEllipsoid::analyticalRandomizedEllipsoid(const dictionary& configDict)
 :
     analyticalEllipsoid{configDict},
-    centrePerturbation_{configDict.lookup("centrePerturbation")},
-    semiAxesPerturbation_{configDict.lookup("semiAxesPerturbation")}
+    centrePerturbation_{configDict.get<vector>("centrePerturbation")},
+    semiAxesPerturbation_{configDict.get<vector>("semiAxesPerturbation")}
 {
     originalCentre_ = centre();
     originalSemiAxes_ = semiAxes();

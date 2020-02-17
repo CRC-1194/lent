@@ -78,7 +78,7 @@ frontReconstructor::frontReconstructor(const dictionary& configDict)
 tmp<frontReconstructor>
 frontReconstructor::New(const dictionary& configDict)
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     // Find the constructor pointer for the model in the constructor table.
     DictionaryConstructorTable::iterator cstrIter =

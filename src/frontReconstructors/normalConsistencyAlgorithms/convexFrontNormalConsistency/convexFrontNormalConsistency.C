@@ -109,7 +109,7 @@ void convexFrontNormalConsistency::runNormalConsistencyAlgorithm(
 convexFrontNormalConsistency::convexFrontNormalConsistency(const dictionary& configDict)
     :
         normalConsistency(configDict),
-        orientation_{configDict.lookup("normalOrientation")},
+        orientation_{configDict.get<word>("normalOrientation")},
         orientationSign_{}
 {
     if (orientation_ == "outside")

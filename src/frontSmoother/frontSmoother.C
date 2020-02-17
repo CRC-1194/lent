@@ -384,9 +384,9 @@ bool frontSmoother::boundaryFacesAreCoplanar(const label& edgeLabel, const triSu
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 frontSmoother::frontSmoother(const dictionary& configDict)
 :
-    underrelaxationFactor_{readScalar(configDict.lookup("relaxFactor"))},
-    nSweeps_{readLabel(configDict.lookup("nSweeps"))},
-    smoothingType_{configDict.lookup("smooth")}
+    underrelaxationFactor_{configDict.get<scalar>("relaxFactor")},
+    nSweeps_{configDict.get<label>("nSweeps")},
+    smoothingType_{configDict.get<word>("smooth")}
 {}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //

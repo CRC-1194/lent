@@ -98,7 +98,7 @@ public:
             const dictionary& configDict
         ),
         (configDict)
-    );
+    )
 
 
     // Constructors

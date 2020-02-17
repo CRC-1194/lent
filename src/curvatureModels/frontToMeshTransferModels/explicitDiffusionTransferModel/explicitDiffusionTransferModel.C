@@ -185,8 +185,8 @@ std::vector<label> explicitDiffusionTransferModel::cellNeighbourhood(const label
 explicitDiffusionTransferModel::explicitDiffusionTransferModel(const dictionary& configDict)
 :
     frontToMeshTransferModel{configDict},
-    diffusionIterations_{readLabel(configDict.lookup("diffusionIterations"))},
-    signedDistanceName_{configDict.lookup("signedDistanceField")}
+    diffusionIterations_{configDict.get<label>("diffusionIterations")},
+    signedDistanceName_{configDict.get<word>("signedDistanceField")}
 {
 }
 

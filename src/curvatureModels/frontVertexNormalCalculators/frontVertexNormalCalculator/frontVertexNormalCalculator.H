@@ -96,7 +96,7 @@ public:
         Dictionary,
         (const dictionary& configDict),
         (configDict)
-    );
+    )
 
     // Selectors
     static tmp<frontVertexNormalCalculator> New(const dictionary& configDict);

@@ -255,10 +255,10 @@ scalar analyticalEllipse::bisection(const std::function< scalar(scalar)>& rootFu
 analyticalEllipse::analyticalEllipse(const dictionary& configDict)
 :
     analyticalSurface{configDict},
-    centre_{configDict.lookup("centre")},
-    semiAxes_{configDict.lookup("semiAxes")}
+    centre_{configDict.get<point>("centre")},
+    semiAxes_{configDict.get<vector>("semiAxes")}
 {
-    vector emptyDirection = configDict.lookup("emptyDirection");
+    vector emptyDirection = configDict.get<vector>("emptyDirection");
     projector_ = Identity<scalar>{} - emptyDirection*emptyDirection;
     ensureValidHalfAxes();
     ensureValidCentre();

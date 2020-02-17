@@ -91,8 +91,8 @@ void analyticalPlane::updateDistanceToOrigin()
 analyticalPlane::analyticalPlane(const dictionary& configDict)
 :
     analyticalSurface{configDict},
-    refPoint_{configDict.lookup("referencePoint")},
-    unitNormal_{configDict.lookup("normalVector")}
+    refPoint_{configDict.get<point>("referencePoint")},
+    unitNormal_{configDict.get<vector>("normalVector")}
 {
     name_ = configDict.lookupOrDefault<word>("name", analyticalPlane::typeName);
     unitNormal_ = normalize(unitNormal_);

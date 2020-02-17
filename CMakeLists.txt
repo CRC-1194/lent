@@ -37,7 +37,7 @@ find_package(Eigen3 REQUIRED)
 
 # Two-Phase Validation
 FetchContent_Declare(two-phase-validation
-    GIT_REPOSITORY          git@bitbucket.org:big_t/two-phase-validation.git
+    GIT_REPOSITORY          git@git.rwth-aachen.de:leia/two-phase-validation.git
     GIT_TAG                 feature/cmake-build                 
     GIT_SHALLOW             YES
     GIT_PROGRESS            YES

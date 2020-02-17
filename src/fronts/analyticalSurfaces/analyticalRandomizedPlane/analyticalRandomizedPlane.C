@@ -70,8 +70,8 @@ namespace FrontTracking {
 analyticalRandomizedPlane::analyticalRandomizedPlane(const dictionary& configDict)
 :
     analyticalPlane{configDict},
-    refPointPerturbation_{configDict.lookup("referencePointPerturbation")},
-    normalPerturbation_{configDict.lookup("normalVectorPerturbation")}
+    refPointPerturbation_{configDict.get<point>("referencePointPerturbation")},
+    normalPerturbation_{configDict.get<vector>("normalVectorPerturbation")}
 {
     originalRefPoint_ = referencePoint();
     originalNormal_ = normal();

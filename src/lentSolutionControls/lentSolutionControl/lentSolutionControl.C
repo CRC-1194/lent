@@ -233,7 +233,7 @@ scalar lentSolutionControl::l1(const scalarField& residual) const
 
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
-void lentSolutionControl::read()
+bool lentSolutionControl::read()
 {
     pimpleControl::read();
 
