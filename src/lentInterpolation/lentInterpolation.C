@@ -66,7 +66,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(lentInterpolation, 0);
-    defineRunTimeSelectionTable(lentInterpolation, Empty);
+    defineRunTimeSelectionTable(lentInterpolation, Empty)
     addToRunTimeSelectionTable(lentInterpolation, lentInterpolation, Empty);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //

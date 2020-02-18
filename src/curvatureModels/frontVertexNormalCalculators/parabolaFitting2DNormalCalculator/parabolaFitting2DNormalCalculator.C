@@ -174,9 +174,9 @@ parabolaFitting2DNormalCalculator::parabolaFitting2DNormalCalculator(const dicti
 :
     frontVertexNormalCalculator{configDict},
     projector_{Identity<scalar>{}},
-    xRef_{0.0},
-    yRef_{0.0},
-    zRef_{0.0},
+    xRef_{0},
+    yRef_{0},
+    zRef_{0},
     emptyDirection_{0,0,0},
     heightDirection_{0,0,0}
 {

@@ -197,12 +197,14 @@ tmp<volVectorField> tryggvasonSurfaceTensionForceModel::cellSurfaceTensionForce(
 }
 
 tmp<fvMatrix<vector>> tryggvasonSurfaceTensionForceModel::surfaceTensionImplicitPart(
-    const volVectorField& velocity,
-    const volScalarField& markerField,
-    const triSurfaceFront& front
+    const volVectorField&,
+    const volScalarField&,
+    const triSurfaceFront&
 ) const
 {
     notImplemented("surfaceTensionImplicitPart()");
+
+    return tmp<fvMatrix<vector>>{};
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

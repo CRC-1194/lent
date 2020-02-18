@@ -220,7 +220,7 @@ scalar nearestTriangleVicinityTransferModel::computeSearchRadiusSquared() const
     return searchRadiusSquared_;
 }
 
-scalar nearestTriangleVicinityTransferModel::weight(const scalar& distance) const
+scalar nearestTriangleVicinityTransferModel::weight(const scalar&) const
 {
     // Simple average (TT)
     // TODO: Reasonable weighting approach with regard to distance? (TT)

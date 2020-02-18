@@ -64,7 +64,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(distanceFieldCalculator, 0);
-    defineRunTimeSelectionTable(distanceFieldCalculator, Dictionary);
+    defineRunTimeSelectionTable(distanceFieldCalculator, Dictionary)
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -178,7 +178,7 @@ void distanceFieldCalculator::calcPointSearchDistance(
 }
 
 void distanceFieldCalculator::calcPointSearchDistance(
-    pointScalarField& pointSearchDistanceSqr
+    pointScalarField&
 )
 {
     notImplemented("distanceFieldCalculator::calcPointSearchDistance(pointScalarField&");

@@ -44,8 +44,7 @@ template<typename Points>
 void write_vtk_points(
         std::ostream& vtks,
         Points const& points, 
-        const std::string& fileName,
-        int index = 0 
+        const std::string& fileName
 )
 {
     // Initialize the legacy ascii VTK formatter: 15 decimal point precision.
@@ -55,7 +54,7 @@ void write_vtk_points(
     Foam::vtk::legacy::fileHeader(legacyFormat, fileName, Foam::vtk::fileTag::POLY_DATA);
 
     // Write point header
-    Foam::vtk::legacy::beginPoints(vtks, points.size());
+    Foam::vtk::legacy::beginPoints(vtks, static_cast<Foam::label>(points.size()));
 
     // Write point coordinates. 
     for(const auto& point : points) 
@@ -80,7 +79,7 @@ vtk_stream(
         << std::setw(3) << std::setfill('0') <<  fileIndex;  
 
     std::ofstream vtks (fileNameStream.str() + ".vtk"); 
-    write_vtk_points(vtks, points, fileName, fileIndex);
+    write_vtk_points(vtks, points, fileName);
     return vtks;
 }
 
@@ -89,8 +88,7 @@ std::enable_if_t<std::is_arithmetic_v<typename Scalars::value_type>>
 write_to_vtk_stream(
         Stream& vtks,
         Scalars const& values, 
-        const std::string& fieldName,
-        int index = 0 
+        const std::string& fieldName
 )
 {
     // Format for legacy VTK scalar data output:
@@ -258,7 +256,7 @@ struct errorNorms
         for(const auto& absErr : absErrors_)
             absSum += absErr; 
 
-        return absSum / absErrors_.size(); 
+        return absSum / static_cast<double>(absErrors_.size()); 
             
     }
 
@@ -268,7 +266,7 @@ struct errorNorms
         for (const auto& absErr : absErrors_)
             sqrSum += absErr*absErr; 
 
-        return std::sqrt(sqrSum / absErrors_.size()); 
+        return std::sqrt(sqrSum / static_cast<double>(absErrors_.size())); 
     }
 
     const errorList& errors() const

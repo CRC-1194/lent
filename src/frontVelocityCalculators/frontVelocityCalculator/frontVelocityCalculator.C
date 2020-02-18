@@ -67,7 +67,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(frontVelocityCalculator, 0);
-    defineRunTimeSelectionTable(frontVelocityCalculator, Dictionary);
+    defineRunTimeSelectionTable(frontVelocityCalculator, Dictionary)
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 

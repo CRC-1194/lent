@@ -106,10 +106,10 @@ public:
             const dictionary& configDict
         ),
         (configDict)
-    );
+    )
 
     // Constructors
-        normalConsistency(const dictionary& configDict) {};
+        normalConsistency(const dictionary&) {};
 
     // Selectors
 

@@ -97,7 +97,7 @@ void analyticalRandomizedEllipsoid::randomize()
     auto randomCentre = originalCentre_ + noiseGen_.noise<vector>(centrePerturbation_);
     auto randomSemiAxes = originalSemiAxes_ + noiseGen_.noise<vector>(semiAxesPerturbation_);
 
-    forAll(randomSemiAxes, I)
+    for (direction I = 0; I != 3; ++I)
     {
         if (randomSemiAxes[I] < SMALL)
         {

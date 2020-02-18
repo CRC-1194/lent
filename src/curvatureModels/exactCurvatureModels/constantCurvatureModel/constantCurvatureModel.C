@@ -43,7 +43,7 @@ constantCurvatureModel::constantCurvatureModel(const dictionary& configDict)
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-scalar constantCurvatureModel::curvatureAtPoint(const point& P) const
+scalar constantCurvatureModel::curvatureAtPoint(const point&) const
 {
     return curvatureValue_;
 }

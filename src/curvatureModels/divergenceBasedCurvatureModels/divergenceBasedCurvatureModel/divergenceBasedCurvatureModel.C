@@ -37,14 +37,13 @@ namespace FrontTracking {
     addToRunTimeSelectionTable(curvatureModel, divergenceBasedCurvatureModel, Dictionary);
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-void divergenceBasedCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurfaceFront& front) const
+void divergenceBasedCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurfaceFront&) const
 {
     const auto& curvatureInputField = inputField(mesh);
 
     auto cellCurvatureTmp = levelSetCurvature(curvatureInputField);
     auto curvatureBufferPtr = curvatureBuffer(mesh);
 
-    // TODO: performance optimization: avoid copying of the curvature field (TT)
     *curvatureBufferPtr = cellCurvatureTmp.ref();
 }
 
@@ -116,7 +115,7 @@ std::shared_ptr<surfaceScalarField> divergenceBasedCurvatureModel::faceCurvature
 
 std::shared_ptr<volVectorField> divergenceBasedCurvatureModel::cellInterfaceNormals(
     const fvMesh& mesh,
-    const triSurfaceFront& front
+    const triSurfaceFront&
 ) const
 {
     const auto& curvatureInputField = inputField(mesh);

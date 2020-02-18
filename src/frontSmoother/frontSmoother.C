@@ -199,7 +199,7 @@ std::vector<label> frontSmoother::internalEdges(const label nInternalEdges, cons
 {
     std::vector<label> internalEdges{};
 
-    label boundaryEdgeIndex = 0;
+    unsigned int boundaryEdgeIndex = 0;
 
     for (label index = 0; index < nInternalEdges; ++index)
     {
@@ -342,7 +342,7 @@ label frontSmoother::containingEdge(const label& pointLabel, const label& faceLa
     return edgeWithFrontVertex;
 }
 
-bool frontSmoother::boundaryFacesAreCoplanar(const label& edgeLabel, const triSurfaceFront& front, const fvMesh& mesh) const
+bool frontSmoother::boundaryFacesAreCoplanar(const label& edgeLabel, const triSurfaceFront&, const fvMesh& mesh) const
 
 {
     const auto& edgeFaces = mesh.edgeFaces(edgeLabel);

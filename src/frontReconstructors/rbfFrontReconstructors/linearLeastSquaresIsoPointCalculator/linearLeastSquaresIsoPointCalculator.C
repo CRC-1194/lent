@@ -95,7 +95,7 @@ void linearLeastSquaresIsoPointCalculator::calcEdgePoints
     // Resizing here in case of dynamic adaptive mesh refinement.
     // TODO: Reserve the capacity in the class constructor. TM.
     edgePoints_.resize(0);
-    edgeLabels_.resize(mesh.nEdges());
+    edgeLabels_.resize(static_cast<unsigned int>(mesh.nEdges()));
     std::fill(edgeLabels_.begin(), edgeLabels_.end(), -1);
 
     forAll(meshEdges, edgeI)
@@ -115,7 +115,7 @@ void linearLeastSquaresIsoPointCalculator::calcEdgePoints
 
             // Append the edge iso-point and mark the edge as intersected. 
             edgePoints_.push_back(meshPoints[e0]  + s * eVec);
-            edgeLabels_[edgeI] = edgePoints_.size() - 1; 
+            edgeLabels_[static_cast<unsigned int>(edgeI)] = static_cast<label>(edgePoints_.size() - 1); 
         }
     }
 }
@@ -132,7 +132,7 @@ void linearLeastSquaresIsoPointCalculator::calcContourPoints
     const auto& mesh = cellPhi.mesh();
     const auto& meshCellEdgesLists = mesh.cellEdges(); 
 
-    pointCellLabels_.resize(mesh.nCells());
+    pointCellLabels_.resize(static_cast<unsigned int>(mesh.nCells()));
     std::fill(pointCellLabels_.begin(), pointCellLabels_.end(), -1);
     contourPoints_.resize(0);
 
@@ -156,7 +156,7 @@ void linearLeastSquaresIsoPointCalculator::calcContourPoints
             startPoint /= nEdgePoints;
             auto contourPoint = projectToLeastSquaresPlane(startPoint, cellI, cellPhi, pointPhi);
             contourPoints_.push_back(contourPoint); 
-            pointCellLabels_[cellI] = contourPoints_.size() - 1;
+            pointCellLabels_[static_cast<unsigned int>(cellI)] = static_cast<label>(contourPoints_.size() - 1);
         }
     }
 }
@@ -249,7 +249,7 @@ linearLeastSquaresIsoPointCalculator::DiagonalMatrixXd linearLeastSquaresIsoPoin
     return weights;
 }
 
-scalar linearLeastSquaresIsoPointCalculator::weight(const scalar d, const scalar support) const
+scalar linearLeastSquaresIsoPointCalculator::weight(const scalar d, const scalar) const
 {
     return 1.0/(d*d + EPSILON);
 }

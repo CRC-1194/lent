@@ -67,12 +67,12 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(narrowBandPropagation, 0);
-    defineRunTimeSelectionTable(narrowBandPropagation, Dictionary);
+    defineRunTimeSelectionTable(narrowBandPropagation, Dictionary)
     addToRunTimeSelectionTable(narrowBandPropagation,narrowBandPropagation, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-narrowBandPropagation::narrowBandPropagation(const dictionary& configDict) {}
+narrowBandPropagation::narrowBandPropagation(const dictionary&) {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 

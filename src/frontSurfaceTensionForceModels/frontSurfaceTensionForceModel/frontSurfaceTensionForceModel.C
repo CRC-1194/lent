@@ -65,7 +65,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(frontSurfaceTensionForceModel, 0);
-    defineRunTimeSelectionTable(frontSurfaceTensionForceModel, Dictionary);
+    defineRunTimeSelectionTable(frontSurfaceTensionForceModel, Dictionary)
 
 // * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
 //

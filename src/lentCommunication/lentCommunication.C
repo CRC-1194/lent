@@ -66,7 +66,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(lentCommunication, 0);
-    defineRunTimeSelectionTable(lentCommunication, FrontMesh);
+    defineRunTimeSelectionTable(lentCommunication, FrontMesh)
     addToRunTimeSelectionTable(lentCommunication, lentCommunication, FrontMesh);
 
     word lentCommunication::registeredName(
@@ -272,7 +272,7 @@ void lentCommunication::updateInterfaceCellToVertices()
     }
 }
 
-bool lentCommunication::writeData(Ostream& os) const
+bool lentCommunication::writeData(Ostream&) const
 {
     FatalErrorIn("lentMethod::writeData(Ostream& os)")
     << "lentMethod is not supposed to be written "

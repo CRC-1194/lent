@@ -68,7 +68,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(frontReconstructionModel, 0);
-    defineRunTimeSelectionTable(frontReconstructionModel, Dictionary);
+    defineRunTimeSelectionTable(frontReconstructionModel, Dictionary)
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 

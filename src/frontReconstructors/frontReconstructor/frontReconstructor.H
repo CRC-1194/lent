@@ -95,7 +95,7 @@ public:
             const dictionary& configDict
         ),
         (configDict)
-    );
+    )
 
     // Constructors
     explicit frontReconstructor(const dictionary& configDict);

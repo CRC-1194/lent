@@ -98,7 +98,7 @@ public:
         Dictionary,
         (const dictionary& configDict),
         (configDict)
-    );
+    )
 
     // Selectors
     static tmp<frontSurfaceTensionForceModel> New(const dictionary& configDict);

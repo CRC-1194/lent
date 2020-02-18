@@ -92,13 +92,13 @@ void analyticalEllipse::ensureValidCentre()
     centre_ = projector_&centre_;
 }
 
-label analyticalEllipse::majorSemiAxisIndex() const
+direction analyticalEllipse::majorSemiAxisIndex() const
 {
     // FIXME: for some reason the OpenFOAM version of 'max()' does
     // not work here (TT)
-    label indexMax = 0;
+    direction indexMax = 0;
         
-    forAll(semiAxes_, I)
+    for (direction I = 0; I != 3; ++I)
     {
         if (semiAxes_[I] > semiAxes_[indexMax])
         {
@@ -109,11 +109,11 @@ label analyticalEllipse::majorSemiAxisIndex() const
     return indexMax;
 }
 
-label analyticalEllipse::minorSemiAxisIndex() const
+direction analyticalEllipse::minorSemiAxisIndex() const
 {
     auto majorIndex = majorSemiAxisIndex();
 
-    forAll(semiAxes_, I)
+    for (direction I = 0; I != 3; ++I)
     {
         if (I != majorIndex && semiAxes_[I] > 0.0)
         {
@@ -131,7 +131,7 @@ scalar analyticalEllipse::levelSetValueOf(const point& aPoint) const
     // f(aPoint) = (x/a)^2 + (y/b)^2 + (z/c)^2 - 1
     scalar levelSetValue = -1.0;
 
-    forAll(aPoint, I)
+    for (direction I = 0; I != 3; ++I)
     {
         levelSetValue += pow(aPoint[I]/semiAxes_[I],2.0);
     }
@@ -151,7 +151,7 @@ vector analyticalEllipse::levelSetGradientAt(const point& aPoint) const
             << abort(FatalError);
     }
 
-    forAll(levelSetGradient, I)
+    for (direction I = 0; I != 3; ++I)
     {
         levelSetGradient[I] = 2.0/pow(semiAxes_[I],2.0)*aPoint[I];
     }
@@ -180,7 +180,7 @@ analyticalEllipse::parameterPair analyticalEllipse::intersectEllipseWithLine(con
     scalar b = 0.0;
     scalar c = -1.0;
 
-    forAll(refPoint, I)
+    for (direction I = 0; I != 3; ++I)
     {
         a += std::pow(path[I]/semiAxes_[I],2.0);
         b += 2.0*refPoint[I]*path[I]/std::pow(semiAxes_[I],2.0);
@@ -209,7 +209,7 @@ scalar analyticalEllipse::ellipseCurvature(const point& aPoint) const
 
     vector oneBySemiAxisSqr{0,0,0};
 
-    forAll(oneBySemiAxisSqr, I)
+    for (direction I =0; I != 3; ++I)
     {
         oneBySemiAxisSqr[I] = 1.0/(semiAxes_[I]*semiAxes_[I] + SMALL);
     }
@@ -298,7 +298,7 @@ point analyticalEllipse::normalProjectionToSurface(point& trialPoint) const
     // Move trial point to first quadrant of reference frame
     auto refPoint = moveToReferenceFrame(trialPoint);
     auto p = refPoint;
-    forAll(p, I)
+    for (direction I = 0; I != 3; ++I)
     {
         p[I] = fabs(p[I]);
     }
@@ -316,8 +316,8 @@ point analyticalEllipse::normalProjectionToSurface(point& trialPoint) const
     // The minor and the major semi axis are rquired to compute the
     // appropriate parameter range (TT)
     parameterPair interval{};
-    auto minI = minorSemiAxisIndex();
-    auto maxI = majorSemiAxisIndex();
+    direction minI = minorSemiAxisIndex();
+    direction maxI = majorSemiAxisIndex();
     interval[0] = -1.0*a[minI]*a[minI] + a[minI]*p[minI];
     interval[1] = -1.0*a[minI]*a[minI]
                  + sqrt(a[maxI]*a[maxI]*p[maxI]*p[maxI]
@@ -330,7 +330,7 @@ point analyticalEllipse::normalProjectionToSurface(point& trialPoint) const
     pointOnSurface.z() = a.z()*a.z()*p.z() / (a.z()*a.z() + lambdaMin);
 
     // Move point on surface to correct quadrant
-    forAll(pointOnSurface, I)
+    for (direction I = 0; I != 3; ++I)
     {
         pointOnSurface[I] *= sign(refPoint[I]);
     }

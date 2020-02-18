@@ -82,7 +82,7 @@ void triangleInCellTransferModel::transferCurvature(
             cellCurvature[cellLabel] += mag(curvatureNormals[tl])*sign(curvatureNormals[tl]&faceNormal[tl]);
         }
 
-        cellCurvature[cellLabel] /= triangleLabels.size();
+        cellCurvature[cellLabel] /= static_cast<scalar>(triangleLabels.size());
     }
 
     //------------------------------------------------------------------------

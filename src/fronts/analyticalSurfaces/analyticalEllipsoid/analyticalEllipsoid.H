@@ -79,7 +79,7 @@ private:
     point moveToReferenceFrame(const point& aPoint) const;
     parameterPair intersectEllipsoidWithLine(const point& refPoint, const vector& path) const;
     scalar ellipsoidCurvature(const point& p) const;
-    label minorSemiAxisIndex() const;
+    direction minorSemiAxisIndex() const;
     // TODO: extract bisection method since it may be used else wehere (TT)
     scalar bisection(const std::function<scalar(scalar)>& rootFunction, parameterPair interval) const;
 

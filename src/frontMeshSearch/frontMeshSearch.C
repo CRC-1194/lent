@@ -74,27 +74,11 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(frontMeshSearch, 0);
-    defineRunTimeSelectionTable(frontMeshSearch, Dictionary);
+    defineRunTimeSelectionTable(frontMeshSearch, Dictionary)
     addToRunTimeSelectionTable(frontMeshSearch, frontMeshSearch, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-//frontMeshSearch::frontMeshSearch(const Time& runTime)
-//:
-    //lastSeedCell_(-1),
-    //visualizationCellSet_(
-        //IOobject(
-            //"frontMeshSearchCells",
-            //runTime.timeName(),
-            //runTime,
-            //IOobject::NO_READ,
-            //IOobject::AUTO_WRITE
-        //)
-    //),
-    //iterationCount_(0),
-//{}
-
-frontMeshSearch::frontMeshSearch(const dictionary& configDict)
+frontMeshSearch::frontMeshSearch(const dictionary&)
 :
     lastDistance_(GREAT)
 {}
@@ -293,7 +277,7 @@ labelList frontMeshSearch::pointCellStencil(
         }
     }
     // TODO: Improve efficiency, use OpenFOAM HashSet<label>. TM. 
-    result.resize(newNeighborCells.size());
+    result.resize(static_cast<label>(newNeighborCells.size()));
 
     std::copy(newNeighborCells.begin(), newNeighborCells.end(), result.begin()); 
 

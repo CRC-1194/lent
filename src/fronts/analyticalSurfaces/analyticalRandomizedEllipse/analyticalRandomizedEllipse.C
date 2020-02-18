@@ -99,7 +99,7 @@ void analyticalRandomizedEllipse::randomize()
     auto randomSemiAxes = originalSemiAxes_ + noiseGen_.noise<vector>(semiAxesPerturbation_);
 
     // Ensure non-negative semi axes
-    forAll(randomSemiAxes, I)
+    for (direction I = 0; I != 3; ++I)
     {
         if (randomSemiAxes[I] < SMALL)
         {

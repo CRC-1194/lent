@@ -97,7 +97,7 @@ public:
             const dictionary& configDict
         ),
         (configDict)
-    );
+    )
 
     // Constructors
     frontVelocityCalculator(const dictionary& configDict);

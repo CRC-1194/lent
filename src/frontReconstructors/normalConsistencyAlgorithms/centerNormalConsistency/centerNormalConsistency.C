@@ -74,7 +74,7 @@ namespace FrontTracking {
 void centerNormalConsistency::runNormalConsistencyAlgorithm(
     triSurfaceFront& front,
     const volScalarField& signedDistance,
-    const pointScalarField& pointSignedDistance // Not used by this algorithm.
+    const pointScalarField&
 ) const
 {
     List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);

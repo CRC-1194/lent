@@ -251,6 +251,8 @@ bool lentSolutionControl::read()
     {
         maxFluxUpdateIterations_ = lentSCDict.get<label>("maxFluxUpdateIterations");
     }
+
+    return true;
 }
 
 

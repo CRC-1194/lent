@@ -131,7 +131,7 @@ point analyticalPlane::normalProjectionToSurface(point& trialPoint) const
     return (trialPoint - ((trialPoint - refPoint_) & (unitNormal_*unitNormal_)));
 }
 
-vector analyticalPlane::normalToPoint(const point& trialPoint) const
+vector analyticalPlane::normalToPoint(const point&) const
 {
     return unitNormal_;
 }

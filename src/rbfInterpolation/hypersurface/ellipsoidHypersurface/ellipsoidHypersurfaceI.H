@@ -44,7 +44,7 @@ scalar ellipsoidHypersurface::value(point p) const
 {
     double result {-1.};  
 
-    for (char i = 0; i < 3; ++i)
+    for (unsigned char i = 0; i < 3; ++i)
         result += Foam::sqr((p[i] - center_[i]) / halfAxes_[i]); 
 
     return result;

@@ -75,7 +75,7 @@ void lentSubalgorithmTest::writeFields() const
     }
 }
 
-void lentSubalgorithmTest::writeMetrics(const word& fileName, const label runNumber) const
+void lentSubalgorithmTest::writeMetrics(const word& fileName, const unsigned long runNumber) const
 {
     // In the first run create result file and write its header
     if (runNumber == 0)
@@ -267,14 +267,14 @@ void lentSubalgorithmTest::runAllTests(const word& fileName)
             computeApproximatedFields();
 
             auto end = clock::now();
-            scalar deltaT = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+            scalar deltaT = static_cast<scalar>(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
             addMeasure(algorithmRuntime_, deltaT);
             
             Info << "\n---> Evaluating test metrics...\n";
             evaluateMetrics();
 
             writeFields();
-            writeMetrics(fileName, I*nPerturbedRuns_ + K);
+            writeMetrics(fileName, static_cast<unsigned int>(I*nPerturbedRuns_ + K));
         }
     }
 }

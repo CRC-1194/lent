@@ -73,8 +73,8 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * Private  member functions * * * * * * * * * * * //
 void convexFrontNormalConsistency::runNormalConsistencyAlgorithm(
     triSurfaceFront& front,
-    const volScalarField& signedDistance,
-    const pointScalarField& pointSignedDistance // Not used by this algorithm.
+    const volScalarField&,
+    const pointScalarField&
 ) const
 {
     List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);

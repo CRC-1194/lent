@@ -131,7 +131,7 @@ public:
             const dictionary& configDict
         ),
         (configDict)
-    );
+    )
 
     // Constructors
         explicit frontMotionSolver(const dictionary& configDict);

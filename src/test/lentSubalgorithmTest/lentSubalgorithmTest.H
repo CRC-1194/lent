@@ -86,7 +86,7 @@ private:
     template<typename Type>
     std::string metricHeader(const metricDataMap<Type>&) const;
     std::string printFoamVector(const vector& v) const;
-    void writeMetrics(const word& fileName, const label runNumber) const;
+    void writeMetrics(const word& fileName, const unsigned long runNumber) const;
 
     void setNextRun() const;
     void writeFields() const;

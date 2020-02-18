@@ -69,7 +69,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(analyticalSurface, 0);
-    defineRunTimeSelectionTable(analyticalSurface, Dictionary);
+    defineRunTimeSelectionTable(analyticalSurface, Dictionary)
     
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
@@ -79,7 +79,7 @@ OFstream analyticalSurface::outputStream(const word& fileName) const
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-analyticalSurface::analyticalSurface(const dictionary& configDict)
+analyticalSurface::analyticalSurface(const dictionary&)
 {}
 
 

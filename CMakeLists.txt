@@ -544,6 +544,18 @@ target_link_libraries("lentTestRbfReconstruction"
     ${OF_LENTDEPS}
 )
 
+add_executable("lentTestCurvature"
+    applications/testing/lentTestCurvature/lentTestCurvature.C
+)
+target_include_directories("lentTestCurvature" SYSTEM PRIVATE
+    applications/testing
+    ${of_src_path}/fileFormats/lnInclude
+)
+target_link_libraries("lentTestCurvature"
+    "lent"
+    ${OF_LENTDEPS}
+)
+
 # Install executables
 install(TARGETS
     # Solvers
@@ -559,6 +571,7 @@ install(TARGETS
 
     # Tests
     "lentTestRbfReconstruction"
+    "lentTestCurvature"
 
     RUNTIME
 )

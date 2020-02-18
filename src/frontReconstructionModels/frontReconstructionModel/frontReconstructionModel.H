@@ -95,10 +95,10 @@ public:
             const dictionary& configDict
         ),
         (configDict)
-    );
+    )
 
     // Constructors
-    explicit frontReconstructionModel(const dictionary& configDict) {};
+    explicit frontReconstructionModel(const dictionary&) {};
 
     // Destructor
     virtual ~frontReconstructionModel() = default;

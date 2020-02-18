@@ -260,7 +260,7 @@ void lentMethod::evolveFront(
     Info << "Done." << endl;
 }
 
-bool lentMethod::writeData(Ostream& os) const
+bool lentMethod::writeData(Ostream&) const
 {
     FatalErrorIn("lentMethod::writeData(Ostream& os)")
     << "lentMethod is not supposed to be written "

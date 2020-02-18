@@ -70,14 +70,14 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(normalConsistency, 0);
-    defineRunTimeSelectionTable(normalConsistency, Dictionary);
+    defineRunTimeSelectionTable(normalConsistency, Dictionary)
     addToRunTimeSelectionTable(normalConsistency, normalConsistency, Dictionary);
 
 // * * * * * * * * * * * * * Private  member functions * * * * * * * * * * * //
 void normalConsistency::runNormalConsistencyAlgorithm(
     triSurfaceFront& front,
     const volScalarField& signedDistance,
-    const pointScalarField& pointSignedDistance // Not used.
+    const pointScalarField&
 ) const
 {
     // Gradient based normal consistency algorithm.
