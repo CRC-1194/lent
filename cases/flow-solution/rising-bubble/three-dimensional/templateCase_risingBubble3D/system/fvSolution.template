@@ -30,12 +30,20 @@ solvers
         $pcorr;
     }
 
+    rho
+    {
+        solver          diagonal;
+        tolerance       1e-07;
+        relTol          0;
+    }
+
     p_rgh
     {
         solver          PCG;
         preconditioner  DIC;
         tolerance       @!p_tol!@;
         relTol          0;
+        minIter         10;
     }
 
     p_rghFinal
@@ -49,6 +57,7 @@ solvers
         preconditioner  DILU;
         tolerance       @!u_tol!@;
         relTol          0;
+        minIter         5;
     }
 
     UFinal
@@ -70,6 +79,18 @@ lentSC
         {
                 tolerance  @!p_tol!@;
                 relTol     0;
+                relTol     0;
+                resType    absolute;
+                norm       Linf;
+        }
+
+        U
+        {
+                tolerance  @!u_tol!@;
+                relTol     0;
+                relTol     0;
+                resType    absolute;
+                norm       Linf;
         }
      }
 
