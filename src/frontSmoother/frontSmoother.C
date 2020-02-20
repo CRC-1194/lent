@@ -127,7 +127,7 @@ vector frontSmoother::computeV(const label& edgeLabel, const triSurfaceFront& fr
     const auto& x0 = points[relaxEdge[0]];
     const auto& x1 = points[relaxEdge[1]];
     const auto& aFace = faces[connectedFaces[0]];
-    if ((aFace.normal(points) & ((x0 - x1) ^ V)) < 0.0)
+    if ((aFace.unitNormal(points) & ((x0 - x1) ^ V)) < 0.0)
     {
         V *= -1.0;
     }
