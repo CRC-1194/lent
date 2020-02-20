@@ -156,13 +156,13 @@ int main(int argc, char *argv[])
 
 	    Ufront == U; 
 
-        if (args.optionFound("relative-frame"))
+        if (args.found("relative-frame"))
         {
             alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
             Ub = sum(alphaInv * mesh.V() * U) / sum(alphaInv * mesh.V());
 	        Ufront == Ufront - Ub;
         }
-        if (args.optionFound("normal-velocity"))
+        if (args.found("normal-velocity"))
         {
             nFront = fvc::grad(signedDistance); 
             nFront /= Foam::mag(nFront) + dimensionedScalar("EPSILON", dimless, EPSILON);
