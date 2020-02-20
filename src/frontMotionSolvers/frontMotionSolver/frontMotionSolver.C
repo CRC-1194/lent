@@ -66,7 +66,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(frontMotionSolver, 0);
-    defineRunTimeSelectionTable(frontMotionSolver, Dictionary);
+    defineRunTimeSelectionTable(frontMotionSolver, Dictionary)
 
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
 
@@ -85,7 +85,7 @@ frontMotionSolver::frontMotionSolver(const dictionary& configDict)
 tmp<frontMotionSolver>
 frontMotionSolver::New(const dictionary& configDict)
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     DictionaryConstructorTable::iterator cstrIter =
         DictionaryConstructorTablePtr_->find(name);

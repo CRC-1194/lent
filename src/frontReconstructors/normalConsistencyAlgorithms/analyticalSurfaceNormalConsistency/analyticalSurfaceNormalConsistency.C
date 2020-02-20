@@ -73,8 +73,8 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * Private  member functions * * * * * * * * * * * //
 void analyticalSurfaceNormalConsistency::runNormalConsistencyAlgorithm(
     triSurfaceFront& front,
-    const volScalarField& signedDistance,
-    const pointScalarField& pointSignedDistance // Not used by this algorithm.
+    const volScalarField&,
+    const pointScalarField&
 ) const
 {
     makeFrontNormalsConsistent(front);

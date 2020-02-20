@@ -72,7 +72,7 @@ class dualKrigingInterpolation
     void adaptSystemSize(const unsigned int nPoints);
 
     void setupKrigingSystem();
-    void setupRightHandSide(const std::vector<label>& cellLabels, const volVectorField& phi, const label index);
+    void setupRightHandSide(const std::vector<label>& cellLabels, const volVectorField& phi, const direction index);
 
     scalar coVar(const point& A, const point& B) const;
     vector drift(const point& vertex) const;

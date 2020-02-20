@@ -336,8 +336,8 @@ lentFrontSmoothingTest::lentFrontSmoothingTest(const fvMesh& mesh, triSurfaceFro
                                     new analyticalSurfaceNormalConsistency{surfaceRef()}
                                 };
 
-    correctFront_ = Switch{testDict().lookup("correctFront")};
-    magFrontNoise_ = readScalar(testDict().lookup("magFrontNoise"));
+    correctFront_ = testDict().get<Switch>("correctFront");
+    magFrontNoise_ = testDict().get<scalar>("magFrontNoise");
 
     surfaceDeviationTmp_ = tmp<triSurfaceFrontPointScalarField>{
                 new triSurfaceFrontPointScalarField

@@ -1,0 +1,41 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+|    _ _ _ _    |                                                              |
+| //         \\ | Creative Fields cfMeshPRO                                  |
+| | cfMeshPRO | |                                                              |
+| \\ _ _ _ _ // | Version: 0.0.99                                            |
+|               | Web: www.c-fields.com e-mail: support@c-fields.com           |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version	2;
+    format	ascii;
+    class	dictionary;
+    location	"system";
+    object	meshDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+surfaceFile	"../template_copy_poly/polyMeshFiles/@!surface_file!@";
+
+maxCellSize	#calc "1.0*@!domain_length!@/@!resolution!@";
+
+objectRefinements
+{
+    ellipsoid
+    {
+        type sphere;
+        cellSize	#calc "$maxCellSize*0.3";
+        centre		(@!x_centre!@ @!y_centre!@ @!z_centre!@);
+        radius		@!x_semi_axis!@;
+        refinementThickness 1;
+    }
+}
+
+renameBoundary
+{
+    defaultName domainBoundary;
+    defaultType patch;
+}
+
+// ************************************************************************* //

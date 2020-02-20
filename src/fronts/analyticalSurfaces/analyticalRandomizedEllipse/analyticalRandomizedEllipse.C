@@ -71,8 +71,8 @@ namespace FrontTracking {
 analyticalRandomizedEllipse::analyticalRandomizedEllipse(const dictionary& configDict)
 :
     analyticalEllipse{configDict},
-    centrePerturbation_{configDict.lookup("centrePerturbation")},
-    semiAxesPerturbation_{configDict.lookup("semiAxesPerturbation")}
+    centrePerturbation_{configDict.get<vector>("centrePerturbation")},
+    semiAxesPerturbation_{configDict.get<vector>("semiAxesPerturbation")}
 {
     originalCentre_ = centre();
     originalSemiAxes_ = semiAxes();
@@ -99,7 +99,7 @@ void analyticalRandomizedEllipse::randomize()
     auto randomSemiAxes = originalSemiAxes_ + noiseGen_.noise<vector>(semiAxesPerturbation_);
 
     // Ensure non-negative semi axes
-    forAll(randomSemiAxes, I)
+    for (direction I = 0; I != 3; ++I)
     {
         if (randomSemiAxes[I] < SMALL)
         {

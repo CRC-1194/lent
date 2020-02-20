@@ -59,7 +59,7 @@ scalar analyticalEllipsoid::levelSetValueOf(const point& aPoint) const
     // squared
     scalar levelSetValue = -1.0;
 
-    forAll(aPoint, I)
+    for (direction I = 0; I != 3; ++I)
     {
         levelSetValue += oneBySemiAxisSqr_[I]*aPoint[I]*aPoint[I];
     }
@@ -79,7 +79,7 @@ vector analyticalEllipsoid::levelSetGradientAt(const point& aPoint) const
             << abort(FatalError);
     }
 
-    forAll(levelSetGradient, I)
+    for (direction I = 0; I != 3; ++I)
     {
         levelSetGradient[I] = 2.0*oneBySemiAxisSqr_[I]*aPoint[I];
     }
@@ -103,7 +103,7 @@ analyticalEllipsoid::parameterPair analyticalEllipsoid::intersectEllipsoidWithLi
     scalar linCoeff = 0.0;
     scalar absCoeff = -1.0; // Already include the "-1" from the level set equation
 
-    forAll(refPoint, I)
+    for (direction I = 0; I != 3; ++I)
     {
         quadCoeff += oneBySemiAxisSqr_[I]*path[I]*path[I];
         linCoeff += 2.0*oneBySemiAxisSqr_[I]*refPoint[I]*path[I];
@@ -143,12 +143,12 @@ scalar analyticalEllipsoid::ellipsoidCurvature(const point& p) const
     return -2.0*kappa/(D*D*D + SMALL);
 }
 
-label analyticalEllipsoid::minorSemiAxisIndex() const
+direction analyticalEllipsoid::minorSemiAxisIndex() const
 {
-    label minIndex = 0;
+    direction minIndex = 0;
     scalar minAxis = 0.0;
 
-    forAll(oneBySemiAxisSqr_, I)
+    for (direction I = 0; I != 3; ++I)
     {
         if (oneBySemiAxisSqr_[I] > minAxis)
         {
@@ -198,7 +198,7 @@ point analyticalEllipsoid::normalProjectionToSurfaceRefSystem(point P) const
 
     // Move point to first quadrant of reference frame
     auto p = P;
-    forAll(p, I)
+    for (direction I = 0; I != 3; ++I)
     {
         p[I] = fabs(p[I]);
     }
@@ -231,7 +231,7 @@ point analyticalEllipsoid::normalProjectionToSurfaceRefSystem(point P) const
     pointOnSurface.z() = p.z() / (1.0 + q.z()*lambdaMin + epsilon);
 
     // Move point on surface to correct quadrant
-    forAll(pointOnSurface, I)
+    for (direction I = 0; I != 3; ++I)
     {
         pointOnSurface[I] *= sign(P[I]);
     }
@@ -311,27 +311,35 @@ scalar analyticalEllipsoid::curvatureAtRefSystem(const point P) const
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
 analyticalEllipsoid::analyticalEllipsoid(const dictionary& configDict)
 :
     analyticalSurface{configDict},
-    centre_{configDict.lookup("centre")},
+    centre_{configDict.get<point>("centre")},
     oneBySemiAxisSqr_{}
 {
-    vector semiAxes{configDict.lookup("semiAxes")};
+    vector semiAxes{configDict.get<vector>("semiAxes")};
 
-    forAll(semiAxes, I)
+    for(direction I = 0; I != 3; ++I)
     {
         oneBySemiAxisSqr_[I] = 1.0/(semiAxes[I]*semiAxes[I]);
     }
+
+    name_ = configDict.lookupOrDefault<word>("name", analyticalEllipsoid::typeName);
 }
 
-analyticalEllipsoid::analyticalEllipsoid(const point& centre, const vector& semiAxes)
+analyticalEllipsoid::analyticalEllipsoid(
+    const point& centre, 
+    const vector& semiAxes, 
+    const word name
+)
 :
    analyticalSurface{},
    centre_{centre},
-   oneBySemiAxisSqr_{}
+   oneBySemiAxisSqr_{},
+   name_(name)
 {
-    forAll(semiAxes, I)
+    for (direction I = 0; I != 3; ++I)
     {
         oneBySemiAxisSqr_[I] = 1.0/(semiAxes[I]*semiAxes[I]);
     }
@@ -379,7 +387,7 @@ vector analyticalEllipsoid::semiAxes() const
 {
     vector semiAxes{};
 
-    forAll(semiAxes, I)
+    for (direction I = 0; I != 3; ++I)
     {
         semiAxes[I] = sqrt(1.0/(oneBySemiAxisSqr_[I] + SMALL));
     }
@@ -399,7 +407,7 @@ void analyticalEllipsoid::centre(const vector& newCentre)
 
 void analyticalEllipsoid::semiAxes(const vector& newSemiAxes)
 {
-    forAll(newSemiAxes, I)
+    for (direction I = 0; I != 3; ++I)
     {
         oneBySemiAxisSqr_[I] = 1.0/(newSemiAxes[I]*newSemiAxes[I]);
     }

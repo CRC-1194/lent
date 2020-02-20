@@ -71,13 +71,13 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(curvatureModel, 0);
-    defineRunTimeSelectionTable(curvatureModel, Dictionary);
+    defineRunTimeSelectionTable(curvatureModel, Dictionary)
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 tmp<curvatureModel>
 curvatureModel::New(const dictionary& configDict)
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     DictionaryConstructorTable::iterator cstrIter =
         DictionaryConstructorTablePtr_->find(name);
@@ -98,11 +98,13 @@ curvatureModel::New(const dictionary& configDict)
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 std::shared_ptr<volVectorField> curvatureModel::cellInterfaceNormals(
-    const fvMesh& mesh,
-    const triSurfaceFront& front
+    const fvMesh&,
+    const triSurfaceFront& 
 ) const
 {
     notImplemented("cellInterfaceNormals");
+
+    return std::shared_ptr<volVectorField>{};
 }
 
 

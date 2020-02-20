@@ -37,13 +37,13 @@ namespace FrontTracking {
 constantCurvatureModel::constantCurvatureModel(const dictionary& configDict)
 :
     exactCurvatureModel{configDict},
-    curvatureValue_{readScalar(configDict.lookup("value"))}
+    curvatureValue_{configDict.get<scalar>("value")}
 {
 }
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-scalar constantCurvatureModel::curvatureAtPoint(const point& P) const
+scalar constantCurvatureModel::curvatureAtPoint(const point&) const
 {
     return curvatureValue_;
 }

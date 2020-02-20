@@ -85,7 +85,7 @@ analyticalSurfaceReconstructor::analyticalSurfaceReconstructor(const dictionary&
 void analyticalSurfaceReconstructor::reconstructFront(
     triSurfaceFront& front,
     const volScalarField& signedDistance,
-    const pointScalarField& pointSignedDistance
+    const pointScalarField&
 ) const
 {
     // Update the communication map after reconstruction.

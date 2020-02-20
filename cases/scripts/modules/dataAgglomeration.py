@@ -321,19 +321,23 @@ class data_agglomerator:
         of plots and tables from the data.
     """
 
-    def __init__(self, parameter_file_name, file_pattern=r"Results\.csv$"):
+    def __init__(self, parameter_file_name, directory_pattern="", file_pattern=r"Results\.csv$"):
         """
         Constructor of the data_agglomerator requiring the name of a parameter file.
 
         Keyword arguments:
+        directory_pattern -- regular expression for finding the study directories (default: parameter file name)
         file_pattern -- regular expression for finding the data files (default 'Results\.csv$')
         """
         self.parameter_file_name = parameter_file_name
         self.multiindex_assembler = multiindex_assembler(parameter_file_name)
-        # TODO: how to create a raw string from the parameter file name for the
-        # regular expression used for directory detection?
-        directory_pattern = parameter_file_name.replace('.', r"\.")
-        directory_pattern = directory_pattern + r"_[0-9]{5}"
+
+        if not directory_pattern:
+            directory_pattern = parameter_file_name.replace('.', r"\.")
+            directory_pattern = directory_pattern + r"_[0-9]{5}"
+        else:
+            directory_pattern = regex_from_study_directory_name(directory_pattern)
+
         self.data_collector = data_collector(directory_pattern, file_pattern) 
         self.dataframe = pd.DataFrame()
         self.already_computed = False
@@ -351,6 +355,11 @@ class data_agglomerator:
         # Get agglomerated data
         study_data = self.data_collector.agglomerated_study_data()
         existing_variations = self.data_collector.existing_variations()
+
+        # Return an empty DataFrame for an empty parameter study. 
+        if (len(existing_variations) == 0):
+            raise ValueError("The number of existing variations equals 0, is the parameter study empty?")
+
         datapoints_per_variant = self.data_collector.datapoints_per_variant()
 
         # Create a mutliindex for the collected data
@@ -408,3 +417,11 @@ class data_agglomerator:
 
         for key, value in failed_variations.items():
             print(key, '\t', value)
+
+def regex_from_study_directory_name(directory_name):
+    number_part = re.compile(r"_[0-9]{5}_")
+    match = number_part.search(directory_name)
+    directory_name = directory_name.replace(match.group(), r"_[0-9]{5}_")
+    directory_name = directory_name.replace(".", r"\.")
+
+    return r"^" + directory_name + r"$"

@@ -74,27 +74,11 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(frontMeshSearch, 0);
-    defineRunTimeSelectionTable(frontMeshSearch, Dictionary);
+    defineRunTimeSelectionTable(frontMeshSearch, Dictionary)
     addToRunTimeSelectionTable(frontMeshSearch, frontMeshSearch, Dictionary);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-//frontMeshSearch::frontMeshSearch(const Time& runTime)
-//:
-    //lastSeedCell_(-1),
-    //visualizationCellSet_(
-        //IOobject(
-            //"frontMeshSearchCells",
-            //runTime.timeName(),
-            //runTime,
-            //IOobject::NO_READ,
-            //IOobject::AUTO_WRITE
-        //)
-    //),
-    //iterationCount_(0),
-//{}
-
-frontMeshSearch::frontMeshSearch(const dictionary& configDict)
+frontMeshSearch::frontMeshSearch(const dictionary&)
 :
     lastDistance_(GREAT)
 {}
@@ -109,7 +93,7 @@ frontMeshSearch::frontMeshSearch()
 tmp<frontMeshSearch>
 frontMeshSearch::New(const dictionary& configDict)
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     DictionaryConstructorTable::iterator cstrIter =
         DictionaryConstructorTablePtr_->find(name);
@@ -154,12 +138,13 @@ frontMeshSearch::~frontMeshSearch()
 label frontMeshSearch::cellContainingPoint(
     const point& p,
     const fvMesh& mesh,
-    const label seedCell
+    const label seedCell,
+    const scalar tolerance
 ) const
 {
     //appendLabelAndWriteCellSet(seedCell);
 
-    if (pointIsInCell(p, seedCell, mesh, -SMALL)) // FIXME: Tolerance data member? TM.
+    if (pointIsInCell(p, seedCell, mesh, tolerance)) // FIXME: Tolerance data member? TM.
     {
         //appendLabelAndWriteCellSet(seedCell);
         return seedCell;
@@ -191,7 +176,7 @@ label frontMeshSearch::cellContainingPoint(
 
         //Info << "minDistance = " << minDistance << endl;
 
-        if (pointIsInCell(p, neighborCell, mesh, -SMALL)) // FIXME: Tolerance data member? TM.
+        if (pointIsInCell(p, neighborCell, mesh, tolerance)) // FIXME: Tolerance data member? TM.
         {
             //appendLabelAndWriteCellSet(neighborCell);
             lastDistance_ = minDistance;
@@ -212,14 +197,14 @@ label frontMeshSearch::cellContainingPoint(
         }
     }
 
-    if (pointIsInCell(p, minDistanceCell, mesh, -SMALL)) // FIXME: Tolerance data member? TM. 
+    if (pointIsInCell(p, minDistanceCell, mesh, tolerance)) // FIXME: Tolerance data member? TM. 
     {
         //appendLabelAndWriteCellSet(seedCell);
         lastDistance_ = minDistance;
         return minDistanceCell;
     } else
     {
-        if (mag(lastDistance_ - minDistance) < SMALL)
+        if (mag(lastDistance_ - minDistance) < tolerance)
         {
             return minDistanceCell;
             //return -1;
@@ -228,7 +213,7 @@ label frontMeshSearch::cellContainingPoint(
         {
             //Info << "skipping to cell " << minDistanceCell << endl;
             lastDistance_ = minDistance;
-            return cellContainingPoint(p, mesh, minDistanceCell); 
+            return cellContainingPoint(p, mesh, minDistanceCell, tolerance); 
         }
     }
 
@@ -239,7 +224,7 @@ bool frontMeshSearch::pointIsInCell(
     const point p,
     const label cellLabel,
     const fvMesh& mesh,
-    scalar tolerance
+    scalar tolerance 
 ) const
 {
     const cellList& cells = mesh.cells();
@@ -247,18 +232,21 @@ bool frontMeshSearch::pointIsInCell(
     const labelList& own = mesh.faceOwner();
     const vectorField& Cf = mesh.faceCentres();
     const vectorField& Sf = mesh.faceAreas();
+    const scalarField& magSf = mesh.magSf();
 
     bool pointIsInside = true;
 
     forAll (cell, I)
     {
         const auto faceI = cell[I];
-        const auto dist = (p - Cf[faceI]) & Sf[faceI]; 
+        const auto dist = (p - Cf[faceI]) & Sf[faceI] / magSf[faceI]; 
 
+        // Point is outside the tolerance interval of the owner cell. 
         if ((cellLabel == own[faceI]) && (dist > tolerance))
             return false;
 
-        if ((cellLabel != own[faceI]) && (dist <= tolerance))
+        // Point is outside the tolerance interval of the neighbor cell.
+        if ((cellLabel != own[faceI]) && (dist < -tolerance))
             return false;
     }
 
@@ -289,7 +277,7 @@ labelList frontMeshSearch::pointCellStencil(
         }
     }
     // TODO: Improve efficiency, use OpenFOAM HashSet<label>. TM. 
-    result.resize(newNeighborCells.size());
+    result.resize(static_cast<label>(newNeighborCells.size()));
 
     std::copy(newNeighborCells.begin(), newNeighborCells.end(), result.begin()); 
 

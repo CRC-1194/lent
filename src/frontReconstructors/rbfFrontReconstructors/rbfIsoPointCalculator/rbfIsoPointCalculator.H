@@ -41,7 +41,7 @@ SourceFiles
 #ifndef rbfIsoPointCalculator_H
 #define rbfIsoPointCalculator_H
 
-#include "isoPointCalculator.H"
+#include "centroidIsoPointCalculator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -53,7 +53,7 @@ namespace Foam { namespace FrontTracking {
 
 class rbfIsoPointCalculator 
     : 
-        public isoPointCalculator
+        public centroidIsoPointCalculator
 {
 
     using Scalars = std::vector<double>;
@@ -64,7 +64,7 @@ class rbfIsoPointCalculator
 
 public:
 
-    using isoPointCalculator::MAX;
+    using centroidIsoPointCalculator::MAX;
 
     // Member Functions
     
@@ -86,6 +86,9 @@ public:
 
         template<typename MeshRbfs> 
         void rbfCorrectContourPoints(MeshRbfs const& rbf);
+
+        template<typename MeshRbfs>
+        std::vector<double> contourPointValues(MeshRbfs const& meshRbfs) const;
 
         //Scalars const& contourPointRbfValues() const
         //{

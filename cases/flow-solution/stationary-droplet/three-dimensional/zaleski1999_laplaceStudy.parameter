@@ -1,0 +1,91 @@
+// Parameters in this study are adapted from the 2D setup given in
+//
+//      Popinet, Stephane, and Stephane Zaleski.
+//      "A front-tracking algorithm for accurate representation of surface tension"
+//      International Journal for Numerical Methods in Fluids 30.6 (1999): 775-793.
+//      Table 1, left-hand side
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        1.2
+    );
+
+    nu_droplet
+    (
+        0.01 0.1 1.0
+    );
+
+    rho_ambient
+    (
+        $rho_droplet
+    );
+
+    nu_ambient
+    (
+        $nu_droplet
+    );
+
+    surface_tension_coefficient
+    (
+        1.0 0.1
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    resolution
+    (
+        32  
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        // TODO: replace by calc macro
+        //#calc "500.0*$radius*$rho_droplet*$nu_droplet/$sigma"
+        2.5
+    );
+
+    // deltaT:
+    //      Time step size is a derived parameter computed by the capillary wave
+    //      stability criterion
+
+
+    // Domain and interface geometry
+    x_centre
+    (
+        1.2500000012
+    );
+
+    y_centre
+    (
+        1.2499999932
+    );
+
+    z_centre
+    (
+        1.2500000054
+    );
+
+    radius
+    (
+        0.5
+    );
+
+    domain_length
+    (
+        2.5
+    );
+
+    // Only required for cfMesh
+    surface_file
+    (
+        boundaryZaleskiSphere.fms
+    );
+}

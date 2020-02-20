@@ -66,12 +66,12 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(frontToMeshTransferModel, 0);
-    defineRunTimeSelectionTable(frontToMeshTransferModel, Dictionary);
+    defineRunTimeSelectionTable(frontToMeshTransferModel, Dictionary)
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-frontToMeshTransferModel::frontToMeshTransferModel(const dictionary& configDict)
+frontToMeshTransferModel::frontToMeshTransferModel(const dictionary&)
 :
     refCount{}
 {}
@@ -82,7 +82,7 @@ frontToMeshTransferModel::frontToMeshTransferModel(const dictionary& configDict)
 tmp<frontToMeshTransferModel>
 frontToMeshTransferModel::New(const dictionary& configDict)
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     DictionaryConstructorTable::iterator cstrIter =
         DictionaryConstructorTablePtr_->find(name);

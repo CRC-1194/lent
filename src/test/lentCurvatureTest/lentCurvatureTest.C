@@ -192,10 +192,10 @@ lentCurvatureTest::lentCurvatureTest(const fvMesh& mesh, triSurfaceFront& front)
     exactCurvatureModelTmp_{},
     numericalCurvatureModelTmp_{}
 {
-    correctFront_ = Switch{testDict().lookup("correctFront")};
-    useFrontSignedDistance_ = Switch{testDict().lookup("useFrontSignedDistance")};
-    frontNoise_ = testDict().lookup("frontNoise");
-    distanceNoise_ = readScalar(testDict().lookup("distanceNoise"));
+    correctFront_ = testDict().get<Switch>("correctFront");
+    useFrontSignedDistance_ = testDict().get<Switch>("useFrontSignedDistance");
+    frontNoise_ = testDict().get<vector>("frontNoise");
+    distanceNoise_ = testDict().get<scalar>("distanceNoise");
 
     exactCurvatureModelTmp_ = tmp<analyticalSurfaceCurvatureModel>{
         new analyticalSurfaceCurvatureModel(lentDict().subDict("exactCurvatureModel"), surfaceRef())

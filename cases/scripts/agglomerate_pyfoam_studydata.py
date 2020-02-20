@@ -18,7 +18,7 @@ def main():
 
     args = parser.parse_args()
 
-    agglomerator = da.data_agglomerator(args.parameter_file_name, args.pattern)
+    agglomerator = da.data_agglomerator(args.parameter_file_name, "", args.pattern)
     agglomerator.show_failed_variations()
     agglomerator.write_agglomerated_study_data()
 

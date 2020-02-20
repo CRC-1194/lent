@@ -85,9 +85,9 @@ namespace FrontTracking {
 tetFillingLevelMarkerFieldModel::tetFillingLevelMarkerFieldModel(
                                     const dictionary& configDict)
 :
-    markerFieldModel(configDict),
-    pointDistFieldName_(configDict.lookup("pointDistance")),
-    nSmoothingSteps_(readScalar(configDict.lookup("nSmoothingSteps")))
+    markerFieldModel{configDict},
+    pointDistFieldName_{configDict.get<word>("pointDistance")},
+    nSmoothingSteps_{configDict.get<label>("nSmoothingSteps")}
 {}
 
 

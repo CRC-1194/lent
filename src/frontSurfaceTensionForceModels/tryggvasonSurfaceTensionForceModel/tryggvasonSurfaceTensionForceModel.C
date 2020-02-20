@@ -178,7 +178,7 @@ tmp<volVectorField> tryggvasonSurfaceTensionForceModel::cellSurfaceTensionForce(
         fSigmaFront[l2] += 0.5 * v01 ^ normal;
     }
 
-    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+    const dimensionedScalar sigma{"sigma", transportProperties};  
     fSigmaFront *= sigma; 
 
     lentInterpolation interpolation; // FIXME: Data member, RTS alternatives. TM.
@@ -197,12 +197,14 @@ tmp<volVectorField> tryggvasonSurfaceTensionForceModel::cellSurfaceTensionForce(
 }
 
 tmp<fvMatrix<vector>> tryggvasonSurfaceTensionForceModel::surfaceTensionImplicitPart(
-    const volVectorField& velocity,
-    const volScalarField& markerField,
-    const triSurfaceFront& front
+    const volVectorField&,
+    const volScalarField&,
+    const triSurfaceFront&
 ) const
 {
     notImplemented("surfaceTensionImplicitPart()");
+
+    return tmp<fvMatrix<vector>>{};
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

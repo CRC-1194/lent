@@ -79,7 +79,7 @@ private:
     point moveToReferenceFrame(const point& aPoint) const;
     parameterPair intersectEllipsoidWithLine(const point& refPoint, const vector& path) const;
     scalar ellipsoidCurvature(const point& p) const;
-    label minorSemiAxisIndex() const;
+    direction minorSemiAxisIndex() const;
     // TODO: extract bisection method since it may be used else wehere (TT)
     scalar bisection(const std::function<scalar(scalar)>& rootFunction, parameterPair interval) const;
 
@@ -90,7 +90,8 @@ private:
     vector normalToPointRefSystem(const point P) const;
     point intersectionRefSystem(const point A, const point B) const;
     scalar curvatureAtRefSystem(const point P) const;
-     
+
+    word name_;
 
 public:
 
@@ -99,17 +100,37 @@ public:
     // Constructors
     analyticalEllipsoid() = default;
     analyticalEllipsoid(const dictionary& configDict);
-    analyticalEllipsoid(const point& centre, const vector& semiAxes);
+    analyticalEllipsoid(
+        const point& centre, 
+        const vector& semiAxes, 
+        const word name=analyticalEllipsoid::typeName
+    );
 
     //- Destructor
     virtual ~analyticalEllipsoid() {};
 
-
     // Member Functions
     virtual scalar distance(const point& trialPoint) const;
     virtual scalar signedDistance(const point& trialPoint) const;
+
+    inline scalar value(const point& trialPoint) const
+    {
+        return signedDistance(trialPoint); 
+    }
+    
+    word name() const
+    {
+        return name_; 
+    }
+
     virtual point normalProjectionToSurface(point& trialPoint) const;
     virtual vector normalToPoint(const point& trialPoint) const;
+
+    inline vector gradient(const point& trialPoint) const
+    {
+        return normalToPoint(trialPoint);
+    }
+
     virtual point intersection(const point& pointA, const point& pointB) const;
     virtual scalar curvatureAt(const point& p) const;
 

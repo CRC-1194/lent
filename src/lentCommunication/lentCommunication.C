@@ -66,7 +66,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(lentCommunication, 0);
-    defineRunTimeSelectionTable(lentCommunication, FrontMesh);
+    defineRunTimeSelectionTable(lentCommunication, FrontMesh)
     addToRunTimeSelectionTable(lentCommunication, lentCommunication, FrontMesh);
 
     word lentCommunication::registeredName(
@@ -114,7 +114,7 @@ lentCommunication::New(
         const fvMesh& mesh
 )
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     FrontMeshConstructorTable::iterator cstrIter =
         FrontMeshConstructorTablePtr_->find(name);
@@ -155,6 +155,16 @@ void lentCommunication::update()
             // If the vertex is within a the triangleToCell cell. 
             if (searchAlg_.pointIsInCell(vertex, triangleToCell_[triangleI], mesh_)) 
             {
+                // Existing cell found.
+                foundCell = triangleToCell_[triangleI];
+
+                // DEBUGGING
+                //WarningInFunction 
+                    //<< "Existing cell " 
+                    //<< triangleToCell_[triangleI] 
+                    //<< " and front vertex " 
+                    //<< triangle[vertexI] << endl; 
+                    
                 // Set the vertex cell to the same cell.
                 vertexToCell_[triangle[vertexI]] = triangleToCell_[triangleI];
             } else
@@ -167,14 +177,29 @@ void lentCommunication::update()
                 );
 
                 // If the cell is found. 
-                if (foundCell > 0)
+                if (foundCell != -1)
                 {
                     // Set the triangle cell to the found cell.
                     triangleToCell_[triangleI] = foundCell;
                     // Set the vertex cell to the found cell.
                     vertexToCell_[triangle[vertexI]] = foundCell;
+
+                    // DEBUGGING
+                    //WarningInFunction 
+                        //<< "KVS found cell " 
+                        //<< foundCell  
+                        //<< " and front vertex " 
+                        //<< triangle[vertexI] << endl; 
                 }
             }
+
+            // DEBUGGING
+            //if (foundCell == -1)
+                //WarningInFunction 
+                    //<< "Front vertex not found for cell " 
+                    //<< triangleToCell_[triangleI] 
+                    //<< " and front vertex " 
+                    //<< triangle[vertexI] << endl; 
         }
     }
 
@@ -247,7 +272,7 @@ void lentCommunication::updateInterfaceCellToVertices()
     }
 }
 
-bool lentCommunication::writeData(Ostream& os) const
+bool lentCommunication::writeData(Ostream&) const
 {
     FatalErrorIn("lentMethod::writeData(Ostream& os)")
     << "lentMethod is not supposed to be written "

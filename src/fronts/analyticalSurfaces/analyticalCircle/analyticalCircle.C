@@ -77,7 +77,7 @@ analyticalCircle::analyticalCircle(const dictionary& configDict)
 {
     centre_ = configDict.lookupOrDefault<vector>("centre", centre_);
     radius_ = configDict.lookupOrDefault<scalar>("radius", radius_);
-    vector emptyDirection = configDict.lookup("emptyDirection");
+    vector emptyDirection = configDict.get<vector>("emptyDirection");
     projector_ = Identity<scalar>{} - emptyDirection*emptyDirection;
 
     centre_ = projector_&centre_;

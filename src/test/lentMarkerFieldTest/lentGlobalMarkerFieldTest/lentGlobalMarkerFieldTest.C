@@ -155,9 +155,9 @@ lentGlobalMarkerFieldTest::lentGlobalMarkerFieldTest(const fvMesh& mesh, triSurf
     frontNoise_{},
     phaseIndicatorFieldName_{}
 {
-    correctFront_ = Switch{testDict().lookup("correctFront")};
-    frontNoise_ = testDict().lookup("frontNoise");
-    phaseIndicatorFieldName_ = word{testDict().lookup("phaseIndicatorFieldName")};
+    correctFront_ = testDict().get<Switch>("correctFront");
+    frontNoise_ = testDict().get<vector>("frontNoise");
+    phaseIndicatorFieldName_ = testDict().get<word>("phaseIndicatorFieldName");
 }
 
 

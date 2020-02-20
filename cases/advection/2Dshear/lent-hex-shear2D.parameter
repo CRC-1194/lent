@@ -1,0 +1,15 @@
+values
+{
+    solver (lentTestAdvection);
+    
+    T 
+    (
+        0.5 2 8
+    );
+
+    N 
+    ( 
+        32 64 128 256 
+    );
+
+}

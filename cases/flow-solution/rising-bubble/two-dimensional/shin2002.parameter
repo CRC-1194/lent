@@ -1,0 +1,100 @@
+// Values in this parameter file are taken from
+//
+//      " Shin and Juric 2002: Modeling Three-Dimensional Multiphase
+//        Flow Using a Level Contour Reconstruction Method for Front Tracking
+//        without Connectivity",
+//        section 4.3
+//
+//  Note: only property ratios are given in the paper. So the material properties
+//  used here fulfill the given ratios, however their base value is only guessed.
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rhoDroplet
+    (
+        0.05
+    );
+
+    nuDroplet
+    (
+        0.1
+    );
+
+    rhoAmbient
+    (
+        1
+    );
+
+    nuAmbient
+    (
+        0.1
+    );
+
+    surfaceTensionCoeff
+    (
+        0.05
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    N 
+    (   
+        // papaer parameters
+        //100 200 400
+        100 200
+    ); 
+
+
+    // Parameters from system/controlDict
+    endTime
+    (
+        5
+    );
+
+    deltaT
+    (
+        0.0001
+    );
+
+    // Gravity constant
+    gravity
+    (
+        -9.8
+    );
+
+
+    // Parameters from fvSolution
+    nPisoOuter
+    (
+        1
+    );
+
+    nPisoInner
+    (
+        3
+    );
+
+    
+    // Parameters from lentSolution
+    nSmoothing
+    (
+        1
+    );
+
+    cellToVertex
+    (
+        cellPoint
+    );
+}
+
+// Domain and interface geometry parameters
+//G domainWidth 0.08
+//G domainHeight 0.2
+//G domainDepth 0.001
+//G radius 0.0125
+//G height 0.05
+//G elementSize 0.001

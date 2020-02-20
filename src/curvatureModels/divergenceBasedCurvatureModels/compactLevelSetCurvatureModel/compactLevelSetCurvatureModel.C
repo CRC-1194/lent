@@ -236,7 +236,7 @@ std::vector<label> compactLevelSetCurvatureModel::findNeighbourCells(
 compactLevelSetCurvatureModel::compactLevelSetCurvatureModel(const dictionary& configDict)
 :
     divergenceBasedCurvatureModel{configDict},
-    distanceCorrection_{configDict.lookup("distanceCorrection")}
+    distanceCorrection_{configDict.get<word>("distanceCorrection")}
 {
     if (
             distanceCorrection_ != "sphere"

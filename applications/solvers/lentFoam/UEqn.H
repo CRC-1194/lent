@@ -3,12 +3,17 @@
     fvVectorMatrix UEqn
     (
         fvm::ddt(rho, U)
-      + fvm::div(rhoPhi, U)
+      + fvm::div(rhoPhi, U) 
+      - fvm::div(rhof*(Ub & mesh.Sf()), U)
       + MRF.DDt(rho, U)
       // see method divDevRhoReff(...) in "linearViscousStress.C"
       // for OpenFOAM's discretization of the diffusion term 
       + turbulence->divDevRhoReff(rho, U)
-      - lent.surfaceTensionImplicitPart(U, markerField, front)
+      // Semi-implicit handling of surface tension forces 
+      // Hysing, S. (2006). A new implicit surface tension implementation for
+      // interfacial flows. International Journal for Numerical Methods in Fluids,
+      // 51(6), 659¿672. https://doi.org/10.1002/fld.1147
+      // - lent.surfaceTensionImplicitPart(U, markerField, front)
      ==
         fvOptions(rho, U)
     );
@@ -19,8 +24,7 @@
 
     if (lentSC.momentumPredictor())
     {
-        solve
-        (
+        fvVectorMatrix UEqnWithRhs{
             UEqn
          ==
 
@@ -35,7 +39,9 @@
                   - fvc::snGrad(p_rgh)
                 ) * mesh.magSf()
             )
-        );
+        };
+        lentSC.solveForVelocity(UEqnWithRhs);
 
         fvOptions.correct(U);
     }
+

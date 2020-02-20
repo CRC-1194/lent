@@ -127,7 +127,7 @@ public:
             const fvMesh& mesh
         ),
         (front, mesh)
-    );
+    )
 
     // Constructors
     lentCommunication(

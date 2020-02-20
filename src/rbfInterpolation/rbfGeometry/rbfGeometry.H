@@ -70,7 +70,7 @@ namespace Geometry
         for (const auto& point : points)
             centroid = centroid + point; 
 
-        centroid /= points.size(); 
+        centroid /= static_cast<double>(points.size()); 
 
         return centroid; 
     }
@@ -130,7 +130,7 @@ namespace Geometry
         for (const auto& point : points)
             rcmean += distance(pointsCentroid, point); 
 
-        rcmean /= points.size(); 
+        rcmean /= static_cast<double>(points.size()); 
 
         return rcmean; 
     }
@@ -146,7 +146,7 @@ namespace Geometry
             for (const auto& pointJ : points)
             rrms += distance_sqr(pointI, pointJ); 
 
-        rrms = std::sqrt(rrms / points.size());  
+        rrms = std::sqrt(rrms / static_cast<double>(points.size()));  
 
         return rrms; 
     }

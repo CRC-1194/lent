@@ -165,8 +165,8 @@ lentVertexNormalCalculatorTest::lentVertexNormalCalculatorTest(const fvMesh& mes
                                     new analyticalSurfaceNormalConsistency{surfaceRef()}
                                 };
 
-    correctFront_ = Switch{testDict().lookup("correctFront")};
-    magFrontNoise_ = readScalar(testDict().lookup("magFrontNoise"));
+    correctFront_ = testDict().get<Switch>("correctFront");
+    magFrontNoise_ = testDict().get<scalar>("magFrontNoise");
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

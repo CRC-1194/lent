@@ -30,7 +30,7 @@ inline Type Foam::interpolationCellPointTaylorExtended<Type>::interpolate
 (
     const vector& position,
     const label cellI,
-    const label faceI
+    const label
 ) const
 {
     auto result = pTraits<Type>::zero; 

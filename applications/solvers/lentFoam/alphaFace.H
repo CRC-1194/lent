@@ -1,7 +1,5 @@
 // (TT) Provides functionality to compute area fractions on faces.
-// This is required by "computeRhoPhi.H"
-//
-// TODO: Refactoring!
+// This is required by "computeRhof.H"
 
 #include "SortableList.H"
 #include <assert.h>

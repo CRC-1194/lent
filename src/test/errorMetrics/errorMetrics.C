@@ -74,7 +74,7 @@ scalar errorMetrics::powerMeanError(scalar x) const
         result += std::pow(error, x);
     }
 
-    result /= errorSet_.size();
+    result /= static_cast<scalar>(errorSet_.size());
 
     return std::pow(result, 1.0/x);
 }
@@ -85,11 +85,11 @@ errorMetrics::errorMetrics(const List<scalar>& errorSet)
 :
     errorSet_{}
 {
-    errorSet_.resize(errorSet.size());
+    errorSet_.resize(static_cast<unsigned long>(errorSet.size()));
 
     forAll(errorSet, I)
     {
-        errorSet_[I] = errorSet[I];
+        errorSet_[static_cast<unsigned long>(I)] = errorSet[I];
     }
 
     std::sort(errorSet_.begin(), errorSet_.end());
@@ -154,7 +154,7 @@ scalar errorMetrics::standardDeviation() const
         stdDev += (x - mean)*(x - mean);
     }
 
-    return sqrt(stdDev/errorSet_.size());
+    return sqrt(stdDev/static_cast<scalar>(errorSet_.size()));
 }
 
 std::map<scalar, label> errorMetrics::errorDistribution( const label& resolution) const

@@ -70,18 +70,18 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(normalConsistency, 0);
-    defineRunTimeSelectionTable(normalConsistency, Dictionary);
+    defineRunTimeSelectionTable(normalConsistency, Dictionary)
     addToRunTimeSelectionTable(normalConsistency, normalConsistency, Dictionary);
 
 // * * * * * * * * * * * * * Private  member functions * * * * * * * * * * * //
 void normalConsistency::runNormalConsistencyAlgorithm(
     triSurfaceFront& front,
     const volScalarField& signedDistance,
-    const pointScalarField& pointSignedDistance // Not used.
+    const pointScalarField&
 ) const
 {
     // Gradient based normal consistency algorithm.
-    volVectorField distGrad = fvc::grad(signedDistance);
+    volVectorField distGrad{fvc::grad(signedDistance)};
 
     List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);
     const vectorField& triangleNormals = front.faceNormals();
@@ -123,7 +123,7 @@ void normalConsistency::runNormalConsistencyAlgorithm(
 tmp<normalConsistency>
 normalConsistency::New(const dictionary& configDict)
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     DictionaryConstructorTable::iterator cstrIter =
         DictionaryConstructorTablePtr_->find(name);

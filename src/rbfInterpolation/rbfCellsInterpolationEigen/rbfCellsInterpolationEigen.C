@@ -37,13 +37,13 @@ rbfCellsInterpolationEigen<Kernel>::rbfCellsInterpolationEigen
 (
     const fvMesh& mesh, 
     const stencilType stencil,
-    const supportType support
+    const supportType
 )
     :
-        cellRbfStencils_(mesh.nCells()),
-        cellRbfPoints_(mesh.nCells()),
-        cellRbfValues_(mesh.nCells()),
-        cellRbfs_(mesh.nCells()) 
+        cellRbfStencils_(static_cast<unsigned long>(mesh.nCells())),
+        cellRbfPoints_(static_cast<unsigned long>(mesh.nCells())),
+        cellRbfValues_(static_cast<unsigned long>(mesh.nCells())),
+        cellRbfs_(static_cast<unsigned long>(mesh.nCells())) 
 {
     calcStencils(mesh, stencil); 
     factorize(); 
@@ -128,7 +128,7 @@ void rbfCellsInterpolationEigen<Kernel>::setCellRbfValues
     using clSizeType = decltype(rbfCellNeiLabels.size()); 
     const auto shift = 1 + rbfPointLabels.size(); 
     for (clSizeType pI = 0; pI < rbfCellNeiLabels.size(); ++pI)
-        rbfValues_[pI + shift] = pf[rbfPointLabels[pI]]; 
+        rbfValues_[pI + shift] = vf[rbfCellNeiLabels[pI]]; 
 }
 
 template<typename Kernel>

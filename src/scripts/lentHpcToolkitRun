@@ -1,0 +1,17 @@
+#! /usr/bin/bash
+
+# README
+
+# READ README in lentHpcToolkitSetup.
+
+# Executes hpcrun  
+
+APPLICATION=$1
+EVENTS=$2
+MEASUREMENTS=$3
+
+
+# Creating structures for the profiled application and liblent.so
+
+echo "/usr/bin/time hpcrun -o $MEASUREMENTS $EVENTS $APPLICATION"
+hpcrun -t -o $MEASUREMENTS $EVENTS $APPLICATION 

@@ -1,0 +1,70 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM Extend Project: Open Source CFD        |
+|  \\    /   O peration     | Version:  1.6-ext                               |
+|   \\  /    A nd           | Web:      www.extend-project.de                 |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "./constant/caseSetup"
+
+R $radius;  
+
+V #calc "float($L / float($N))";
+
+convertToMeters 1.00;
+
+vertices
+(
+    (0    0    0)
+    ($L   0    0)
+    ($L   $L   0)
+    (0    $L   0)
+    (0    0    $V)
+    ($L   0    $V)
+    ($L   $L   $V)
+    (0    $L   $V)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) ($N $N 1) simpleGrading (1 1 1)
+);
+
+edges
+(
+);
+
+patches
+(
+    patch left
+    (
+        (0 4 7 3)
+    )
+    patch right
+    (
+        (2 6 5 1)
+    )
+    patch front
+    (
+        (1 5 4 0)
+    )
+    patch back
+    (
+        (3 7 6 2)
+    )
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //

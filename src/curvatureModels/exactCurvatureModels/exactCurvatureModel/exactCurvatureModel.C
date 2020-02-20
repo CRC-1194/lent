@@ -60,7 +60,7 @@ void exactCurvatureModel::initializeCellCurvatureBuffer(const fvMesh& mesh) cons
     }
 }
 
-void exactCurvatureModel::updateCurvatureBuffers(const fvMesh& mesh, const triSurfaceFront& front) const
+void exactCurvatureModel::updateCurvatureBuffers(const fvMesh& mesh, const triSurfaceFront&) const
 {
     // Update cell curvature
     initializeCellCurvatureBuffer(mesh);
@@ -104,7 +104,7 @@ exactCurvatureModel::exactCurvatureModel(const dictionary& configDict)
 :
     curvatureModel{configDict},
     CurvatureBufferLogic<surfaceScalarField, fvMesh, scalar>{"exact_face_curvature"},
-    write_{configDict.lookupOrDefault<Switch>("write", "off")}
+    write_{configDict.lookupOrDefault<Switch>("write", false)}
 {
 }
 
@@ -150,7 +150,7 @@ std::shared_ptr<surfaceScalarField> exactCurvatureModel::faceCurvature(
 
 std::shared_ptr<volVectorField> exactCurvatureModel::cellInterfaceNormals(
     const fvMesh& mesh,
-    const triSurfaceFront& front
+    const triSurfaceFront&
 ) const
 {
     std::shared_ptr<volVectorField> cellNormalPtr
@@ -185,9 +185,11 @@ std::shared_ptr<volVectorField> exactCurvatureModel::cellInterfaceNormals(
     return cellNormalPtr;
 }
 
-vector exactCurvatureModel::normalAtPoint(const point& P) const
+vector exactCurvatureModel::normalAtPoint(const point&) const
 {
     notImplemented("normalAtPoint");
+
+    return vector{};
 }
     
 

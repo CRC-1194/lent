@@ -32,7 +32,7 @@ inline Type Foam::interpolationCellPointTaylor<Type>::interpolate
 (
     const vector& position,
     const label cellI,
-    const label faceI
+    const label
 ) const
 {
     const auto& gradPsi_= psiGrad_();  

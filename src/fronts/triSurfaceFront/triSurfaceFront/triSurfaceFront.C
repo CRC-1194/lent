@@ -237,9 +237,9 @@ bool triSurfaceFront::writeData(Foam::Ostream& os) const
 
 bool triSurfaceFront::writeObject
 (
-    IOstream::streamFormat fmt,
-    IOstream::versionNumber ver,
-    IOstream::compressionType cmp
+    IOstream::streamFormat,
+    IOstream::versionNumber,
+    IOstream::compressionType
 ) const
 {
     if (writeFormat_ == "vtk")

@@ -101,7 +101,7 @@ public:
         Dictionary,
         (const dictionary& configDict),
         (configDict)
-    );
+    )
 
     // Selectors
     static tmp<analyticalSurface> New(const dictionary& configDict);
@@ -125,11 +125,11 @@ public:
     virtual point intersection(const point&, const point&) const {return point{0,0,0};};
     virtual void moveFrontToSurface(triSurface& front) const;
     virtual void makeNormalOrientationConsistent(triSurface& front, const bool outwardOrientation=true) const;
-    virtual scalar curvatureAt(const point& p) const {return 0.0;};
+    virtual scalar curvatureAt(const point&) const {return 0.0;};
 
     virtual void randomize(){};
-    virtual void randomPlacementIn(const boundBox& bbox){};
-    virtual void writeParameters(const word fileName) const {};
+    virtual void randomPlacementIn(const boundBox&){};
+    virtual void writeParameters(const word) const {};
 };
 
 

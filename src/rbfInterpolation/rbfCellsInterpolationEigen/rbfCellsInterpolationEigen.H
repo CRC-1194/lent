@@ -25,7 +25,11 @@ Class
     Foam::rbfCellsInterpolationEigen
 
 Description
-    A class for for the RBF interpolation over a mesh.  
+    A class for for the RBF interpolation that is cell-centered. 
+    It relies on stencils centered in the cell: 
+
+    * BCC - body centered cubic 
+    * BCCC - body centered cubic + first face neighbors 
 
 SourceFiles
     rbfCellsInterpolationEigen.C
