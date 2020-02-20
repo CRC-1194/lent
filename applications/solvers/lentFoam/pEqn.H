@@ -39,7 +39,7 @@
 
         p_rghEqn.setReference(pRefCell, getRefCellValue(p_rgh, pRefCell));
 
-        p_rghEqn.solve(mesh.solver(p_rgh.select(lentSC.finalInnerIter())));
+        lentSC.solveForPressure(p_rghEqn, mesh.solver(p_rgh.select(lentSC.finalInnerIter())));
 
         if (lentSC.finalNonOrthogonalIter())
         {

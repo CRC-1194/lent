@@ -92,7 +92,7 @@ public:
             const dictionary& configDict
         ),
         (configDict)
-    );
+    )
 
     // Constructors
 
@@ -108,14 +108,14 @@ public:
     // Member Functions
 
         virtual void ensureNarrowBand(
-            volScalarField& signedDistance,
-            scalar L = GREAT
+            volScalarField&,
+            scalar
         ) const 
         {} 
 
         virtual void ensureNarrowBand(
-            pointScalarField& pointSignedDistance,
-            scalar L = GREAT
+            pointScalarField&,
+            scalar
         ) const
         {} 
 };

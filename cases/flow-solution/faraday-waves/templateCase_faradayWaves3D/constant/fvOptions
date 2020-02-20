@@ -1,0 +1,72 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v1806                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+periodicAcceleration
+{
+    type            vectorCodedSource;
+
+    vectorCodedSourceCoeffs
+    {
+        selectionMode   all;
+        fields          (U);
+        name            pAccel;
+
+        codeInclude
+        #{
+            #include "mathematicalConstants.H"
+            #include "fvc.H"
+        #};
+
+        codeCorrect
+        #{
+
+        #};
+
+        codeAddSup
+        #{
+            const Time& time = mesh().time();
+            const auto& V = mesh().V();
+            const volScalarField& density = mesh().lookupObject<volScalarField>("rho");
+            vectorField& momentumSource = eqn.source();
+            auto acceleration = vector(0, 0, 1)*38.0*sin(2.0*Foam::constant::mathematical::pi*12.0*time.value());
+            surfaceScalarField ahf("ahf", acceleration & mesh().Cf());
+            volVectorField source{fvc::reconstruct(-ahf*fvc::snGrad(density)*mesh().magSf())};
+            forAll(source, sid)
+            {
+                source[sid] *= V[sid];
+            }
+            momentumSource -= source;
+        #};
+
+        codeSetValue
+        #{
+
+        #};
+
+        // Dummy entry. Make dependent on above to trigger recompilation
+        code
+        #{
+            $codeInclude
+            $codeCorrect
+            $codeAddSup
+            $codeSetValue
+        #};
+    }
+}
+
+
+//************************************************************************* //

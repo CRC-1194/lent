@@ -73,8 +73,8 @@ namespace FrontTracking {
 // * * * * * * * * * * * * * Private  member functions * * * * * * * * * * * //
 void convexFrontNormalConsistency::runNormalConsistencyAlgorithm(
     triSurfaceFront& front,
-    const volScalarField& signedDistance,
-    const pointScalarField& pointSignedDistance // Not used by this algorithm.
+    const volScalarField&,
+    const pointScalarField&
 ) const
 {
     List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);
@@ -109,7 +109,7 @@ void convexFrontNormalConsistency::runNormalConsistencyAlgorithm(
 convexFrontNormalConsistency::convexFrontNormalConsistency(const dictionary& configDict)
     :
         normalConsistency(configDict),
-        orientation_{configDict.lookup("normalOrientation")},
+        orientation_{configDict.get<word>("normalOrientation")},
         orientationSign_{}
 {
     if (orientation_ == "outside")

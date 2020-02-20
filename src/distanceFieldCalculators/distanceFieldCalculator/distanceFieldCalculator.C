@@ -64,7 +64,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(distanceFieldCalculator, 0);
-    defineRunTimeSelectionTable(distanceFieldCalculator, Dictionary);
+    defineRunTimeSelectionTable(distanceFieldCalculator, Dictionary)
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -76,7 +76,7 @@ distanceFieldCalculator::distanceFieldCalculator(
 :
     narrowBandWidth_(0)
 {
-    narrowBandWidth_ = readScalar(configDict.lookup("narrowBandWidth"));
+    narrowBandWidth_ = configDict.get<label>("narrowBandWidth");
 }
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -86,7 +86,7 @@ distanceFieldCalculator::New(
    const dictionary& configDict
 )
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     // Find the constructor pointer for the model in the constructor table.
     DictionaryConstructorTable::iterator cstrIter =
@@ -178,7 +178,7 @@ void distanceFieldCalculator::calcPointSearchDistance(
 }
 
 void distanceFieldCalculator::calcPointSearchDistance(
-    pointScalarField& pointSearchDistanceSqr
+    pointScalarField&
 )
 {
     notImplemented("distanceFieldCalculator::calcPointSearchDistance(pointScalarField&");

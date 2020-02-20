@@ -37,6 +37,6 @@ if ((options.casedir == None) or
 (options, args) = parser.parse_args()
 
 call(["pyFoamRunParameterVariation.py", "--no-execute-solver", "--no-server-process", 
-      "--no-mesh-create", "--cloned-case-prefix=%s" % options.studyname, 
+      "--no-mesh-create", "--no-case-setup", "--cloned-case-prefix=%s" % options.studyname, 
       "--every-variant-one-case-execution",
       "--create-database", options.casedir, options.paramfile])

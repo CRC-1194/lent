@@ -1,0 +1,78 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  plus                                  |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "./constant/caseSetup"
+
+application     lentAdvect;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         $T;
+
+deltaT          0.015625;
+
+writeControl    adjustableRunTime;
+
+writeInterval   $endTime;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression uncompressed;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  no;
+
+maxCo           1;
+
+maxAlphaCo      1;
+
+maxDeltaT       0.01;
+
+libs            ( "libtwoPhaseValidation.so" );
+
+functions
+{
+    lentAdvect
+    {
+        type            divFree;
+        divFree
+        {
+            type            harmonic;
+            baseType        shear2D;
+            phaseShift      0;
+            period          $T;
+            cellVelocityName U;
+            volFluxName     phi;
+        }
+    }
+}
+
+
+// ************************************************************************* //

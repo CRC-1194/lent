@@ -97,7 +97,8 @@ void explicitDiffusionTransferModel::computeBoundaryAndInterfaceValues(
                                     *mag(curvatureNormals[triaID]);
         }
 
-        interfaceCellCurvature_[cellTriaMap.first] = accumulatedCurvature / cellTriaMap.second.size();
+        interfaceCellCurvature_[cellTriaMap.first] = accumulatedCurvature /
+                                        static_cast<scalar>(cellTriaMap.second.size());
     }
 
     // Add boundary cells of narrow band
@@ -185,8 +186,8 @@ std::vector<label> explicitDiffusionTransferModel::cellNeighbourhood(const label
 explicitDiffusionTransferModel::explicitDiffusionTransferModel(const dictionary& configDict)
 :
     frontToMeshTransferModel{configDict},
-    diffusionIterations_{readLabel(configDict.lookup("diffusionIterations"))},
-    signedDistanceName_{configDict.lookup("signedDistanceField")}
+    diffusionIterations_{configDict.get<label>("diffusionIterations")},
+    signedDistanceName_{configDict.get<word>("signedDistanceField")}
 {
 }
 

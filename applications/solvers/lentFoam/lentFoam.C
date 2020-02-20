@@ -23,31 +23,11 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Authors
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tomislav Maric maric@mma.tu-darmstadt.de
+    Tobias Tolle tolle@mma.tu-darmstadt.de
 
 Description
-    A DNS two-phase flow solver employing a hybrid level-set / front-tracking
-    method.
-
-    You may refer to this software as :
-    //- full bibliographic data to be provided
-
-    This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
-    under the project supervision of :
-        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
-    
-    Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de
-    	Holger Marschall <marschall@csi.tu-darmstadt.de>
-    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
-
-        Mathematical Modeling and Analysis
-        Center of Smart Interfaces
-        Technische Universitaet Darmstadt
-       
-    If you use this software for your scientific work or your publications,
-    please don't forget to acknowledge explicitly the use of it.
+    A two-phase Level Set / Front Tracking DNS solver.
 
 \*---------------------------------------------------------------------------*/
 
@@ -61,8 +41,9 @@ Description
 #include "lentMethod.H"
 #include "lentSolutionControl.H"
 #include "analyticalSurface.H"
-
 #include "alphaFace.H"
+
+#include <limits>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -80,8 +61,22 @@ void correctFrontIfRequested(triSurfaceFront& front, const dictionary& configDic
     }
 }
 
+const auto EPSILON = std::numeric_limits<double>::epsilon();
+
 int main(int argc, char *argv[])
 {
+    argList::addBoolOption
+    (
+        "relative-frame",
+        "Arbitrary Eulerian / Lagrangian (ALE) relative reference frame (RRF), using the vertical velocity of the dispersed phase (alpha.water=0)."
+    );
+
+    argList::addBoolOption
+    (
+        "normal-velocity",
+        "Evolve the Front using the velocity projected onto the interface normal."
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -135,15 +130,18 @@ int main(int argc, char *argv[])
     lentMethod lent(front, mesh);
 
     lent.calcSearchDistances(searchDistanceSqr, pointSearchDistanceSqr);
-
     lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-    // Lets make a fair comparison: recover exact surface!
+    // Project points onto the input surface after initial reconstruction.
     correctFrontIfRequested(front, lent.dict());
-
     front.write();
 
-    // TODO: Examine the internal p-U coupling loop. Update on markerField? TM.  
+    // ALE Relative reference frame data for simulating rising bubbles. 
+    dimensionedVector Ub ("Ub", dimVelocity, vector(0,0,0));
+    surfaceScalarField rhof("rhof", fvc::interpolate(rho));
+    volScalarField alphaInv{dimensionedScalar("1", dimless, 1) - markerField};
+    volVectorField Ufront ("Ufront", U);   
+    volVectorField nFront ("nFront", fvc::grad(signedDistance));
+	
     while (runTime.run())
     {
         #include "readTimeControls.H"
@@ -156,6 +154,25 @@ int main(int argc, char *argv[])
         Info << "Time step = " << runTime.timeIndex() << endl;
         Info << "Time = " << runTime.timeName() << nl << endl;
 
+	    Ufront == U; 
+
+        if (args.found("relative-frame"))
+        {
+            alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
+            Ub = sum(alphaInv * mesh.V() * U) / sum(alphaInv * mesh.V());
+	        Ufront == Ufront - Ub;
+        }
+        if (args.found("normal-velocity"))
+        {
+            nFront = fvc::grad(signedDistance); 
+            nFront /= Foam::mag(nFront) + dimensionedScalar("EPSILON", dimless, EPSILON);
+            Ufront == (Ufront & nFront) * nFront;
+	    }
+
+        lent.reconstructFront(front, signedDistance, pointSignedDistance);
+
+        lent.evolveFront(front, Ufront);
+
         lent.calcSignedDistances(
             signedDistance,
             pointSignedDistance,
@@ -163,59 +180,26 @@ int main(int argc, char *argv[])
             pointSearchDistanceSqr,
             front
         );
-
-        lent.reconstructFront(front, signedDistance, pointSignedDistance);
-
-        if (runTime.timeIndex() <= 1)
-        {
-            correctFrontIfRequested(front, lent.dict());
-        }
         
-        // TODO: if front has been reconstructed, the signed distances (at least)
-        // for the cell centres have to be recomputed to ensure the front-mesh
-        // communication is up-to-date (TT)
-        if (lent.isFrontReconstructed())
-        {
-            lent.calcSignedDistances(
-                signedDistance,
-                pointSignedDistance,
-                searchDistanceSqr,
-                pointSearchDistanceSqr,
-                front
-            );
-        }
-
         lent.calcMarkerField(markerField);
-
-        // Update the viscosity. 
         mixture.correct();
+        
+        // Face densities computed from face indicator function 
+        // based on signed-distances. 
+        #include "computeRhof.H"
 
-        // Update density field.
-        rho == markerField*rho1 + (scalar(1) - markerField)*rho2;
-
-        Info << "p-U algorithm ... " << endl;
-
-        // --- Pressure-velocity lentSolutionControl corrector loop
+        // --- SAAMPLE loop
         while (lentSC.loop())
         {
-            // The momentum flux is computed from MULES as  
-            // rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2; 
-            // However, LENT has no ability to compute the volumetric phase flux. 
-            // TODO: examine the impact of the momentum flux computation and devise
-            // more accurate approach if required (TT)
             if (lentSC.updateMomentumFlux())
             {
-                if (lent.dict().subDict("markerFieldModel").get<label>("nSmoothingSteps") > 0)
-                {
-                    // old approach, only works for diffuse markerfield
-                    rhoPhi == fvc::interpolate(rho) * phi;
-                }
-                else
-                {
-                    // new approach: vol fraction based calculation of rho at the face
-                    // only works for a sharp, vol-fraction like markerfield
-                    #include "computeRhoPhi.H"
-                }
+                rhoPhi == rhof * phi;
+
+                fvScalarMatrix rhoEqn
+                (
+                    fvm::ddt(rho) + fvc::div(rhoPhi)
+                );
+                rhoEqn.solve();
             }
 
             #include "UEqn.H"
@@ -231,17 +215,15 @@ int main(int argc, char *argv[])
                 turbulence->correct();
             }
         }
-        Info << "Done." << endl;
 
-        lent.evolveFront(front, U.oldTime());
-        Info << "Done." << endl;
+        rho == markerField*rho1 + (1.0 - markerField)*rho2;
 
         runTime.write();
         
         // This is a workaround to ensure the actual front mesh is written (TT)
         if (runTime.writeTime())
         {
-            front.write();
+            front.write(); 
         }
 
         Info << "Writing time = " << runTime.cpuTimeIncrement() << endl;

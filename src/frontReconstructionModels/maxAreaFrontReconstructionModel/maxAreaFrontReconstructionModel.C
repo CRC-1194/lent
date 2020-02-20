@@ -92,7 +92,7 @@ maxAreaFrontReconstructionModel::maxAreaFrontReconstructionModel(const dictionar
 :
     frontReconstructionModel{configDict},
     maxArea_{0.0},
-    scaleFactor_{readScalar(configDict.lookup("scaleFactor"))}
+    scaleFactor_{configDict.get<scalar>("scaleFactor")}
 {}
 
 

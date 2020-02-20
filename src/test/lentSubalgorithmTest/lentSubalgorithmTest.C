@@ -75,7 +75,7 @@ void lentSubalgorithmTest::writeFields() const
     }
 }
 
-void lentSubalgorithmTest::writeMetrics(const word& fileName, const label runNumber) const
+void lentSubalgorithmTest::writeMetrics(const word& fileName, const unsigned long runNumber) const
 {
     // In the first run create result file and write its header
     if (runNumber == 0)
@@ -214,9 +214,9 @@ lentSubalgorithmTest::lentSubalgorithmTest(const fvMesh& mesh, triSurfaceFront& 
                      analyticalSurface::New(lentDict().subDict("frontSurface"))
                   };
 
-    nRandomRuns_ = readLabel(testDict().lookup("nRandomRuns"));
-    nPerturbedRuns_ = readLabel(testDict().lookup("nPerturbedRuns"));
-    writeFields_ = Switch{testDict().lookup("writeFields")};
+    nRandomRuns_ = testDict().get<label>("nRandomRuns");
+    nPerturbedRuns_ = testDict().get<label>("nPerturbedRuns");
+    writeFields_ = testDict().get<Switch>("writeFields");
 
     // Values below 1 for the number of random runs and for the number
     // of perturbed runs make no sense.
@@ -267,14 +267,14 @@ void lentSubalgorithmTest::runAllTests(const word& fileName)
             computeApproximatedFields();
 
             auto end = clock::now();
-            scalar deltaT = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+            scalar deltaT = static_cast<scalar>(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
             addMeasure(algorithmRuntime_, deltaT);
             
             Info << "\n---> Evaluating test metrics...\n";
             evaluateMetrics();
 
             writeFields();
-            writeMetrics(fileName, I*nPerturbedRuns_ + K);
+            writeMetrics(fileName, static_cast<unsigned int>(I*nPerturbedRuns_ + K));
         }
     }
 }

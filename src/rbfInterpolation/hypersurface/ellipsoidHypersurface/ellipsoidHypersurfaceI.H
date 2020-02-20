@@ -40,22 +40,23 @@ SourceFiles
 
 namespace Foam { namespace FrontTracking {
 
-scalar ellipsoidHypersurface::value(vector x) const
+scalar ellipsoidHypersurface::value(point p) const
 {
-    return (
-        ((x[0] * x[0]) / aSqr_) + 
-        ((x[1] * x[1]) / bSqr_) + 
-        ((x[2] * x[2]) / cSqr_) - 1.0
-    );
+    double result {-1.};  
+
+    for (unsigned char i = 0; i < 3; ++i)
+        result += Foam::sqr((p[i] - center_[i]) / halfAxes_[i]); 
+
+    return result;
 }
 
-vector ellipsoidHypersurface::gradient(vector x) const
+vector ellipsoidHypersurface::gradient(point p) const
 {
     return vector
     ( 
-        (2 * x[0]) / aSqr_,  
-        (2 * x[1]) / bSqr_, 
-        (2 * x[2]) / cSqr_
+        2*(p[0] - center_[0]) / Foam::sqr(halfAxes_[0]),
+        2*(p[1] - center_[1]) / Foam::sqr(halfAxes_[1]),
+        2*(p[2] - center_[2]) / Foam::sqr(halfAxes_[2])
     );
 }
 

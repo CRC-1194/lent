@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 
     front.write();
 
-    const bool once = args.optionFound("once");
+    const bool once = args.found("once");
 
     while (runTime.run()) {
 

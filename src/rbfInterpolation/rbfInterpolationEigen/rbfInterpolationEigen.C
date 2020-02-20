@@ -176,10 +176,10 @@ void rbfInterpolationEigen<Kernel>::factorize(Points const& points)
     {
         P(i, 0) = 1.; 
         Pt(0, i) = 1.;
-        for(char k = 1; k < Npoly_; ++k)
+        for(unsigned char k = 0; k < Npoly_-1; ++k)
         {
-            P(i,k) = points[i][k-1]; 
-            Pt(k,i) = points[i][k-1]; 
+            P(i,k+1) = points[i][k]; 
+            Pt(k,i+1) = points[i][k]; 
         }
     }
     // Fill the lower right block with 0s.
@@ -227,8 +227,8 @@ double rbfInterpolationEigen<Kernel>::value(
 
     result += rbfCoeffs_[Npoints]; 
 
-    for (char i = 1; i < Npoly_; ++i)
-        result += rbfCoeffs_[i + Npoints] * point[i - 1]; 
+    for (unsigned char i = 0; i < Npoly_ - 1; ++i)
+        result += rbfCoeffs_[i + 1 + Npoints] * point[i]; 
 
     return result;
 }

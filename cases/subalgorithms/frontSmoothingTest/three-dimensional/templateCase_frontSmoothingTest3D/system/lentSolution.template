@@ -1,0 +1,109 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  plus                                  |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      lentSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+testConfiguration
+{
+    nRandomRuns             @!n_random_runs!@;
+    nPerturbedRuns          @!n_perturbed_runs!@;
+    writeFields             @!write_fields!@;
+    correctFront            @!correct_front!@;
+    magFrontNoise           @!mag_front_noise!@;
+}
+
+frontSurface
+{
+    front_surface = @!front_surface!@;
+
+    <!--(if front_surface=="randomSphere")-->
+        type                randomizedSphere;
+        centre              (2 2 2);
+        radius              1;
+        centrePerturbation  (0.7 0.7 0.7);
+        radiusPerturbation  0;
+    <!--(elif front_surface=="randomEllipsoid")-->
+        type                    randomizedEllipsoid;
+        centre                  (2 2 2);
+        semiAxes                (1.5 1.0 0.5);
+        centrePerturbation      (0.2 0.5 0.5);
+        semiAxesPerturbation    (0.0 0.0 0.0);
+    <!--(end)-->
+}
+
+frontSmootherTest
+{
+    relaxFactor     @!relax_factor!@;
+    nSweeps         @!n_sweeps!@;
+    smooth          @!smoothing_type!@;
+}
+
+distanceCalculator
+{
+    type            optimizedOctree;
+    narrowBandWidth 4;
+    narrowBandPropagation
+    {
+        type            naiveNarrowBand;
+    }
+}
+
+frontReconstructionModel
+{
+    type            timeStepInterval;
+    value           1;
+}
+
+frontReconstructor
+{
+    type            foamIsoSurface;
+    mergeTolerance  1e-06;
+    regularization  off;
+    normalConsistency
+    {
+        type                convexFrontNormal;
+        normalOrientation   outside;
+    }
+}
+
+frontMotionSolver
+{
+    type            Taylor;
+    cellToVertexInterpolation cellPoint;
+}
+
+markerFieldModel
+{
+    type            tetFillingLevelAlternative;
+    cellDistance    signedDistance;
+    pointDistance   pointSignedDistance;
+    nSmoothingSteps 0;
+}
+
+surfaceTensionForceModel
+{
+    type            Tryggvason;
+    filterField     alpha.water;
+}
+
+frontSmoother
+{
+    relaxFactor     0.0;
+    nSweeps         0;
+    smooth          pointsAndEdges;
+}
+
+
+// ************************************************************************* //

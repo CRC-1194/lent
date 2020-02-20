@@ -1,5 +1,12 @@
 #! /usr/bin/bash
 
+# README
+# When a lot of large libraries are used with HPCToolkit that stay the same, time
+# can be saved by creating structures with `hpcstruct` for these libraries. For
+# example the large OpenFOAM libraries that are not changed but are linked with
+# the executable. This is what this script does, it creates structs for openfoam
+# system libraries that are re-used by LENT applications.
+
 echo "This script should only be executed once each time OpenFOAM is (re-)compiled."
 
 HPCRUN=$(which hpcrun)

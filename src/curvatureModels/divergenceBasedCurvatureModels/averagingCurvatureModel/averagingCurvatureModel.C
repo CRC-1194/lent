@@ -34,7 +34,7 @@ namespace FrontTracking {
     addToRunTimeSelectionTable(curvatureModel, averagingCurvatureModel, Dictionary);
     
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-void averagingCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurfaceFront& front) const
+void averagingCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurfaceFront&) const
 {
     const auto& curvatureInputField = inputField(mesh);
 
@@ -49,7 +49,6 @@ void averagingCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurf
     auto cellCurvatureTmp = levelSetCurvature(inputFieldSmooth);
     auto curvatureBufferPtr = curvatureBuffer(mesh);
 
-    // TODO: performance optimization: avoid copying of the curvature field (TT)
     *curvatureBufferPtr = cellCurvatureTmp.ref();
 }
 
@@ -58,7 +57,7 @@ void averagingCurvatureModel::computeCurvature(const fvMesh& mesh, const triSurf
 averagingCurvatureModel::averagingCurvatureModel(const dictionary& configDict)
 :
     divergenceBasedCurvatureModel{configDict},
-    averagingIterations_{readLabel(configDict.lookup("averagingIterations"))}
+    averagingIterations_{configDict.get<label>("averagingIterations")}
 {}
 
 

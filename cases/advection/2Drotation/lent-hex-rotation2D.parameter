@@ -1,0 +1,14 @@
+values
+{
+    solver (lentTestAdvection);
+
+    CFL
+    (
+        0.25 0.5 1
+    );
+
+    N 
+    ( 
+        32 64 128 256
+    );
+}

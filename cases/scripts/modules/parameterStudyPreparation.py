@@ -58,9 +58,17 @@ def create_parameter_file_from_list(file_names):
     return parameter_study_name
 
 
-def copy_case_template(caseName, templateName, meshType):
+def copy_case_template(caseName, templateName, meshType, meshDictName=None):
     """ Prepare a clean copy of a test case template folder. Set the correct
         meshDict if cfMesh is used (for either pMesh or cartesianMesh).
+
+        Parameters:
+        caseName -- Name of the folder the original template case is copied to
+        templateName -- Name of the template case folder to copy from
+        meshType -- Name of the meshing approach used, e.g. block for blockMesh
+        meshDictName -- Name of the mesh dictionary file if a non-default one is
+                        to be used, e.g. you blockMesh to use 'alternativeBlockMeshDict'
+                        instead of 'blockMeshDict'. (default: None)
     """
 
     # Setup a clean copy of the template case
@@ -70,17 +78,48 @@ def copy_case_template(caseName, templateName, meshType):
     # Set up the initial values
     shutil.copytree(caseName+"/0.org", caseName+"/0")
 
-    # If cfMesh is used, setup the meshDict of the chosen meshing approach.
-    # This is required since both cartesianMesh and pMesh use system/meshDict
-    # as input
+    # Prepare the mesh dictionary for the chosen meshing approach
     if meshType in ["cartesian", "poly"]:
-        shutil.copyfile(caseName+"/system/meshDict."+meshType+".template",
-                        caseName+"/system/meshDict.template")
-    # Use the base resolution 'n_base' if a hex refined mesh is used
+        prepare_cfmesh_mesh_dict(caseName, meshType, meshDictName)
+    elif meshType == "block":
+        prepare_block_mesh_dict(caseName, meshDictName)
     elif meshType == "hexrefined":
-        command = ["sed", "-i", "s/resolution/n_base/g",
-                    caseName+"/system/blockMeshDict.template"]
-        subprocess.run(command)
+        prepare_hexrefined_mesh_dict(caseName, meshDictName)
+
+
+def prepare_block_mesh_dict(caseName, meshDictName):
+    "If an alternative mesh dict name is given, copy this to blockMeshDict.template."
+
+    if meshDictName:
+        pathprefix = caseName + "/system/"
+        shutil.copyfile(pathprefix+meshDictName, pathprefix + "blockMeshDict.template")
+
+
+def prepare_cfmesh_mesh_dict(caseName, meshType, meshDictName):
+    "Copy the requested mesh dictionary to meshDict.template to be used with cfMesh."
+
+    pathprefix = caseName + "/system/"
+
+    if meshDictName:
+        shutil.copyfile(pathprefix+meshDictName, pathprefix + "meshDict.template")
+    else:
+        shutil.copyfile(pathprefix+"meshDict." + meshType + ".template", pathprefix + "meshDict.template")
+
+
+def prepare_hexrefined_mesh_dict(caseName, meshDictName):
+    """
+    If an alternative mesh dict name is given, copy this to blockMeshDict.template.
+    Replace the requested resolution with the base coarse resolution to start refining from.
+    """
+
+    pathprefix = caseName + "/system/"
+
+    if meshDictName:
+        shutil.copyfile(pathprefix+meshDictName, pathprefix + "blockMeshDict.template")
+
+    command = ["sed", "-i", "s/resolution/n_base/g",
+                pathprefix + "blockMeshDict.template"]
+    subprocess.run(command)
 
 
 def create_variant_vector(variantArgument):

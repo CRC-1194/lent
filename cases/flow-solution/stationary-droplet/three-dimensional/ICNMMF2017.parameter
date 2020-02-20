@@ -1,0 +1,105 @@
+// Values in this parameter file are taken from
+//
+//        Shin, Seungwon, and Damir Juric. "Modeling three-dimensional
+//        multiphase flow using a level contour reconstruction method for
+//        front tracking without connectivity."
+//        Journal of Computational Physics 180.2 (2002): 427-470,
+//        section 4.2
+//
+//        Note: the set of parameters given in the publication is incomplete.
+//        Values set here are chosen such that they fulfil the Laplace number
+//        reported in the paper.
+//
+//        Remember to set the radius in the .geo file for the front to
+//        r = 0.25
+//
+//        Note: in the citation above the simulations are carried out
+//        in 2D
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rhoDroplet
+    (
+        1.0
+    );
+
+    nuDroplet
+    (
+        0.0
+    );
+
+    rhoAmbient
+    (
+        1.0
+    );
+
+    nuAmbient
+    (
+        0.0
+    );
+
+    surfaceTensionCoeff
+    (
+        1
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    N
+    (
+        //6 10 20 40
+        320
+    ); 
+
+
+    // Parameters from system/controlDict
+    endTime
+    (
+        1.0e-3
+    );
+
+    deltaT
+    (
+        1.0e-6 1.0e-3
+    );
+
+    writeInterval
+    (
+        1000
+    );
+
+
+    // Parameters from lentSolution
+    nSmoothing
+    (
+        1
+    );
+
+    cellToVertex
+    (
+        cellPoint
+    );
+
+
+    // Parameters from fvSolution
+    nPisoOuter
+    (
+        1
+    );
+
+    nPisoInner
+    (
+        3
+    );
+}
+
+// Defintion of interface and domain geometry related parameters
+//G x_centre 0.50001
+//G y_centre 0.49999
+//G z_centre 0.5000035
+//G radius 0.25
+//G domainLength 8.0
+//G surfaceFile "polyMeshFiles/boundary_R08_C050505.stl"

@@ -1,0 +1,77 @@
+// Parameters in this study are based on
+//
+//      Nicolas Perinet, Damir Juric, Laurette S. Tuckerman
+//      "Numerical simulation of Faraday waves"
+//      Journal of fluid mechanics, 2009
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_bottom
+    (
+        1346
+    );
+
+    nu_bottom
+    (
+        5.364e-6
+    );
+
+    rho_top
+    (
+        949
+    );
+
+    nu_top
+    (
+        2.1075e-5
+    );
+
+    surface_tension_coefficient
+    (
+        0.035
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    // 64 is the resolution from the setup described by Damir.
+    resolution 
+    (
+        16 32 64
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        100
+    );
+
+    // delta_t
+    //      The time step size is computed as a dependent parameter by the
+    //      aliasing criterion of Denner & van Wachem 2015
+
+
+    // Domain and interface geometry
+    domain_length
+    (
+        // This is 1/4 of the length in z-direction. Its 1/4 since we have for
+        // times the cells in z-direction compared to the x-direction.
+        0.0025
+    );
+
+    // Only required for poly mesh setup
+    surface_file
+    (
+        boundary_box_perinet_juric.stl
+    );
+
+    // Hexrefined meshes
+    n_base
+    (
+        4
+    );
+}

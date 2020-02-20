@@ -44,15 +44,24 @@ namespace Foam { namespace FrontTracking {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-sphereHypersurface::sphereHypersurface(const vector& center, const scalar& radius)
+sphereHypersurface::sphereHypersurface(
+    const vector& center, 
+    const scalar& radius,
+    const word& name
+)
     :
         center_(center), 
-        radius_(radius)
+        radius_(radius),
+        name_(name)
 {}
 
-sphereHypersurface::sphereHypersurface(const scalar& radius, const vector& center)
+sphereHypersurface::sphereHypersurface(
+    const scalar& radius, 
+    const vector& center,
+    const word& name
+)
     :
-        sphereHypersurface(center, radius)
+        sphereHypersurface(center, radius, name)
 {}
 
 }} // End namespace Foam::FrontTracking 

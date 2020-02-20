@@ -65,19 +65,19 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(frontVertexNormalCalculator, 0);
-    defineRunTimeSelectionTable(frontVertexNormalCalculator, Dictionary);
+    defineRunTimeSelectionTable(frontVertexNormalCalculator, Dictionary)
     addToRunTimeSelectionTable(frontVertexNormalCalculator, frontVertexNormalCalculator, Dictionary);
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-frontVertexNormalCalculator::frontVertexNormalCalculator(const dictionary& configDict)
+frontVertexNormalCalculator::frontVertexNormalCalculator(const dictionary&)
 {}
 
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 tmp<frontVertexNormalCalculator> frontVertexNormalCalculator::New(const dictionary& configDict)
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     DictionaryConstructorTable::iterator cstrIter =
         DictionaryConstructorTablePtr_->find(name);

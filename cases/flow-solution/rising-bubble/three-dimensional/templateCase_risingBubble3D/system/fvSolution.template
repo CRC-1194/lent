@@ -1,0 +1,114 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    pcorr
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-10;
+        relTol          0;
+    }
+
+    pcorrFinal
+    {
+        $pcorr;
+    }
+
+    rho
+    {
+        solver          diagonal;
+        tolerance       1e-07;
+        relTol          0;
+    }
+
+    p_rgh
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       @!p_tol!@;
+        relTol          0;
+        minIter         10;
+    }
+
+    p_rghFinal
+    {
+        $p_rgh;
+    }
+
+    U
+    {
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       @!u_tol!@;
+        relTol          0;
+        minIter         5;
+    }
+
+    UFinal
+    {
+        $U; 
+    }
+}
+
+lentSC
+{
+    momentumPredictor   yes;
+    nOuterCorrectors    @!n_outer_correctors!@;
+    nCorrectors         @!n_correctors!@; 
+    nNonOrthogonalCorrectors @!n_non_orth_correctors!@;
+
+    residualControl
+    {
+        p_rgh
+        {
+                tolerance  @!p_tol!@;
+                relTol     0;
+                relTol     0;
+                resType    absolute;
+                norm       Linf;
+        }
+
+        U
+        {
+                tolerance  @!u_tol!@;
+                relTol     0;
+                relTol     0;
+                resType    absolute;
+                norm       Linf;
+        }
+     }
+
+     // lentSC specific parameters
+     phiChangeTolerance     @!phi_change_tolerance!@;
+     absPhiChangeTolerance  @!abs_phi_change_tolerance!@;
+}
+
+relaxationFactors
+{
+    fields
+    {
+    }
+    equations
+    {
+        ".*" 1;
+    }
+}
+
+
+// ************************************************************************* //

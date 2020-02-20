@@ -37,7 +37,7 @@ void dualKrigingInterpolation::removeDuplicates(std::vector<label>& listOfLabels
     std::sort(listOfLabels.begin(), listOfLabels.end());
     std::vector<label>::iterator newEnd;
     newEnd = std::unique(listOfLabels.begin(), listOfLabels.end());
-    listOfLabels.resize(std::distance(listOfLabels.begin(), newEnd));
+    listOfLabels.resize(static_cast<unsigned int>(std::distance(listOfLabels.begin(), newEnd)));
 }
 
 std::vector<label> dualKrigingInterpolation::cellNeighbourhood(const label& cellLabel, const fvMesh& mesh) const
@@ -98,7 +98,7 @@ void dualKrigingInterpolation::setupKrigingSystem()
 
     // TODO: Optimization: resulting matrix symmetric. This fact is 
     // not exploited here
-    auto nPoints = cachedCellCentres_.size();
+    auto nPoints = static_cast<long>(cachedCellCentres_.size());
 
     // Setup covariance block
     for (unsigned int I = 0; I < nPoints; ++I)
@@ -122,8 +122,8 @@ void dualKrigingInterpolation::setupKrigingSystem()
         for (unsigned int K = 0; K < nPoints; ++K)
         {
             // linear coefficients x, y, z
-            dualKrigingSystem_(nPoints+1+I, K) = cachedCellCentres_[K][I];
-            dualKrigingSystem_(K, nPoints+1+I) = cachedCellCentres_[K][I];
+            dualKrigingSystem_(nPoints+1+I, K) = cachedCellCentres_[K][static_cast<direction>(I)];
+            dualKrigingSystem_(K, nPoints+1+I) = cachedCellCentres_[K][static_cast<direction>(I)];
 
             /*
             // quadratic coefficients x^2, y^2, z^2
@@ -149,7 +149,7 @@ void dualKrigingInterpolation::setupKrigingSystem()
     }
 }
 
-void dualKrigingInterpolation::setupRightHandSide(const std::vector<label>& cellLabels, const volVectorField& phi, const label index)
+void dualKrigingInterpolation::setupRightHandSide(const std::vector<label>& cellLabels, const volVectorField& phi, const direction index)
 {
     rhs_ = Eigen::VectorXd::Zero(rhs_.rows());
 
@@ -176,7 +176,7 @@ vector dualKrigingInterpolation::drift(const point& vertex) const
     for (unsigned int I = 0; I < 3; ++I)
     {
         // linear terms
-        driftValue += driftCoefficients_[I+1]*vertex[I];
+        driftValue += driftCoefficients_[I+1]*vertex[static_cast<direction>(I)];
 
         /*
         // quadratic terms
@@ -219,7 +219,7 @@ void dualKrigingInterpolation::computeDualKrigingParameters
 )
 {
     auto cellLabels = cellNeighbourhood(cellLabel, mesh);
-    auto nPoints = cellLabels.size();
+    auto nPoints = static_cast<unsigned int>(cellLabels.size());
 
     adaptSystemSize(nPoints);
     cacheCellCentres(cellLabels, mesh);
@@ -229,7 +229,7 @@ void dualKrigingInterpolation::computeDualKrigingParameters
     // Re-use the decomposition. No need to compute it multiple times
     auto decomposedSytem = dualKrigingSystem_.colPivHouseholderQr();
 
-    for (unsigned int I = 0; I < 3; ++I)
+    for (direction I = 0; I != 3; ++I)
     {
         setupRightHandSide(cellLabels, phi, I);
 

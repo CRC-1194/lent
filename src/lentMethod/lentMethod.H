@@ -101,9 +101,6 @@ class lentMethod
     // Front reconstruction flag.
     mutable bool frontIsReconstructed_;
 
-    // Front smoothing flag
-    mutable bool frontPreviouslySmoothed_;
-
     // Field calculator
     tmp<distanceFieldCalculator> distanceFieldCalculatorTmp_;
 
@@ -127,6 +124,9 @@ class lentMethod
 
     // Recorder for front reconstructions and smoothing
     reconstructionHistory reconstructionHistory_;
+
+    // Hack to enable smoothing without reconstruction
+    Switch useReconstruction_;
 
     // Member Operators
         void operator=(const lentMethod&); // FIXME: Private in lentCommunication. TM.
