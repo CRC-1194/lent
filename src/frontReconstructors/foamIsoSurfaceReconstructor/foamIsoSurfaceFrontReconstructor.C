@@ -78,8 +78,8 @@ foamIsoSurfaceFrontReconstructor::foamIsoSurfaceFrontReconstructor(
 )
 :
     frontReconstructor(configDict),
-    mergeTolerance_(readScalar(configDict.lookup("mergeTolerance"))),
-    regularize_(configDict.lookup("regularization")),
+    mergeTolerance_(configDict.get<scalar>("mergeTolerance")),
+    regularize_(configDict.get<Switch>("regularization")),
     consistencyAlgTmp_(normalConsistency::New(configDict.subDict("normalConsistency")))
 {}
 

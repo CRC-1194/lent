@@ -1,0 +1,78 @@
+values
+{
+    solver (lentTestCurvature);
+    
+
+    // Parameters from system/blockMeshDict
+    domain_length
+    (
+        4.0
+    );
+
+    resolution 
+    (
+        8 16 32 64 128 256
+        //32
+    ); 
+
+
+    // Parameters from system/controlDict
+    write_interval 
+    (
+        1
+    );
+
+
+    // Parameters from system/fvSchemes
+    grad_scheme
+    (
+        "Gauss linear"
+    );
+
+
+    // Parameters from lentSolution
+    n_random_runs
+    (
+        10
+    );
+
+    n_perturbed_runs
+    (
+        1
+    );
+
+    write_fields
+    (
+        on
+    );
+
+    correct_front
+    (
+        on
+    );
+
+    use_front_signed_distance
+    (
+        off
+    );
+
+    front_noise
+    (
+        0.0
+    );
+
+    distance_noise
+    (
+        0.0
+    );
+
+    front_surface
+    (
+        randomCircle randomEllipse_12to10 randomEllipse_3to2 randomEllipse_4to1
+    );
+
+    numerical_curvature_model
+    (
+        frontTriangle compactDivGradInterpolationCorr compactDivGradSphereCorr
+    );
+}

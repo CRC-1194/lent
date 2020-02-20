@@ -101,9 +101,6 @@ class lentMethod
     // Front reconstruction flag.
     mutable bool frontIsReconstructed_;
 
-    // Front smoothing flag
-    mutable bool frontPreviouslySmoothed_;
-
     // Field calculator
     tmp<distanceFieldCalculator> distanceFieldCalculatorTmp_;
 
@@ -127,6 +124,9 @@ class lentMethod
 
     // Recorder for front reconstructions and smoothing
     reconstructionHistory reconstructionHistory_;
+
+    // Hack to enable smoothing without reconstruction
+    Switch useReconstruction_;
 
     // Member Operators
         void operator=(const lentMethod&); // FIXME: Private in lentCommunication. TM.
@@ -201,6 +201,15 @@ public:
         ) const
         {
             return surfaceTensionForceModelTmp_->cellSurfaceTensionForce(mesh, frontMesh); 
+        }
+
+        tmp<fvMatrix<vector>> surfaceTensionImplicitPart(
+            const volVectorField& velocity,
+            const volScalarField& markerField,
+            const triSurfaceFront& front
+        ) const
+        {
+            return surfaceTensionForceModelTmp_->surfaceTensionImplicitPart(velocity, markerField, front);
         }
 
         const dictionary& dict() const

@@ -1,0 +1,132 @@
+// Values in this parameter file are taken from
+//
+//      " Shin, Juric (2002): Modeling Three-Dimensional Multiphase
+//        Flow Using a Level Contour Reconstruction Method for Front
+//        Tracking without Connectivity",
+//        section 4.1
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        1.0
+    );
+
+    nu_droplet
+    (
+        0.0
+    );
+
+    rho_ambient
+    (
+        0.05
+    );
+
+    nu_ambient
+    (
+        0.0
+    );
+
+    surface_tension_coefficient
+    (
+        0.5
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    // N=300 is not part of the publication
+    resolution 
+    (
+        50 100 200 300
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        5
+    );
+
+    delta_t
+    (
+        0.0005
+    );
+
+    write_interval
+    (
+        0.05
+    );
+
+
+    // Parameters from system/lentSolution
+    cell_to_vertex
+    (
+        cellPoint cellPointTaylor
+    );
+
+    curvature_model
+    (
+        frontTriangleFitting compactDivGrad
+    );
+
+    front_to_mesh_transfer
+    (
+        triangleInCell nearestTriangleVicinity
+    );
+
+    
+    // Domain and interface geometry
+    domain_length
+    (
+        2.0
+    );
+
+    x_centre
+    (
+        1.000123
+    );
+
+    y_centre
+    (
+        0.9999934
+    );
+
+    z_centre
+    (
+        -1.0
+    );
+
+    x_semi_axis
+    (
+        0.42
+    );
+
+    y_semi_axis
+    (
+        0.38
+    );
+
+    prism_height
+    (
+        2.0
+    );
+
+    element_size
+    (
+        0.02
+    );
+}
+
+// Domain and interface geometry parameters
+//G domainLength 2.0
+//G xCentre 1.000123
+//G yCentre 0.9999934
+//G zCentre -1.0
+//G xSemiAxis 0.42
+//G ySemiAxis 0.38
+//G prismHeight 2.0
+//G elementSize 0.02

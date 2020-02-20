@@ -1,0 +1,62 @@
+// This setup is based on the experiments given in
+//  "Experimental and theoretical investigation of large-amplitude oscillations of liquid droplets"
+//  Becker et al., 1991
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    // Material parameters are from an air-ethanol system at T=295+-1K
+    // TODO: air parameters are for T=293, need to be adapted (TT)
+    rho_droplet (803);
+    nu_droplet (1.49439601494396e-06);
+
+    rho_ambient (1.205);
+    nu_ambient (1.5103734439834023e-05);
+
+    surface_tension_coefficient (0.0229);
+
+    
+    // Parameters from system/blockMeshDict
+    resolution 
+    (
+        64 128 256 512
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time (5e-3);
+
+    // delta_t
+    //      The time step size is computed as a dependent parameter by the
+    //      aliasing criterion of Denner & van Wachem 2015
+
+
+    // Domain and interface geometry
+    domain_length (2.5e-3);
+
+    x_centre (1.25e-3);
+    y_centre (1.25e-3);
+    z_centre (1.25e-3);
+
+    x_semi_axis (0.2301e-3);
+    y_semi_axis (0.15045e-3);
+    z_semi_axis (0.15045e-3);
+
+    // Only required for poly mesh setup
+    surface_file
+    (
+        boundary_R2p2_C222.stl
+    );
+
+    // Hexrefined meshes
+    n_base (4);
+
+
+    // Method parameters
+    temporal_integration    (Euler);
+    cell_to_vertex          (cellPoint);
+    curvature_model         (compactDivGrad);
+}

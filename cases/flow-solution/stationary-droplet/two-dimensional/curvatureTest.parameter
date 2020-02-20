@@ -1,0 +1,87 @@
+values
+{
+    solver (lentTestCurvatureModel);
+    
+
+    // Parameters from constant/transportProperties
+    rhoDroplet
+    (
+        1.0
+    );
+
+    nuDroplet
+    (
+        0.0
+    );
+
+    rhoAmbient
+    (
+        1.0
+    );
+
+    nuAmbient
+    (
+        0.0
+    );
+
+    surfaceTensionCoeff
+    (
+        0.0
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    N
+    (
+        12 20 40 80 120 160 200
+    ); 
+
+
+    // Parameters from system/controlDict
+    endTime
+    (
+        1.0e-6
+    );
+
+    deltaT
+    (
+        1.0e-6
+    );
+
+    writeInterval
+    (
+        1
+    );
+
+
+    // Parameters from lentSolution
+    nSmoothing
+    (
+        0
+    );
+
+    cellToVertex
+    (
+        cellPoint 
+    );
+
+
+    // Parameters from fvSolution
+    nPisoOuter
+    (
+        1
+    );
+
+    nPisoInner
+    (
+        3
+    );
+}
+
+// Geometry parameters
+//G radius 2.0
+//G L 8
+//G distortion 0.0000034123
+//G xCentre 4.0
+//G yCentre 4.0
+//G zCentre 0.2

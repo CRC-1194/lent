@@ -39,22 +39,6 @@ namespace FrontTracking {
     using clock = std::chrono::high_resolution_clock;
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-lentSubalgorithmTest::fileFormat lentSubalgorithmTest::detectFileFormat(const word& fileName) const
-{
-    if (fileName.rfind(".hdf5") != std::string::npos)
-    {
-        return fileFormat::hdf5;
-    }
-    else if (fileName.rfind(".csv") != std::string::npos)
-    {
-        return fileFormat::csv;
-    }
-    else
-    {
-        return fileFormat::fallBack;
-    }
-}
-
 std::string lentSubalgorithmTest::assembleFilePath() const
 {
     std::string dataFilePath = mesh_.time().rootPath() + "/"
@@ -87,7 +71,41 @@ void lentSubalgorithmTest::writeFields() const
     {
         auto& runTime = const_cast<Time&>(mesh_.time());
         runTime.write();
+        frontRef().write();
     }
+}
+
+void lentSubalgorithmTest::writeMetrics(const word& fileName, const unsigned long runNumber) const
+{
+    // In the first run create result file and write its header
+    if (runNumber == 0)
+    {
+        std::fstream dataFile(assembleFilePath() + fileName, std::ios_base::out);
+
+        dataFile << metricHeader(scalarMetrics_)
+                 << metricHeader(vectorMetrics_) << std::endl;
+
+        dataFile.close();
+    }
+
+    std::fstream dataFile(assembleFilePath() + fileName, std::ios_base::app);
+
+    // For now: hardcoded precision using scientific notation
+    dataFile << std::scientific << std::setprecision(10);
+
+    for (auto const& metricField: scalarMetrics_)
+    {
+        dataFile << metricField.second[runNumber] << separator_;
+    } 
+
+    for (auto const& metricField: vectorMetrics_)
+    {
+        dataFile << printFoamVector(metricField.second[runNumber]) << separator_;
+    } 
+    
+    dataFile << std::endl;
+
+    dataFile.close();
 }
 
 
@@ -113,6 +131,36 @@ void lentSubalgorithmTest::computeExactSignedDistances() const
     // cell-corner distances
     auto& pointSignedDistance = lookupPointSignedDistance();
     frontSurface.setDistance(pointSignedDistance);
+}
+
+void lentSubalgorithmTest::computeExactSignedDistancesNarrowBand() const
+{
+    // Only compute the exact signed distance in the narrow band
+    const auto& frontSurface = surfaceTmp_.ref();
+
+    // cell-centred distances
+    auto& signedDistance = lookupSignedDistance();
+    const auto& C = mesh().C();
+
+    forAll(signedDistance, I)
+    {
+        if (mag(signedDistance[I]) < GREAT)
+        {
+            signedDistance[I] = frontSurface.signedDistance(C[I]);
+        }
+    }
+    
+    // cell-corner distances
+    auto& pointSignedDistance = lookupPointSignedDistance();
+    const auto& P = mesh().points();
+
+    forAll(pointSignedDistance, I)
+    {
+        if (mag(pointSignedDistance[I]) < GREAT)
+        {
+            pointSignedDistance[I] = frontSurface.signedDistance(P[I]);
+        }
+    }
 }
 
 void lentSubalgorithmTest::computeFrontSignedDistances()
@@ -144,7 +192,8 @@ void lentSubalgorithmTest::setupFrontFromSurface(const bool correct)
 
     if (correct)
     {
-        surfaceTmp_.ref().moveFrontToSurface(front_);   
+        surfaceTmp_.ref().moveFrontToSurface(front_);
+        surfaceTmp_.ref().makeNormalOrientationConsistent(front_);
     }
 }
 
@@ -165,9 +214,9 @@ lentSubalgorithmTest::lentSubalgorithmTest(const fvMesh& mesh, triSurfaceFront& 
                      analyticalSurface::New(lentDict().subDict("frontSurface"))
                   };
 
-    nRandomRuns_ = readLabel(testDict().lookup("nRandomRuns"));
-    nPerturbedRuns_ = readLabel(testDict().lookup("nPerturbedRuns"));
-    writeFields_ = Switch{testDict().lookup("writeFields")};
+    nRandomRuns_ = testDict().get<label>("nRandomRuns");
+    nPerturbedRuns_ = testDict().get<label>("nPerturbedRuns");
+    writeFields_ = testDict().get<Switch>("writeFields");
 
     // Values below 1 for the number of random runs and for the number
     // of perturbed runs make no sense.
@@ -191,7 +240,7 @@ lentSubalgorithmTest::lentSubalgorithmTest(const fvMesh& mesh, triSurfaceFront& 
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-void lentSubalgorithmTest::runAllTests()
+void lentSubalgorithmTest::runAllTests(const word& fileName)
 {
     Info << "Running Tests..." << endl;
 
@@ -218,83 +267,17 @@ void lentSubalgorithmTest::runAllTests()
             computeApproximatedFields();
 
             auto end = clock::now();
-            scalar deltaT = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+            scalar deltaT = static_cast<scalar>(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
             addMeasure(algorithmRuntime_, deltaT);
             
             Info << "\n---> Evaluating test metrics...\n";
             evaluateMetrics();
 
             writeFields();
+            writeMetrics(fileName, static_cast<unsigned int>(I*nPerturbedRuns_ + K));
         }
     }
 }
-
-void lentSubalgorithmTest::writeResults(const word& fileName) const
-{
-    Info << "Writing results..." << endl;
-
-    auto fileType = detectFileFormat(fileName);
-    
-    if (fileType == fileFormat::hdf5)
-    {
-        writeResultsHDF5(fileName);
-    }
-    else if (fileType == fileFormat::csv)
-    {
-        writeResultsCSV(fileName);
-    }
-    else if (fileType == fileFormat::fallBack)
-    {
-        // Use csv as default file format in case there is no specialized
-        // writer. The computations have been performed anyway, so do not
-        // throw them away (TT)
-        word fallBackFileName{fileName + ".csv"};
-
-        Info << "NOTE: no writer found for " << fileName << ". Using "
-             << fallBackFileName << " instead.\n";
-
-        writeResultsCSV(fallBackFileName);
-    }
-}
-
-void lentSubalgorithmTest::writeResultsHDF5(const word& fileName) const
-{
-    notImplemented("writeResultsHDF5(...)");
-}
-
-void lentSubalgorithmTest::writeResultsCSV(const word& fileName) const
-{
-    std::fstream dataFile(assembleFilePath() + fileName, std::ios_base::out);
-
-    // For now: hardcoded precision using scientific notation
-    dataFile << std::scientific << std::setprecision(10);
-
-    dataFile << metricHeader(scalarMetrics_)
-             << metricHeader(vectorMetrics_) << std::endl;
-
-    // TODO: assumption: for every run every metric is evaluated,
-    //  so that the results will be a full table without empty fields
-    label nRuns = scalarMetrics_.at(algorithmRuntime_).size();
-
-    for (int index = 0; index < nRuns; ++index)
-    {
-        for (auto const& metricField: scalarMetrics_)
-        {
-            dataFile << metricField.second[index] << separator_;
-        } 
-
-        for (auto const& metricField: vectorMetrics_)
-        {
-            dataFile << printFoamVector(metricField.second[index]) << separator_;
-        } 
-        
-        dataFile << std::endl;
-    }
-
-    dataFile.close();
-}
-
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

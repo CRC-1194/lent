@@ -68,6 +68,8 @@ Description
 #include "fvcDiv.H"
 #include "fvcSnGrad.H"
 #include "fvcAverage.H"
+#include "fvmLaplacian.H"
+#include "gaussLaplacianScheme.H"
 
 namespace Foam {
 namespace FrontTracking {
@@ -94,12 +96,21 @@ tmp<surfaceScalarField> csfSurfaceTensionForceModel::faceSurfaceTensionForce(
     const dictionary& transportProperties = 
         runTime.lookupObject<dictionary>("transportProperties");
 
-    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+    const dimensionedScalar sigma{"sigma", transportProperties};  
     
     const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName());     
-    const auto& cellCurvatureField = cellCurvature(mesh, frontMesh).ref();
 
-    return fvc::interpolate(sigma * cellCurvatureField) * fvc::snGrad(filterField);
+    auto faceCurvatureFieldPtr = faceCurvature(mesh, frontMesh);
+    const auto& faceCurvatureField = *faceCurvatureFieldPtr;
+    // FIXME: for a reason I do not yet understand, the orientation of the
+    // surface tension field on the cell faces is 'unoriented' and will cause
+    // an error when being added/subtracted to other face force fields.
+    // For now, just manually set the resulting field to 'oriented' as the
+    // original snGrad(alpha) field (TT)
+    auto faceSurfaceTensionTmp = sigma * faceCurvatureField * fvc::snGrad(filterField);
+    faceSurfaceTensionTmp.ref().setOriented();
+    
+    return faceSurfaceTensionTmp;
 }
 
 tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
@@ -107,22 +118,78 @@ tmp<volVectorField> csfSurfaceTensionForceModel::cellSurfaceTensionForce(
     const triSurfaceFront& frontMesh 
 ) const
 {
-    /*
-    const Time& runTime = mesh.time(); 
+    return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
+}
+
+tmp<fvMatrix<vector>> csfSurfaceTensionForceModel::surfaceTensionImplicitPart(
+    const volVectorField& velocity,
+    const volScalarField& markerField,
+    const triSurfaceFront& front
+) const
+{
+    // Lookup material properties
+    const auto& runTime = velocity.mesh().time();
 
     const dictionary& transportProperties = 
         runTime.lookupObject<dictionary>("transportProperties");
 
-    const dimensionedScalar sigma = transportProperties.lookup("sigma");  
+    const dimensionedScalar sigma{"sigma", transportProperties};  
+
+    auto sigmaDeltaT = sigma*runTime.deltaT();
+
+    // Below is a first implementation of a fully implicit discretization
+    // approach for the Laplace-Beltrami operator in the level set context (TT).
+    /*
+    const auto& phi = mesh.lookupObject<volScalarField>("signedDistance");
+    const auto& Sf = mesh.Sf();
+    const auto& nf = mesh.Sf()/mesh.magSf();
+    const auto& delta = mesh.deltaCoeffs();
+
+    surfaceVectorField grad_phi_f{fvc::interpolate(fvc::grad(phi))};
+
+    surfaceScalarField gammaSf{sigmaDeltaT*(grad_phi_f & Sf)*(grad_phi_f & nf) / 
+            (magSqr(grad_phi_f) + SMALL)};
+    surfaceScalarField gammaFullSf{sigmaDeltaT*mesh.magSf()};
+
+    // Filter flux field gammaSf here
+    surfaceScalarField filter{fvc::interpolate(mag(fvc::grad(markerField)))};
+
+    gammaFullSf.dimensions() *= pow(dimLength, -1);
+    gammaSf.dimensions() *= pow(dimLength, -1);
+
+    forAll(filter, I)
+    {
+        gammaSf[I] *= filter[I];
+        gammaFullSf[I] *= filter[I];
+    }
     
-    const volScalarField& filterField = mesh.lookupObject<volScalarField>(filterFieldName()); 
-    const auto& cellCurvatureField = cellCurvature(mesh, frontMesh).ref();
+    fv::gaussLaplacianScheme<vector,scalar> gaussLaplace{mesh};
 
-    return sigma * cellCurvatureField * fvc::grad(filterField);
+    return gaussLaplace.fvmLaplacianUncorrected(gammaFullSf, delta, velocity) - gaussLaplace.fvmLaplacianUncorrected(gammaSf, delta, velocity);
     */
-    return fvc::reconstruct(faceSurfaceTensionForce(mesh, frontMesh) * mesh.magSf());  
-}
 
+    // Lookup interface properties
+    auto curvaturePtr = cellCurvature(velocity.mesh(), front);
+    auto interfaceNormalPtr = curvatureModelRef().cellInterfaceNormals(velocity.mesh(), front);
+    const auto& curvature = *curvaturePtr;
+    const auto& normals = *interfaceNormalPtr;
+    
+    // Below: normal calculation consistent with explicit surface tension part (TT)
+    //dimensionedScalar dSmall{"SMALL", pow(dimLength, -1), SMALL};
+    //auto normalsTmp = fvc::grad(markerField)/(mag(fvc::grad(markerField)) + dSmall);
+    //const auto& normals = normalsTmp.ref();
+
+    // Define Laplace-Beltrami of velocity as the full Laplace-operator
+    // (implicit) and subtract the normal part (explicit)
+    auto gradUTmp = fvc::grad(velocity);
+    const auto& gradU = gradUTmp.ref();
+
+    auto normalLaplacian = fvc::div((normals&gradU)*normals)
+            - curvature*((gradU - ((normals&gradU)*normals))&normals);
+
+    return (fvm::laplacian(sigmaDeltaT*mag(fvc::grad(markerField)), velocity)
+                - sigmaDeltaT*mag(fvc::grad(markerField))*normalLaplacian);
+}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 

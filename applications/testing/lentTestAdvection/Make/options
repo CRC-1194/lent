@@ -1,5 +1,5 @@
 EXE_INC = \
-    -std=c++14 \
+    $(LENT_GCC_OPTIONS) \
     -isystem$(EIGEN_HEADERS) \
     -I$(LENT_PROJECT)/applications/solvers \
     -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
@@ -20,6 +20,7 @@ EXE_INC = \
     -I$(TWO_PHASE_VALIDATION)/src/lnInclude 
 
 EXE_LIBS = \
+    -L$(LENT_GTEST_LIB) \
     -L$(FOAM_USER_LIBBIN) \
     -L$(LENT_PROJECT)/third-party/googletest/googletest/build \
     -ltwoPhaseMixture \

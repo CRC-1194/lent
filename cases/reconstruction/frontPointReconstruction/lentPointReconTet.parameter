@@ -1,0 +1,14 @@
+values
+{
+    solver (lentTestFrontPointReconstruction);
+
+    N 
+    ( 
+        2 6 14 
+    );
+
+    GRAD
+    (
+        LSQ
+    );
+}

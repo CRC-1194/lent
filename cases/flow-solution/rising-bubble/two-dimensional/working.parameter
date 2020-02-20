@@ -1,0 +1,100 @@
+// This is a set of parameters that has been successfully simulated in the sense
+// that the simulation reached end time without breaking something severely, e.g.
+// shattering the front into pieces by flipped triangles
+//
+// Regarding most parameters this is adaption of the 3D rising bubble in Maric2014
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rhoDroplet
+    (
+        1.205
+    );
+
+    nuDroplet
+    (
+        1.511e-05
+    );
+
+    rhoAmbient
+    (
+        48.2
+    );
+
+    nuAmbient
+    (
+        5.7e-05
+    );
+
+    surfaceTensionCoeff
+    (
+        2.226686e-03
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    N 
+    (   
+        50 100 200
+    ); 
+
+    D
+    (
+        6.94975e-3
+    );
+
+
+    // Parameters from system/controlDict
+    endTime
+    (
+        1
+    );
+
+    deltaT
+    (
+        0.001
+    );
+
+
+    // Gravity constant
+    gravity
+    (
+        -0.981
+    );
+
+
+    // Parameters from fvSolution
+    nPisoOuter
+    (
+        1
+    );
+
+    nPisoInner
+    (
+        3
+    );
+
+    
+    // Parameters from lentSolution
+    nSmoothing
+    (
+        1
+    );
+
+    cellToVertex
+    (
+        cellPoint
+    );
+}
+
+// Domain and interface geometry parameters
+//G domainWidth 0.027799
+//G domainHeight 0.083397
+//G domainDepth 0.0003
+//G radius 0.003479
+//G height 0.017374
+//G elementSize 0.0005

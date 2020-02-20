@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     triSurfaceFront front(
         IOobject(
             "front",
-            "front",
+            "constant",
             runTime,
             IOobject::MUST_READ,
             IOobject::AUTO_WRITE
@@ -60,8 +60,7 @@ int main(int argc, char *argv[])
 
     lentFrontSmoothingTest frontSmoothingTest{mesh, front};
 
-    frontSmoothingTest.runAllTests();
-    frontSmoothingTest.writeResults("frontSmoothingResults.csv");
+    frontSmoothingTest.runAllTests("frontSmoothingResults.csv");
 
     Info<< "\nEnd\n" << endl;
     return 0;

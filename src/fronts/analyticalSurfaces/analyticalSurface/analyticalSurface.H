@@ -62,11 +62,14 @@ Description
 #define analyticalSurface_H
 
 #include "fvMesh.H"
+#include "OFstream.H"
 #include "refCount.H"
 #include "tmp.H"
+#include "triSurface.H"
 #include "typeInfo.H"
+#include "surfaceFields.H"
+#include "volFields.H"
 
-#include "triSurfaceFront.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -98,7 +101,7 @@ public:
         Dictionary,
         (const dictionary& configDict),
         (configDict)
-    );
+    )
 
     // Selectors
     static tmp<analyticalSurface> New(const dictionary& configDict);
@@ -120,12 +123,13 @@ public:
     virtual point normalProjectionToSurface(point&) const {return point{0,0,0};};
     virtual vector normalToPoint(const point&) const {return vector{0,0,0};};
     virtual point intersection(const point&, const point&) const {return point{0,0,0};};
-    virtual void moveFrontToSurface(triSurfaceFront& front) const;
-    virtual scalar curvatureAt(const point& p) const {return 0.0;};
+    virtual void moveFrontToSurface(triSurface& front) const;
+    virtual void makeNormalOrientationConsistent(triSurface& front, const bool outwardOrientation=true) const;
+    virtual scalar curvatureAt(const point&) const {return 0.0;};
 
     virtual void randomize(){};
-    virtual void randomPlacementIn(const boundBox& bbox){};
-    virtual void writeParameters(const word fileName) const {};
+    virtual void randomPlacementIn(const boundBox&){};
+    virtual void writeParameters(const word) const {};
 };
 
 

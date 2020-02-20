@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Version:  2.2.x                               
-    \\  /    A nd           | Copyright held by original author
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright (C) 2018 Tobias Tolle, TU Darmstadt 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
 
-    OpenFOAM is free software; you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by the
-    Free Software Foundation; either version 2 of the License, or (at your
-    option) any later version.
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -19,8 +19,7 @@ License
     for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM; if not, write to the Free Software Foundation,
-    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
     Foam::analyticalEllipsoid
@@ -37,26 +36,6 @@ Description
     See https://www.geometrictools.com/Documentation/DistancePointEllipseEllipsoid.pdf
     for information on how to find the minimal distance between a point
     and the ellipsoid.
-
-    You may refer to this software as :
-    //- full bibliographic data to be provided
-
-    This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
-    under the project supervision of :
-        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
-    
-    Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de
-    	Holger Marschall <marschall@csi.tu-darmstadt.de>
-    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
-
-        Mathematical Modeling and Analysis
-        Center of Smart Interfaces
-        Technische Universitaet Darmstadt
-       
-    If you use this software for your scientific work or your publications,
-    please don't forget to acknowledge explicitly the use of it.
 
 \*---------------------------------------------------------------------------*/
 
@@ -80,7 +59,7 @@ scalar analyticalEllipsoid::levelSetValueOf(const point& aPoint) const
     // squared
     scalar levelSetValue = -1.0;
 
-    forAll(aPoint, I)
+    for (direction I = 0; I != 3; ++I)
     {
         levelSetValue += oneBySemiAxisSqr_[I]*aPoint[I]*aPoint[I];
     }
@@ -100,7 +79,7 @@ vector analyticalEllipsoid::levelSetGradientAt(const point& aPoint) const
             << abort(FatalError);
     }
 
-    forAll(levelSetGradient, I)
+    for (direction I = 0; I != 3; ++I)
     {
         levelSetGradient[I] = 2.0*oneBySemiAxisSqr_[I]*aPoint[I];
     }
@@ -124,7 +103,7 @@ analyticalEllipsoid::parameterPair analyticalEllipsoid::intersectEllipsoidWithLi
     scalar linCoeff = 0.0;
     scalar absCoeff = -1.0; // Already include the "-1" from the level set equation
 
-    forAll(refPoint, I)
+    for (direction I = 0; I != 3; ++I)
     {
         quadCoeff += oneBySemiAxisSqr_[I]*path[I]*path[I];
         linCoeff += 2.0*oneBySemiAxisSqr_[I]*refPoint[I]*path[I];
@@ -164,12 +143,12 @@ scalar analyticalEllipsoid::ellipsoidCurvature(const point& p) const
     return -2.0*kappa/(D*D*D + SMALL);
 }
 
-label analyticalEllipsoid::minorSemiAxisIndex() const
+direction analyticalEllipsoid::minorSemiAxisIndex() const
 {
-    label minIndex = 0;
+    direction minIndex = 0;
     scalar minAxis = 0.0;
 
-    forAll(oneBySemiAxisSqr_, I)
+    for (direction I = 0; I != 3; ++I)
     {
         if (oneBySemiAxisSqr_[I] > minAxis)
         {
@@ -205,73 +184,38 @@ scalar analyticalEllipsoid::bisection(const std::function< scalar(scalar)>& root
     return midPoint;
 }
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-analyticalEllipsoid::analyticalEllipsoid(const dictionary& configDict)
-:
-    analyticalSurface{configDict},
-    centre_{configDict.lookup("centre")},
-    oneBySemiAxisSqr_{}
+scalar analyticalEllipsoid::signedDistanceRefSytem(const point P) const
 {
-    vector semiAxes{configDict.lookup("semiAxes")};
+    auto surfaceProjectionP = normalProjectionToSurfaceRefSystem(P);
 
-    forAll(semiAxes, I)
-    {
-        oneBySemiAxisSqr_[I] = 1.0/(semiAxes[I]*semiAxes[I]);
-    }
+    return sign(levelSetValueOf(P))*mag(surfaceProjectionP - P);
 }
 
-analyticalEllipsoid::analyticalEllipsoid(const point& centre, const vector& semiAxes)
-:
-   analyticalSurface{},
-   centre_{centre},
-   oneBySemiAxisSqr_{}
-{
-    forAll(semiAxes, I)
-    {
-        oneBySemiAxisSqr_[I] = 1.0/(semiAxes[I]*semiAxes[I]);
-    }
-} 
-
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-scalar analyticalEllipsoid::distance(const point& trialPoint) const
-{
-    return fabs(signedDistance(trialPoint));
-}
-
-scalar analyticalEllipsoid::signedDistance(const point& trialPoint) const
-{
-    auto copyPoint{trialPoint};
-    auto projectedPoint = moveToReferenceFrame(trialPoint);
-    auto surfaceProjection = normalProjectionToSurface(copyPoint);
-
-    return sign(levelSetValueOf(projectedPoint))*mag(surfaceProjection - projectedPoint);
-}
-
-point analyticalEllipsoid::normalProjectionToSurface(point& trialPoint) const
+point analyticalEllipsoid::normalProjectionToSurfaceRefSystem(point P) const
 {
     point pointOnSurface{0,0,0};
+    const double epsilon = std::numeric_limits<double>::epsilon();
 
-    // Move trial point to first quadrant of reference frame
-    auto refPoint = moveToReferenceFrame(trialPoint);
-    auto p = refPoint;
-    forAll(p, I)
+    // Move point to first quadrant of reference frame
+    auto p = P;
+    for (direction I = 0; I != 3; ++I)
     {
         p[I] = fabs(p[I]);
     }
 
     vector q{oneBySemiAxisSqr_};
-    auto minDistanceParameter = [&q,&p](scalar t)
+
+    auto minDistanceParameter = [&q,&p,&epsilon](scalar t)
             {
-                auto term1 = p.x()/(1.0 + q.x()*t);
-                auto term2 = p.y()/(1.0 + q.y()*t);
-                auto term3 = p.z()/(1.0 + q.z()*t);
+                auto term1 = p.x()/(1.0 + q.x()*t + epsilon);
+                auto term2 = p.y()/(1.0 + q.y()*t + epsilon);
+                auto term3 = p.z()/(1.0 + q.z()*t + epsilon);
 
                 return q.x()*term1*term1 + q.y()*term2*term2
                         + q.z()*term3*term3 - 1.0;
             };
 
-    // The minor and the major semi axis are rquired to compute the
+    // The minor and the major semi axis are required to compute the
     // appropriate parameter range (TT)
     parameterPair interval{};
     auto minI = minorSemiAxisIndex();
@@ -282,45 +226,37 @@ point analyticalEllipsoid::normalProjectionToSurface(point& trialPoint) const
 
     auto lambdaMin = bisection(minDistanceParameter, interval);
     
-    pointOnSurface.x() = p.x() / (1.0 + q.x()*lambdaMin);
-    pointOnSurface.y() = p.y() / (1.0 + q.y()*lambdaMin);
-    pointOnSurface.z() = p.z() / (1.0 + q.z()*lambdaMin);
+    pointOnSurface.x() = p.x() / (1.0 + q.x()*lambdaMin + epsilon);
+    pointOnSurface.y() = p.y() / (1.0 + q.y()*lambdaMin + epsilon);
+    pointOnSurface.z() = p.z() / (1.0 + q.z()*lambdaMin + epsilon);
 
     // Move point on surface to correct quadrant
-    forAll(pointOnSurface, I)
+    for (direction I = 0; I != 3; ++I)
     {
-        pointOnSurface[I] *= sign(refPoint[I]);
+        pointOnSurface[I] *= sign(P[I]);
     }
 
-    return pointOnSurface + centre_;
+    return pointOnSurface;
 }
 
-vector analyticalEllipsoid::normalToPoint(const point& trialPoint) const
+vector analyticalEllipsoid::normalToPointRefSystem(const point P) const
 {
     // NOTE: using the level set gradient rather than the connection
     // between the refPoint and pointOnSurface is more stable for points
     // close to the interface (TT)
-    point copyPoint{trialPoint};
-    auto pointOnSurface = normalProjectionToSurface(copyPoint);
-    pointOnSurface = moveToReferenceFrame(pointOnSurface);
+    auto pointOnSurface = normalProjectionToSurfaceRefSystem(P);
     auto gradient = levelSetGradientAt(pointOnSurface);
 
     return gradient/mag(gradient);
 }
 
-point analyticalEllipsoid::intersection(const point& pointA,
-                                     const point& pointB) const
+point analyticalEllipsoid::intersectionRefSystem(const point pointA, const point pointB) const
 {
     // NOTE: this function is intended to find a unique intersection
     // between A and B. The case of A and B spanning the ellipsoid
     // is not covered yet. (TT)
-    
-    // Move to reference frame
-    auto refPointA = moveToReferenceFrame(pointA);
-    auto refPointB = moveToReferenceFrame(pointB);
-
-    auto lSetValueA = levelSetValueOf(refPointA);
-    auto lSetValueB = levelSetValueOf(refPointB);
+    auto lSetValueA = levelSetValueOf(pointA);
+    auto lSetValueB = levelSetValueOf(pointB);
 
     // TODO: special case in which A and B form a tangent to the ellipsoid
     // is not covered yet. (TT)
@@ -341,20 +277,20 @@ point analyticalEllipsoid::intersection(const point& pointA,
         return pointB;
     }
 
-    auto connection = refPointA - refPointB;
-    auto basePoint = refPointB;
+    auto connection = pointA - pointB;
+    auto basePoint = pointB;
 
     // Ensure the direction points from inside the ellipsoid to the outside.
     // In this case solution of the quadratic equation will yield a positive
     // and a negative lambda with the positive one being the sought after (TT)
     if (lSetValueA < 0.0)
     {
-        connection = refPointB -refPointA;
-        basePoint = refPointA;
+        connection = pointB -pointA;
+        basePoint = pointA;
     }
     
     // Compute intersection using line approach
-    auto lamdbas = intersectEllipsoidWithLine(refPointA, connection);
+    auto lamdbas = intersectEllipsoidWithLine(pointA, connection);
     
     // Decide which lambda is the sought after
     scalar lamdba = lamdbas[0];
@@ -364,23 +300,94 @@ point analyticalEllipsoid::intersection(const point& pointA,
         lamdba = lamdbas[1];
     }
     
-    return basePoint + lamdba*connection + centre_;
+    return basePoint + lamdba*connection;
+}
+
+scalar analyticalEllipsoid::curvatureAtRefSystem(const point P) const
+{
+    auto pOnEllipsoid = normalProjectionToSurfaceRefSystem(P);
+
+    return ellipsoidCurvature(pOnEllipsoid);
+}
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+analyticalEllipsoid::analyticalEllipsoid(const dictionary& configDict)
+:
+    analyticalSurface{configDict},
+    centre_{configDict.get<point>("centre")},
+    oneBySemiAxisSqr_{}
+{
+    vector semiAxes{configDict.get<vector>("semiAxes")};
+
+    for(direction I = 0; I != 3; ++I)
+    {
+        oneBySemiAxisSqr_[I] = 1.0/(semiAxes[I]*semiAxes[I]);
+    }
+
+    name_ = configDict.lookupOrDefault<word>("name", analyticalEllipsoid::typeName);
+}
+
+analyticalEllipsoid::analyticalEllipsoid(
+    const point& centre, 
+    const vector& semiAxes, 
+    const word name
+)
+:
+   analyticalSurface{},
+   centre_{centre},
+   oneBySemiAxisSqr_{},
+   name_(name)
+{
+    for (direction I = 0; I != 3; ++I)
+    {
+        oneBySemiAxisSqr_[I] = 1.0/(semiAxes[I]*semiAxes[I]);
+    }
+} 
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+scalar analyticalEllipsoid::distance(const point& trialPoint) const
+{
+    return fabs(signedDistance(trialPoint));
+}
+
+scalar analyticalEllipsoid::signedDistance(const point& trialPoint) const
+{
+    return signedDistanceRefSytem(moveToReferenceFrame(trialPoint));
+}
+
+point analyticalEllipsoid::normalProjectionToSurface(point& trialPoint) const
+{
+    return centre_ + normalProjectionToSurfaceRefSystem(moveToReferenceFrame(trialPoint));
+}
+
+vector analyticalEllipsoid::normalToPoint(const point& trialPoint) const
+{
+    return normalToPointRefSystem(moveToReferenceFrame(trialPoint));
+}
+
+point analyticalEllipsoid::intersection(const point& pointA,
+                                     const point& pointB) const
+{
+    return centre_ + intersectionRefSystem(moveToReferenceFrame(pointA),
+                                            moveToReferenceFrame(pointB));
 }
 
 scalar analyticalEllipsoid::curvatureAt(const point& p) const
 {
-    point pCopy{p};
-    auto pOnEllipsoid = normalProjectionToSurface(pCopy);
-    pOnEllipsoid = moveToReferenceFrame(pOnEllipsoid);
+    return curvatureAtRefSystem(moveToReferenceFrame(p));
+}
 
-    return ellipsoidCurvature(pOnEllipsoid);
+point analyticalEllipsoid::centre() const
+{
+    return centre_;
 }
 
 vector analyticalEllipsoid::semiAxes() const
 {
     vector semiAxes{};
 
-    forAll(semiAxes, I)
+    for (direction I = 0; I != 3; ++I)
     {
         semiAxes[I] = sqrt(1.0/(oneBySemiAxisSqr_[I] + SMALL));
     }
@@ -388,9 +395,19 @@ vector analyticalEllipsoid::semiAxes() const
     return semiAxes;
 }
 
+void analyticalEllipsoid::oneBySemiAxisSquare(const vector& oneBySemiAxisSquare)
+{
+    oneBySemiAxisSqr_ = oneBySemiAxisSquare;
+}
+
+void analyticalEllipsoid::centre(const vector& newCentre)
+{
+    centre_ = newCentre;
+}
+
 void analyticalEllipsoid::semiAxes(const vector& newSemiAxes)
 {
-    forAll(newSemiAxes, I)
+    for (direction I = 0; I != 3; ++I)
     {
         oneBySemiAxisSqr_[I] = 1.0/(newSemiAxes[I]*newSemiAxes[I]);
     }

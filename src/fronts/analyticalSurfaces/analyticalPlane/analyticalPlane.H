@@ -78,6 +78,7 @@ class analyticalPlane
     point refPoint_;
     vector unitNormal_;
     scalar distanceOrigin_;
+    word name_;
 
 protected:
     vector normalize(const vector& normalVector) const;
@@ -90,7 +91,11 @@ public:
     // Constructors
     analyticalPlane() = default;
     analyticalPlane(const dictionary& configDict);
-    analyticalPlane(const point& refPoint, const vector& normal);
+    analyticalPlane(
+            const point& refPoint,
+            const vector& normal,
+            const word name = analyticalPlane::typeName
+    );
 
     //- Destructor
     virtual ~analyticalPlane() {};
@@ -102,7 +107,7 @@ public:
     virtual point normalProjectionToSurface(point& trialPoint) const;
     virtual vector normalToPoint(const point& trialPoint) const;
     virtual point intersection(const point& pointA, const point& pointB) const;
-    virtual scalar curvatureAt(const point& p) const
+    virtual scalar curvatureAt(const point&) const
     {
         return 0.0;
     }
@@ -115,6 +120,17 @@ public:
     virtual point referencePoint() const
     {
         return refPoint_;
+    }
+
+    inline scalar value(const point& trialPoint) const
+    {
+        return signedDistance(trialPoint); 
+    }
+
+
+    word name() const
+    {
+        return name_; 
     }
 
     virtual void normal(const vector& newNormal);

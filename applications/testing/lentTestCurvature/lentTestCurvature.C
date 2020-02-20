@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     triSurfaceFront front(
         IOobject(
             "front",
-            "front",
+            "constant",
             runTime,
             IOobject::MUST_READ,
             IOobject::AUTO_WRITE
@@ -61,8 +61,7 @@ int main(int argc, char *argv[])
 
     lentCurvatureTest curvatureTest{mesh, front};
 
-    curvatureTest.runAllTests();
-    curvatureTest.writeResults("curvatureTestResults.csv");
+    curvatureTest.runAllTests("curvatureTestResults.csv");
 
     Info<< "\nEnd\n" << endl;
     return 0;

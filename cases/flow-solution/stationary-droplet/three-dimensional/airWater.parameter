@@ -1,0 +1,87 @@
+// Parameters for an air-water system with a droplet on the
+// millimeter scale
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        1000
+    );
+
+    nu_droplet
+    (
+        1.0e-6
+    );
+
+    rho_ambient
+    (
+        1.29
+    );
+
+    nu_ambient
+    (
+        1.4e-5
+    );
+
+    surface_tension_coefficient
+    (
+        7.2e-2
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    resolution
+    (
+        16 32 64
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        0.3
+    );
+
+    // This is a dependent variable, defined by eq. (12) in Denner 2014
+    //delta_t
+    //(
+    //    3.0e-4
+    //);
+
+
+    // Domain and interface geometry
+    x_centre
+    (
+        0.002000012  
+    );
+
+    y_centre
+    (
+        0.00199999932   
+    );
+
+    z_centre
+    (
+        0.002000054   
+    );
+
+    radius
+    (
+        0.001  
+    );
+
+    domain_length
+    (
+        0.004 
+    );
+
+    // Only required for poly mesh
+    surface_file
+    (
+        boundary_R2p5mm_C2mm2mm2mm.stl 
+    );
+}

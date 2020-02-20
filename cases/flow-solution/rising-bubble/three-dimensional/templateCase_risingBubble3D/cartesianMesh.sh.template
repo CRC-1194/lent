@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+surfaceGenerateBoundingBox -excludeSurface constant/front.stl box.stl @!box_length!@ @!box_length!@ @!box_length!@ @!box_length!@ @!box_length!@ @!box_length!@  
+cp system/meshDict.cartesian system/meshDict
+cartesianMesh

@@ -91,18 +91,24 @@ void analyticalPlane::updateDistanceToOrigin()
 analyticalPlane::analyticalPlane(const dictionary& configDict)
 :
     analyticalSurface{configDict},
-    refPoint_{configDict.lookup("referencePoint")},
-    unitNormal_{configDict.lookup("normalVector")}
+    refPoint_{configDict.get<point>("referencePoint")},
+    unitNormal_{configDict.get<vector>("normalVector")}
 {
+    name_ = configDict.lookupOrDefault<word>("name", analyticalPlane::typeName);
     unitNormal_ = normalize(unitNormal_);
     updateDistanceToOrigin();
 }
 
-analyticalPlane::analyticalPlane(const point& refPoint, const vector& normal)
+analyticalPlane::analyticalPlane(
+    const point& refPoint,
+    const vector& normal,
+    const word name
+)
 :
     analyticalSurface{},
     refPoint_{refPoint},
-    unitNormal_{normal}
+    unitNormal_{normal},
+    name_{name}
 {
     unitNormal_ = normalize(unitNormal_);
     updateDistanceToOrigin();
@@ -125,7 +131,7 @@ point analyticalPlane::normalProjectionToSurface(point& trialPoint) const
     return (trialPoint - ((trialPoint - refPoint_) & (unitNormal_*unitNormal_)));
 }
 
-vector analyticalPlane::normalToPoint(const point& trialPoint) const
+vector analyticalPlane::normalToPoint(const point&) const
 {
     return unitNormal_;
 }

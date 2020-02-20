@@ -1,0 +1,34 @@
+#! /usr/bin/bash
+
+# README
+# When a lot of large libraries are used with HPCToolkit that stay the same, time
+# can be saved by creating structures with `hpcstruct` for these libraries. For
+# example the large OpenFOAM libraries that are not changed but are linked with
+# the executable. This is what this script does, it creates structs for openfoam
+# system libraries that are re-used by LENT applications.
+
+echo "This script should only be executed once each time OpenFOAM is (re-)compiled."
+
+HPCRUN=$(which hpcrun)
+HPCRUN=${HPCRUN%%/bin*}
+HPCTOOLKIT_LIB=$HPCRUN/lib/hpctoolkit
+
+HPCSTRUCT_OUTPUT=$WM_PROJECT_DIR/build
+
+function make_hpcstruct {
+
+    LIBNAME=$1
+    LIBDIR=$2
+
+    hpcstruct -o $HPCSTRUCT_OUTPUT/$LIBNAME.hpcstruct $LIBDIR/$LIBNAME
+
+}
+
+hpcstruct -o $HPCSTRUCT_OUTPUT/libhpcrun.so.hpcstruct $HPCTOOLKIT_LIB/libhpcrun.so.0.0.0
+hpcstruct -o $HPCSTRUCT_OUTPUT/libmonitor.so.0.0.0.hpcstruct $HPCTOOLKIT_LIB/ext-libs/libmonitor.so.0.0.0
+
+make_hpcstruct libmeshTools.so $FOAM_LIBBIN
+make_hpcstruct libfiniteVolume.so $FOAM_LIBBIN
+make_hpcstruct libsampling.so $FOAM_LIBBIN
+make_hpcstruct libOpenFOAM.so  $FOAM_LIBBIN
+

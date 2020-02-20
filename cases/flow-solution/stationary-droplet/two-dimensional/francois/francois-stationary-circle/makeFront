@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+
+cd front 
+gmsh -2 cylinder.geo -o front.stl 
+admesh --reverse-all front.stl --write-ascii-stl=output.stl
+cp output.stl front.stl 
+rm output.stl 
+cd ..

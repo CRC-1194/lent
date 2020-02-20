@@ -1,0 +1,95 @@
+// This is a setup which should result in a ellipsoidal bubble shape during
+// its rise according to the Clift-Grace-Weber diagram (fig. 2.5, p. 27)
+//
+// The following dimensionless numbers are assumed:
+//  - Eo = 10
+//  - M = 1.0e-2
+//  - Re = 10
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    // Properties of air at 20 degree Celcius
+    rho_droplet
+    (
+        1.284
+    );
+
+    nu_droplet
+    (
+        2.17e-3
+    );
+
+    // Properties of water at 20 degree Celcius
+    rho_ambient
+    (
+        998
+    );
+
+    nu_ambient
+    (
+        2.17e-4
+    );
+
+    surface_tension_coefficient
+    (
+        6.0e-3
+    );
+
+    
+    // Gravity constant
+    gravity
+    (
+        -9.81
+    );
+
+
+    // Parameters from system/blockMeshDict
+    resolution 
+    (
+        64 96 128
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        3.5
+    );
+
+    //delta_t
+    //(
+    //    1.0e-5
+    //);
+
+
+    // Domain and interface geometry
+    x_centre
+    (
+        3.12500034e-3
+    );
+
+    y_centre
+    (
+        3.12499987e-3
+    );
+
+    z_centre
+    (
+        3.00018e-3
+    );
+
+    radius
+    (
+        1.25e-3 
+    );
+
+    // Only required for poly mesh setup
+    surface_file
+    (
+        "polyMeshFiles/boundary_R5e-3_H20e-3.stl"
+    );
+}

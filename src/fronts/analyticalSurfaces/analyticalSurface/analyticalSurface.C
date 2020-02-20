@@ -69,7 +69,7 @@ namespace Foam {
 namespace FrontTracking {
 
     defineTypeNameAndDebug(analyticalSurface, 0);
-    defineRunTimeSelectionTable(analyticalSurface, Dictionary);
+    defineRunTimeSelectionTable(analyticalSurface, Dictionary)
     
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
@@ -79,14 +79,14 @@ OFstream analyticalSurface::outputStream(const word& fileName) const
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-analyticalSurface::analyticalSurface(const dictionary& configDict)
+analyticalSurface::analyticalSurface(const dictionary&)
 {}
 
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 tmp<analyticalSurface> analyticalSurface::New(const dictionary& configDict)
 {
-    const word name = configDict.lookup("type");
+    const word name = configDict.get<word>("type");
 
     DictionaryConstructorTable::iterator cstrIter =
         DictionaryConstructorTablePtr_->find(name);
@@ -140,7 +140,7 @@ void analyticalSurface::setDistance(pointScalarField& signedDistance) const
     // vertices of the fvMesh including boundary points? (TT)
 }
 
-void analyticalSurface::moveFrontToSurface(triSurfaceFront& front) const
+void analyticalSurface::moveFrontToSurface(triSurface& front) const
 {
     auto& points = const_cast<pointField&>(front.points());
 
@@ -150,6 +150,36 @@ void analyticalSurface::moveFrontToSurface(triSurfaceFront& front) const
     }
 
     front.clearGeom();
+}
+
+void analyticalSurface::makeNormalOrientationConsistent(triSurface& front, const bool outwardOrientation) const
+{
+    // Enforce recomputation of front normals to ensure they are up-to-date
+    // with the front vertex positions (TT)
+    front.clearGeom();
+
+    scalar orientation = 1.0;
+
+    if (!outwardOrientation)
+    {
+        orientation = -1.0;
+    }
+
+    List<labelledTri>& triangles = static_cast<List<labelledTri>& > (front);
+    auto& triangleNormals = const_cast<pointField&>(front.faceNormals());
+    const auto& faceCentres = front.Cf();
+
+    forAll(triangles, I)
+    {
+        auto normal = orientation*normalToPoint(faceCentres[I]);
+        if ((normal & triangleNormals[I]) < 0.0)
+        {
+            triangles[I].flip();
+        }
+    }
+
+    // Delete all deman driven data to ensure correctness and consistency (TT)
+    front.clearOut();
 }
 
 

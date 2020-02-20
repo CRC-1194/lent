@@ -55,7 +55,7 @@ tensorType noiseGenerator::noise(const scalar& maxMagnitude) const
 {
     tensorType result = pTraits<tensorType>::zero;
 
-    forAll(result, I)
+    for (direction I = 0; I != pTraits<tensorType>::nComponents; ++I)
     {
         result[I] = scalarNoise(maxMagnitude);
     }
@@ -73,7 +73,7 @@ tensorType noiseGenerator::noise(const tensorType& magnitudes) const
 {
     tensorType result = pTraits<tensorType>::zero;
 
-    forAll(result, I)
+    for (direction I = 0; I != pTraits<tensorType>::nComponents; ++I)
     {
         result[I] = scalarNoise(magnitudes[I]);
     }

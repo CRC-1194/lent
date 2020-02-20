@@ -36,7 +36,7 @@ SourceFiles
 #ifndef lentCurvatureTest_H
 #define lentCurvatureTest_H
 
-#include "frontExactSurfaceCurvatureModel.H"
+#include "analyticalSurfaceCurvatureModel.H"
 #include "lentSubalgorithmTest.H"
 #include "noiseGenerator.H"
 
@@ -56,11 +56,13 @@ class lentCurvatureTest
 {
     // Private data
     tmp<volScalarField> filterFieldTmp_;
+    tmp<surfaceScalarField> faceFilterFieldTmp_;
     tmp<volScalarField> relativeDeltaFieldTmp_;
+    tmp<surfaceScalarField> relativeFaceDeltaFieldTmp_;
 
     noiseGenerator noiseGen_;
-    tmp<frontExactSurfaceCurvatureModel> exactCurvatureModelTmp_;
-    tmp<frontCurvatureModel> numericalCurvatureModelTmp_;
+    tmp<analyticalSurfaceCurvatureModel> exactCurvatureModelTmp_;
+    tmp<curvatureModel> numericalCurvatureModelTmp_;
 
     Switch correctFront_;
     Switch useFrontSignedDistance_;

@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     triSurfaceFront front(
         IOobject(
             "front",
-            "front",
+            "constant",
             runTime,
             IOobject::MUST_READ,
             IOobject::AUTO_WRITE
@@ -60,8 +60,7 @@ int main(int argc, char *argv[])
 
     lentVertexNormalCalculatorTest vertexNormalCalculatorTest{mesh, front};
 
-    vertexNormalCalculatorTest.runAllTests();
-    vertexNormalCalculatorTest.writeResults("normalCalculatorResults.csv");
+    vertexNormalCalculatorTest.runAllTests("normalCalculatorResults.csv");
 
     Info<< "\nEnd\n" << endl;
     return 0;

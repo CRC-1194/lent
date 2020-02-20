@@ -1,0 +1,105 @@
+// This setup is intended to study the influence of the density ratio only.
+// Consequently, viscosity and surface tension are set to zero.
+//
+// Values in this parameter file are adapted from
+//
+//      Popinet, Stéphane.
+//      "An accurate adaptive solver for surface-tension-driven interfacial flows."
+//      Journal of Computational Physics 228.16 (2009): 5838-5866.      
+//
+//      Note: Abadie et al. used the same setup to perform a comprehensible
+//      comparison between different VoF and Level Set approaches in
+//
+//      Abadie, Thomas, Joelle Aubin, and Dominique Legendre.
+//      "On the combined effects of surface tension force calculation and interface advection on spurious currents within Volume of Fluid and Level Set frameworks."
+//      Journal of Computational Physics 297 (2015): 611-636.
+values{
+
+
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        1 1e02 1e03 1e04 
+    );
+
+    nu_droplet ( 0.0 );
+
+    rho_ambient ( 1.0 );
+
+    nu_ambient ( 0.0 );
+
+    surface_tension_coefficient ( 0.0 );
+
+    z_velocity ( 1.0 );
+
+    
+    // Parameters from system/blockMeshDict
+    resolution 
+    (   
+        16 32 64
+    ); 
+
+
+    // Parameters from system/controlDict
+    // Original end time from paper is 0.4s. However, to ensure this time is actually
+    // reached, use a slightly larger end time. Corresponds to a translation
+    // of one droplet diameter
+    end_time (0.41);
+    delta_t (0.001);
+    write_interval (0.01);
+
+    // Domain and interface geometry
+    x_centre
+    (
+        0.5
+    );
+
+    y_centre
+    (
+        0.5
+    );
+
+    z_centre
+    (
+        0.4
+    );
+
+    radius
+    (
+        0.2  
+    );
+
+    // Only required for cfMesh setup
+    surface_file
+    (
+        boundary_R0p5_H2_C0p50p5.stl
+    );
+
+    n_alpha_smoothing
+    (
+        0 
+    );
+
+    temporal_integration
+    (
+        Euler
+    );
+
+    cell_to_vertex
+    (
+        cellPoint
+    );
+
+    curvature_model
+    (
+        compactDivGrad
+    );
+
+    front_to_mesh_transfer
+    (
+        triangleInCell
+    );
+}

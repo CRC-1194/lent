@@ -1,0 +1,46 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      transportProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+phases (water air);
+
+// Setting the properties as variables here first allows to set the properties
+// of the top fluid to those of the bottom/bubble phase by setting
+// to $rho_bottom/$nu_bottom(TT)
+rho_bottom @!rho_bottom!@;
+nu_bottom  @!nu_bottom!@;
+
+rho_top @!rho_top!@;
+nu_top  @!nu_top!@;
+
+air
+{
+    transportModel  Newtonian;
+    nu              nu [ 0 2 -1 0 0 0 0 ] $nu_bottom;
+    rho             rho [ 1 -3 0 0 0 0 0 ] $rho_bottom;
+}
+
+water
+{
+    transportModel  Newtonian;
+    nu              nu [ 0 2 -1 0 0 0 0 ] $nu_top;
+    rho             rho [ 1 -3 0 0 0 0 0 ] $rho_top;
+}
+
+sigma           sigma [ 1 0 -2 0 0 0 0 ] @!surface_tension_coefficient!@;
+
+
+// ************************************************************************* //

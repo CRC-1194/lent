@@ -1,0 +1,110 @@
+// Parameters in this study are adapted from the 2D setup given in
+//
+//      Shin, Seungwon, and Damir Juric.
+//      "Modeling three-dimensional multiphase flow using a level contour reconstruction method for front tracking without connectivity."
+//      Journal of Computational Physics 180.2 (2002): 427-470.
+//      section 4.1
+
+values
+{
+    solver (lentFoam);
+    
+
+    // Parameters from constant/transportProperties
+    rho_droplet
+    (
+        1.0
+    );
+
+    nu_droplet
+    (
+        0.1
+    );
+
+    rho_ambient
+    (
+        0.01
+    );
+
+    nu_ambient
+    (
+        1.0e-3
+    );
+
+    // Not specified in paper
+    surface_tension_coefficient
+    (
+        1.0
+    );
+
+    
+    // Parameters from system/blockMeshDict
+    // Only 25 is taken from paper
+    resolution 
+    (
+        25 50 100 200
+    ); 
+
+
+    // Parameters from system/controlDict
+    end_time
+    (
+        5 // Corresponds to approximately two oscillation periods.
+          // Analytic period T for this setup is 
+          // T = 2*pi/sqrt(24/3.02) =approx= 2.2288 seconds
+    );
+
+    // delta_t
+    //      This parameter is not given by any of the publications mentioned above.
+    //      Thus, the time step size is computed as a dependent parameter by the
+    //      aliasing criterion of Denner & van Wachem 2015
+
+
+    // Domain and interface geometry
+    domain_length
+    (
+        4.0
+    );
+
+    x_centre
+    (
+        2.00001
+    );
+
+    y_centre
+    (
+        1.99999
+    );
+
+    z_centre
+    (
+        2.0000341
+    );
+
+    x_semi_axis
+    (
+        1.025
+    );
+
+    y_semi_axis
+    (
+        0.9875
+    );
+
+    z_semi_axis
+    (
+        0.9875
+    );
+
+    // Only required for poly mesh setup
+    surface_file
+    (
+        boundary_R2p2_C222.stl
+    );
+
+    // Hexrefined meshes
+    n_base
+    (
+        25
+    );
+}

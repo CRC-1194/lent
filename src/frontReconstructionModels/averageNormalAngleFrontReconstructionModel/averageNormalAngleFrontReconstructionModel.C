@@ -76,7 +76,7 @@ namespace FrontTracking {
 averageNormalAngleFrontReconstructionModel::averageNormalAngleFrontReconstructionModel(const dictionary& configDict)
 :
     frontReconstructionModel(configDict),
-    maxAngle_(readScalar(configDict.lookup("value")) * M_PI / 180.0),
+    maxAngle_{configDict.get<scalar>("value") * M_PI / 180.0},
     minAngleCos_(Foam::cos(maxAngle_)),
     previouslyReconstructed_(false)
 {}

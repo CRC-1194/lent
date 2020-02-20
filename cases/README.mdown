@@ -1,0 +1,126 @@
+## LEvel-set / froNT tracking (LENT) validation cases 
+
+This repository contains the validation cases for the LENT method involving
+
+* sub-algorithm validation
+    * curvature approximation
+    * front-smoothing
+    * vertex-normal approximation
+    * more to be added in the future
+
+* algorithm validation 
+    * front reconstruction 
+    * front advection 
+
+* flow solution algorithm validation 
+    * stationary droplet 
+    * translating droplet
+    * oscillating 3D droplet
+    * rising bubble
+
+## Sub-algorithm validation
+
+The LENT algorithm involves several sub-algorithms to perform a specific task, e.g. the approximation of the interface curvature. Following the strategy pattern, for many of
+these sub-algorithms there are several options to choose from. For each of these algorithm groups, a test case is defined to evaluate there accuracy (usually in terms of 
+L1, L2 and Linf norm) and to check whether they violate hard, binary conditions (e.g. the boundedness requirement for a phase-indicator model).
+
+## Algorithm validation 
+
+The LENT algorithm consists of the iso-surface front reconstruction and the advection of the front. Iso-surface reconstruction deals automatically with the topological changes of the interface. Front advection is performed in a Lagrangian way, by advecting passively the vertices of the front mesh with either a prescribed velocity, or with the fluid velocity.
+
+###  Front reconstruction 
+
+Front reconstruction consists of a single iso-surface reconstruction and a subsequent signed distance calculation from the new front.
+
+The error happens when the interpolation of the signed distance is being used to reconstruct the interface. On low mesh resolution, this changes the marker field, and it is possible to compute the L1/L2 errors. 
+
+###  Front advection  
+
+Front advection tests advect the interface with a prescribed explicit velocity function that ensures divergence-free nature of the velocity field. The actual front velocity field is then interpolated from the cell centers to the front vertices.  
+
+The advection test cases count on the fact that the interface is displaced and then advected back to the original shape. This makes error calculation straightforward - it can be based on the marker field / distance field. 
+
+Used test cases:
+
+* Rotation test case
+    
+    * The spherical interface or a 3D Zalesak disc is rotated and the L1/L2 error of the marker field is evaluated  
+
+* Enright deformation test case
+    
+    * The interface is severely deformed, topological changes occur as well. 
+
+
+    Enright, Douglas, et al. "A hybrid particle level set method for improved interface capturing." Journal of Computational Physics 183.1 (2002): 83-116.  
+
+    Shin, Seungwon, Ikroh Yoon, and Damir Juric. "The local front reconstruction method for direct simulation of two-and three-dimensional multiphase flows." Journal of Computational Physics 230.17 (2011): 6605-6646.
+
+## Flow solution validation
+Further information on each flow solution test case can be found in the sub-directories.
+
+### Stationary droplet test case
+
+The goals of the stationary droplet test case is to show that the algorithm is able to compute the Laplace pressure for a stationary droplet. 
+
+Additionally, the maximal velocity is evaluated to show how large the parasitic velocities are and that the solution has converged. 
+
+    Brackbill, J. U., Douglas B. Kothe, and C1 Zemach. "A continuum method for modeling surface tension." Journal of computational physics 100.2 (1992): 335-354.
+
+    Francois, Marianne M., et al. "A balanced-force algorithm for continuous and sharp interfacial surface tension models within a volume tracking framework." Journal of Computational Physics 213.1 (2006): 141-173.
+
+    Popinet, Stéphane. "An accurate adaptive solver for surface-tension-driven interfacial flows." Journal of Computational Physics 228.16 (2009): 5838-5866.
+
+### Translating droplet test case
+
+Building on the stationary droplet and its Young-Laplace solution, the translating droplet moves a spherical droplet with a constant, uniform background velocity.
+Thus, the accuracy of the interface advection plays an important role in this test case. The error metrics are the same as for the stationary droplet.
+
+    Popinet, Stéphane. "An accurate adaptive solver for surface-tension-driven interfacial flows." Journal of Computational Physics 228.16 (2009): 5838-5866.
+
+    Abadie, Thomas, Joelle Aubin, and Dominique Legendre. "On the combined effects of surface tension force calculation and interface advection on spurious currents within Volume of Fluid and Level Set frameworks." Journal of Computational Physics 297 (2015): 611-636.
+
+### Oscillating droplet test case
+
+This test case allows to qualitatively evaluate the physical behaviour of a two-phase method with regard to energy conservation (inviscid case) or energy dissipation
+(viscid case). Furthermore, due to the deformation of the droplet (compared to the stationary and translating droplet) mass conservation accuracy can also be tested.
+Finally, for small deviations from a spherical interface, there exist analytical solutions for the oscillation frequency and the decay of the amplitude. The numerical
+results can be compared to these reference solutions.
+
+    Shin, Seungwon, and Damir Juric. "Modeling three-dimensional multiphase flow using a level contour reconstruction method for front tracking without connectivity." Journal of Computational Physics 180.2 (2002): 427-470.
+
+    Lamb, Horace. Hydrodynamics. Cambridge university press, 1932.
+
+    Fyfe, David E., Elaine S. Oran, and M. J. Fritts. "Surface tension and viscosity with Lagrangian hydrodynamics on a triangular mesh." Journal of Computational Physics 76.2 (1988): 349-384.
+
+### Rising bubble test case
+
+
+TODO
+
+## Structure of a test case family
+These are vomit notes so far, change!
+Each test case family (e.g. the stationary droplet 3D) consists of the following folders and files:
+* __0.org__: contains the initial and boundary conditions the fields _alpha.water_, _pointSignedDistance_,
+    *p_rgh*, _signedDistance_ and _U_. The number of boundary patches and their names have to be identical
+    for each meshing approach (blockMesh, pMesh and cartesianMesh of the cfMesh module).
+* __constant__: contains ...
+* __front__:
+* __polyMeshFiles__: contains different surface meshes for the cfMesh based meshing tools. The files are saved
+    in the _.fms_ format which holds all required information for the meshing process, e.g. edges which should be preserved.
+    Such a file can be generated from an _.stl_ file using `surfaceFeatureEdges myMesh.stl myMesh.fms`.
+    Since _.fms_ files cannot be visualized with paraview, at least some basic geometric properties should be saved as
+    comments in a fms file. fms files are text files and use the C++ syntax for comments. For example, the surface mesh of a
+    sphere should contain the sphere centre and its radius as informations.
+* __system__: lentSolution, controlDict, blockMeshDict, meshDict (cfMesh). The meshDict requires an entry _surfaceFile_ specifying
+    a surface mesh for the meshing process. Use a relative path to the copied template folder, e.g.
+    "../template_copy_poly/polyMeshFiles/@!surface_file!@" with the file name as a pyFoam place holder token. With this relative path,
+    no additional files need to be copied to the variant folders setup by pyFoam. Thus, meshing can be directly performed
+    using `blockMesh`, `cartesianMesh` or `pMesh`, depending on the meshing approach chosen.
+
+## TODO test cases:
+* unify boundary condition specification using the stationary droplet 3D blockMeshDict as an example.
+* use a meshDict.cartesian and a meshDict.poly file in the original template folder. Depending on the meshing strategy chosen, the corresponding file
+    is copied to the template folder copy as meshDict. This allows to define different parameters, e.g. refinement zones for poly and cartesian meshes.
+* convert the polyMesh boundaries to fms files. Add boundary files for cartesianMesh if required.
+* paper specific _derivedParameter.py_ files?
+* Allrun.slurm!

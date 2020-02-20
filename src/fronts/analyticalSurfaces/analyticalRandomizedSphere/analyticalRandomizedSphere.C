@@ -72,8 +72,8 @@ namespace FrontTracking {
 analyticalRandomizedSphere::analyticalRandomizedSphere(const dictionary& configDict)
 :
     analyticalSphere{configDict},
-    centrePerturbation_{configDict.lookup("centrePerturbation")},
-    radiusPerturbation_{readScalar(configDict.lookup("radiusPerturbation"))}
+    centrePerturbation_{configDict.get<vector>("centrePerturbation")},
+    radiusPerturbation_{configDict.get<scalar>("radiusPerturbation")}
 {
     originalCentre_ = centre();
     originalRadius_ = radius();

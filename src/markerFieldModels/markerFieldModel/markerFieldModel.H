@@ -98,7 +98,7 @@ public:
             const dictionary& configDict
         ),
         (configDict)
-    );
+    )
 
     // Constructors
     explicit markerFieldModel(const dictionary& configDict); 

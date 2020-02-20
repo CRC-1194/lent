@@ -63,8 +63,6 @@ class lentSubalgorithmTest
 
 private:
     // Aliases
-    enum class fileFormat {csv, hdf5, fallBack};
-
     template<class Type>
     using metricDataMap = std::unordered_map<std::string, std::vector<Type>>;
 
@@ -84,11 +82,11 @@ private:
     metricDataMap<vector> vectorMetrics_;
 
     // Private Member Functions
-    fileFormat detectFileFormat(const word& fileName) const;
     std::string assembleFilePath() const;
     template<typename Type>
     std::string metricHeader(const metricDataMap<Type>&) const;
     std::string printFoamVector(const vector& v) const;
+    void writeMetrics(const word& fileName, const unsigned long runNumber) const;
 
     void setNextRun() const;
     void writeFields() const;
@@ -170,6 +168,7 @@ protected:
     }
 
     void computeExactSignedDistances() const;
+    void computeExactSignedDistancesNarrowBand() const;
     void computeFrontSignedDistances();
     void setupFrontFromSurface(const bool correct);
 
@@ -191,12 +190,7 @@ public:
 
 
     // Member Functions
-    void runAllTests();
-    void writeResults(const word& fileName) const;
-    void writeResultsHDF5(const word& fileName) const;
-    void writeResultsCSV(const word& fileName) const;
-
-
+    void runAllTests(const word& fileName);
 };
 
 

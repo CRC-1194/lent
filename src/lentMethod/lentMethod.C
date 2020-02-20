@@ -132,7 +132,10 @@ lentMethod::lentMethod(
     reconstructionHistory_(
         mesh.time()
     )
-{}
+{
+    useReconstruction_ =
+        lentControlDict_.subDict("frontReconstructionModel").lookupOrDefault("useReconstruction", true);
+}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
@@ -189,33 +192,30 @@ void lentMethod::reconstructFront(
 {
     if (frontReconstructionModelTmp_->reconstructionRequired(front, signedDistance))
     {
-        // TODO: think of more elegant solution.. (TT)
-        if (frontPreviouslySmoothed_ || signedDistance.time().timeIndex() <= 1)
-        {
-            Info << "Reconstructing front..." << endl;
+        Info << "Reconstructing front..." << endl;
 
+
+        if (useReconstruction_ || signedDistance.time().timeIndex() <= 1)
+        {
             frontReconstructorTmp_->reconstructFront(
                 front,
                 signedDistance,
                 pointSignedDistance
             );
-
-            frontIsReconstructed_ = true;
-
-            reconstructionHistory_.frontReconstructed();
-
-            Info << "Done." << endl;
         }
+
+        if (front.surfaceType() != triSurface::MANIFOLD)
+        {
+            Info << "Warning: front is not a Manifold anymore." << endl;
+        }
+
+        reconstructionHistory_.frontReconstructed();
 
         frontSmoother_.smoothFront(front, signedDistance.mesh());
 
-        frontPreviouslySmoothed_ = true;
+        frontIsReconstructed_ = true;
 
-        reconstructionHistory_.frontSmoothed();
-    }
-    else
-    {
-        frontPreviouslySmoothed_ = false;
+        Info << "Done." << endl;
     }
 }
 
@@ -231,8 +231,6 @@ void lentMethod::calcFrontVelocity(
     frontVelocity.resize(front.nPoints());
     // More rigorous: in case the search fails, the point stops. TM.
     frontVelocity = dimensionedVector("zero", dimVelocity, vector(0,0,0)); 
-
-    auto oldVelocity(frontVelocity); 
 
     // FIXME: Make this an attribute of method and re-use. Enable selection of 
     // cell->point interpolation. TM.
@@ -256,18 +254,13 @@ void lentMethod::evolveFront(
 
     frontIsReconstructed_ = false;
 
-    // Clean up degenerate triangles.
-    //Info << "Cleaning up degeneracies..." << endl;  
-    //front.cleanup(false);
-    //Info << "Done." << endl;
-
     // Update front-mesh communication maps after front motion. 
     Info << "Updating communication maps..." << endl;  
     communicationMaps_.update(); 
     Info << "Done." << endl;
 }
 
-bool lentMethod::writeData(Ostream& os) const
+bool lentMethod::writeData(Ostream&) const
 {
     FatalErrorIn("lentMethod::writeData(Ostream& os)")
     << "lentMethod is not supposed to be written "
