@@ -14,67 +14,27 @@ Mathematics Department, Mathematical Modeling and Analysis Institute, TU Darmsta
 
 ### Prerequisites
 
-* OpenFOAM versions: 2.2.x  
-* Compilers: gcc-4.8.2 and gcc-4.9.0
-* `subversion` and `cmake` for compiling Google Test 
+* OpenFOAM versions: [OpenFOAM-plus v1912](https://openfoam.com/releases/openfoam-v1912/)
+* Compilers: Gcc 8 and above (tested with 9.2.1)
+* Build system: CMake 3.14 or higher
+* Git for fetching dependencies
 * gmsh or paraview for surface mesh generation
 * admesh for normal consistency 
 
+### Compilation and installation
 
-### Compiling Google Test
+LENT is using the [CMake](https://cmake.org) build system.
+Make sure that you have sourced OpenFOAM's `bashrc` so that the OpenFOAM environment variables are set properly.
+Then execute the following commands inside the `lent` directory:
+    
+    mkdir build && cd build
+    cmake -DCMAKE_INSTALL_PREFIX=./ -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=on ..
+    make && make install
 
-* Make sure that you have configured the OpenFOAM environment:
-
-    ls $WM_PROJECT_DIR/etc/bashrc
-
-should output the location of the `bashrc` OpenFOAM configuration file for your chosen version.  
-
-* Source the *bashrc* configuration script from within the `lent` directory:
-
-    . etc/bashrc
-
-*Note* - CXXFLAGS variable is taken over from OpenFOAM by this step, so if skipped, GTest will be compiled with different compiler flags than LENT which may lead to problems.
-
-* Prepare the Google Test third party directory 
-
-    mkdir $LENT_PROJECT/third-party
-
-* Get the Google Test sources 
-
-    cd $LENT_PROJECT/third-party
-
-    svn checkout http://googletest.googlecode.com/svn/trunk/ gtest
-
-* Build Google Test with cmake 
-
-    cd gtest
-
-    mkdir build
-
-    cd build 
-
-    cmake -DBUILD_SHARED_LIBS=ON -Dgtest_build_samples=ON -G"Unix Makefiles" ..
-
-    make
-
-
-*Note* - if everything above was successful, LENT library, solvers and testing applications can be compiled. If not, you should still be able to compile the library and the solvers, and the testing applications will report errors during compilation.
-
-### Compiling the LENT library and solvers 
-
-*Note* : the following installation instructions do not compile the testing applications: if Google Test has not been built alongside LENT as described above, testing applications will fail to compile. 
-
-* Source the *bashrc* configuration script from within the top directory:
-
-    . etc/bashrc
-
-* Execute Allwmake from within the top directory:
-
-    . ./Allwmake
-
-For permanent configuration of the environmental variables, source the *bashrc* script from your local *~/.bashrc*: 
-
-    source path/to/lent/etc/bashrc
+This will configure, compile and install the `lent` library
+and its applications to `$FOAM_USER_LIBBIN` and `$FOAM_USER_APPBIN`, respectively.
+Valid build types are `Release`, `Debug` and `RelWithDebInfo`. The flag
+`-DCMAKE_EXPORT_COMPILE_COMMANDS=on` is optional.
 
 ### Installing PyFoam 
 
@@ -107,6 +67,12 @@ Other testing and utility applications are available in the `applications` folde
 
 * Requires a file named `front.stl` in the folder `front` of the LENT simulation case. 
 * It uses the surface mesh stored in the `front.stl` file to pre-process the signed and search distance fields. 
+
+#### `lentCreateFront`
+
+* Requires a dictionary named `frontSurface` in `system/lentSolution` specifying the surface.
+* It uses the reconstruction procedure to generate a triangular surface mesh for the given surface
+    and saves it as `constant/front.stl`.
 
 
 ### Running cases

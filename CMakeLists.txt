@@ -34,11 +34,21 @@ endif()
 find_package(OpenMP REQUIRED)
 find_package(Eigen3 REQUIRED)
 
+# Google Test
+FetchContent_Declare(googletest
+    GIT_REPOSITORY          https://github.com/google/googletest.git
+    GIT_TAG                 release-1.10.0
+    GIT_SHALLOW             YES
+    GIT_PROGRESS            YES
+    USES_TERMINAL_DOWNLOAD  YES
+    USES_TERMINAL_UPDATE    YES
+)
+FetchContent_MakeAvailable(googletest)
 
 # Two-Phase Validation
 FetchContent_Declare(two-phase-validation
     GIT_REPOSITORY          git@git.rwth-aachen.de:leia/two-phase-validation.git
-    GIT_TAG                 feature/cmake-build                 
+    GIT_TAG                 master
     GIT_SHALLOW             YES
     GIT_PROGRESS            YES
     USES_TERMINAL_DOWNLOAD  YES
@@ -532,6 +542,32 @@ target_link_libraries("lentCreateFront"
 
 # Tests
 # TODO: list of test applications is still incomplete
+add_executable("lentTestAdvection"
+    applications/testing/lentTestAdvection/lentTestAdvection.C
+)
+target_include_directories("lentTestAdvection" SYSTEM PRIVATE
+    applications/solvers
+    ${OF_SOLVER_INCLUDES}
+)
+target_link_libraries("lentTestAdvection"
+    "lent"
+    ${OF_LENTDEPS}
+    ${OF_SOLVER_COMMON}
+    gtest 
+    twoPhaseValidation
+)
+
+add_executable("lentTestCurvature"
+    applications/testing/lentTestCurvature/lentTestCurvature.C
+)
+target_include_directories("lentTestCurvature" SYSTEM PRIVATE
+    applications/testing
+)
+target_link_libraries("lentTestCurvature"
+    "lent"
+    ${OF_LENTDEPS}
+)
+
 add_executable("lentTestRbfReconstruction"
     applications/testing/lentTestRbfReconstruction/lentTestRbfReconstruction.C
 )
@@ -540,18 +576,6 @@ target_include_directories("lentTestRbfReconstruction" SYSTEM PRIVATE
     ${of_src_path}/fileFormats/lnInclude
 )
 target_link_libraries("lentTestRbfReconstruction"
-    "lent"
-    ${OF_LENTDEPS}
-)
-
-add_executable("lentTestCurvature"
-    applications/testing/lentTestCurvature/lentTestCurvature.C
-)
-target_include_directories("lentTestCurvature" SYSTEM PRIVATE
-    applications/testing
-    ${of_src_path}/fileFormats/lnInclude
-)
-target_link_libraries("lentTestCurvature"
     "lent"
     ${OF_LENTDEPS}
 )
@@ -570,8 +594,9 @@ install(TARGETS
     "lentCreateFront"
 
     # Tests
-    "lentTestRbfReconstruction"
+    "lentTestAdvection"
     "lentTestCurvature"
+    "lentTestRbfReconstruction"
 
     RUNTIME
 )

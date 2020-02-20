@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
 
         lent.calcMarkerField(markerField);
         auto t2 = Clock::now();
-        double tTotal = (std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()) / 1000.0;  
+        auto tTotal = static_cast<double>((std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()) / 1000.0);  
 
 
         // Update viscosity. 
