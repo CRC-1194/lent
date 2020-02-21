@@ -49,3 +49,4 @@ Ply*
 *.database
 *00* 
 build/
+compile_commands.json
