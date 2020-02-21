@@ -32,6 +32,8 @@ endif()
 #   Dependencies
 #------------------------------------------------------------------------------
 find_package(OpenMP REQUIRED)
+set(CMAKE_PREFIX_PATH "$ENV{EIGEN3_ROOT}")
+message(STATUS "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
 find_package(Eigen3 REQUIRED)
 
 # Google Test
