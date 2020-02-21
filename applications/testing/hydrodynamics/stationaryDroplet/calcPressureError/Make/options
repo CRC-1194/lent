@@ -1,7 +1,0 @@
-EXE_INC = \
-    $(LENT_GCC_OPTIONS) \
-    -I$(LIB_SRC)/finiteVolume/lnInclude \
-    -I$(LIB_SRC)/meshTools/lnInclude
-
-EXE_LIBS = \
-    -lfiniteVolume
