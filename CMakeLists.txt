@@ -32,18 +32,8 @@ endif()
 #   Dependencies
 #------------------------------------------------------------------------------
 find_package(OpenMP REQUIRED)
+set(CMAKE_PREFIX_PATH "$ENV{EIGEN3_ROOT}")
 find_package(Eigen3 REQUIRED)
-
-# Google Test
-FetchContent_Declare(googletest
-    GIT_REPOSITORY          https://github.com/google/googletest.git
-    GIT_TAG                 release-1.10.0
-    GIT_SHALLOW             YES
-    GIT_PROGRESS            YES
-    USES_TERMINAL_DOWNLOAD  YES
-    USES_TERMINAL_UPDATE    YES
-)
-FetchContent_MakeAvailable(googletest)
 
 # Two-Phase Validation
 FetchContent_Declare(two-phase-validation
@@ -553,7 +543,6 @@ target_link_libraries("lentTestAdvection"
     "lent"
     ${OF_LENTDEPS}
     ${OF_SOLVER_COMMON}
-    gtest 
     twoPhaseValidation
 )
 
