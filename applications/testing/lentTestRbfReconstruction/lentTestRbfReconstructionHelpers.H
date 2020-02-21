@@ -54,7 +54,7 @@ void write_vtk_points(
     Foam::vtk::legacy::fileHeader(legacyFormat, fileName, Foam::vtk::fileTag::POLY_DATA);
 
     // Write point header
-    Foam::vtk::legacy::beginPoints(vtks, static_cast<Foam::label>(points.size()));
+    Foam::vtk::legacy::beginPoints(vtks, points.size());
 
     // Write point coordinates. 
     for(const auto& point : points) 

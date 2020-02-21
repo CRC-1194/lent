@@ -69,7 +69,7 @@ class dualKrigingInterpolation
     void removeDuplicates(std::vector<label>& listOfLabels) const;
     std::vector<label> cellNeighbourhood(const label& cellLabel, const fvMesh& mesh) const;
     void cacheCellCentres(const std::vector<label>& cellLabels, const fvMesh& mesh);
-    void adaptSystemSize(const unsigned int nPoints);
+    void adaptSystemSize(const label nPoints);
 
     void setupKrigingSystem();
     void setupRightHandSide(const std::vector<label>& cellLabels, const volVectorField& phi, const direction index);

@@ -85,11 +85,11 @@ errorMetrics::errorMetrics(const List<scalar>& errorSet)
 :
     errorSet_{}
 {
-    errorSet_.resize(static_cast<unsigned long>(errorSet.size()));
+    errorSet_.resize(errorSet.size());
 
     forAll(errorSet, I)
     {
-        errorSet_[static_cast<unsigned long>(I)] = errorSet[I];
+        errorSet_[I] = errorSet[I];
     }
 
     std::sort(errorSet_.begin(), errorSet_.end());

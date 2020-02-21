@@ -121,9 +121,9 @@ set(CMAKE_EXE_LINKER_FLAGS "-Xlinker --add-needed -Xlinker --no-as-needed")
 if(MSVC)
     add_compile_options(/W4 /WX)
 else(MSVC)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb3 -O0 -Wall -Wextra -Wconversion -Wno-sign-conversion -DDEBUG -pedantic -D_USE_MATH_DEFINES -DBOOST_MATH_INSTRUMENT")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Wextra -Wconversion -Wno-sign-conversion -pedantic -Wno-deprecated -D_USE_MATH_DEFINES")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -ggdb3 -O3 -Wall -Wextra -Wconversion -Wno-sign-conversion -pedantic -DDEBUG -D_USE_MATH_DEFINES")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb3 -O0 -Wall -Wextra -Wfloat-conversion -DDEBUG -pedantic -D_USE_MATH_DEFINES -DBOOST_MATH_INSTRUMENT")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Wextra -Wfloat-conversion -pedantic -Wno-deprecated -D_USE_MATH_DEFINES")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -ggdb3 -O3 -Wall -Wextra -Wfloat-conversion -pedantic -DDEBUG -D_USE_MATH_DEFINES")
 endif(MSVC)
 
 
@@ -145,7 +145,6 @@ add_library("lent" SHARED
     src/curvatureModels/frontBasedCurvatureModels/frontBasedCurvatureModel/frontBasedCurvatureModel.C
     src/curvatureModels/frontBasedCurvatureModels/frontTriangleCurvatureModel/frontTriangleCurvatureModel.C
     src/curvatureModels/frontBasedCurvatureModels/meyerCurvatureModel/meyerCurvatureModel.C
-    src/curvatureModels/frontToMeshTransferModels/explicitDiffusionTransferModel/explicitDiffusionTransferModel.C
     src/curvatureModels/frontToMeshTransferModels/frontToMeshTransferModel/frontToMeshTransferModel.C
     src/curvatureModels/frontToMeshTransferModels/nearestTriangleVicinityTransferModel/nearestTriangleVicinityTransferModel.C
     src/curvatureModels/frontToMeshTransferModels/triangleInCellTransferModel/triangleInCellTransferModel.C
@@ -165,7 +164,6 @@ add_library("lent" SHARED
 
     src/frontMotionSolvers/eulerFrontMotionSolver/eulerFrontMotionSolver.C
     src/frontMotionSolvers/frontMotionSolver/frontMotionSolver.C
-    #src/frontMotionSolvers/rkSecondFrontMotionSolver/rkSecondFrontMotionSolver.C
     src/frontMotionSolvers/taylorFrontMotionSolver/taylorFrontMotionSolver.C
 
     src/frontReconstructionModels/averageNormalAngleFrontReconstructionModel/averageNormalAngleFrontReconstructionModel.C
@@ -200,9 +198,6 @@ add_library("lent" SHARED
     src/fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
     src/fronts/analyticalSurfaces/surfaceSet/surfaceSet.C
 
-    #src/fronts/extendedIsoSurface/extendedIsoSurface.C
-    #src/fronts/extendedIsoSurface/extendedIsoSurfaceTemplates.C
-
     src/fronts/faceTriangulators/simpleTriangulator/simpleTriangulator.C
 
     src/fronts/frontConstructor/frontConstructor/frontConstructor.C
@@ -224,9 +219,6 @@ add_library("lent" SHARED
     src/frontVelocityCalculators/frontVelocityCalculator/frontVelocityCalculator.C
 
     src/geometrical/markerFieldModels/barycenterPlaneMarkerFieldModel/barycenterPlaneMarkerFieldModel.C
-
-    #src/isoSurfaces/taylorIsoSurface/taylorIsoSurface.C
-    #src/isoSurfaces/taylorIsoSurface/taylorIsoSurfaceTemplates.C
 
     src/lentCommunication/lentCommunication.C
 
@@ -277,7 +269,6 @@ target_include_directories("lent" PUBLIC
     src/curvatureModels/frontBasedCurvatureModels/frontBasedCurvatureModel
     src/curvatureModels/frontBasedCurvatureModels/frontTriangleCurvatureModel
     src/curvatureModels/frontBasedCurvatureModels/meyerCurvatureModel
-    src/curvatureModels/frontToMeshTransferModels/explicitDiffusionTransferModel
     src/curvatureModels/frontToMeshTransferModels/frontToMeshTransferModel
     src/curvatureModels/frontToMeshTransferModels/nearestTriangleVicinityTransferModel
     src/curvatureModels/frontToMeshTransferModels/triangleInCellTransferModel
@@ -299,7 +290,6 @@ target_include_directories("lent" PUBLIC
 
     src/frontMotionSolvers/eulerFrontMotionSolver
     src/frontMotionSolvers/frontMotionSolver
-    #src/frontMotionSolvers/rkSecondFrontMotionSolver
     src/frontMotionSolvers/taylorFrontMotionSolver
 
     src/frontReconstructionModels/averageNormalAngleFrontReconstructionModel
@@ -335,8 +325,6 @@ target_include_directories("lent" PUBLIC
     src/fronts/analyticalSurfaces/analyticalSurface
     src/fronts/analyticalSurfaces/surfaceSet
 
-    #src/fronts/extendedIsoSurface
-
     src/fronts/faceTriangulators/simpleTriangulator
 
     src/fronts/frontConstructor/frontConstructor
@@ -357,8 +345,6 @@ target_include_directories("lent" PUBLIC
     src/frontVelocityCalculators/frontVelocityCalculator
 
     src/geometrical/markerFieldModels/barycenterPlaneMarkerFieldModel
-
-    src/isoSurfaces/taylorIsoSurface
 
     src/lentCommunication
 

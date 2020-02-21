@@ -40,10 +40,10 @@ rbfCellsInterpolationEigen<Kernel>::rbfCellsInterpolationEigen
     const supportType
 )
     :
-        cellRbfStencils_(static_cast<unsigned long>(mesh.nCells())),
-        cellRbfPoints_(static_cast<unsigned long>(mesh.nCells())),
-        cellRbfValues_(static_cast<unsigned long>(mesh.nCells())),
-        cellRbfs_(static_cast<unsigned long>(mesh.nCells())) 
+        cellRbfStencils_(mesh.nCells()),
+        cellRbfPoints_(mesh.nCells()),
+        cellRbfValues_(mesh.nCells()),
+        cellRbfs_(mesh.nCells()) 
 {
     calcStencils(mesh, stencil); 
     factorize(); 

@@ -60,7 +60,6 @@ Description
 
 #include "foamIsoSurfaceFrontReconstructor.H"
 #include "addToRunTimeSelectionTable.H"
-#include "taylorIsoSurface.H" 
 #include "lentCommunication.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //

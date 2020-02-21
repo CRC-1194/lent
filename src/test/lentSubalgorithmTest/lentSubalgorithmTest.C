@@ -274,7 +274,7 @@ void lentSubalgorithmTest::runAllTests(const word& fileName)
             evaluateMetrics();
 
             writeFields();
-            writeMetrics(fileName, static_cast<unsigned int>(I*nPerturbedRuns_ + K));
+            writeMetrics(fileName, I*nPerturbedRuns_ + K);
         }
     }
 }

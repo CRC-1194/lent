@@ -277,7 +277,7 @@ labelList frontMeshSearch::pointCellStencil(
         }
     }
     // TODO: Improve efficiency, use OpenFOAM HashSet<label>. TM. 
-    result.resize(static_cast<label>(newNeighborCells.size()));
+    result.resize(newNeighborCells.size());
 
     std::copy(newNeighborCells.begin(), newNeighborCells.end(), result.begin()); 
 

@@ -102,7 +102,7 @@ void centroidIsoPointCalculator::calcEdgePoints
     // Resizing here in case of dynamic adaptive mesh refinement.
     // TODO: Reserve the capacity in the class constructor. TM.
     edgePoints_.resize(0);
-    edgeLabels_.resize(static_cast<unsigned int>(mesh.nEdges()));
+    edgeLabels_.resize(mesh.nEdges());
     std::fill(edgeLabels_.begin(), edgeLabels_.end(), -1);
 
     forAll(meshEdges, edgeI)
@@ -122,7 +122,7 @@ void centroidIsoPointCalculator::calcEdgePoints
 
             // Append the edge iso-point and mark the edge as intersected. 
             edgePoints_.push_back(meshPoints[e0]  + s * eVec);
-            edgeLabels_[static_cast<unsigned int>(edgeI)] = static_cast<label>(edgePoints_.size() - 1); 
+            edgeLabels_[edgeI] = edgePoints_.size() - 1; 
         }
     }
 }

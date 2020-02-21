@@ -85,7 +85,7 @@ template<typename MeshRbfs>
 void rbfIsoPointCalculator::rbfCorrectContourPoints(MeshRbfs const& meshRbfs)
 {
     for(decltype(contourPoints_.size()) pointI = 0; pointI < contourPoints_.size(); ++pointI)
-        rbfCorrectContourPoint(contourPoints_[pointI], static_cast<Foam::label>(pointI), meshRbfs);
+        rbfCorrectContourPoint(contourPoints_[pointI], pointI, meshRbfs);
 }
 
 template<typename MeshRbfs>
@@ -118,10 +118,10 @@ void rbfIsoPointCalculator::calcContourPoints
         auto contourPoint = vector(0,0,0);
         forAll(cellEdgeLabels, edgeI)  
         {
-            const auto edgeGl = static_cast<unsigned long>(cellEdgeLabels[edgeI]); 
+            const auto edgeGl = cellEdgeLabels[edgeI]; 
             if (edgeLabels_[edgeGl] > 0)
             {
-                contourPoint += edgePoints_[static_cast<unsigned long>(edgeLabels_[edgeGl])];  
+                contourPoint += edgePoints_[edgeLabels_[edgeGl]];  
                 ++nEdgePoints; 
             }
         }
