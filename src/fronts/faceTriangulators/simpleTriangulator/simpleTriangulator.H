@@ -100,7 +100,6 @@ class simpleTriangulator
 public:
 
     // Constructors
-    simpleTriangulator() = default;
     explicit simpleTriangulator(pointField& vertices, List<triFace>& triangles);
 
 

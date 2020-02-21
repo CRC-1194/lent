@@ -206,7 +206,7 @@ triSurfaceFront::triSurfaceFront(
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-bool triSurfaceFront::write() const
+bool triSurfaceFront::write(const bool) const
 {
     if (writeFormat_ == "vtk")
     {
@@ -239,7 +239,8 @@ bool triSurfaceFront::writeObject
 (
     IOstream::streamFormat,
     IOstream::versionNumber,
-    IOstream::compressionType
+    IOstream::compressionType,
+    const bool
 ) const
 {
     if (writeFormat_ == "vtk")

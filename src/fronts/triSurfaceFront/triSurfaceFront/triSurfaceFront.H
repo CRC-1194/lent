@@ -133,7 +133,7 @@ public:
     virtual ~triSurfaceFront() {};
 
     // Member Functions
-    bool write() const;
+    bool write(const bool valid = true) const override;
 
     label nFaces() const 
     {
@@ -146,10 +146,11 @@ public:
     (
         IOstream::streamFormat fmt,
         IOstream::versionNumber ver,
-        IOstream::compressionType cmp
-    ) const;
+        IOstream::compressionType cmp,
+        const bool valid = true
+    ) const override;
 
-    bool writeData(Foam::Ostream& os) const;
+    bool writeData(Foam::Ostream& os) const override;
 
     const std::vector<std::vector<label>>& twoRingNeighbours() const
     {

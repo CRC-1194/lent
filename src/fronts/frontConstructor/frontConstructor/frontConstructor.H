@@ -105,7 +105,6 @@ class frontConstructor
 public:
     
     // Constructors
-    frontConstructor() = default;
     explicit frontConstructor(const tmp<analyticalSurface>&, const fvMesh&);
 
 

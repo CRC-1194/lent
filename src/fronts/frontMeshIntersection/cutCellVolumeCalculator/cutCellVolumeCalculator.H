@@ -113,7 +113,6 @@ class cutCellVolumeCalculator
 public:
 
     // Constructors
-    cutCellVolumeCalculator() = default;
     cutCellVolumeCalculator(const fvMesh& mesh, const triSurfaceFront& front,
                             const word& cellDistFieldName,
                             const word& pointDistFieldName);
