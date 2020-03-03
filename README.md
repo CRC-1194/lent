@@ -34,7 +34,14 @@ Then execute the following commands inside the `lent` directory:
 This will configure, compile and install the `lent` library
 and its applications to `$FOAM_USER_LIBBIN` and `$FOAM_USER_APPBIN`, respectively.
 Valid build types are `Release`, `Debug` and `RelWithDebInfo`. The flag
-`-DCMAKE_EXPORT_COMPILE_COMMANDS=on` is optional.
+`-DCMAKE_EXPORT_COMPILE_COMMANDS=on` is optional.  
+Lent comes with some scripts, e.g. to setup and run parameter studies. To be able to use them, you need to add the
+`scripts` directory to your `PATH` variable by executing the following command in your shell:
+
+    echo 'export PATH=$HOME/OpenFOAM/openfoam/lent/scripts:$PATH' >> $HOME/.bashrc
+    . $HOME/.bashrc
+
+This command assumes that Lent is located in `~/OpenFOAM/openfoam`. If this is not the case, change the path accordingly.
 
 ### Installing PyFoam 
 
