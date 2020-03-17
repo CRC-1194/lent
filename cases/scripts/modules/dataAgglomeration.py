@@ -82,7 +82,9 @@ class data_collector:
 
     def extract_variation_number(self, directory):
         """Extract the PyFoam variation number from the directory name and return it as an integer."""
-        return int(self.variation_number_pattern.search(directory).group())
+        # Only consider the last folder of the given path
+        variation_folder = directory.split('/')[-1]
+        return int(self.variation_number_pattern.search(variation_folder).group())
 
     def has_valid_results(self, directory):
         """
