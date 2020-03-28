@@ -36,7 +36,7 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", plotDict = {}, ncol=2):
     fig, ax = plt.subplots()
     ax.set_xlabel(xColSymb)
     ax.set_ylabel(yColSymb)
-    ax.set_yscale('log')
+    ax.set_yscale('symlog')
     
     ax.set_title(title)
     variationI = 0 
