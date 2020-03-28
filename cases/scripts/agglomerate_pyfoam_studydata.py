@@ -15,10 +15,15 @@ def main():
                         default=r"Results\.csv$",
                         dest="pattern"
                         )
+    parser.add_argument("-d", "--example-directory",
+                        help="Name a directory belonging to the parameter study. This serves as a pattern to determine the other directories of the parameter study. If not given, the name of the parameter file is used to determine the study directories.",
+                        default=r"",
+                        dest="example_directory"
+                        )
 
     args = parser.parse_args()
 
-    agglomerator = da.data_agglomerator(args.parameter_file_name, "", args.pattern)
+    agglomerator = da.data_agglomerator(args.parameter_file_name, args.example_directory, args.pattern)
     agglomerator.show_failed_variations()
     agglomerator.write_agglomerated_study_data()
 

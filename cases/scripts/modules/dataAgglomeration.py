@@ -35,7 +35,7 @@ class data_collector:
                                     Required for constructing the Pandas Multiindex.
     """
 
-    def __init__(self, directory_pattern, file_pattern):
+    def __init__(self, directory_pattern, file_pattern, subdirectory=""):
         """
         Instantiate a data_collector with a directory- and file pattern.
 
@@ -44,7 +44,12 @@ class data_collector:
                 matching this pattern are considered for data collection.
             - file_pattern: string containing a regular expression. All files
                 matching this pattern are considered for data collection.
+
+            Keyword arguments:
+            - subdirectory: name of the subdirectory where the studydirectories are located. (default: current directory)
         """
+        self.subdirectory = subdirectory
+
         # Regular expressions patterns for finding directories
         # associated with a study and the files containing the data
         self.directory_pattern = re.compile(directory_pattern)
@@ -67,12 +72,12 @@ class data_collector:
     def study_directories(self):
         """Find all directories in the current folder matching the pattern and return their names as a list."""
         study_folders = []
-        current_directory = os.getcwd()
+        study_directory = os.path.join(os.getcwd(), self.subdirectory)
 
-        for file in os.listdir(current_directory):
+        for file in os.listdir(study_directory):
             belongs_to_study = self.directory_pattern.match(file)
-            if belongs_to_study and os.path.isdir(file):
-                study_folders.append(os.path.join(current_directory, file))
+            if belongs_to_study and os.path.isdir(os.path.join(self.subdirectory,file)):
+                study_folders.append(os.path.join(study_directory, file))
 
         # Ensure that the folders are sorted so the data can correctly
         # be matched with the multiindex later (TT)
@@ -334,13 +339,14 @@ class data_agglomerator:
         self.parameter_file_name = parameter_file_name
         self.multiindex_assembler = multiindex_assembler(parameter_file_name)
 
+        study_subdirectory, pattern = split_path_from_pattern(directory_pattern)
         if not directory_pattern:
             directory_pattern = parameter_file_name.replace('.', r"\.")
             directory_pattern = directory_pattern + r"_[0-9]{5}"
         else:
-            directory_pattern = regex_from_study_directory_name(directory_pattern)
+            directory_pattern = regex_from_study_directory_name(pattern)
 
-        self.data_collector = data_collector(directory_pattern, file_pattern) 
+        self.data_collector = data_collector(directory_pattern, file_pattern, subdirectory=study_subdirectory) 
         self.dataframe = pd.DataFrame()
         self.already_computed = False
 
@@ -421,9 +427,22 @@ class data_agglomerator:
             print(key, '\t', value)
 
 def regex_from_study_directory_name(directory_name):
+    """
+    Generate a regular expression for the directory names of a study
+    from a given example directory.
+    """
     number_part = re.compile(r"_[0-9]{5}_")
     match = number_part.search(directory_name)
     directory_name = directory_name.replace(match.group(), r"_[0-9]{5}_")
     directory_name = directory_name.replace(".", r"\.")
 
     return r"^" + directory_name + r"$"
+
+def split_path_from_pattern(directory_name):
+    """
+    Split the example directory name from the path to it.
+    """
+    if "/" not in directory_name:
+        return ("", directory_name)
+    else:
+        return directory_name.rsplit("/", 1)
