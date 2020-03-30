@@ -116,9 +116,14 @@
 
     incompressibleTwoPhaseMixture mixture(U, phi);
     volScalarField& markerField(mixture.alpha1());
+
     
+    // FIXME: Clean up: remove mixture and its trainwrecks. TM.
     const dimensionedScalar& rho1 = mixture.rho1();
+    const dimensionedScalar nu1 = mixture.nuModel1().viscosityProperties().get<dimensionedScalar>("nu");
+
     const dimensionedScalar& rho2 = mixture.rho2();
+    const dimensionedScalar nu2 = mixture.nuModel2().viscosityProperties().get<dimensionedScalar>("nu");
 
     // Need to store rho for ddt(rho, U)
     volScalarField rho
