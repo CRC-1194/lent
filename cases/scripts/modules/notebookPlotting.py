@@ -15,16 +15,12 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", plotDict = {}, ncol=2):
     """Plot the agglomerated multidimensional DataFrame using mathematical symbols mapped
     to column names with plotDict."""
 
-    # Set plotting style parameters
-    lStyles = list(lines.lineStyles.keys())
-    lStyles = set(lStyles)
-    lStyles.discard('None')
-    lStyles = list(lStyles)
+    # Set line and marker styles  
+    lStyles = list(lines.lineStyles.keys()) 
+    lStyles = [lStyle for lStyle in lStyles if lStyle not in ('None','',' ',None)]
     mStyles = list(Line2D.markers.keys())
-    mStyles = set(mStyles)
-    mStyles.discard('None')
-    mStyles = list(mStyles)
-    
+    mStyles = [mStyle for mStyle in mStyles if mStyle not in ('None','',' ',None)] 
+
     # X and Y-axis column names and diagram symbols.
     xColName = plotDict["x"]
     xColSymb = plotDict["xsymb"]
