@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib import lines
 from matplotlib.lines import Line2D
 from matplotlib import rcParams
+import numpy as np
 import glob
 
 import dataAgglomeration as datglom
@@ -36,10 +37,11 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", plotDict = {}, ncol=2):
     fig, ax = plt.subplots()
     ax.set_xlabel(xColSymb)
     ax.set_ylabel(yColSymb)
-    ax.set_yscale('symlog')
+
     
     ax.set_title(title)
     variationI = 0 
+    logPlot = True
     for paramLine, subDframe in dFrame.groupby(level=indexLevels):
         xCol = subDframe[xColName] 
         yCol = subDframe[yColName]
@@ -63,6 +65,10 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", plotDict = {}, ncol=2):
             except:
                 pass
             paramString = indexName + "=%d " % paramLine 
+
+
+        if (np.max(np.abs(yCol)) < 1e-15):
+            logPlot = False
             
         ax.plot(xCol, yCol, label="%04d " % variationI + paramString, 
                 marker=mStyles[variationI % len(mStyles)], 
@@ -70,6 +76,9 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", plotDict = {}, ncol=2):
 
         variationI = variationI + 1
 
+    if (logPlot):
+        ax.set_yscale('log') 
+
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),fancybox=True, shadow=True, ncol=ncol) 
-              
+
     plt.show()
