@@ -138,6 +138,7 @@ int main(int argc, char *argv[])
     // ALE Relative reference frame data for simulating rising bubbles. 
     dimensionedVector Ub ("Ub", dimVelocity, vector(0,0,0));
     surfaceScalarField rhof("rhof", fvc::interpolate(rho));
+    surfaceScalarField muf(mixture.muf());
     volScalarField alphaInv{dimensionedScalar("1", dimless, 1) - markerField};
     volVectorField Ufront ("Ufront", U);   
     volVectorField nFront ("nFront", fvc::grad(signedDistance));
