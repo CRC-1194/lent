@@ -1,0 +1,66 @@
+Bootstrap: localimage
+From: ./openfoam-v1912.sif
+
+# TO BE REMOVED ONCE PROJECTS BECOME PUBLIC
+# CHANGE disposable_ed25519 to your SSH key path
+%files
+    /home/local/CSI/ip27fuzu/.ssh/disposable_ed25519 /root
+    /home/local/CSI/ip27fuzu/.ssh/disposable_ed25519.pub /root
+
+%post
+    reflector --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
+ 
+    # Install dependencies
+    pacman -Syu --noconfirm cmake eigen which mlocate python python-matplotlib python-numpy python-pandas jupyter python-pip
+    pip install PyFoam
+
+    # TO BE MODIFIED OR REMOVED (WHEN PROJECT BECOMES PUBLIC)
+    eval `ssh-agent -s`
+    echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+    ssh-add /root/disposable_ed25519
+
+    # Pull project. Modify when project public to HTTP method
+    git clone --branch dev git@git.rwth-aachen.de:leia/lent.git /opt/lent
+
+    cd /opt/lent && mkdir build && cd build
+    
+    # Change building folder to point at "/opt/lent/build".
+    sed -i 's#WM_PROJECT_USER_DIR=.*#WM_PROJECT_USER_DIR="/opt/lent/build"#g' /opt/openfoam/OpenFOAM-v1912/etc/bashrc
+    source /opt/openfoam/OpenFOAM-v1912/etc/bashrc &>/dev/null || true
+
+    cmake -DCMAKE_INSTALL_PREFIX=./ -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=on ..
+    make && make install
+    
+    # Modify permission
+    chmod -R 777 /opt/lent
+
+%runscript
+    #CMD : geophase image command (see help below).
+    CMD=$1
+
+    # Source directory
+    SOURCE_DIR=`realpath "$2"`
+
+    case $CMD in
+        clone)
+            echo 'Copying the lent project from the image to $SOURCE_DIR'    
+            cp -r /opt/lent/* /opt/openfoam/OpenFOAM-v1912/etc/bashrc $SOURCE_DIR
+            
+	    # These two mods in order to tell that OpenFOAM is in /opt/ and change the build folder to be inside the host project.
+            sed -i '/projectDir\=\"\/opt\/openfoam\/OpenFOAM\-\$WM_PROJECT\_VERSION\"/s/^#//g' $SOURCE_DIR/bashrc
+            sed -i "s#WM_PROJECT_USER_DIR=.*#WM_PROJECT_USER_DIR=$SOURCE_DIR/build#g" $SOURCE_DIR/bashrc
+	    
+	    # This mod in order to get two-phase-validation by HTTPS and not SSH.
+	    # SSH can be used only when container is run as sudo.
+	    # DELETE/MODIFY THIS LINE WHEN PROJECT BECOMES PUBLIC.
+	    sed -i 's#git@git.rwth-aachen.de:leia/two-phase-validation.git#https://git.rwth-aachen.de/leia/two-phase-validation.git#g' $SOURCE_DIR/CMakeLists.txt
+            ;;
+        build)
+	    rm -rf $SOURCE_DIR/build && mkdir -p $SOURCE_DIR/build && cd $SOURCE_DIR/build
+
+            source $SOURCE_DIR/bashrc
+
+            cmake -DCMAKE_INSTALL_PREFIX=./ -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=on ..
+            make && make install
+            ;;
+    esac
