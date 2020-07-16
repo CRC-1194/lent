@@ -16,7 +16,7 @@
       // Hysing, S. (2006). A new implicit surface tension implementation for
       // interfacial flows. International Journal for Numerical Methods in Fluids,
       // 51(6), 659¿672. https://doi.org/10.1002/fld.1147
-      // - lent.surfaceTensionImplicitPart(U, markerField, front)
+      - lent.surfaceTensionImplicitPart(U, markerField, front)
      ==
         fvOptions(rho, U)
     );

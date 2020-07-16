@@ -194,13 +194,13 @@ int main(int argc, char *argv[])
         {
             if (lentSC.updateMomentumFlux())
             {
-                rhoPhi == rhof * phi;
+               rhoPhi == rhof * phi;
 
-                fvScalarMatrix rhoEqn
+               fvScalarMatrix rhoEqn
                 (
                     fvm::ddt(rho) + fvc::div(rhoPhi)
-                );
-                rhoEqn.solve();
+                 );
+               rhoEqn.solve();
             }
 
             #include "UEqn.H"
