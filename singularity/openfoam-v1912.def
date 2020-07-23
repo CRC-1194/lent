@@ -1,0 +1,26 @@
+Bootstrap: docker
+From: archlinux:latest
+
+%post
+    # Reflector
+    pacman -Syy --noconfirm reflector
+    reflector --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
+
+    # Install dependencies
+    pacman -Suy --noconfirm git openmpi gcc make flex
+
+    # Download OpenFOAM
+    git clone --branch OpenFOAM-v1912.200129 https://develop.openfoam.com/Development/openfoam.git /opt/openfoam/OpenFOAM-v1912/
+
+    # Move to directory
+    cd /opt/openfoam/OpenFOAM-v1912/
+
+    # Source OF. Hack by setting/unsetting e so it does no exit because of sub-shell `return 1`
+    source etc/bashrc || true
+
+    # Install OF
+    ./Allwmake -j -s -q
+
+    # Clean
+    pacman -Scc --noconfirm
+
