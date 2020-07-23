@@ -83,7 +83,7 @@ solvers
 
 lentSC
 {
-    momentumPredictor   yes;
+    momentumPredictor   no;
     nOuterCorrectors    15;
     nCorrectors         5;
     nNonOrthogonalCorrectors 0;

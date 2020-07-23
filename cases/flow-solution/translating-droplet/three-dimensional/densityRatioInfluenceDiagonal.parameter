@@ -35,8 +35,9 @@ values{
 
 
     // Parameters from 0.orig/U
-    // U0 (1 1 1);
-
+    x_velocity ( 1.0 );
+    y_velocity ( 1.0 );
+    z_velocity ( 1.0 );
     
     // Parameters from system/blockMeshDict
     resolution 
