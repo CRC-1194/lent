@@ -77,6 +77,12 @@ int main(int argc, char *argv[])
         "Evolve the Front using the velocity projected onto the interface normal."
     );
 
+    argList::addBoolOption
+    (
+        "no-density-equation",
+        "Do not update the density field by solving the density equation."
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -194,13 +200,16 @@ int main(int argc, char *argv[])
         {
             if (lentSC.updateMomentumFlux())
             {
-               rhoPhi == rhof * phi;
+                rhoPhi == rhof * phi;
 
-               fvScalarMatrix rhoEqn
-                (
-                    fvm::ddt(rho) + fvc::div(rhoPhi)
-                 );
-               rhoEqn.solve();
+               if (!args.found("no-density-equation"))
+               {
+                   fvScalarMatrix rhoEqn
+                   (
+                        fvm::ddt(rho) + fvc::div(rhoPhi)
+                   );
+                   rhoEqn.solve();
+               }
             }
 
             #include "UEqn.H"
