@@ -1,3 +1,0 @@
-interIsoFoamConsistentdev.C
-
-EXE = $(FOAM_APPBIN)/interIsoFoamConsistentdev
