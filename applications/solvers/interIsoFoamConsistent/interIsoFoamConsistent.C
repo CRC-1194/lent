@@ -49,6 +49,8 @@ Description
 
     isoAdvector code supplied by Johan Roenby, STROMNING (2018)
 
+    Momentum advection consistency by Tomislav Maric and Jun Liu, TU Darmstadt 
+
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
@@ -167,6 +169,15 @@ int main(int argc, char *argv[])
 
             mixture.correct();
 
+            // TODO: Work with advector object and use its functions to calculate the mass flux.  
+            // Don't create new fields yourself, the scheme is already active and has everything ready.
+            rhoPhi == advector.alphaPhi() * rho1 + (1 - advector.alphaPhi()) * rho2;  
+            fvScalarMatrix rhoEqn
+            (
+                 fvm::ddt(rho) + fvc::div(rhoPhi)
+            );
+            rhoEqn.solve();
+
             if (pimple.frozenFlow())
             {
                 continue;
@@ -186,6 +197,8 @@ int main(int argc, char *argv[])
             }
         }
 
+        // Reset the density using cell-centered volume fractions.
+        rho == alpha1*rho1 + (1.0 - alpha2)*rho2;
         runTime.write();
 
         runTime.printExecutionTime(Info);
