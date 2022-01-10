@@ -29,9 +29,10 @@ At this point, the preparation of the ALE-RRF case study is manual:
 1. Uncomment the ALE-RRF boundary conditions for `0.org/U` in `templateCase_risingBubble3D`.
 2. Generate the study for the Eulerian mesh first with  
     ```
-    three-dimensional > lent_prepare_study_variants.py -m block -s duineveld.parameter
+    three-dimensional > lent_prepare_study_variants.py -m block -s duineveld-cfmesh.parameter
     ```
    the parameters are the same as for the block mesh.
 3. In each case of the study, run `cartesianMesh.sh`.
+   **ATTENTION**: the utility of `surfaceGenerateBoundingBox` does not resolve intersected region, thus after using this utility, patch generated  from droplet surface should be remove by another utility `removeSurfaceFacets`   
 4. In each case of the study, run `rm -rf 0 && cp -r 0.org 0 && lentSetFields`. 
 5. In each case of the study, run `lentFoam` to start the simulation.
