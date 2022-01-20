@@ -1,3 +1,4 @@
+
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
@@ -29,7 +30,7 @@ gradSchemes
 divSchemes
 {   
     default         Gauss   linear;
-    div(rhoPhi,U)   Gauss   limitedLinearV    1;//0.5;
+    div(rhoPhi,U)   Gauss   limitedLinearV      0.5;
 }
 
 

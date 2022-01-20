@@ -31,9 +31,9 @@ writeControl    runTime;
 
 writeInterval   @!write_interval!@;
 
-purgeWrite      0;
+purgeWrite      5;
 
-writeFormat     ascii;
+writeFormat     binary;
 
 writePrecision  6;
 

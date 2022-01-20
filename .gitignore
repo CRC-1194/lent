@@ -50,3 +50,4 @@ Ply*
 *00* 
 build/
 compile_commands.json
+.ipynb_checkpoints/

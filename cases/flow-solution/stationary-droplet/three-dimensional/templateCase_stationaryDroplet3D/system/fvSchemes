@@ -22,13 +22,13 @@ ddtSchemes
 
 gradSchemes
 {
-    default         pointCellsLeastSquares;
+    default         Gauss linear;
 }
 
 divSchemes
 {   
     default         Gauss   linear;
-    div(rhoPhi,U)   Gauss   limitedLinearV   1;//0.5;
+    div(rhoPhi,U)   Gauss   limitedLinearV   0;
 }
 
 

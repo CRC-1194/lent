@@ -1,5 +1,6 @@
+
 // Parameters from controlDict
-write_interval 0.01;
+write_interval   0.01; // 0.0004;
 
 
 // Parameters from lentSolution
@@ -30,5 +31,11 @@ n_base  8;
 
 // Set deltaT to the specified fraction of the maximum allows time step size
 // according to the capillary wave stability criterion
-scale_delta_t   0.5;
+
+// original value
+// scale_delta_t   0.5;
+// cfl_factor 0.2;
+
+// new value_jun
+scale_delta_t   10000000; // 2; //1;
 cfl_factor 0.2;

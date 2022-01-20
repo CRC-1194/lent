@@ -23,7 +23,7 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         @!end_time!@;
+endTime         #calc "1.5*@!end_time!@";
 
 deltaT          @!delta_t!@;
 
@@ -31,9 +31,9 @@ writeControl    runTime;
 
 writeInterval   @!write_interval!@;
 
-purgeWrite      0;
+purgeWrite      2;
 
-writeFormat     ascii;
+writeFormat     binary;
 
 writePrecision  6;
 
@@ -73,7 +73,7 @@ functions
         dropletPhaseName            air;
         radius                      @!radius!@;
         centre                      (@!x_centre!@ @!y_centre!@ @!z_centre!@);
-        backgroundVelocity          (0 0 1);
+        backgroundVelocity          (0 0 @!z_velocity!@);
     }
 }
 

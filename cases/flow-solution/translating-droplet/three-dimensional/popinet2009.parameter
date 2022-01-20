@@ -1,3 +1,4 @@
+
 // Values in this parameter file are adapted from
 //
 //      Popinet, Stéphane.
@@ -15,8 +16,9 @@
 
 values
 {
+
+    // solver (interIsoFoam);
     solver (lentFoam);
-    
 
     // Parameters from constant/transportProperties
     rho_droplet
@@ -37,7 +39,7 @@ values
 
     nu_ambient
     (
-        $nu_droplet
+        $nu_droplet 
     );
 
     surface_tension_coefficient
@@ -50,6 +52,15 @@ values
         1
     );
 
+//    x_velocity
+//    (
+//        1
+//    );
+
+//    y_velocity
+//    (
+//        1
+//    );
     
     // Parameters from system/blockMeshDict
     resolution 
