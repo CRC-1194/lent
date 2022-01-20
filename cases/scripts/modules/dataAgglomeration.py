@@ -329,8 +329,8 @@ class multiindex_assembler:
         """Construct and return a Pandas MultiIndex."""
         self.compute_complete_index()
         self.remove_missing_variations(found_variations)
-        # Keep all parameter values even if they are constant (TT)
-        #self.remove_constant_parameters()
+        # Keep all parameter values even if they are constant (TT)-->temporarily reuse this code line to visualize .csv data (JUN)
+        self.remove_constant_parameters()
 
         return self.assemble_multiindex(datapoints_per_variant)
 
