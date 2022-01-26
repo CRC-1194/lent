@@ -83,21 +83,23 @@ frontVelocityCalculator::New(const dictionary& configDict)
 {
     const word name = configDict.get<word>("type");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    // Find the constructor pointer for the model in the constructor table.
+    auto* ctorPtr = DictionaryConstructorTable(name);
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    // If the constructor pointer is not found in the table.
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "frontVelocityCalculator::New(const word& name)"
-        )   << "Unknown frontVelocityCalculator type "
-            << name << nl << nl
-            << "Valid frontVelocityCalculators are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "frontVelocityCalculator",
+            name,
+            *DictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
-    return tmp<frontVelocityCalculator> (cstrIter()(configDict));
+    // Construct the model and return the autoPtr to the object.
+    return tmp<frontVelocityCalculator> (ctorPtr(configDict));
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

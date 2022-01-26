@@ -88,21 +88,23 @@ tmp<analyticalSurface> analyticalSurface::New(const dictionary& configDict)
 {
     const word name = configDict.get<word>("type");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    // Find the constructor pointer for the model in the constructor table.
+    auto* ctorPtr = DictionaryConstructorTable(name);
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    // If the constructor pointer is not found in the table.
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "analyticalSurface::New(const word& name)"
-        )   << "Unknown analyticalSurface type "
-            << name << nl << nl
-            << "Valid analyticalSurface are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "analyticalSurface",
+            name,
+            *DictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
-    return tmp<analyticalSurface> (cstrIter()(configDict));
+    // Construct the model and return the autoPtr to the object.
+    return tmp<analyticalSurface> (ctorPtr(configDict));
 }
 
 // * * * * * * * * * * * * * Public member functions * * * * * * * * * * * * //

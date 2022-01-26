@@ -125,21 +125,23 @@ normalConsistency::New(const dictionary& configDict)
 {
     const word name = configDict.get<word>("type");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    // Find the constructor pointer for the model in the constructor table.
+    auto* ctorPtr = DictionaryConstructorTable(name);
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    // If the constructor pointer is not found in the table.
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "normalConsistency::New(const word& name)"
-        )   << "Unknown normalConsistency type "
-            << name << nl << nl
-            << "Valid normalConsistencys are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "normalConsistency",
+            name,
+            *DictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
-    return tmp<normalConsistency> (cstrIter()(configDict));
+    // Construct the model and return the autoPtr to the object.
+    return tmp<normalConsistency> (ctorPtr(configDict));
 }
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //

@@ -81,23 +81,23 @@ frontReconstructor::New(const dictionary& configDict)
     const word name = configDict.get<word>("type");
 
     // Find the constructor pointer for the model in the constructor table.
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    auto* ctorPtr = DictionaryConstructorTable(name);
 
     // If the constructor pointer is not found in the table.
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "frontReconstructor::New(const word& name)"
-        )   << "Unknown frontReconstructor type "
-            << name << nl << nl
-            << "Valid frontReconstructors are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "frontReconstructor",
+            name,
+            *DictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
     // Construct the model and return the autoPtr to the object.
-    return tmp<frontReconstructor> (cstrIter()(configDict));
+    return tmp<frontReconstructor> (ctorPtr(configDict));
+
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

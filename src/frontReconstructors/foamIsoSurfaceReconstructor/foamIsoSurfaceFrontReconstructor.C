@@ -90,18 +90,20 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
     const pointScalarField& pointSignedDistance
 ) const
 {
-    isoSurface iso(
-        signedDistance,
-        pointSignedDistance,
-        0, // FIXME: Leave as a compile time constant? TM.
-        bool(regularize_), 
-        boundBox::greatBox,
-        mergeTolerance_
+    using algorithmType = isoSurfaceParams::algorithmType; 
+    using filterType = isoSurfaceParams::filterType;
+    isoSurfaceParams isoParams
+    (
+        algorithmType::ALGO_DEFAULT, 
+        (regularize_) ? filterType::DIAGCELL : filterType::NONE
     );
 
-    // Clean up degenerate triangles. Report the cleanup process.  
-    // FIXME: Investigate this.
-    //iso.cleanup(true);
+    isoSurfacePoint iso(
+        signedDistance,
+        pointSignedDistance,
+        0, 
+        isoParams
+    );
 
     // Update the communication map after reconstruction.
     const auto& mesh = signedDistance.mesh();

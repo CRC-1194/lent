@@ -87,21 +87,23 @@ frontMotionSolver::New(const dictionary& configDict)
 {
     const word name = configDict.get<word>("type");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    // Find the constructor pointer for the model in the constructor table.
+    auto* ctorPtr = DictionaryConstructorTable(name);
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    // If the constructor pointer is not found in the table.
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "frontMotionSolver::New(const word& name)"
-        )   << "Unknown frontMotionSolver type "
-            << name << nl << nl
-            << "Valid frontMotionSolvers are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "frontMotionSolver",
+            name,
+            *DictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
-    return tmp<frontMotionSolver> (cstrIter()(configDict));
+    // Construct the model and return the autoPtr to the object.
+    return tmp<frontMotionSolver> (ctorPtr(configDict));
 }
 
 
@@ -121,7 +123,7 @@ void frontMotionSolver::initDisplacements(
         vector(0,0,0)
     );
 
-    if (cellDisplacementTmp_.empty())
+    if (bool(cellDisplacementTmp_))
     {
         cellDisplacementTmp_ = tmp<volVectorField>(
             new volVectorField( 
@@ -138,7 +140,7 @@ void frontMotionSolver::initDisplacements(
         );
     } 
 
-    if (frontDisplacementTmp_.empty())
+    if (bool(frontDisplacementTmp_))
     {
         frontDisplacementTmp_ = tmp<triSurfaceFrontPointVectorField>(
             new triSurfaceFrontPointVectorField( 

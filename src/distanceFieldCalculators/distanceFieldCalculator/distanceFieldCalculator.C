@@ -89,23 +89,22 @@ distanceFieldCalculator::New(
     const word name = configDict.get<word>("type");
 
     // Find the constructor pointer for the model in the constructor table.
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    auto* ctorPtr = DictionaryConstructorTable(name);
 
     // If the constructor pointer is not found in the table.
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "distanceFieldCalculator::New(const word& name)"
-        )   << "Unknown distanceFieldCalculator type "
-            << name << nl << nl
-            << "Valid distanceFieldCalculators are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "distanceFieldCalculator",
+            name,
+            *DictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
     // Construct the model and return the autoPtr to the object.
-    return tmp<distanceFieldCalculator> (cstrIter()(configDict));
+    return tmp<distanceFieldCalculator> (ctorPtr(configDict));
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //

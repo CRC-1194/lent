@@ -90,21 +90,23 @@ lentInterpolation::New(
 {
     const word name = configDict.get<word>("type");
 
-    EmptyConstructorTable::iterator cstrIter =
-        EmptyConstructorTablePtr_->find(name);
+    // Find the constructor pointer for the model in the constructor table.
+    auto* ctorPtr = EmptyConstructorTable(name);
 
-    if (cstrIter == EmptyConstructorTablePtr_->end())
+    // If the constructor pointer is not found in the table.
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "lentInterpolation::New(const word& name)"
-        )   << "Unknown lentInterpolation type "
-            << name << nl << nl
-            << "Valid lentInterpolations are : " << endl
-            << EmptyConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "lentInterpolation",
+            name,
+            *EmptyConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
-    return autoPtr<lentInterpolation> (cstrIter()());
+    // Construct the model and return the autoPtr to the object.
+    return autoPtr<lentInterpolation> (ctorPtr());
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

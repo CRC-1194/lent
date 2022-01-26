@@ -81,21 +81,23 @@ frontSurfaceTensionForceModel::New(const dictionary& configDict)
 {
     const word name = configDict.get<word>("type");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    // Find the constructor pointer for the model in the constructor table.
+    auto* ctorPtr = DictionaryConstructorTable(name);
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    // If the constructor pointer is not found in the table.
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "frontSurfaceTensionForceModel::New(const word& name)"
-        )   << "Unknown frontSurfaceTensionForceModel type "
-            << name << nl << nl
-            << "Valid frontSurfaceTensionForceModels are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "frontSurfaceTensionForceModel",
+            name,
+            *DictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
-    return tmp<frontSurfaceTensionForceModel> (cstrIter()(configDict));
+    // Construct the model and return the autoPtr to the object.
+    return tmp<frontSurfaceTensionForceModel> (ctorPtr(configDict));
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

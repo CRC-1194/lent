@@ -60,7 +60,7 @@ Description
 #ifndef triSurfaceFront_H
 #define triSurfaceFront_H
 
-#include "isoSurface.H"
+#include "isoSurfacePoint.H"
 #include "triSurface.H"
 #include "error.H"
 
@@ -164,7 +164,7 @@ public:
     void operator=(const triSurfaceFront& rhs);
     void operator=(const triSurface& rhs);
 
-    void operator=(const isoSurface& rhs);
+    void operator=(const isoSurfacePoint& rhs);
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

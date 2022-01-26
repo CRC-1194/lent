@@ -84,21 +84,20 @@ frontToMeshTransferModel::New(const dictionary& configDict)
 {
     const word name = configDict.get<word>("type");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    auto* ctorPtr = DictionaryConstructorTable(name);
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "frontToMeshTransferModel::New(const word& name)"
-        )   << "Unknown frontToMeshTransferModel type "
-            << name << nl << nl
-            << "Valid frontToMeshTransferModels are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "frontToMeshTransferModel",
+            name,
+            *DictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
-    return tmp<frontToMeshTransferModel> (cstrIter()(configDict));
+    return tmp<frontToMeshTransferModel>(ctorPtr(configDict));
 }
 
 

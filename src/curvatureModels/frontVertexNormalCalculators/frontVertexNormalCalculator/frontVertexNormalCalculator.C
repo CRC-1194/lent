@@ -79,21 +79,20 @@ tmp<frontVertexNormalCalculator> frontVertexNormalCalculator::New(const dictiona
 {
     const word name = configDict.get<word>("type");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    auto* ctorPtr = DictionaryConstructorTable(name);
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "frontVertexNormalCalculator::New(const word& name)"
-        )   << "Unknown frontVertexNormalCalculator type "
-            << name << nl << nl
-            << "Valid frontVertexNormalCalculator are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "frontVertexNormalCalculator",
+            name,
+            *DictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
-    return tmp<frontVertexNormalCalculator> (cstrIter()(configDict));
+    return tmp<frontVertexNormalCalculator>(ctorPtr(configDict));
 }
 
 

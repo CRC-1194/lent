@@ -37,7 +37,7 @@ find_package(Eigen3 REQUIRED)
 
 # Two-Phase Validation
 FetchContent_Declare(two-phase-validation
-    GIT_REPOSITORY          https://git.rwth-aachen.de/leia/two-phase-validation.git 
+    GIT_REPOSITORY          https://www.gitlab.com/leia-methods/two-phase-validation.git 
     GIT_TAG                 master
     GIT_SHALLOW             YES
     GIT_PROGRESS            YES

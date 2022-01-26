@@ -116,21 +116,23 @@ lentCommunication::New(
 {
     const word name = configDict.get<word>("type");
 
-    FrontMeshConstructorTable::iterator cstrIter =
-        FrontMeshConstructorTablePtr_->find(name);
+    // Find the constructor pointer for the model in the constructor table.
+    auto* ctorPtr = FrontMeshConstructorTable(name);
 
-    if (cstrIter == FrontMeshConstructorTablePtr_->end())
+    // If the constructor pointer is not found in the table.
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "lentCommunication::New(const word& name)"
-        )   << "Unknown lentCommunication type "
-            << name << nl << nl
-            << "Valid lentCommunications are : " << endl
-            << FrontMeshConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "lentCommunication",
+            name,
+            *FrontMeshConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
-    return autoPtr<lentCommunication> (cstrIter()(front, mesh));
+    // Construct the model and return the autoPtr to the object.
+    return autoPtr<lentCommunication>(ctorPtr(front, mesh));
 }
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //

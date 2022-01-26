@@ -82,21 +82,23 @@ narrowBandPropagation::New(const dictionary& configDict)
 
     const word name = configDict.get<word>("type");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    // Find the constructor pointer for the model in the constructor table.
+    auto* ctorPtr = DictionaryConstructorTable(name);
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    // If the constructor pointer is not found in the table.
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "narrowBandPropagation::New(const word& name)"
-        )   << "Unknown narrowBandPropagation type "
-            << name << nl << nl
-            << "Valid narrowBandPropagations are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "narrowBandPropagation",
+            name,
+            *DictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
-    return tmp<narrowBandPropagation> (cstrIter()(configDict));
+    // Construct the model and return the autoPtr to the object.
+    return tmp<narrowBandPropagation> (ctorPtr(configDict));
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //

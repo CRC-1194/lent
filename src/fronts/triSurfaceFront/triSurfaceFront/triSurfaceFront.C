@@ -313,7 +313,7 @@ void triSurfaceFront::operator=(const triSurface& rhs)
     computeTwoRingNeighbours();
 }
 
-void triSurfaceFront::operator=(const isoSurface& rhs)
+void triSurfaceFront::operator=(const isoSurfacePoint& rhs)
 {
     this->clearOut(); 
 
