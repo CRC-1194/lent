@@ -1,17 +1,34 @@
 #!/bin/bash
 
-# Source LENT's python modules for parameter variations
-source ../../../../cases/scripts/bashrc
+RUNNER=$1
 
-# Prepare and initialize the study directories
-lent_prepare_study_variants.py densityRatioInfluence.parameter -p without-RhoEquation -m block
+if [[ ("$RUNNER" == "slurm") || ("$RUNNER" == "foamJob") || ("$RUNNER" == "commandLine") ]]; 
+then 
+    # Source LENT's python modules for parameter variations
+    source ../../../../cases/scripts/bashrc
 
-# Submit a job for each variant
-for dir in without-RhoEquation-densityRatioInfluence*; do
-    cd $dir
-    echo "Submitting $(pwd)"
-    sbatch ../lentFoamNoRhoEqn.sbatch
-    cd ..
-    # Do not overburden SLURM workload manager
-    sleep 1
-done
+    # Prepare and initialize the study directories
+    lent_prepare_study_variants.py densityRatioInfluence.parameter -p without-rhoEquation -m block
+
+    # Run each variant 
+    for dir in without-rhoEquation-densityRatioInfluence*; do
+	cd $dir
+	if [ "$RUNNER" == "slurm" ]; 
+	then 
+	    echo "Submitting $(pwd)"
+	    sbatch ../lentFoamNoRhoEqn.sbatch
+	    # Do not overburden SLURM workload manager
+	    sleep 1
+	elif [ "$RUNNER" = "foamJob" ]; 
+	then 
+	    foamJob lentFoam -no-density-equation 
+	elif [ "$RUNNER" = "commandLine" ]; 
+	then 
+	    lentFoam -no-density-equation 
+	fi
+	cd ..
+    done
+else
+    echo 'Use following options: "slurm" (cluster), "foamJob" (background), or "commandLine".'
+    exit 1
+fi

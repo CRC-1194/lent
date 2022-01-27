@@ -8,4 +8,3 @@
 # -------------------------------
 
 srun lentFoam 
-# -no-density-equation

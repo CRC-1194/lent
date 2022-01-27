@@ -6,22 +6,23 @@ if [[ ("$RUNNER" == "slurm") || ("$RUNNER" == "foamJob") || ("$RUNNER" == "comma
 then
     # Source LENT's python modules for parameter variations
     source ../../../../cases/scripts/bashrc
-
+    
     # Prepare and initialize the study directories
-    lent_prepare_study_variants.py waterAirDropletTranslation.parameter -m block
-
+    lent_prepare_study_variants.py siliconOilAirDropletTranslation.parameter -m block
+    
     # Submit a job for each variant
-    for dir in waterAirDropletTranslation.parameter_*; do
-	cd $dir
-	if [ "$RUNNER" == "slurm" ]; 
-	then 
+    for dir in siliconOilAirDropletTranslation.parameter_*; do
+        echo "cd $dir"
+        cd $dir
+        if [ "$RUNNER" == "slurm" ]; 
+        then 
 	    echo "Submitting $(pwd)"
 	    sbatch ../lentFoam.sbatch
 	    # Do not overburden SLURM workload manager
 	    sleep 1
-	elif [ "$RUNNER" == "foamJob" ]; 
-	then 
-	    foamJob lentFoam 
+        elif [ "$RUNNER" == "foamJob" ]; 
+        then
+	    foamJob lentFoam  
         elif [ "$RUNNER" == "commandLine" ]; 
 	then
 	    lentFoam 
