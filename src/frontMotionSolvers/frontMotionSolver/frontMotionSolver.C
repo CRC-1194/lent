@@ -75,8 +75,8 @@ namespace FrontTracking {
 
 frontMotionSolver::frontMotionSolver(const dictionary& configDict)
     :
-        cellDisplacementTmp_(),
-        frontDisplacementTmp_(),
+        cellDisplacementTmp_(nullptr),
+        frontDisplacementTmp_(nullptr),
         interpolation_(configDict)
 {}
 
@@ -123,7 +123,7 @@ void frontMotionSolver::initDisplacements(
         vector(0,0,0)
     );
 
-    if (bool(cellDisplacementTmp_))
+    if (!cellDisplacementTmp_)
     {
         cellDisplacementTmp_ = tmp<volVectorField>(
             new volVectorField( 
@@ -140,7 +140,7 @@ void frontMotionSolver::initDisplacements(
         );
     } 
 
-    if (bool(frontDisplacementTmp_))
+    if (!frontDisplacementTmp_)
     {
         frontDisplacementTmp_ = tmp<triSurfaceFrontPointVectorField>(
             new triSurfaceFrontPointVectorField( 
