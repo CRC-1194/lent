@@ -1,10 +1,7 @@
 #!/bin/bash
 
-if [ -z "$LENTSCRIPTSSOURCED" ]
-then
-    echo "Error: LENT scripts not sourced. Source LENT/cases/scripts/bashrc before using this script."
-    exit 1
-fi
+# Source LENT's python modules for parameter variations
+source ../../../../cases/scripts/bashrc
 
 # Prepare and initialize the study directories
 lent_prepare_study_variants.py densityRatioInfluence.parameter -p withRhoEquation -m block
