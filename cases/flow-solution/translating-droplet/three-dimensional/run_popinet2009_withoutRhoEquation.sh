@@ -11,23 +11,23 @@ then
     lent_prepare_study_variants.py popinet2009.parameter -p without-rhoEquation -m block
 
     # Run each variant 
-    #for dir in without-rhoEquation-popinet2009*; do
-    #    cd $dir
-    #    if [ "$RUNNER" == "slurm" ]; 
-    #    then 
-    #        echo "Submitting $(pwd)"
-    #        sbatch ../lentFoamNoRhoEqn.sbatch
-    #        # Do not overburden SLURM workload manager
-    #        sleep 1
-    #    elif [ "$RUNNER" = "foamJob" ]; 
-    #    then 
-    #        foamJob lentFoam -no-density-equation 
-    #    elif [ "$RUNNER" = "commandLine" ]; 
-    #    then 
-    #        lentFoam -no-density-equation 
-    #    fi
-    #    cd ..
-    #done
+    for dir in without-rhoEquation-popinet2009*; do
+        cd $dir
+        if [ "$RUNNER" == "slurm" ]; 
+        then 
+            echo "Submitting $(pwd)"
+            sbatch ../lentFoamNoRhoEqn.sbatch
+            # Do not overburden SLURM workload manager
+            sleep 1
+        elif [ "$RUNNER" = "foamJob" ]; 
+        then 
+            foamJob lentFoam -no-density-equation 
+        elif [ "$RUNNER" = "commandLine" ]; 
+        then 
+            lentFoam -no-density-equation 
+        fi
+        cd ..
+    done
 else
     echo 'Use following options: "slurm" (cluster), "foamJob" (background), or "commandLine".'
     exit 1

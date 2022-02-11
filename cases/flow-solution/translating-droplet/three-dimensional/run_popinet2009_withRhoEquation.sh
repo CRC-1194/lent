@@ -8,7 +8,7 @@ then
     source ../../../../cases/scripts/bashrc
     
     # Prepare and initialize the study directories
-    #lent_prepare_study_variants.py popinet2009.parameter -p with-rhoEquation -m block
+    lent_prepare_study_variants.py popinet2009.parameter -p with-rhoEquation -m block
     
     # Run each variant 
     for dir in with-rhoEquation-popinet2009*; do
