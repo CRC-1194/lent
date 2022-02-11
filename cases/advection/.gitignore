@@ -1,5 +1,0 @@
-*.database
-.ipynb_checkpoints/
-advectionErrors.dat
-*.backup
-*.pvsm
