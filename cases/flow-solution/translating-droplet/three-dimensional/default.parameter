@@ -20,9 +20,9 @@ n_alpha_smoothing   0;
 // Parameters from fvSolution
 n_outer_correctors  25;
 
-n_correctors    5;
+n_correctors    3;
 
-phi_change_tolerance        1.0e-7;
+phi_change_tolerance        1.0e-5;
 abs_phi_change_tolerance    1.0e-16;
 
 

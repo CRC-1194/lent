@@ -13,7 +13,6 @@ lnInclude/
 linux*/
 *.dep
 *.vim 
-*~
 *.vtk
 *.pvsm
 *.txt
@@ -39,7 +38,7 @@ third-party
 *.stl 
 *.vtk 
 *VTK*
-*[1-9]*
+*[1-9]*/
 *.dat 
 Ply*
 *[pP]y*Parameter*
@@ -47,7 +46,10 @@ Ply*
 *.pdf
 *.csv
 *.database
-*00* 
+*00*/
 build/
 compile_commands.json
 .ipynb_checkpoints/
+*.json
+*.html
+*copy_*/

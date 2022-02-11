@@ -65,7 +65,8 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", plotDict = {}, ncol=2):
 
         if (np.max(np.abs(yCol)) < 1e-15):
             logPlot = False
-            
+            ax.set_ylim(-1e-16,1e-16)
+
         ax.plot(xCol, yCol, label="%04d " % variationI + paramString, 
                 marker=mStyles[variationI % len(mStyles)], 
                 linestyle=lStyles[variationI % len(lStyles)])

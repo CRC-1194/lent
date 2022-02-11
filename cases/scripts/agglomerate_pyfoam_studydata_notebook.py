@@ -39,12 +39,13 @@ def main():
 
     #------ parameterise and write .ipynb file for every case ------#
     nb_name, parameter_file_extension = example_directory.split('.')
-    nb = nbformat.read("/work/projects/project01456/lent/cases/flow-solution/translating-droplet/three-dimensional/densityRatioTemplate.ipynb", as_version=4)
+    nb = nbformat.read("./densityRatioTemplate.ipynb", as_version=4)
 
     orig_parameters = extract_parameters(nb)
     params = parameter_values(orig_parameters, case_path = example_directory, study_name=args.parameter_file_name)
     new_nb = replace_definitions(nb, params)
 
+    print(nb_name)
     with open("%s.ipynb" % nb_name, 'w') as f:
         nbformat.write(new_nb, f)
 
