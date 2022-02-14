@@ -1,23 +1,35 @@
 # LENT - a hybrid LEvel-set / froNT tracking (LENT) method in OpenFOAM 
 
-This is the library and application toolbox that implements the LENT method for DNS simulations of two-phase flows. 
+The LENT OpenFOAM module implements the LENT hybrid unstructured Level Set / Front Tracking method for DNS simulations of two-phase flows using a collocated unstructured FVM equation discretization.
 
-Developers 
+**IMPORTANT**: this is an actively developed research code. Report bugs [here](mailto:contact-project+leia-methods-lent-32701353-issue-@incoming.gitlab.com), contact us directly regarding  possible features or applications. 
+
+## Developers 
 
 Tomislav Maric maric{a}mma[dot]tu-darmstadt[dot]de
 
 Tobias Tolle tolle{a}mma[dot]tu-darmstadt[dot]de
 
-Mathematics Department, Mathematical Modeling and Analysis Institute, TU Darmstadt
+Jun Liu liu{a}mma[dot]tu-darmstadt[dot]de
+
+Mathematical Modeling and Analysis Institute,Mathematics Department, TU Darmstadt
+
+## Publications
+
+Liu, Jun, Tobias Tolle, Dieter Bothe, and Tomislav Maric. "A collocated unstructured finite volume Level Set/Front Tracking method for two-phase flows with large density-ratios." arXiv preprint arXiv:2109.01595 (2021). []()
+
+Tolle, Tobias, Dieter Bothe, and Tomislav Marić. "SAAMPLE: A segregated accuracy-driven algorithm for multiphase pressure-linked equations." Computers & Fluids 200 (2020): 104450. []()
+
+Marić, Tomislav, Holger Marschall, and Dieter Bothe. "lentFoam–A hybrid Level Set/Front Tracking method on unstructured meshes." Computers & Fluids 113 (2015): 20-31. []()
 
 ## Installation 
 
 ### Prerequisites
 
-* OpenFOAM versions: [OpenFOAM-plus v1912](https://openfoam.com/releases/openfoam-v1912/)
-* Compilers: Gcc 8 and above (tested with 9.2.1)
+* OpenFOAM versions: [OpenFOAM-plus v1912](https://www.openfoam.com/download/release-history)
+* Compilers: gcc 10.3.0 and earlier
 * Build system: CMake 3.14 or higher
-* Git for fetching dependencies
+* git for fetching dependencies
 * gmsh or paraview for surface mesh generation
 * admesh for normal consistency 
 
