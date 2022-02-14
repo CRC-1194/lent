@@ -34,10 +34,15 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", plotDict = {}, ncol=2):
     ax.set_xlabel(xColSymb)
     ax.set_ylabel(yColSymb)
 
-    
     ax.set_title(title)
     variationI = 0 
     logPlot = True
+
+    # If the column value in the whole data frame is below machine tolerance
+    if (np.abs(dFrame[yColName].max()) < 1e-16):
+        # Set the Y-axis limits to machine tolerance.
+        ax.set_ylim([-1e-16,1e-16])
+
     for paramLine, subDframe in dFrame.groupby(level=indexLevels):
         xCol = subDframe[xColName] 
         yCol = subDframe[yColName]
@@ -61,7 +66,6 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", plotDict = {}, ncol=2):
             except:
                 pass
             paramString = indexName + "=%d " % paramLine 
-
 
         if (np.max(np.abs(yCol)) < 1e-15):
             logPlot = False
