@@ -430,22 +430,6 @@ target_link_libraries("lentAdvect"
     ${OF_SOLVER_COMMON}
 )
 
-add_executable("lentAdvectRefined"
-    applications/solvers/lentAdvectRefined/lentAdvectRefined.C
-)
-target_include_directories("lentAdvectRefined" SYSTEM PRIVATE
-    ${OF_SOLVER_INCLUDES}
-    ${of_src_path}/dynamicMesh/lnInclude
-    ${of_src_path}/dynamicFvMesh/lnInclude
-)
-target_link_libraries("lentAdvectRefined"
-    "lent"
-    ${OF_LENTDEPS}
-    ${OF_SOLVER_COMMON}
-    ${OF_DYNAMICMESH}
-    ${OF_DYNAMICFVMESH}
-)
-
 add_executable("lentReconstruct"
     applications/solvers/lentReconstruct/lentReconstruct.C
 )
@@ -456,22 +440,6 @@ target_link_libraries("lentReconstruct"
     "lent"
     ${OF_LENTDEPS}
     ${OF_SOLVER_COMMON}
-)
-
-add_executable("lentRefineMesh"
-    applications/solvers/lentRefineMesh/lentRefineMesh.C
-)
-target_include_directories("lentRefineMesh" SYSTEM PRIVATE
-    ${OF_SOLVER_INCLUDES}
-    ${of_src_path}/dynamicMesh/lnInclude
-    ${of_src_path}/dynamicFvMesh/lnInclude
-)
-target_link_libraries("lentRefineMesh"
-    "lent"
-    ${OF_LENTDEPS}
-    ${OF_SOLVER_COMMON}
-    ${OF_DYNAMICMESH}
-    ${OF_DYNAMICFVMESH}
 )
 
 # Utilities
@@ -531,9 +499,7 @@ install(TARGETS
     # Solvers
     "lentFoam"
     "lentAdvect"
-    "lentAdvectRefined"
     "lentReconstruct"
-    "lentRefineMesh"
 
     # Utilities
     "lentSetFields"
