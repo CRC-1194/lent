@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Version:  2.2.x                               
-    \\  /    A nd           | Copyright held by original author
+   \\    /   O peration     | 
+    \\  /    A nd           | 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,11 +23,23 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Authors
-    Tomislav Maric maric@mma.tu-darmstadt.de
-    Tobias Tolle tolle@mma.tu-darmstadt.de
+    Tomislav Maric (maric@mma.tu-darmstadt.de)
+    Tobias Tolle (tolle@mma.tu-darmstadt.de)
 
 Description
     A two-phase Level Set / Front Tracking DNS solver.
+
+Affiliations:
+    Mathematical Modeling and Analysis Institute, Mathematics Department, 
+    TU Darmstadt, Germany
+
+Funding:
+    German Research Foundation (DFG) - Project-ID 265191195 - SFB 1194
+
+    German Research Foundation (DFG) - Project-ID MA 8465/1-1, 
+    Initiation of International Collaboration 
+    "Hybrid Level Set / Front Tracking methods for simulating 
+    multiphase flows in geometrically complex systems"
 
 \*---------------------------------------------------------------------------*/
 

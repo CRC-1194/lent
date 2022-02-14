@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Version:  OpenFOAM-plus 
-    \\  /    A nd           | Copyright Tomislav Maric, TU Darmstadt 
+   \\    /   O peration     | 
+    \\  /    A nd           | 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,7 +26,8 @@ Author
     Tomislav Maric maric@mma.tu-darmstadt.de
 
 Description
-    Test different reconstruction algorithms for computing front points from 
+
+    Test different reconstruction algorithms for computing front points from
     the signed distance.
 
 \*---------------------------------------------------------------------------*/

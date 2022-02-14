@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Version:  2.2.x                               
-    \\  /    A nd           | Copyright held by original author
+   \\    /   O peration     | 
+    \\  /    A nd           | 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,7 +23,7 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+    Tomislav Maric maric@mma.tu-darmstadt.de
 
 Description
     Test application for the interpolation methods used by the LENT method.
