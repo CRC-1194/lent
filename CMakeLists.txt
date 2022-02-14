@@ -182,8 +182,6 @@ add_library("lent" SHARED
     src/frontReconstructors/normalConsistencyAlgorithms/convexFrontNormalConsistency/convexFrontNormalConsistency.C
     src/frontReconstructors/normalConsistencyAlgorithms/distanceNormalConsistency/distanceNormalConsistency.C
     src/frontReconstructors/normalConsistencyAlgorithms/normalConsistency/normalConsistency.C
-    src/frontReconstructors/rbfFrontReconstructors/centroidIsoPointCalculator/centroidIsoPointCalculator.C
-    src/frontReconstructors/rbfFrontReconstructors/linearLeastSquaresIsoPointCalculator/linearLeastSquaresIsoPointCalculator.C
 
     src/fronts/analyticalSurfaces/analyticalCircle/analyticalCircle.C
     src/fronts/analyticalSurfaces/analyticalEllipse/analyticalEllipse.C
@@ -239,10 +237,6 @@ add_library("lent" SHARED
 
     src/narrowBandPropagation/naiveNarrowBandPropagation/naiveNarrowBandPropagation.C
     src/narrowBandPropagation/narrowBandPropagation/narrowBandPropagation.C
-
-    src/rbfInterpolation/hypersurface/ellipsoidHypersurface/ellipsoidHypersurface.C
-    src/rbfInterpolation/hypersurface/hypersurfaceData/hypersurfaceData.C
-    src/rbfInterpolation/hypersurface/sphereHypersurface/sphereHypersurface.C
 
     src/test/errorMetrics/errorMetrics.C
     src/test/lentCurvatureTest/lentCurvatureTest.C
@@ -308,9 +302,6 @@ target_include_directories("lent" PUBLIC
     src/frontReconstructors/normalConsistencyAlgorithms/convexFrontNormalConsistency
     src/frontReconstructors/normalConsistencyAlgorithms/distanceNormalConsistency
     src/frontReconstructors/normalConsistencyAlgorithms/normalConsistency
-    src/frontReconstructors/rbfFrontReconstructors/centroidIsoPointCalculator
-    src/frontReconstructors/rbfFrontReconstructors/linearLeastSquaresIsoPointCalculator
-    src/frontReconstructors/rbfFrontReconstructors/rbfIsoPointCalculator
 
     src/fronts/analyticalSurfaces/analyticalCircle
     src/fronts/analyticalSurfaces/analyticalEllipse
@@ -366,14 +357,6 @@ target_include_directories("lent" PUBLIC
 
     src/narrowBandPropagation/naiveNarrowBandPropagation
     src/narrowBandPropagation/narrowBandPropagation
-
-    src/rbfInterpolation/hypersurface/ellipsoidHypersurface
-    src/rbfInterpolation/hypersurface/hypersurfaceData
-    src/rbfInterpolation/hypersurface/sphereHypersurface
-    src/rbfInterpolation/rbfCellsInterpolationEigen
-    src/rbfInterpolation/rbfGeometry
-    src/rbfInterpolation/rbfGlobal
-    src/rbfInterpolation/rbfInterpolationEigen
 
     src/test
     src/test/errorMetrics
