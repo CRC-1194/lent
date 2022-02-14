@@ -1,5 +1,9 @@
 #!/bin/bash
 
+source ../../../scripts/bashrc
+
+./rhoLENT-document-variations.sh
+
 for study in *Translation.parameter; 
 do 
     agglomerate_pyfoam_studydata_notebook.py "$study"_00000_template_copy_block/stationaryDropletResults.csv -p $study; 
@@ -34,3 +38,5 @@ agglomerate_pyfoam_studydata_notebook.py \
 	-p popinet2009.parameter -f without-rhoEquation-popinet2009
 
 jupyter-nbconvert --execute --to=html without-rhoEquation-popinet2009.ipynb
+
+jupyter-nbconvert --execute --to=html rhoLENT-volume-conservation.ipynb

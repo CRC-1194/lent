@@ -7,6 +7,7 @@ then
 fi
 
 mkdir rhoLENT-data
+cp rhoLENT-data.md rhoLENT-data
 cp --parents $(find . -name stationaryDropletResults.csv) rhoLENT-data/
 cp ../../../scripts/modules/*.py rhoLENT-data/
 ./rhoLENT-document-variations.sh
