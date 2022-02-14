@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2018 AUTHOR,AFFILIATION
+    \\  /    A nd           | 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,12 +24,25 @@ License
 Class
     Foam::averagingCurvatureModel
 
-Description
-
 SourceFiles
     averagingCurvatureModelI.H
     averagingCurvatureModel.C
     averagingCurvatureModelIO.C
+
+Authors:
+    Tobias Tolle   (tolle@mma.tu-darmstadt.de)
+ 
+Affiliations:
+    Mathematical Modeling and Analysis Institute, Mathematics Department, 
+    TU Darmstadt, Germany
+
+Funding:
+    German Research Foundation (DFG) - Project-ID 265191195 - SFB 1194
+
+    German Research Foundation (DFG) - Project-ID MA 8465/1-1, 
+    Initiation of International Collaboration 
+    "Hybrid Level Set / Front Tracking methods for simulating 
+    multiphase flows in geometrically complex systems"
 
 \*---------------------------------------------------------------------------*/
 
