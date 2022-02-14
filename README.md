@@ -26,12 +26,12 @@ Marić, Tomislav, Holger Marschall, and Dieter Bothe. "lentFoam–A hybrid Level
 
 ### Prerequisites
 
-* OpenFOAM versions: [OpenFOAM-plus v1912](https://www.openfoam.com/download/release-history)
+* OpenFOAM versions: [OpenFOAM v2112 (ESI)](https://develop.openfoam.com/Development/openfoam/-/blob/master/doc/Build.md)
 * Compilers: gcc 10.3.0 and earlier
 * Build system: CMake 3.14 or higher
 * git for fetching dependencies
 * gmsh or paraview for surface mesh generation
-* admesh for normal consistency 
+* admesh for normal consistency (only for some 2D test cases)
 
 ### Compilation and installation
 
@@ -47,6 +47,8 @@ This will configure, compile and install the `lent` library
 and its applications to `$FOAM_USER_LIBBIN` and `$FOAM_USER_APPBIN`, respectively.
 Valid build types are `Release`, `Debug` and `RelWithDebInfo`. The flag
 `-DCMAKE_EXPORT_COMPILE_COMMANDS=on` is optional.  
+Alternatively, you can run the `install.sh` script given that `gcc-10` and `g++-10` are available on your
+system.  
 Lent comes with some scripts, e.g. to setup and run parameter studies. To be able to use them, you need to add the
 `scripts` directory to your `PATH` variable by executing the following command in your shell:
 
@@ -65,6 +67,7 @@ There are two important utilities that are distributed with the LENT repository 
 
 * `lentClearCasesRecursive` - `pyFoam` based script that cleans the LENT cases recursively
 * `lentSetFields` - pre-processing application that sets the signed distance and cell search fields required by the LENT method
+* `lentCreateFront` - create a surface STL file based on an analytical surface description.
 
 for the lent solvers:
 
@@ -72,7 +75,9 @@ for the lent solvers:
 * `lentAdvect` - solver application used to *advect* the LENT front with a *prescribed velocity field*
 * `lentFoam` - solver application used to execute two-phase Direct Numerical Simulations with the LENT method
 
-Other testing and utility applications are available in the `applications` folder with the appropriate descriptions placed in the implementation file headers. 
+Other testing and utility applications are available in the `applications` folder with the appropriate descriptions placed in the implementation file headers.  
+In `cases/flow-solution/translating-droplet/three-dimensional` there are several run scripts providing examples
+on the usage of scripts and solvers.
 
 ### Utilities information 
 
@@ -103,24 +108,3 @@ This is the standard workflow:
     lentFoam 
 
 `lentFoam` can be replaced by another solver application (`lentReconstruct` or `lentAdvect`).
-
-## Using Singularity containers
-1. First, build OpenFOAM version 1912 using the definition file 'openfoam-v1912.def' inside the 'singularity' folder.\
-    `sudo singularity build openfoam.sif openfoam.def`
-2. Then, build the container that consists of the environment and the build of the LENT project by using the definition file 'lent.def' inside the 'singularity' folder.\
-    `sudo singularity build lent.sif lent.def`
-
-### Private project LENT
-If LENT is a private project, it cannot be accessed automatically. You need to modify the Definition file 'lent.def' in order to copy a pair of SSH-keys from your local
-machine. It is advised that these keys be disposable, as they will continue to live inside the container. This modification will be removed once the project is public
-and there will no need for authentication to clone.
-
-### Use of the containers
-Once the container is build you can execute the following commands on it:
-1. clone, in order to get a copy of the project in your host system.\
-    `./lent.sif clone`
-
-2. build, in order to build the LENT project using the environment (dependencies) of the container.\
-   `./lent.sif build lent`
-
-Note: In the building command the last keyword 'lent' is refering to the name of the (host) project folder. It can be anything if you choose to rename that folder.
