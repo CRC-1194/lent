@@ -4,7 +4,7 @@ The LENT OpenFOAM module implements the LENT hybrid unstructured Level Set / Fro
 
 **IMPORTANT**: this is an actively developed research code. Report bugs [here](mailto:contact-project+leia-methods-lent-32701353-issue-@incoming.gitlab.com), contact us directly regarding  possible features or applications. 
 
-## Developers 
+## Developers
 
 Tomislav Maric maric{a}mma[dot]tu-darmstadt[dot]de
 
@@ -16,11 +16,11 @@ Mathematical Modeling and Analysis Institute,Mathematics Department, TU Darmstad
 
 ## Publications
 
-Liu, Jun, Tobias Tolle, Dieter Bothe, and Tomislav Maric. "A collocated unstructured finite volume Level Set/Front Tracking method for two-phase flows with large density-ratios." arXiv preprint arXiv:2109.01595 (2021). []()
+Liu, Jun, Tobias Tolle, Dieter Bothe, and Tomislav Maric. "A collocated unstructured finite volume Level Set/Front Tracking method for two-phase flows with large density-ratios." arXiv preprint arXiv:2109.01595 (2021). [arXiv:2109.01595](https://arxiv.org/abs/2109.01595)
 
-Tolle, Tobias, Dieter Bothe, and Tomislav Marić. "SAAMPLE: A segregated accuracy-driven algorithm for multiphase pressure-linked equations." Computers & Fluids 200 (2020): 104450. []()
+Tolle, Tobias, Dieter Bothe, and Tomislav Marić. "SAAMPLE: A segregated accuracy-driven algorithm for multiphase pressure-linked equations." Computers & Fluids 200 (2020): 104450. [doi:10.1016/j.compfluid.2020.104450](https://doi.org/10.1016/j.compfluid.2020.104450) [	arXiv:2001.09775](https://arxiv.org/abs/2001.09775)
 
-Marić, Tomislav, Holger Marschall, and Dieter Bothe. "lentFoam–A hybrid Level Set/Front Tracking method on unstructured meshes." Computers & Fluids 113 (2015): 20-31. []()
+Marić, Tomislav, Holger Marschall, and Dieter Bothe. "lentFoam–A hybrid Level Set/Front Tracking method on unstructured meshes." Computers & Fluids 113 (2015): 20-31. [doi: 10.1016/j.compfluid.2014.12.019](https://doi.org/10.1016/j.compfluid.2014.12.019)
 
 ## Installation 
 
