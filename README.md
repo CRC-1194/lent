@@ -1,26 +1,37 @@
 # LENT - a hybrid LEvel-set / froNT tracking (LENT) method in OpenFOAM 
 
-This is the library and application toolbox that implements the LENT method for DNS simulations of two-phase flows. 
+The LENT OpenFOAM module implements the LENT hybrid unstructured Level Set / Front Tracking method for DNS simulations of two-phase flows using a collocated unstructured FVM equation discretization.
 
-Developers 
+**IMPORTANT**: this is an actively developed research code. Report bugs [here](mailto:contact-project+leia-methods-lent-32701353-issue-@incoming.gitlab.com), contact us directly regarding  possible features or applications. 
+
+## Developers
 
 Tomislav Maric maric{a}mma[dot]tu-darmstadt[dot]de
 
 Tobias Tolle tolle{a}mma[dot]tu-darmstadt[dot]de
 
-Mathematics Department, Mathematical Modeling and Analysis Institute, TU Darmstadt
+Jun Liu liu{a}mma[dot]tu-darmstadt[dot]de
+
+Mathematical Modeling and Analysis Institute,Mathematics Department, TU Darmstadt
+
+## Publications
+
+Liu, Jun, Tobias Tolle, Dieter Bothe, and Tomislav Maric. "A collocated unstructured finite volume Level Set/Front Tracking method for two-phase flows with large density-ratios." arXiv preprint arXiv:2109.01595 (2021). [arXiv:2109.01595](https://arxiv.org/abs/2109.01595)
+
+Tolle, Tobias, Dieter Bothe, and Tomislav Marić. "SAAMPLE: A segregated accuracy-driven algorithm for multiphase pressure-linked equations." Computers & Fluids 200 (2020): 104450. [doi:10.1016/j.compfluid.2020.104450](https://doi.org/10.1016/j.compfluid.2020.104450) [	arXiv:2001.09775](https://arxiv.org/abs/2001.09775)
+
+Marić, Tomislav, Holger Marschall, and Dieter Bothe. "lentFoam–A hybrid Level Set/Front Tracking method on unstructured meshes." Computers & Fluids 113 (2015): 20-31. [doi: 10.1016/j.compfluid.2014.12.019](https://doi.org/10.1016/j.compfluid.2014.12.019)
 
 ## Installation 
 
 ### Prerequisites
 
-* OpenFOAM versions: [OpenFOAM-plus v1912](https://openfoam.com/releases/openfoam-v1912/)
-* Compilers: Gcc 8 and above (tested with 9.2.1)
+* OpenFOAM versions: [OpenFOAM v2112 (ESI)](https://develop.openfoam.com/Development/openfoam/-/blob/master/doc/Build.md)
+* Compilers: gcc 10.3.0 and earlier
 * Build system: CMake 3.14 or higher
-* Git for fetching dependencies
+* git for fetching dependencies
 * gmsh or paraview for surface mesh generation
-* admesh for normal consistency 
-* eigen3
+* admesh for normal consistency (only for some 2D test cases)
 
 ### Compilation and installation
 
@@ -35,7 +46,16 @@ Then execute the following commands inside the `lent` directory:
 This will configure, compile and install the `lent` library
 and its applications to `$FOAM_USER_LIBBIN` and `$FOAM_USER_APPBIN`, respectively.
 Valid build types are `Release`, `Debug` and `RelWithDebInfo`. The flag
-`-DCMAKE_EXPORT_COMPILE_COMMANDS=on` is optional.
+`-DCMAKE_EXPORT_COMPILE_COMMANDS=on` is optional.  
+Alternatively, you can run the `install.sh` script given that `gcc-10` and `g++-10` are available on your
+system.  
+Lent comes with some scripts, e.g. to setup and run parameter studies. To be able to use them, you need to add the
+`scripts` directory to your `PATH` variable by executing the following command in your shell:
+
+    echo 'export PATH=$HOME/OpenFOAM/openfoam/lent/scripts:$PATH' >> $HOME/.bashrc
+    . $HOME/.bashrc
+
+This command assumes that Lent is located in `~/OpenFOAM/openfoam`. If this is not the case, change the path accordingly.
 
 ### Installing PyFoam 
 
@@ -47,6 +67,7 @@ There are two important utilities that are distributed with the LENT repository 
 
 * `lentClearCasesRecursive` - `pyFoam` based script that cleans the LENT cases recursively
 * `lentSetFields` - pre-processing application that sets the signed distance and cell search fields required by the LENT method
+* `lentCreateFront` - create a surface STL file based on an analytical surface description.
 
 for the lent solvers:
 
@@ -54,7 +75,9 @@ for the lent solvers:
 * `lentAdvect` - solver application used to *advect* the LENT front with a *prescribed velocity field*
 * `lentFoam` - solver application used to execute two-phase Direct Numerical Simulations with the LENT method
 
-Other testing and utility applications are available in the `applications` folder with the appropriate descriptions placed in the implementation file headers. 
+Other testing and utility applications are available in the `applications` folder with the appropriate descriptions placed in the implementation file headers.  
+In `cases/flow-solution/translating-droplet/three-dimensional` there are several run scripts providing examples
+on the usage of scripts and solvers.
 
 ### Utilities information 
 
@@ -85,4 +108,3 @@ This is the standard workflow:
     lentFoam 
 
 `lentFoam` can be replaced by another solver application (`lentReconstruct` or `lentAdvect`).
-

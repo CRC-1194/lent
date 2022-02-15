@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Version:  2.2.x                               
-    \\  /    A nd           | Copyright held by original author
+   \\    /   O peration     | 
+    \\  /    A nd           | 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,30 +28,22 @@ Class
 SourceFiles
     naiveNarrowBandPropagation.C
 
-Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+Authors
+    Tomislav Maric (maric@mma.tu-darmstadt.de)
 
 Description
 
-    You may refer to this software as :
-    //- full bibliographic data to be provided
+Affiliations:
+    Mathematical Modeling and Analysis Institute, Mathematics Department, 
+    TU Darmstadt, Germany
 
-    This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
-    under the project supervision of :
-        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
-    
-    Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de
-    	Holger Marschall <marschall@csi.tu-darmstadt.de>
-    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
+Funding:
+    German Research Foundation (DFG) - Project-ID 265191195 - SFB 1194
 
-        Mathematical Modeling and Analysis
-        Center of Smart Interfaces
-        Technische Universitaet Darmstadt
-       
-    If you use this software for your scientific work or your publications,
-    please don't forget to acknowledge explicitly the use of it.
+    German Research Foundation (DFG) - Project-ID MA 8465/1-1, 
+    Initiation of International Collaboration 
+    "Hybrid Level Set / Front Tracking methods for simulating 
+    multiphase flows in geometrically complex systems"
 
 \*---------------------------------------------------------------------------*/
 

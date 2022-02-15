@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2016 OpenFOAM Foundation
+    \\  /    A nd           | 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,12 +24,25 @@ License
 Class
     Foam::dualKrigingInterpolation
 
-Description
-
 SourceFiles
     dualKrigingInterpolationI.H
     dualKrigingInterpolation.C
     dualKrigingInterpolationIO.C
+
+Authors
+    Tobias Tolle (tolle@mma.tu-darmstadt.de)
+
+Affiliations:
+    Mathematical Modeling and Analysis Institute, Mathematics Department, 
+    TU Darmstadt, Germany
+
+Funding:
+    German Research Foundation (DFG) - Project-ID 265191195 - SFB 1194
+
+    German Research Foundation (DFG) - Project-ID MA 8465/1-1, 
+    Initiation of International Collaboration 
+    "Hybrid Level Set / Front Tracking methods for simulating 
+    multiphase flows in geometrically complex systems"
 
 \*---------------------------------------------------------------------------*/
 
@@ -69,7 +82,7 @@ class dualKrigingInterpolation
     void removeDuplicates(std::vector<label>& listOfLabels) const;
     std::vector<label> cellNeighbourhood(const label& cellLabel, const fvMesh& mesh) const;
     void cacheCellCentres(const std::vector<label>& cellLabels, const fvMesh& mesh);
-    void adaptSystemSize(const unsigned int nPoints);
+    void adaptSystemSize(const label nPoints);
 
     void setupKrigingSystem();
     void setupRightHandSide(const std::vector<label>& cellLabels, const volVectorField& phi, const direction index);

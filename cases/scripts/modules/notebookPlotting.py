@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib import lines
 from matplotlib.lines import Line2D
 from matplotlib import rcParams
+import numpy as np
 import glob
 
 import dataAgglomeration as datglom
@@ -14,16 +15,12 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", plotDict = {}, ncol=2):
     """Plot the agglomerated multidimensional DataFrame using mathematical symbols mapped
     to column names with plotDict."""
 
-    # Set plotting style parameters
-    lStyles = list(lines.lineStyles.keys())
-    lStyles = set(lStyles)
-    lStyles.discard('None')
-    lStyles = list(lStyles)
+    # Set line and marker styles  
+    lStyles = list(lines.lineStyles.keys()) 
+    lStyles = [lStyle for lStyle in lStyles if lStyle not in ('None','',' ',None)]
     mStyles = list(Line2D.markers.keys())
-    mStyles = set(mStyles)
-    mStyles.discard('None')
-    mStyles = list(mStyles)
-    
+    mStyles = [mStyle for mStyle in mStyles if mStyle not in ('None','',' ',None)] 
+
     # X and Y-axis column names and diagram symbols.
     xColName = plotDict["x"]
     xColSymb = plotDict["xsymb"]
@@ -36,10 +33,16 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", plotDict = {}, ncol=2):
     fig, ax = plt.subplots()
     ax.set_xlabel(xColSymb)
     ax.set_ylabel(yColSymb)
-    ax.set_yscale('log')
-    
+
     ax.set_title(title)
     variationI = 0 
+    logPlot = True
+
+    # If the column value in the whole data frame is below machine tolerance
+    if (np.abs(dFrame[yColName].max()) < 1e-16):
+        # Set the Y-axis limits to machine tolerance.
+        ax.set_ylim([-1e-16,1e-16])
+
     for paramLine, subDframe in dFrame.groupby(level=indexLevels):
         xCol = subDframe[xColName] 
         yCol = subDframe[yColName]
@@ -63,13 +66,19 @@ def plot_dframe(dFrame, dFrameAgglomerator, title="", plotDict = {}, ncol=2):
             except:
                 pass
             paramString = indexName + "=%d " % paramLine 
-            
+
+        if (np.max(np.abs(yCol)) < 1e-15):
+            logPlot = False
+
         ax.plot(xCol, yCol, label="%04d " % variationI + paramString, 
                 marker=mStyles[variationI % len(mStyles)], 
                 linestyle=lStyles[variationI % len(lStyles)])
 
         variationI = variationI + 1
 
+    if (logPlot):
+        ax.set_yscale('log') 
+
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),fancybox=True, shadow=True, ncol=ncol) 
-              
+
     plt.show()

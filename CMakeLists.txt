@@ -37,7 +37,7 @@ find_package(Eigen3 REQUIRED)
 
 # Two-Phase Validation
 FetchContent_Declare(two-phase-validation
-    GIT_REPOSITORY          git@git.rwth-aachen.de:leia/two-phase-validation.git
+    GIT_REPOSITORY          https://www.gitlab.com/leia-methods/two-phase-validation.git 
     GIT_TAG                 master
     GIT_SHALLOW             YES
     GIT_PROGRESS            YES
@@ -121,9 +121,9 @@ set(CMAKE_EXE_LINKER_FLAGS "-Xlinker --add-needed -Xlinker --no-as-needed")
 if(MSVC)
     add_compile_options(/W4 /WX)
 else(MSVC)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb3 -O0 -Wall -Wextra -Wconversion -DDEBUG -pedantic -D_USE_MATH_DEFINES -DBOOST_MATH_INSTRUMENT")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Wextra -Wconversion -pedantic -Wno-deprecated -D_USE_MATH_DEFINES")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -ggdb3 -O3 -Wall -Wextra -Wconversion -pedantic -DDEBUG -D_USE_MATH_DEFINES")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb3 -O0 -Wall -Wextra -Wfloat-conversion -DDEBUG -pedantic -D_USE_MATH_DEFINES -DBOOST_MATH_INSTRUMENT")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Wextra -Wfloat-conversion -pedantic -Wno-deprecated -D_USE_MATH_DEFINES")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -ggdb3 -O3 -Wall -Wextra -Wfloat-conversion -pedantic -DDEBUG -D_USE_MATH_DEFINES")
 endif(MSVC)
 
 
@@ -145,7 +145,6 @@ add_library("lent" SHARED
     src/curvatureModels/frontBasedCurvatureModels/frontBasedCurvatureModel/frontBasedCurvatureModel.C
     src/curvatureModels/frontBasedCurvatureModels/frontTriangleCurvatureModel/frontTriangleCurvatureModel.C
     src/curvatureModels/frontBasedCurvatureModels/meyerCurvatureModel/meyerCurvatureModel.C
-    src/curvatureModels/frontToMeshTransferModels/explicitDiffusionTransferModel/explicitDiffusionTransferModel.C
     src/curvatureModels/frontToMeshTransferModels/frontToMeshTransferModel/frontToMeshTransferModel.C
     src/curvatureModels/frontToMeshTransferModels/nearestTriangleVicinityTransferModel/nearestTriangleVicinityTransferModel.C
     src/curvatureModels/frontToMeshTransferModels/triangleInCellTransferModel/triangleInCellTransferModel.C
@@ -165,7 +164,6 @@ add_library("lent" SHARED
 
     src/frontMotionSolvers/eulerFrontMotionSolver/eulerFrontMotionSolver.C
     src/frontMotionSolvers/frontMotionSolver/frontMotionSolver.C
-    #src/frontMotionSolvers/rkSecondFrontMotionSolver/rkSecondFrontMotionSolver.C
     src/frontMotionSolvers/taylorFrontMotionSolver/taylorFrontMotionSolver.C
 
     src/frontReconstructionModels/averageNormalAngleFrontReconstructionModel/averageNormalAngleFrontReconstructionModel.C
@@ -184,8 +182,6 @@ add_library("lent" SHARED
     src/frontReconstructors/normalConsistencyAlgorithms/convexFrontNormalConsistency/convexFrontNormalConsistency.C
     src/frontReconstructors/normalConsistencyAlgorithms/distanceNormalConsistency/distanceNormalConsistency.C
     src/frontReconstructors/normalConsistencyAlgorithms/normalConsistency/normalConsistency.C
-    src/frontReconstructors/rbfFrontReconstructors/centroidIsoPointCalculator/centroidIsoPointCalculator.C
-    src/frontReconstructors/rbfFrontReconstructors/linearLeastSquaresIsoPointCalculator/linearLeastSquaresIsoPointCalculator.C
 
     src/fronts/analyticalSurfaces/analyticalCircle/analyticalCircle.C
     src/fronts/analyticalSurfaces/analyticalEllipse/analyticalEllipse.C
@@ -199,9 +195,6 @@ add_library("lent" SHARED
     src/fronts/analyticalSurfaces/analyticalSphere/analyticalSphere.C
     src/fronts/analyticalSurfaces/analyticalSurface/analyticalSurface.C
     src/fronts/analyticalSurfaces/surfaceSet/surfaceSet.C
-
-    #src/fronts/extendedIsoSurface/extendedIsoSurface.C
-    #src/fronts/extendedIsoSurface/extendedIsoSurfaceTemplates.C
 
     src/fronts/faceTriangulators/simpleTriangulator/simpleTriangulator.C
 
@@ -225,9 +218,6 @@ add_library("lent" SHARED
 
     src/geometrical/markerFieldModels/barycenterPlaneMarkerFieldModel/barycenterPlaneMarkerFieldModel.C
 
-    #src/isoSurfaces/taylorIsoSurface/taylorIsoSurface.C
-    #src/isoSurfaces/taylorIsoSurface/taylorIsoSurfaceTemplates.C
-
     src/lentCommunication/lentCommunication.C
 
     src/lentInterpolation/dualKrigingInterpolation/dualKrigingInterpolation.C
@@ -247,10 +237,6 @@ add_library("lent" SHARED
 
     src/narrowBandPropagation/naiveNarrowBandPropagation/naiveNarrowBandPropagation.C
     src/narrowBandPropagation/narrowBandPropagation/narrowBandPropagation.C
-
-    src/rbfInterpolation/hypersurface/ellipsoidHypersurface/ellipsoidHypersurface.C
-    src/rbfInterpolation/hypersurface/hypersurfaceData/hypersurfaceData.C
-    src/rbfInterpolation/hypersurface/sphereHypersurface/sphereHypersurface.C
 
     src/test/errorMetrics/errorMetrics.C
     src/test/lentCurvatureTest/lentCurvatureTest.C
@@ -277,7 +263,6 @@ target_include_directories("lent" PUBLIC
     src/curvatureModels/frontBasedCurvatureModels/frontBasedCurvatureModel
     src/curvatureModels/frontBasedCurvatureModels/frontTriangleCurvatureModel
     src/curvatureModels/frontBasedCurvatureModels/meyerCurvatureModel
-    src/curvatureModels/frontToMeshTransferModels/explicitDiffusionTransferModel
     src/curvatureModels/frontToMeshTransferModels/frontToMeshTransferModel
     src/curvatureModels/frontToMeshTransferModels/nearestTriangleVicinityTransferModel
     src/curvatureModels/frontToMeshTransferModels/triangleInCellTransferModel
@@ -299,7 +284,6 @@ target_include_directories("lent" PUBLIC
 
     src/frontMotionSolvers/eulerFrontMotionSolver
     src/frontMotionSolvers/frontMotionSolver
-    #src/frontMotionSolvers/rkSecondFrontMotionSolver
     src/frontMotionSolvers/taylorFrontMotionSolver
 
     src/frontReconstructionModels/averageNormalAngleFrontReconstructionModel
@@ -318,9 +302,6 @@ target_include_directories("lent" PUBLIC
     src/frontReconstructors/normalConsistencyAlgorithms/convexFrontNormalConsistency
     src/frontReconstructors/normalConsistencyAlgorithms/distanceNormalConsistency
     src/frontReconstructors/normalConsistencyAlgorithms/normalConsistency
-    src/frontReconstructors/rbfFrontReconstructors/centroidIsoPointCalculator
-    src/frontReconstructors/rbfFrontReconstructors/linearLeastSquaresIsoPointCalculator
-    src/frontReconstructors/rbfFrontReconstructors/rbfIsoPointCalculator
 
     src/fronts/analyticalSurfaces/analyticalCircle
     src/fronts/analyticalSurfaces/analyticalEllipse
@@ -334,8 +315,6 @@ target_include_directories("lent" PUBLIC
     src/fronts/analyticalSurfaces/analyticalSphere
     src/fronts/analyticalSurfaces/analyticalSurface
     src/fronts/analyticalSurfaces/surfaceSet
-
-    #src/fronts/extendedIsoSurface
 
     src/fronts/faceTriangulators/simpleTriangulator
 
@@ -358,8 +337,6 @@ target_include_directories("lent" PUBLIC
 
     src/geometrical/markerFieldModels/barycenterPlaneMarkerFieldModel
 
-    src/isoSurfaces/taylorIsoSurface
-
     src/lentCommunication
 
     src/lentInterpolation
@@ -380,14 +357,6 @@ target_include_directories("lent" PUBLIC
 
     src/narrowBandPropagation/naiveNarrowBandPropagation
     src/narrowBandPropagation/narrowBandPropagation
-
-    src/rbfInterpolation/hypersurface/ellipsoidHypersurface
-    src/rbfInterpolation/hypersurface/hypersurfaceData
-    src/rbfInterpolation/hypersurface/sphereHypersurface
-    src/rbfInterpolation/rbfCellsInterpolationEigen
-    src/rbfInterpolation/rbfGeometry
-    src/rbfInterpolation/rbfGlobal
-    src/rbfInterpolation/rbfInterpolationEigen
 
     src/test
     src/test/errorMetrics
@@ -461,22 +430,6 @@ target_link_libraries("lentAdvect"
     ${OF_SOLVER_COMMON}
 )
 
-add_executable("lentAdvectRefined"
-    applications/solvers/lentAdvectRefined/lentAdvectRefined.C
-)
-target_include_directories("lentAdvectRefined" SYSTEM PRIVATE
-    ${OF_SOLVER_INCLUDES}
-    ${of_src_path}/dynamicMesh/lnInclude
-    ${of_src_path}/dynamicFvMesh/lnInclude
-)
-target_link_libraries("lentAdvectRefined"
-    "lent"
-    ${OF_LENTDEPS}
-    ${OF_SOLVER_COMMON}
-    ${OF_DYNAMICMESH}
-    ${OF_DYNAMICFVMESH}
-)
-
 add_executable("lentReconstruct"
     applications/solvers/lentReconstruct/lentReconstruct.C
 )
@@ -487,22 +440,6 @@ target_link_libraries("lentReconstruct"
     "lent"
     ${OF_LENTDEPS}
     ${OF_SOLVER_COMMON}
-)
-
-add_executable("lentRefineMesh"
-    applications/solvers/lentRefineMesh/lentRefineMesh.C
-)
-target_include_directories("lentRefineMesh" SYSTEM PRIVATE
-    ${OF_SOLVER_INCLUDES}
-    ${of_src_path}/dynamicMesh/lnInclude
-    ${of_src_path}/dynamicFvMesh/lnInclude
-)
-target_link_libraries("lentRefineMesh"
-    "lent"
-    ${OF_LENTDEPS}
-    ${OF_SOLVER_COMMON}
-    ${OF_DYNAMICMESH}
-    ${OF_DYNAMICFVMESH}
 )
 
 # Utilities
@@ -557,26 +494,12 @@ target_link_libraries("lentTestCurvature"
     ${OF_LENTDEPS}
 )
 
-add_executable("lentTestRbfReconstruction"
-    applications/testing/lentTestRbfReconstruction/lentTestRbfReconstruction.C
-)
-target_include_directories("lentTestRbfReconstruction" SYSTEM PRIVATE
-    applications/testing/lentTestRbfReconstruction
-    ${of_src_path}/fileFormats/lnInclude
-)
-target_link_libraries("lentTestRbfReconstruction"
-    "lent"
-    ${OF_LENTDEPS}
-)
-
 # Install executables
 install(TARGETS
     # Solvers
     "lentFoam"
     "lentAdvect"
-    "lentAdvectRefined"
     "lentReconstruct"
-    "lentRefineMesh"
 
     # Utilities
     "lentSetFields"
@@ -585,7 +508,6 @@ install(TARGETS
     # Tests
     "lentTestAdvection"
     "lentTestCurvature"
-    "lentTestRbfReconstruction"
 
     RUNTIME
 )

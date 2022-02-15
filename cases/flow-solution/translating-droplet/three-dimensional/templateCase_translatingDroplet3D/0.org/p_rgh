@@ -25,7 +25,10 @@ boundaryField
 {
     inlet
     {
-        type            zeroGradient;
+       
+	//type		fixedValue;// for diagonal cases
+	//value		uniform 0; //...
+ 	type            zeroGradient;
     }
     outlet
     {
@@ -34,7 +37,9 @@ boundaryField
     }
     mantle
     {
-        type            zeroGradient;
+	//type		fixedValue;//...
+	//value		uniform 0; //...       
+	type            zeroGradient;
     }
 }
 

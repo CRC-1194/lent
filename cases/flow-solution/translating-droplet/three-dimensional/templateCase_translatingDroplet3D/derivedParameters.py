@@ -29,7 +29,11 @@ def computeDeltaT(values):
 
     # Safety coefficient to stay below critical delta_t threshold
     sf = values["scale_delta_t"]
-    capillary_delta_t = sf*math.sqrt((rho_droplet + rho_ambient)*math.pow(h,3.0)/(2.0*math.pi*sigma))
+
+    capillary_delta_t = 1e15
+
+    if sigma > 0.0:
+        capillary_delta_t = sf*math.sqrt((rho_droplet + rho_ambient)*math.pow(h,3.0)/(2.0*math.pi*sigma))
 
     # Check for the CFL number
     cfl_factor = values["cfl_factor"]

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,85 +21,96 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Authors
+    Tomislav Maric (maric@mma.tu-darmstadt.de)
+
+Affiliations:
+    Mathematical Modeling and Analysis Institute, Mathematics Department, 
+    TU Darmstadt, Germany
+
+Funding:
+    German Research Foundation (DFG) - Project-ID 265191195 - SFB 1194
+
+    German Research Foundation (DFG) - Project-ID MA 8465/1-1, 
+    Initiation of International Collaboration 
+    "Hybrid Level Set / Front Tracking methods for simulating 
+    multiphase flows in geometrically complex systems"
+
 \*---------------------------------------------------------------------------*/
 
 #include "triSurfaceFrontFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
-namespace FrontTracking 
-{
+namespace Foam {
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 template<>
-const word triSurfaceFrontLabelField::typeName("triSurfaceFrontLabelField");
+const word FrontTracking::triSurfaceFrontLabelField::typeName("triSurfaceFrontLabelField");
 
 template<>
-const word triSurfaceFrontScalarField::typeName("triSurfaceFrontScalarField");
+const word FrontTracking::triSurfaceFrontScalarField::typeName("triSurfaceFrontScalarField");
 
 template<>
-const word triSurfaceFrontVectorField::typeName("triSurfaceFrontVectorField");
+const word FrontTracking::triSurfaceFrontVectorField::typeName("triSurfaceFrontVectorField");
 
 template<>
-const word triSurfaceFrontSphericalTensorField::typeName
+const word FrontTracking::triSurfaceFrontSphericalTensorField::typeName
 ("triSurfaceFrontSphericalTensorField");
 
 template<>
-const word triSurfaceFrontSymmTensorField::typeName
+const word FrontTracking::triSurfaceFrontSymmTensorField::typeName
 ("triSurfaceFrontSymmTensorField");
 
 template<>
-const word triSurfaceFrontTensorField::typeName("triSurfaceFrontTensorField");
+const word FrontTracking::triSurfaceFrontTensorField::typeName("triSurfaceFrontTensorField");
 
 
 template<>
-const word triSurfaceFrontPointLabelField::typeName("triSurfaceFrontPointLabelField");
+const word FrontTracking::triSurfaceFrontPointLabelField::typeName("triSurfaceFrontPointLabelField");
 
 template<>
-const word triSurfaceFrontPointScalarField::typeName("triSurfaceFrontPointScalarField");
+const word FrontTracking::triSurfaceFrontPointScalarField::typeName("triSurfaceFrontPointScalarField");
 
 template<>
-const word triSurfaceFrontPointVectorField::typeName("triSurfaceFrontPointVectorField");
+const word FrontTracking::triSurfaceFrontPointVectorField::typeName("triSurfaceFrontPointVectorField");
 
 template<>
-const word triSurfaceFrontPointSphericalTensorField::typeName
+const word FrontTracking::triSurfaceFrontPointSphericalTensorField::typeName
 ("triSurfaceFrontPointSphericalTensorField");
 
 template<>
-const word triSurfaceFrontPointSymmTensorField::typeName
+const word FrontTracking::triSurfaceFrontPointSymmTensorField::typeName
 ("triSurfaceFrontPointSymmTensorField");
 
 template<>
-const word triSurfaceFrontPointTensorField::typeName("triSurfaceFrontPointTensorField");
+const word FrontTracking::triSurfaceFrontPointTensorField::typeName("triSurfaceFrontPointTensorField");
 
 
 template<>
-const word triSurfaceFrontEdgeLabelField::typeName("triSurfaceFrontEdgeLabelField");
+const word FrontTracking::triSurfaceFrontEdgeLabelField::typeName("triSurfaceFrontEdgeLabelField");
 
 template<>
-const word triSurfaceFrontEdgeScalarField::typeName("triSurfaceFrontEdgeScalarField");
+const word FrontTracking::triSurfaceFrontEdgeScalarField::typeName("triSurfaceFrontEdgeScalarField");
 
 template<>
-const word triSurfaceFrontEdgeVectorField::typeName("triSurfaceFrontEdgeVectorField");
+const word FrontTracking::triSurfaceFrontEdgeVectorField::typeName("triSurfaceFrontEdgeVectorField");
 
 template<>
-const word triSurfaceFrontEdgeSphericalTensorField::typeName
+const word FrontTracking::triSurfaceFrontEdgeSphericalTensorField::typeName
 ("triSurfaceFrontEdgeSphericalTensorField");
 
 template<>
-const word triSurfaceFrontEdgeSymmTensorField::typeName
+const word FrontTracking::triSurfaceFrontEdgeSymmTensorField::typeName
 ("triSurfaceFrontEdgeSymmTensorField");
 
 template<>
-const word triSurfaceFrontEdgeTensorField::typeName("triSurfaceFrontEdgeTensorField");
+const word FrontTracking::triSurfaceFrontEdgeTensorField::typeName("triSurfaceFrontEdgeTensorField");
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace FrontTracking
 } // End namespace Foam
 
 // ************************************************************************* //

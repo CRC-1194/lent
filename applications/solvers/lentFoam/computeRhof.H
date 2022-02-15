@@ -1,6 +1,7 @@
 // FIXME: This shouldn't be boilerplate, refactor. TM. 
 
 // Compute rhoPhi using the old approach since it is valid for all bulk cells
+muf == mixture.muf();
 rhof.oldTime() == rhof;
 rhof == fvc::interpolate(rho);
 
@@ -25,5 +26,7 @@ forAll(rhoPhi, faceI)
         const scalar alphaFace = computeAlphaFace(meshFaces[faceI],
                                                   pointSignedDistance, meshVertices);
         rhof[faceI] = alphaFace*rho1.value() + (1 - alphaFace)*rho2.value();
+        muf[faceI] = alphaFace*rho1.value()*nu1.value() + 
+            (1 - alphaFace)*rho2.value()*nu2.value();
     }
 }

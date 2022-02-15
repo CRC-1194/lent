@@ -1,10 +1,9 @@
 #!/bin/bash
-#SBATCH -J lentFoam
-#SBATCH --mail-type=FAIL
-#SBATCH --mail-user=maric@mma.tu-darmstadt.de
+#SBATCH -A special00005
+#SBATCH -J lentFoam 
 #SBATCH -n 1 
-#SBATCH --mem-per-cpu=2000 
-#SBATCH -t 23:00:00     
+#SBATCH --mem-per-cpu=6000 
+#SBATCH -t 15:00:00     
 
 # -------------------------------
 

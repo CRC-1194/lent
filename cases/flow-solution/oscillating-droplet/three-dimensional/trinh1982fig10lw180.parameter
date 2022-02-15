@@ -24,7 +24,7 @@ values
     // Parameters from system/blockMeshDict
     resolution 
     (
-        64 128 256 384
+        64 128 256 //384
     ); 
 
 

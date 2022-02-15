@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) held by original authors
+    \\  /    A nd           | 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -31,7 +31,7 @@ Description
     maximal Courant number.
 
 Authors
-    Tomislav Maric tomislav@sourceflux.de 
+    Tomislav Maric maric@mma.tu-darmstadt.de 
 
 \*---------------------------------------------------------------------------*/
 

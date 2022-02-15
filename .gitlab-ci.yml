@@ -1,0 +1,18 @@
+image: "tmaric/openfoam-v2112_ubuntu-focal:latest"
+
+stages:
+  - building
+
+build:
+  stage: building
+  script:
+
+    ##
+    ## Configure the OpenFOAM environment
+    ##
+    - source /opt/OpenFOAM/OpenFOAM-v2112/etc/bashrc || true  
+
+    ##
+    ## Build and install: this project only has a single OF application
+    ##
+    - ./install.sh

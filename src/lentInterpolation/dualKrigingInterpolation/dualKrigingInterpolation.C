@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2016 OpenFOAM Foundation
+    \\  /    A nd           | 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,6 +21,29 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::dualKrigingInterpolation
+
+SourceFiles
+    dualKrigingInterpolationI.H
+    dualKrigingInterpolation.C
+    dualKrigingInterpolationIO.C
+
+Authors
+    Tobias Tolle (tolle@mma.tu-darmstadt.de)
+
+Affiliations:
+    Mathematical Modeling and Analysis Institute, Mathematics Department, 
+    TU Darmstadt, Germany
+
+Funding:
+    German Research Foundation (DFG) - Project-ID 265191195 - SFB 1194
+
+    German Research Foundation (DFG) - Project-ID MA 8465/1-1, 
+    Initiation of International Collaboration 
+    "Hybrid Level Set / Front Tracking methods for simulating 
+    multiphase flows in geometrically complex systems"
+
 \*---------------------------------------------------------------------------*/
 
 #include "dualKrigingInterpolation.H"
@@ -37,7 +60,7 @@ void dualKrigingInterpolation::removeDuplicates(std::vector<label>& listOfLabels
     std::sort(listOfLabels.begin(), listOfLabels.end());
     std::vector<label>::iterator newEnd;
     newEnd = std::unique(listOfLabels.begin(), listOfLabels.end());
-    listOfLabels.resize(static_cast<unsigned int>(std::distance(listOfLabels.begin(), newEnd)));
+    listOfLabels.resize(std::distance(listOfLabels.begin(), newEnd));
 }
 
 std::vector<label> dualKrigingInterpolation::cellNeighbourhood(const label& cellLabel, const fvMesh& mesh) const
@@ -71,7 +94,7 @@ void dualKrigingInterpolation::cacheCellCentres(const std::vector<label>& cellLa
     }
 }
 
-void dualKrigingInterpolation::adaptSystemSize(const unsigned int nPoints)
+void dualKrigingInterpolation::adaptSystemSize(const label nPoints)
 {
     // The 4 arises from using a linear drift
     unsigned int nDriftCoeffs = 4;
@@ -98,7 +121,7 @@ void dualKrigingInterpolation::setupKrigingSystem()
 
     // TODO: Optimization: resulting matrix symmetric. This fact is 
     // not exploited here
-    auto nPoints = static_cast<long>(cachedCellCentres_.size());
+    auto nPoints = cachedCellCentres_.size();
 
     // Setup covariance block
     for (unsigned int I = 0; I < nPoints; ++I)
@@ -122,8 +145,8 @@ void dualKrigingInterpolation::setupKrigingSystem()
         for (unsigned int K = 0; K < nPoints; ++K)
         {
             // linear coefficients x, y, z
-            dualKrigingSystem_(nPoints+1+I, K) = cachedCellCentres_[K][static_cast<direction>(I)];
-            dualKrigingSystem_(K, nPoints+1+I) = cachedCellCentres_[K][static_cast<direction>(I)];
+            dualKrigingSystem_(nPoints+1+I, K) = cachedCellCentres_[K][I];
+            dualKrigingSystem_(K, nPoints+1+I) = cachedCellCentres_[K][I];
 
             /*
             // quadratic coefficients x^2, y^2, z^2
@@ -176,7 +199,7 @@ vector dualKrigingInterpolation::drift(const point& vertex) const
     for (unsigned int I = 0; I < 3; ++I)
     {
         // linear terms
-        driftValue += driftCoefficients_[I+1]*vertex[static_cast<direction>(I)];
+        driftValue += driftCoefficients_[I+1]*vertex[I];
 
         /*
         // quadratic terms
@@ -219,7 +242,7 @@ void dualKrigingInterpolation::computeDualKrigingParameters
 )
 {
     auto cellLabels = cellNeighbourhood(cellLabel, mesh);
-    auto nPoints = static_cast<unsigned int>(cellLabels.size());
+    auto nPoints = cellLabels.size();
 
     adaptSystemSize(nPoints);
     cacheCellCentres(cellLabels, mesh);

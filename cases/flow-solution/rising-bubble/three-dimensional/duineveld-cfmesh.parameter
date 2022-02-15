@@ -9,10 +9,10 @@ values
     solver (lentFoam);
 
     // Parameters from constant/transportProperties
-    rho_droplet (1.205);
+    rho_droplet (1.205);//density of pure air at 20 C, 1 atm
     nu_droplet (1.5103734439834023e-05);
 
-    rho_ambient (998.3);
+    rho_ambient (998.3);  //density of pure water at 19.5 C
     nu_ambient (1.0017028949213664e-06);
 
     surface_tension_coefficient (0.0727);
@@ -47,7 +47,7 @@ values
     write_interval (0.001);
 
     // Parameters from system/lentSolution
-    reconstruction_interval (50);
+    reconstruction_interval (0);
     temporal_integration    (Euler);
     cell_to_vertex          (cellPoint);
     curvature_model         (compactDivGrad);

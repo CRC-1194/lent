@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Version:  2.2.x                               
-    \\  /    A nd           | Copyright held by original author
+   \\    /   O peration     | 
+    \\  /    A nd           | 
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,31 +28,23 @@ Class
 SourceFiles
     frontMotionSolver.C
 
-Author
-    Tomislav Maric maric@csi.tu-darmstadt.de
+Authors:
+    Tomislav Maric (maric@mma.tu-darmstadt.de)
 
 Description
-    Interface for the front motion solution.
+    Interface for the Front Tracking advection. 
 
-    You may refer to this software as :
-    //- full bibliographic data to be provided
+Affiliations:
+    Mathematical Modeling and Analysis Institute, Mathematics Department, 
+    TU Darmstadt, Germany
 
-    This code has been developed by :
-        Tomislav Maric maric@csi.tu-darmstadt.de (main developer)
-    under the project supervision of :
-        Holger Marschall <marschall@csi.tu-darmstadt.de> (group leader).
-    
-    Method Development and Intellectual Property :
-    	Tomislav Maric maric@csi.tu-darmstadt.de
-    	Holger Marschall <marschall@csi.tu-darmstadt.de>
-    	Dieter Bothe <bothe@csi.tu-darmstadt.de>
+Funding:
+    German Research Foundation (DFG) - Project-ID 265191195 - SFB 1194
 
-        Mathematical Modeling and Analysis
-        Center of Smart Interfaces
-        Technische Universitaet Darmstadt
-       
-    If you use this software for your scientific work or your publications,
-    please don't forget to acknowledge explicitly the use of it.
+    German Research Foundation (DFG) - Project-ID MA 8465/1-1, 
+    Initiation of International Collaboration 
+    "Hybrid Level Set / Front Tracking methods for simulating 
+    multiphase flows in geometrically complex systems"
 
 \*---------------------------------------------------------------------------*/
 
@@ -75,8 +67,8 @@ namespace FrontTracking {
 
 frontMotionSolver::frontMotionSolver(const dictionary& configDict)
     :
-        cellDisplacementTmp_(),
-        frontDisplacementTmp_(),
+        cellDisplacementTmp_(nullptr),
+        frontDisplacementTmp_(nullptr),
         interpolation_(configDict)
 {}
 
@@ -87,21 +79,23 @@ frontMotionSolver::New(const dictionary& configDict)
 {
     const word name = configDict.get<word>("type");
 
-    DictionaryConstructorTable::iterator cstrIter =
-        DictionaryConstructorTablePtr_->find(name);
+    // Find the constructor pointer for the model in the constructor table.
+    auto* ctorPtr = DictionaryConstructorTable(name);
 
-    if (cstrIter == DictionaryConstructorTablePtr_->end())
+    // If the constructor pointer is not found in the table.
+    if (!ctorPtr)
     {
-        FatalErrorIn (
-            "frontMotionSolver::New(const word& name)"
-        )   << "Unknown frontMotionSolver type "
-            << name << nl << nl
-            << "Valid frontMotionSolvers are : " << endl
-            << DictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalError);
+        FatalIOErrorInLookup
+        (
+            configDict,
+            "frontMotionSolver",
+            name,
+            *DictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
-    return tmp<frontMotionSolver> (cstrIter()(configDict));
+    // Construct the model and return the autoPtr to the object.
+    return tmp<frontMotionSolver> (ctorPtr(configDict));
 }
 
 
@@ -121,7 +115,7 @@ void frontMotionSolver::initDisplacements(
         vector(0,0,0)
     );
 
-    if (cellDisplacementTmp_.empty())
+    if (!cellDisplacementTmp_)
     {
         cellDisplacementTmp_ = tmp<volVectorField>(
             new volVectorField( 
@@ -138,7 +132,7 @@ void frontMotionSolver::initDisplacements(
         );
     } 
 
-    if (frontDisplacementTmp_.empty())
+    if (!frontDisplacementTmp_)
     {
         frontDisplacementTmp_ = tmp<triSurfaceFrontPointVectorField>(
             new triSurfaceFrontPointVectorField( 
