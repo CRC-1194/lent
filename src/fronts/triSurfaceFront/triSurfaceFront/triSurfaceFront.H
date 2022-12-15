@@ -155,8 +155,7 @@ public:
     // Member operators
     void operator=(const triSurfaceFront& rhs);
     void operator=(const triSurface& rhs);
-
-    void operator=(const isoSurfacePoint& rhs);
+    void operator=(const isoSurfaceBase& rhs);
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
