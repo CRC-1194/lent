@@ -8,8 +8,8 @@ def computeDeltaT(values):
     if "delta_t" in values:
         return values["delta_t"]
 
-    domainLength = 5.0*values["radius"]
-    resolution = values["resolution"]
+    domainLength = 4.0*values["radius"]
+    resolution = values["n_base"] # ["resolution"]
     rho_droplet = values["rho_droplet"]
 
     # rho_ambient might be expressed in terms of rho_droplet

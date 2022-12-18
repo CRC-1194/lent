@@ -23,16 +23,22 @@ boundaryField
 {
     bottom
     {
-        type            zeroGradient;
+//        type            zeroGradient;
+         type            fixedFluxPressure;
+         value           $internalField;
     }
     top
     {
-        type            fixedValue;
-        value           uniform 0;
+         type            fixedFluxPressure;
+         value           $internalField;
+//        type            fixedValue;
+//        value           uniform 0;
     }
     mantle
     {
-        type            zeroGradient;
+         type            fixedFluxPressure;
+         value           $internalField;
+//        type            zeroGradient;
     }
 }
 

@@ -35,7 +35,8 @@ boundaryField
 
         // Arbitrary Lagrangian / Eulerian -Relative Reference Frame (RRF
         // Not sure if Neumann is the right BC for ALE-RRF. 
-        type            zeroGradient;
+//        type            zeroGradient;
+            type            noSlip;
     }
     bottom
     {
@@ -44,7 +45,8 @@ boundaryField
         // value           uniform (0 0 0);
         
         // Arbitrary Lagrangian / Eulerian -Relative Reference Frame (RRF
-        type            zeroGradient;
+        // type            zeroGradient;
+        type            noSlip;
     }
 
     mantle
