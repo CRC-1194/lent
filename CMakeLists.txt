@@ -158,6 +158,7 @@ add_library("lent" SHARED
 
     src/distanceFieldCalculators/distanceFieldCalculator/distanceFieldCalculator.C
     src/distanceFieldCalculators/optimizedOctreeDistanceCalculator/optimizedOctreeDistanceCalculator.C
+    src/distanceFieldCalculators/robustOctreeDistanceCalculator/robustOctreeDistanceCalculator.C
     src/distanceFieldCalculators/triSurfaceMeshDistanceCalculator/triSurfaceMeshDistanceCalculator.C
 
     src/frontMeshSearch/frontMeshSearch.C
@@ -276,6 +277,7 @@ target_include_directories("lent" PUBLIC
 
     src/distanceFieldCalculators/distanceFieldCalculator
     src/distanceFieldCalculators/optimizedOctreeDistanceCalculator
+    src/distanceFieldCalculators/robustOctreeDistanceCalculator
     src/distanceFieldCalculators/triSurfaceMeshDistanceCalculator
 
     src/fieldOperators
