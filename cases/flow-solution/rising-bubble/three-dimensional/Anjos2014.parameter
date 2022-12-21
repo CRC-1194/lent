@@ -41,13 +41,13 @@ values
     //      "Numerical time-step restrictions as a result of capillary waves"
     //      Denner and van Wachem 2015
     //      equation 43
-    scale_delta_t   (0.05);
+    scale_delta_t   (0.1);
 
     // Write interval in terms defined in seconds of simulated physical time
     write_interval  (0.001);
 
     // Parameters from system/lentSolution
-    reconstruction_interval (50);//200);
+    reconstruction_interval (100);//50);//200);
     temporal_integration    (Euler);
     cell_to_vertex          (cellPoint);
     curvature_model         (compactDivGrad);
@@ -55,7 +55,7 @@ values
 
 
     // Parameters from system/fvSolution
-    p_tol                       (1.0e-7);
+    p_tol                       (1.0e-8);//(1.0e-7);
     u_tol                       (1.0e-7);
     n_outer_correctors          (15);
     n_correctors                (4);

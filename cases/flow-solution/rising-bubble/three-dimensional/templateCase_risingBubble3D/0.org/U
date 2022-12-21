@@ -45,7 +45,7 @@ boundaryField
         // value           uniform (0 0 0);
         
         // Arbitrary Lagrangian / Eulerian -Relative Reference Frame (RRF
-        // type            zeroGradient;
+//         type            zeroGradient;
         type            noSlip;
     }
 
