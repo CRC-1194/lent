@@ -179,14 +179,15 @@ int main(int argc, char *argv[])
         {
             alphaInv = dimensionedScalar("1", dimless, 1) - markerField;
             Ub = sum(alphaInv * mesh.V() * U) / sum(alphaInv * mesh.V());
-	        Ufront == Ufront - Ub;
+	    Ufront == Ufront - Ub;
+	    phi == phi - (Ub & mesh.Sf());
         }
         if (args.found("normal-velocity"))
         {
             nFront = fvc::grad(signedDistance); 
             nFront /= Foam::mag(nFront) + dimensionedScalar("EPSILON", dimless, EPSILON);
             Ufront == (Ufront & nFront) * nFront;
-	    }
+	}
 
         lent.reconstructFront(front, signedDistance, pointSignedDistance);
 

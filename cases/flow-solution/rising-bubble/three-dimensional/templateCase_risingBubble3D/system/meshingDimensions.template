@@ -26,8 +26,8 @@ C1 #calc "$y_centre - $HALF_WIDTH";
 C2 #calc "$x_centre + $HALF_WIDTH";
 C3 #calc "$y_centre + $HALF_WIDTH";
 
-Z1 #calc "4*$radius";
-Z2 #calc "12*$radius";//"2*$radius";
+Z1 #calc "8*$radius";
+Z2 #calc "8*$radius";//"2*$radius";
 
 H_START #calc "$z_centre - $Z1";
 H_END #calc "$z_centre + $Z2";

@@ -86,30 +86,30 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
     using filterType = isoSurfaceParams::filterType;
 
     // Original choice for the iso-surface reconstruction 
-    //isoSurfaceParams isoParams
-    //(
-    //    algorithmType::ALGO_DEFAULT, 
-    //    (regularize_) ? filterType::DIAGCELL : filterType::NONE
-    //);
-    //isoSurfacePoint iso(
-    //    signedDistance,
-    //    pointSignedDistance,
-    //    0, 
-    //    isoParams
-    //);
-    
     isoSurfaceParams isoParams
     (
-        algorithmType::ALGO_DEFAULT,
-        (regularize_) ? filterType::CELL : filterType::NONE
+        algorithmType::ALGO_DEFAULT, 
+        (regularize_) ? filterType::DIAGCELL : filterType::NONE
     );
-    isoSurfaceTopo iso(
-        signedDistance.mesh(), 
-        signedDistance, 
-        pointSignedDistance, 
+    isoSurfacePoint iso(
+        signedDistance,
+        pointSignedDistance,
         0, 
         isoParams
     );
+    
+    //isoSurfaceParams isoParams
+    //(
+    //    algorithmType::ALGO_DEFAULT,
+    //    (regularize_) ? filterType::CELL : filterType::NONE
+    //);
+    //isoSurfaceTopo iso(
+    //    signedDistance.mesh(), 
+    //    signedDistance, 
+    //    pointSignedDistance, 
+    //    0, 
+    //    isoParams
+    //);
 
     // Update the communication map after reconstruction.
     const auto& mesh = signedDistance.mesh();

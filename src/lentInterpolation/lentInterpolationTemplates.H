@@ -51,6 +51,7 @@ Funding:
 
 #include "interpolationCellPoint.H"
 #include "dualKrigingInterpolation.H"
+#include "fvcGrad.H"
 
 #include <chrono>
 
@@ -136,6 +137,30 @@ void lentInterpolation::interpolate(
         std::chrono::duration<double> elapsedSeconds = end - start;
 
         Info << "Computation time Kriging interpolation: " << elapsedSeconds.count() << endl;
+    }
+    else if (cellToVertexInterpType_ == "extrapolation")
+    {
+	Info << "Using extrapolation to transfer " << cellField.name() 
+		<< " to " << vertexField.name() << endl;
+        const auto& vertices = front.points();
+        const auto& verticesInCell = communication.interfaceCellToVertices();
+
+	auto cellFieldGradTmp = fvc::grad(cellField, "leastSquares");
+	const auto& cellFieldGrad = cellFieldGradTmp();
+	const auto& mesh = cellFieldGrad.mesh();
+	const auto& cellCenters = mesh.C();
+
+        for (const auto& cellToVertices : verticesInCell)
+        {
+            const auto& cellLabel = cellToVertices.first;
+            const auto& vertexLabels = cellToVertices.second;
+
+            for (const auto& vLabel : vertexLabels)
+            {
+                vertexField[vLabel] = cellField[cellLabel] + 
+			(cellFieldGrad[cellLabel] & (vertices[vLabel] - cellCenters[cellLabel]));
+            }
+        }
     }
     else
     {
