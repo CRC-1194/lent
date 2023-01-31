@@ -23,7 +23,7 @@ z_centre @!z_centre!@;
 
 distanceCalculator
 {
-    type            optimizedOctree;
+    type            robustOctree;
     narrowBandWidth 3;
     narrowBandPropagation
     {

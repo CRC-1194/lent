@@ -21,8 +21,8 @@ values
 
     // Parameters from system/meshingDimensions
     // used by system/blockMeshDict
-    resolution (60); 
-    n_base (64);
+    resolution (110); 
+    n_base (60); //(128);//(64);
 
     // Parameter for cartesian ALE-RRF mesh
     // Used only when mesh is manually generated in each case with cartesianMesh.sh
@@ -33,7 +33,7 @@ values
     // Parameters from system/controlDict
     end_time
     (
-        0.42 // Dimensionless time in [2] is \tilde{t} =\frac{t}{\sqrt{\frac{2*radius / g}}}
+        0.32 // Dimensionless time in [2] is \tilde{t} =\frac{t}{\sqrt{\frac{2*radius / g}}}
     );
 
     //delta_t: set as dependent parameter according to the time step restriction
@@ -47,7 +47,7 @@ values
     write_interval  (0.001);
 
     // Parameters from system/lentSolution
-    reconstruction_interval (100);//50);//200);
+    reconstruction_interval (10);//50);//200);
     temporal_integration    (Euler);
     cell_to_vertex          (cellPoint);
     curvature_model         (compactDivGrad);

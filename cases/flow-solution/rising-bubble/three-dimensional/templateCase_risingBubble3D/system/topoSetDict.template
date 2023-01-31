@@ -16,18 +16,22 @@ FoamFile
 
 #include "meshingDimensions";
 
-x_centre  @!x_centre!@;
-radius  @!radius!@;
-d       #calc "5.0 * $radius";
-n_fine  @!resolution!@;
+//x_centre  @!x_centre!@;
+//radius  @!radius!@;
+L       #calc "8.0 * $radius"; //d  #calc "5.0 * $radius";
+//n_fine  @!resolution!@;
 
 // This delta corresponds to a narrowband width of 4 cells
 // to ensure the part of the domain in which the interface acts
 // is uniformly resolved
-delta   #calc "5.0*$d/float($n_fine)";
+delta   #calc "5.0*$L/float($N)";
 
-bmin    #calc "$x_centre - $radius - $delta";
-bmax    #calc "$x_centre + $radius + $delta";
+//bmin    #calc "$x_centre - $radius - $delta";
+//bmax    #calc "$x_centre + $radius + $delta";
+xyMin        #calc "$x_centre - 2.5*$radius - $delta";
+xyMax        #calc "$x_centre + 2.5*$radius + $delta";
+zMin         #calc "$z_centre - 2*$radius - $delta";
+zMax         #calc "$z_centre + 10*$radius + $delta";
 
 actions
 (
@@ -38,7 +42,7 @@ actions
         source  boxToPoint;
         sourceInfo
         {
-            box ($bmin $bmin $bmin) ($bmax $bmax $bmax);
+            box ($xyMin $xyMin $zMin) ($xyMax $xyMax $zMax);
         }
     }
 
