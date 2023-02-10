@@ -71,10 +71,31 @@ foamIsoSurfaceFrontReconstructor::foamIsoSurfaceFrontReconstructor(
     frontReconstructor(configDict),
     mergeTolerance_(configDict.get<scalar>("mergeTolerance")),
     regularize_(configDict.get<Switch>("regularization")),
-    consistencyAlgTmp_(normalConsistency::New(configDict.subDict("normalConsistency")))
+    consistencyAlgTmp_(normalConsistency::New(configDict.subDict("normalConsistency"))),
+    EV0_(0),
+    dict_(configDict)
 {}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+scalar foamIsoSurfaceFrontReconstructor::surfaceEnclosedVolume(triSurfaceFront& front) const
+{
+    scalar Vsurf = 0;
+
+    const auto& p = front.localPoints();
+    const auto& faces = front.localFaces();
+    forAll(faces, I)
+    {
+        const auto& Sf = front.Sf()[I];
+        const auto& f = faces[I];
+        Vsurf += dot(-Sf, // Surface normals are oriented into the phase.
+            (p[f[0]] + p[f[1]] +
+                p[f[2]]));
+    }
+
+    Vsurf = 1. / 9. * mag(Vsurf);
+
+    return Vsurf;
+}
 
 void foamIsoSurfaceFrontReconstructor::reconstructFront(
     triSurfaceFront& front,
@@ -84,17 +105,53 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
 {
     using algorithmType = isoSurfaceParams::algorithmType; 
     using filterType = isoSurfaceParams::filterType;
+    //scalar EV = 0;
+    scalar isoValue = 0;
 
     // Original choice for the iso-surface reconstruction 
     isoSurfaceParams isoParams
     (
+        dict_,
         algorithmType::ALGO_DEFAULT, 
         (regularize_) ? filterType::DIAGCELL : filterType::NONE
     );
+
+    if (signedDistance.time().timeIndex()>0)
+    {
+        isoSurfacePoint iso0(
+            signedDistance,
+            pointSignedDistance,
+            0, 
+            isoParams
+        );
+        triSurfaceFront front0 
+        (
+            IOobject(
+                "front",
+                "front0",
+                signedDistance.mesh(),
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE
+            )//,
+          //  front
+        );
+        // front0= front;
+        front0 = iso0;
+        //front0.write();
+        auto EV = surfaceEnclosedVolume(front0);
+        const auto& triArea = front.magSf();
+        auto sumSf = gSum(triArea);
+        isoValue = (-EV+EV0_)/(sumSf + SMALL);
+        Info<<"### the isoValue for volume conservation:" << isoValue <<endl;
+        Info<<"### the EV0_, EV, sumSf and SMALL: " << EV0_ << ", " << EV << ", " << sumSf << ", " << SMALL << ". "<<endl;
+    }
+
+
     isoSurfacePoint iso(
         signedDistance,
         pointSignedDistance,
-        0, 
+        //0,
+        isoValue, 
         isoParams
     );
     
@@ -122,6 +179,11 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
     // Assign the new iso surface mesh to the front.  
     front = iso;
 
+    if(signedDistance.time().timeIndex()==0)
+    {
+        EV0_=surfaceEnclosedVolume(front);// volume at the zero time step
+    }
+
     // Set the triangleToCell using the map produced by the iso-surface
     // reconstruction algorithm.
     communication.setTriangleToCell(iso.meshCells());
@@ -133,11 +195,11 @@ void foamIsoSurfaceFrontReconstructor::reconstructFront(
     // Make normals consistent. 
     // FIXME: Remove consistencyAlgTmp_, not required anymore, 
     // normals consistently oriented. TM.
-    consistencyAlgTmp_->makeFrontNormalsConsistent(
-        front,
-        signedDistance, 
-        pointSignedDistance
-    );
+    // consistencyAlgTmp_->makeFrontNormalsConsistent(
+    //     front,
+    //     signedDistance, 
+    //     pointSignedDistance
+    // );
 
     communication.update();
 }

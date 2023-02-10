@@ -73,11 +73,20 @@ class foamIsoSurfaceFrontReconstructor
     scalar mergeTolerance_;
     Switch regularize_;
 
+    // Store surfaced-enclosed volume at 0 time step 
+    mutable scalar EV0_;
+    const dictionary& dict_;
+
     tmp<normalConsistency> consistencyAlgTmp_;
 
 public:
 
     TypeName ("foamIsoSurface");
+
+    //- Return enclosed volume for *closed* surfaces.
+    //  Computes the enclosed volume using surface divergence. The result
+    //  only make sense if the surface is *closed*.
+    scalar surfaceEnclosedVolume(triSurfaceFront& front) const;
 
     // Constructors
     foamIsoSurfaceFrontReconstructor(const dictionary& configDict);
